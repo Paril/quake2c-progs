@@ -1,0 +1,652 @@
+struct spawn_field_t
+{
+	string		key;
+	__variant	field;
+};
+
+__used spawn_field_t spawn_fields[] =
+{
+	{ "classname", classname },
+	{ "model", model },
+	{ "spawnflags", spawnflags },
+	{ "speed", speed },
+	{ "accel", accel },
+	{ "decel", decel },
+	{ "target", target },
+	{ "targetname", targetname },
+	{ "pathtarget", pathtarget },
+	{ "deathtarget", deathtarget },
+	{ "killtarget", killtarget },
+	{ "combattarget", combattarget },
+	{ "message", message },
+	{ "team", team },
+	{ "wait", wait },
+	{ "delay", delay },
+	{ "random", random },
+	{ "move_origin", move_origin },
+	{ "move_angles", move_angles },
+	{ "style", style },
+	{ "count", count },
+	{ "health", health },
+	{ "sounds", sounds },
+	{ "light", -1 },
+	{ "dmg", dmg },
+	{ "mass", mass },
+	{ "volume", volume },
+	{ "attenuation", attenuation },
+	{ "map", map },
+	{ "origin", s.origin },
+	{ "angles", s.angles }
+};
+
+// spawn_temp_t is only used to hold entity field values that
+// can be set from the editor, but aren't actualy present
+// in edict_t during gameplay
+struct spawn_temp_t
+{
+	// world vars
+	dynstring	sky;
+	float		skyrotate;
+	vector		skyaxis;
+	dynstring	nextmap;
+	
+	int		lip;
+	int		distance;
+	int		height;
+	dynstring	noise;
+	float		pausetime;
+	dynstring	item;
+	dynstring	gravity;
+	
+	float		minyaw;
+	float		maxyaw;
+	float		minpitch;
+	float		maxpitch;
+	
+	float		angle;
+} st;
+
+static bool(string key, string value, entity ent) ED_ParseField =
+{
+	for (ARRAY_INDEX_TYPE i = 0; i < sizeof(spawn_fields) / sizeof(spawn_field_t); i++)
+	{
+		if (stricmp(spawn_fields[i].key, key))
+			continue;
+		
+		if (spawn_fields[i].field != -1)
+			entity_key_parse(ent, spawn_fields[i].field, value);
+
+		return true;
+	}
+	
+	return false;
+};
+
+static bool(string key, string value) ED_ParseSpawnTemp =
+{
+	return struct_key_parse("st", key, value);
+};
+
+static void() ClearSpawnTemp =
+{
+	if (st.sky)
+		dynstring_release(st.sky);
+	if (st.nextmap)
+		dynstring_release(st.nextmap);
+	if (st.noise)
+		dynstring_release(st.noise);
+	if (st.item)
+		dynstring_release(st.item);
+	if (st.gravity)
+		dynstring_release(st.gravity);
+
+	struct_clear(st, sizeof(st));
+}
+
+static void(string entities, __inout int entities_offset, entity ent) ED_ParseEdict =
+{
+	bool init = false;
+	
+	// go through all the dictionary pairs
+	while (true)
+	{
+		// parse key
+		string key = strtok(entities, entities_offset);
+		
+		if (key == "}")
+			break;
+		else if (strempty(key))
+			gi.error(__FUNC__": EOF without closing brace");
+
+		init = true;
+		
+		// keynames with a leading underscore are used for utility comments,
+		// and are immediately discarded by quake
+		if (strat(key, 0) == '_')
+		{
+			strtok(entities, entities_offset);
+			continue;
+		}
+
+		string value = strtok(entities, entities_offset);
+		
+		if (!ED_ParseField(key, value, ent) && !ED_ParseSpawnTemp(key, value))
+			gi.dprintf(__FUNC__": %s is not a field\n", key);
+	}
+	
+	// QC-specific hack to support .angle
+	if (st.angle)
+		ent.s.angles[YAW] = st.angle;
+	
+	if (!init)
+		G_FreeEdict(ent);
+};
+
+// these are only used by the spawn function
+const int SPAWNFLAG_NOT_EASY		= 0x00000100;
+const int SPAWNFLAG_NOT_MEDIUM		= 0x00000200;
+const int SPAWNFLAG_NOT_HARD		= 0x00000400;
+const int SPAWNFLAG_NOT_DEATHMATCH	= 0x00000800;
+const int SPAWNFLAG_NOT_COOP		= 0x00001000;
+
+// from client.qc
+void() SaveClientData;
+
+/*
+===============
+ED_CallSpawn
+
+Finds the spawn function for the entity and calls it
+===============
+*/
+bool(entity ent) ED_CallSpawn =
+{
+	if (!ent->classname) {
+		gi.dprintf("ED_CallSpawn: NULL classname\n");
+		return false;
+	}
+	
+	// check item spawn functions
+	gitem_id_t itemid = FindItemByClassname(ent->classname);
+	
+	if (itemid)
+	{
+		SpawnItem(ent, itemid);
+		return true;
+	}
+
+	void(entity) spawnfunc = func_get(va("SP_%s", ent.classname));
+	
+	if (spawnfunc)
+	{
+		spawnfunc(ent);
+		return true;
+	}
+
+
+	gi.dprintf("%s doesn't have a spawn function\n", ent->classname);
+	
+	return false;
+}
+
+/*
+==============
+SpawnEntities
+
+Creates a server's entity / program execution context by
+parsing textual entity definitions out of an ent file.
+==============
+*/
+__used void(dynstring mapname, dynstring entities, dynstring spawnpoint) SpawnEntities =
+{
+	int entities_offset = 0;
+	int skill_level = skill.intVal;
+
+	if (skill_level < 0)
+		skill_level = 0;
+	if (skill_level > 3)
+		skill_level = 3;
+	if (skill.intVal != skill_level)
+		gi.cvar_forceset("skill", itos(skill_level));
+
+	SaveClientData();
+	
+	if (level.mapname)
+		dynstring_release(level.mapname);
+	
+	struct_clear(level, sizeof(level));
+	level.mapname = dynstring_copy(mapname);
+	game.spawnpoint = dynstring_copy(spawnpoint);
+	
+	entity ent = world;
+	int inhibit = 0;
+	
+	// parse ents
+	while (1)
+	{
+		string token = strtok(dynstring_str(entities), entities_offset);
+		
+		if (entities_offset < 0)
+			break;
+
+		if (token != "{")
+			gi.error(__FUNC__": found %s when expecting {", token);
+		
+		if (ent.inuse)
+			ent = G_Spawn();
+		else
+		{
+			G_FreeEdict(ent);
+			G_InitEdict(ent);	
+		}
+		
+		ED_ParseEdict(dynstring_str(entities), entities_offset, ent);
+
+		// yet another map hack
+		if (!stricmp(dynstring_str(level.mapname), "command") && !stricmp(dynstring_str(ent.classname), "trigger_once") && !stricmp(dynstring_str(ent.model), "*27"))
+			ent->spawnflags &= ~SPAWNFLAG_NOT_HARD;
+			
+		// remove things (except the world) from different skill levels or deathmatch
+		if (ent != world)
+		{
+			if (deathmatch.intVal)
+			{
+				if (ent->spawnflags & SPAWNFLAG_NOT_DEATHMATCH)
+				{
+					G_FreeEdict(ent);
+					inhibit++;
+					continue;
+				}
+			}
+			else
+			{
+				if ( /* ((coop->value) && (ent->spawnflags & SPAWNFLAG_NOT_COOP)) || */
+					((skill_level == 0) && (ent->spawnflags & SPAWNFLAG_NOT_EASY)) ||
+					((skill_level == 1) && (ent->spawnflags & SPAWNFLAG_NOT_MEDIUM)) ||
+					(((skill_level == 2) || (skill_level == 3)) && (ent->spawnflags & SPAWNFLAG_NOT_HARD)))
+				{
+					G_FreeEdict(ent);
+					inhibit++;
+					continue;
+				}
+			}
+
+			ent->spawnflags &= ~(SPAWNFLAG_NOT_EASY | SPAWNFLAG_NOT_MEDIUM | SPAWNFLAG_NOT_HARD | SPAWNFLAG_NOT_COOP | SPAWNFLAG_NOT_DEATHMATCH);
+		}
+
+		if (!ED_CallSpawn(ent))
+		{
+			G_FreeEdict(ent);
+			inhibit++;
+		}
+	
+		ClearSpawnTemp();
+	}
+	
+	ClearSpawnTemp();
+
+	gi.dprintf("%i entities inhibited\n", inhibit);
+
+	//TODO
+	//G_FindTeams();
+
+	//TODO
+	//PlayerTrail_Init();
+};
+
+//===================================================================
+
+#if 0
+// cursor positioning
+xl <value>
+xr <value>
+yb <value>
+yt <value>
+xv <value>
+yv <value>
+
+// drawing
+statpic <name>
+pic <stat>
+num <fieldwidth> <stat>
+string <stat>
+
+// control
+if <stat>
+ifeq <stat> <value>
+ifbit <stat> <value>
+endif
+#endif
+
+static string single_statusbar =
+"yb -24 "
+
+// health
+"xv 0 "
+"hnum "
+"xv 50 "
+"pic 0 "
+
+// ammo
+"if 2 "
+"   xv  100 "
+"   anum "
+"   xv  150 "
+"   pic 2 "
+"endif "
+
+// armor
+"if 4 "
+"   xv  200 "
+"   rnum "
+"   xv  250 "
+"   pic 4 "
+"endif "
+
+// selected item
+"if 6 "
+"   xv  296 "
+"   pic 6 "
+"endif "
+
+"yb -50 "
+
+// picked up item
+"if 7 "
+"   xv  0 "
+"   pic 7 "
+"   xv  26 "
+"   yb  -42 "
+"   stat_string 8 "
+"   yb  -50 "
+"endif "
+
+// timer
+"if 9 "
+"   xv  262 "
+"   num 2   10 "
+"   xv  296 "
+"   pic 9 "
+"endif "
+
+//  help / weapon icon
+"if 11 "
+"   xv  148 "
+"   pic 11 "
+"endif "
+;
+
+static string dm_statusbar =
+"yb -24 "
+
+// health
+"xv 0 "
+"hnum "
+"xv 50 "
+"pic 0 "
+
+// ammo
+"if 2 "
+"   xv  100 "
+"   anum "
+"   xv  150 "
+"   pic 2 "
+"endif "
+
+// armor
+"if 4 "
+"   xv  200 "
+"   rnum "
+"   xv  250 "
+"   pic 4 "
+"endif "
+
+// selected item
+"if 6 "
+"   xv  296 "
+"   pic 6 "
+"endif "
+
+"yb -50 "
+
+// picked up item
+"if 7 "
+"   xv  0 "
+"   pic 7 "
+"   xv  26 "
+"   yb  -42 "
+"   stat_string 8 "
+"   yb  -50 "
+"endif "
+
+// timer
+"if 9 "
+"   xv  246 "
+"   num 2   10 "
+"   xv  296 "
+"   pic 9 "
+"endif "
+
+//  help / weapon icon
+"if 11 "
+"   xv  148 "
+"   pic 11 "
+"endif "
+
+//  frags
+"xr -50 "
+"yt 2 "
+"num 3 14 "
+
+// spectator
+"if 17 "
+"xv 0 "
+"yb -58 "
+"string2 \"SPECTATOR MODE\" "
+"endif "
+
+// chase camera
+"if 16 "
+"xv 0 "
+"yb -68 "
+"string \"Chasing\" "
+"xv 64 "
+"stat_string 16 "
+"endif "
+;
+
+/*QUAKED worldspawn (0 0 0) ?
+
+Only used for the world.
+"sky"   environment map name
+"skyaxis"   vector axis for rotating sky
+"skyrotate" speed of rotation in degrees/second
+"sounds"    music cd track number
+"gravity"   800 is default gravity
+"message"   text to print at user logon
+*/
+__used static void(entity ent) SP_worldspawn =
+{
+	ent->movetype = MOVETYPE_PUSH;
+	ent->solid = SOLID_BSP;
+	ent->inuse = true;          // since the world doesn't use G_Spawn()
+	ent->s.modelindex = 1;      // world model is always index 1
+
+	//---------------
+
+	// reserve some spots for dead player bodies for coop / deathmatch
+	InitBodyQue();
+
+	// set configstrings for items
+	SetItemNames();
+
+	if (st.nextmap)
+		level.nextmap = dynstring_copy(st.nextmap);
+
+	// make some data visible to the server
+
+	if (ent->message) {
+		gi.configstring(CS_NAME, dynstring_str(ent->message));
+		level.level_name = dynstring_copy(ent->message);
+	} else
+		level.level_name = dynstring_copy(level.mapname);
+
+	if (st.sky)
+		gi.configstring(CS_SKY, dynstring_str(st.sky));
+	else
+		gi.configstring(CS_SKY, "unit1_");
+
+	gi.configstring(CS_SKYROTATE, va("%f", st.skyrotate));
+
+	gi.configstring(CS_SKYAXIS, va("%f %f %f", st.skyaxis[(ARRAY_INDEX_TYPE)0], st.skyaxis[(ARRAY_INDEX_TYPE)1], st.skyaxis[(ARRAY_INDEX_TYPE)2]));
+
+	gi.configstring(CS_CDTRACK, va("%i", ent->sounds));
+
+	gi.configstring(CS_MAXCLIENTS, va("%i", game.maxclients));
+
+	// status bar program
+	if (deathmatch.intVal)
+		gi.configstring(CS_STATUSBAR, dm_statusbar);
+	else
+		gi.configstring(CS_STATUSBAR, single_statusbar);
+
+	//---------------
+
+
+	// help icon for statusbar
+	gi.imageindex("i_help");
+	level.pic_health = gi.imageindex("i_health");
+	gi.imageindex("help");
+	gi.imageindex("field_3");
+
+	if (!st.gravity)
+		gi.cvar_set("sv_gravity", "800");
+	else
+		gi.cvar_set("sv_gravity", dynstring_str(st.gravity));
+
+	snd_fry = gi.soundindex("player/fry.wav");  // standing in lava / slime
+
+	PrecacheItem(FindItem("Blaster"));
+
+	gi.soundindex("player/lava1.wav");
+	gi.soundindex("player/lava2.wav");
+
+	gi.soundindex("misc/pc_up.wav");
+	gi.soundindex("misc/talk1.wav");
+
+	gi.soundindex("misc/udeath.wav");
+
+	// gibs
+	gi.soundindex("items/respawn1.wav");
+
+	// sexed sounds
+	gi.soundindex("*death1.wav");
+	gi.soundindex("*death2.wav");
+	gi.soundindex("*death3.wav");
+	gi.soundindex("*death4.wav");
+	gi.soundindex("*fall1.wav");
+	gi.soundindex("*fall2.wav");
+	gi.soundindex("*gurp1.wav");        // drowning damage
+	gi.soundindex("*gurp2.wav");
+	gi.soundindex("*jump1.wav");        // player jump
+	gi.soundindex("*pain25_1.wav");
+	gi.soundindex("*pain25_2.wav");
+	gi.soundindex("*pain50_1.wav");
+	gi.soundindex("*pain50_2.wav");
+	gi.soundindex("*pain75_1.wav");
+	gi.soundindex("*pain75_2.wav");
+	gi.soundindex("*pain100_1.wav");
+	gi.soundindex("*pain100_2.wav");
+
+	// sexed models
+	// THIS ORDER MUST MATCH THE DEFINES IN g_local.h
+	// you can add more, max 15
+	gi.modelindex("#w_blaster.md2");
+	gi.modelindex("#w_shotgun.md2");
+	gi.modelindex("#w_sshotgun.md2");
+	gi.modelindex("#w_machinegun.md2");
+	gi.modelindex("#w_chaingun.md2");
+	gi.modelindex("#a_grenades.md2");
+	gi.modelindex("#w_glauncher.md2");
+	gi.modelindex("#w_rlauncher.md2");
+	gi.modelindex("#w_hyperblaster.md2");
+	gi.modelindex("#w_railgun.md2");
+	gi.modelindex("#w_bfg.md2");
+
+	//-------------------
+
+	gi.soundindex("player/gasp1.wav");      // gasping for air
+	gi.soundindex("player/gasp2.wav");      // head breaking surface, not gasping
+
+	gi.soundindex("player/watr_in.wav");    // feet hitting water
+	gi.soundindex("player/watr_out.wav");   // feet leaving water
+
+	gi.soundindex("player/watr_un.wav");    // head going underwater
+
+	gi.soundindex("player/u_breath1.wav");
+	gi.soundindex("player/u_breath2.wav");
+
+	gi.soundindex("items/pkup.wav");        // bonus item pickup
+	gi.soundindex("world/land.wav");        // landing thud
+	gi.soundindex("misc/h2ohit1.wav");      // landing splash
+
+	gi.soundindex("items/damage.wav");
+	gi.soundindex("items/protect.wav");
+	gi.soundindex("items/protect4.wav");
+	gi.soundindex("weapons/noammo.wav");
+
+	gi.soundindex("infantry/inflies1.wav");
+
+	sm_meat_index = gi.modelindex("models/objects/gibs/sm_meat/tris.md2");
+	gi.modelindex("models/objects/gibs/arm/tris.md2");
+	gi.modelindex("models/objects/gibs/bone/tris.md2");
+	gi.modelindex("models/objects/gibs/bone2/tris.md2");
+	gi.modelindex("models/objects/gibs/chest/tris.md2");
+	gi.modelindex("models/objects/gibs/skull/tris.md2");
+	gi.modelindex("models/objects/gibs/head2/tris.md2");
+
+//
+// Setup light animation tables. 'a' is total darkness, 'z' is doublebright.
+//
+
+	// 0 normal
+	gi.configstring(CS_LIGHTS + 0, "m");
+
+	// 1 FLICKER (first variety)
+	gi.configstring(CS_LIGHTS + 1, "mmnmmommommnonmmonqnmmo");
+
+	// 2 SLOW STRONG PULSE
+	gi.configstring(CS_LIGHTS + 2, "abcdefghijklmnopqrstuvwxyzyxwvutsrqponmlkjihgfedcba");
+
+	// 3 CANDLE (first variety)
+	gi.configstring(CS_LIGHTS + 3, "mmmmmaaaaammmmmaaaaaabcdefgabcdefg");
+
+	// 4 FAST STROBE
+	gi.configstring(CS_LIGHTS + 4, "mamamamamama");
+
+	// 5 GENTLE PULSE 1
+	gi.configstring(CS_LIGHTS + 5, "jklmnopqrstuvwxyzyxwvutsrqponmlkj");
+
+	// 6 FLICKER (second variety)
+	gi.configstring(CS_LIGHTS + 6, "nmonqnmomnmomomno");
+
+	// 7 CANDLE (second variety)
+	gi.configstring(CS_LIGHTS + 7, "mmmaaaabcdefgmmmmaaaammmaamm");
+
+	// 8 CANDLE (third variety)
+	gi.configstring(CS_LIGHTS + 8, "mmmaaammmaaammmabcdefaaaammmmabcdefmmmaaaa");
+
+	// 9 SLOW STROBE (fourth variety)
+	gi.configstring(CS_LIGHTS + 9, "aaaaaaaazzzzzzzz");
+
+	// 10 FLUORESCENT FLICKER
+	gi.configstring(CS_LIGHTS + 10, "mmamammmmammamamaaamammma");
+
+	// 11 SLOW PULSE NOT FADE TO BLACK
+	gi.configstring(CS_LIGHTS + 11, "abcdefghijklmnopqrrqponmlkjihgfedcba");
+
+	// styles 32-62 are assigned by the light program for switchable lights
+
+	// 63 testing
+	gi.configstring(CS_LIGHTS + 63, "a");
+}

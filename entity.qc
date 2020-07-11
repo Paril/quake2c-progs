@@ -1,0 +1,631 @@
+// entity_state_t->effects
+// Effects are things handled on the client side (lights, particles, frame animations)
+// that happen constantly on the given entity.
+// An entity that has effects will be sent to the client
+// even if it has a zero index model.
+typedef enumflags int
+{
+	EF_ROTATE,	// rotate (bonus items)
+	EF_GIB,		// leave a trail
+	EF_UNUSED,
+	EF_BLASTER,	// redlight + trail
+	EF_ROCKET,	// redlight + trail
+	EF_GRENADE,
+	EF_HYPERBLASTER,
+	EF_BFG,
+	EF_COLOR_SHELL,
+	EF_POWERSCREEN,
+	EF_ANIM01,		// automatically cycle between frames 0 and 1 at 2 hz
+	EF_ANIM23,		// automatically cycle between frames 2 and 3 at 2 hz
+	EF_ANIM_ALL,		// automatically cycle through all frames at 2hz
+	EF_ANIM_ALLFAST,	// automatically cycle through all frames at 10hz
+	EF_FLIES,
+	EF_QUAD,
+	EF_PENT,
+	EF_TELEPORTER,		// particle fountain
+	EF_FLAG1,
+	EF_FLAG2,
+// RAFAEL
+	EF_IONRIPPER,
+	EF_GREENGIB,
+	EF_BLUEHYPERBLASTER,
+	EF_SPINNINGLIGHTS,
+	EF_PLASMA,
+	EF_TRAP,
+// RAFAEL
+
+//ROGUE
+	EF_TRACKER,
+	EF_DOUBLE,
+	EF_SPHERETRANS,
+	EF_TAGTRAIL,
+	EF_HALF_DAMAGE,
+//ROGUE
+} entity_effects_t;
+
+// FIXME loop bug
+const entity_effects_t EF_TRACKERTRAIL = 0x80000000;
+
+// entity_state_t->renderfx flags
+typedef enumflags int
+{
+	RF_MINLIGHT,	// allways have some light (viewmodel)
+	RF_VIEWERMODEL,	// don't draw through eyes, only mirrors
+	RF_WEAPONMODEL,	// only draw through eyes
+	RF_FULLBRIGHT,	// allways draw full intensity
+	RF_DEPTHHACK,	// for view weapon Z crunching
+	RF_TRANSLUCENT,
+	RF_FRAMELERP,
+	RF_BEAM,
+	RF_CUSTOMSKIN,	// skin is an index in image_precache
+	RF_GLOW,	// pulse lighting for bonus items
+	RF_SHELL_RED,
+	RF_SHELL_GREEN,
+	RF_SHELL_BLUE,
+
+//ROGUE
+	RF_IR_VISIBLE		= 0x00008000,      // 32768
+	RF_SHELL_DOUBLE,      // 65536
+	RF_SHELL_HALF_DAM,
+	RF_USE_DISGUISE
+//ROGUE
+} render_effects_t;
+
+// entity_state_t->event values
+// ertity events are for effects that take place reletive
+// to an existing entities origin.  Very network efficient.
+// All muzzle flashes really should be converted to events...
+typedef enum int
+{
+	EV_NONE,
+	EV_ITEM_RESPAWN,
+	EV_FOOTSTEP,
+	EV_FALLSHORT,
+	EV_FALL,
+	EV_FALLFAR,
+	EV_PLAYER_TELEPORT,
+	EV_OTHER_TELEPORT
+} entity_event_t;
+
+struct entity_state_t
+{
+	int			number;
+	vector			origin;
+	vector			angles;
+	vector			old_origin;
+	int			modelindex;
+	int			modelindex2;
+	int			modelindex3;
+	int			modelindex4;
+	int			frame;
+	int			skinnum;
+	entity_effects_t	effects;
+	render_effects_t	renderfx;
+	int			solid;
+	int			sound;
+	entity_event_t		event;
+};
+
+const int MAX_ENT_CLUSTERS = 16;
+
+// WARNING:
+// These members must be bit accurate!!!
+.entity_state_t	s;
+.bool		is_client; // this is actually a ptr, managed by the engine
+.bool		inuse;
+.int		linkcount;
+
+.struct link_t
+{
+	link_t *prev, *next;
+}		area;
+
+.int		num_clusters;
+.int		clusternums[MAX_ENT_CLUSTERS];
+.int		headnode;
+.int		areanum, areanum2;
+
+// edict->svflags
+.enumflags
+{
+	SVF_NOCLIENT,		// don't send entity to clients, even if it has effects
+	SVF_DEADMONSTER,	// treat as CONTENTS_DEADMONSTER for collision
+	SVF_MONSTER,		// treat as CONTENTS_MONSTER for collision
+}		svflags;
+.vector		mins, maxs;
+.vector		absmin, absmax, size;
+
+
+.enum {
+    SOLID_NOT,		// no interaction with other objects
+    SOLID_TRIGGER,	// only touch when inside, after moving
+    SOLID_BBOX,		// touch on edge
+    SOLID_BSP		// bsp clip, touch on edge
+}			solid;
+.content_flags_t	clipmask;
+.entity			owner;
+
+// game fields below; feel free to modify!
+.enum
+{
+    MOVETYPE_NONE,          // never moves
+    MOVETYPE_NOCLIP,        // origin and angles change with no interaction
+    MOVETYPE_PUSH,          // no clip to world, push on box contact
+    MOVETYPE_STOP,          // no clip to world, stops on box contact
+
+    MOVETYPE_WALK,          // gravity
+    MOVETYPE_STEP,          // gravity, special edge handling
+    MOVETYPE_FLY,
+    MOVETYPE_TOSS,          // gravity
+    MOVETYPE_FLYMISSILE,    // extra size to monsters
+    MOVETYPE_BOUNCE
+} 		movetype;
+
+// edict->flags
+.enumflags
+{
+	FL_FLY,
+	FL_SWIM,	// implied immunity to drowning
+	FL_IMMUNE_LASER,
+	FL_INWATER,
+	FL_GODMODE,
+	FL_NOTARGET,
+	FL_IMMUNE_SLIME,
+	FL_IMMUNE_LAVA,
+	FL_PARTIALGROUND,
+	FL_WATERJUMP,
+	FL_TEAMSLAVE,
+	FL_NO_KNOCKBACK,
+	FL_POWER_ARMOR,
+	
+	FL_RESPAWN
+}		flags;
+
+.dynstring	model;
+.float		freetime;
+
+.dynstring	message;
+.dynstring	classname;
+.int		spawnflags;
+
+.int		timestamp;
+.float		angle;
+.dynstring	target;
+.dynstring	targetname;
+.dynstring	killtarget;
+.dynstring	team;
+.dynstring	pathtarget;
+.dynstring	deathtarget;
+.dynstring	combattarget;
+.dynstring	target_ent;
+
+.float		speed, accel, decel;
+.vector		movedir;
+.vector		pos1, po2;
+
+.vector		velocity;
+.vector		avelocity;
+.int		mass;
+.int		air_finished_framenum;
+.float		gravity;
+
+.entity		goalentity;
+.entity		movetarget;
+.float		yaw_speed;
+.float		ideal_yaw;
+
+.int		nextthink;
+.void(entity)	prethink;
+.void(entity)	think;
+.void(entity, entity) blocked;
+.void(entity, entity, cplane_t, csurface_t) touch;
+.void(entity, entity, entity) use;
+.void(entity, entity, float, int) pain;
+.void(entity, entity, entity, int, vector) die;
+
+.int	touch_debounce_framenum;
+.int	pain_debounce_framenum;
+.int	damage_debounce_framenum;
+.int	fly_sound_debounce_framenum;
+.int	last_move_framenum;
+
+.int	health;
+.int	max_health;
+.int	gib_health;
+.enum int
+{
+	DEAD_NO,
+	DEAD_DYING,
+	DEAD_DEAD,
+	DEAD_RESPAWNABLE 
+}	deadflag;
+.int	show_hostile;
+
+.int	powerarmor_framenum;
+
+.dynstring	map;
+.int	viewheight;
+.enum int
+{
+	DAMAGE_NO,
+	DAMAGE_YES,	// will take damage if hit
+	DAMAGE_AIM	// auto targeting recognizes this
+} 	takedamage;
+.int	dmg;
+.int	radius_dmg;
+.float	dmg_radius;
+.int	sounds;
+.int	count;
+
+.entity	chain;
+.entity	enemy;
+.entity	oldenemy;
+.entity	activator;
+.entity	groundentity;
+.int	groundentity_linkcount;
+.entity	teamchain;
+.entity	teammaster;
+
+.entity	mynoise;
+.entity mynoise2;
+
+.int	noise_index;
+.int	noise_index2;
+.float	volume;
+.float	attenuation;
+
+.float	wait;
+.float	delay;
+.float	random;
+
+.int	last_sound_framenum;
+
+.content_flags_t	watertype;
+.int			waterlevel;
+
+.vector	move_origin;
+.vector	move_angles;
+
+.int	light_level;
+.int	style;
+.int	item; // FIXME
+
+struct moveinfo_t
+{
+	// fixed data
+	vector	start_origin;
+	vector	start_angles;
+	vector	end_origin;
+	vector	end_angles;
+	
+	int	sound_start;
+	int	sound_middle;
+	int	sound_end;
+	
+	float	accel;
+	float	speed;
+	float	decel;
+	float	distance;
+	
+	float	wait;
+	
+	// state data
+	int		state;
+	vector		dir;
+	float		current_speed;
+	float		move_speed;
+	float		next_speed;
+	float		remaining_distance;
+	float		decel_distance;
+	void(entity)	endfunc;
+};
+
+struct mframe_t
+{
+	void(entity, float)	aifunc;
+	float			dist;
+	void(entity)		thinkfunc;
+};
+
+struct mmove_t
+{
+	int		firstframe;
+	int		lastframe;
+	mframe_t	*frame;
+	void(entity)	endfunc;
+};
+
+//monster ai flags
+typedef enumflags int
+{
+	AI_STAND_GROUND,
+	AI_TEMP_STAND_GROUND,
+	AI_SOUND_TARGET,
+	AI_LOST_SIGHT,
+	AI_PURSUIT_LAST_SEEN,
+	AI_PURSUE_NEXT,
+	AI_PURSUE_TEMP,
+	AI_HOLD_FRAME,
+	AI_GOOD_GUY,
+	AI_BRUTAL,
+	AI_NOSTEP,
+	AI_DUCKED,
+	AI_COMBAT_POINT,
+	AI_MEDIC,
+	AI_RESURRECTING
+} ai_flags_t;
+
+// power armor types
+typedef enum int
+{
+	POWER_ARMOR_NONE,
+	POWER_ARMOR_SCREEN,
+	POWER_ARMOR_SHIELD,
+} power_armor_type_t;
+
+struct monsterinfo_t
+{
+	mmove_t     *currentmove;
+	ai_flags_t  aiflags;
+	int         nextframe;
+	float       scale;
+	
+	void(entity)			stand;
+	void(entity)			idle;
+	void(entity)			search;
+	void(entity)			walk;
+	void(entity)			run;
+	void(entity, entity, float)	dodge;
+	void(entity)			attack;
+	void(entity)			melee;
+	void(entity, entity)		sight;
+	bool(entity)			checkattack;
+	
+	int	pause_framenum;
+	int	attack_finished;
+	
+	vector	saved_goal;
+	int	search_framenum;
+	int	trail_framenum;
+	vector	last_sighting;
+	int	attack_state;
+	int	lefty;
+	int	idle_framenum;
+	int	linkcount;
+	
+	int	power_armor_type;
+	int	power_armor_power;
+};
+
+.monsterinfo_t	monsterinfo;
+.moveinfo_t	moveinfo;
+
+// player_state_t->refdef flags
+typedef enumflags int
+{
+	RDF_UNDERWATER,	// warp the screen as apropriate
+	RDF_NOWORLDMODEL,	// used for player configuration screen
+
+//ROGUE
+	RDF_IRGOGGLES,
+	RDF_UVGOGGLES
+//ROGUE
+} refdef_flags_t;
+
+// player_state->stats[] indexes
+typedef enum : ARRAY_INDEX_TYPE
+{
+	// For engine compatibility, these 18 IDs should remain the same
+	// and keep their described usage
+	STAT_HEALTH_ICON,
+	STAT_HEALTH,
+	STAT_AMMO_ICON,
+	STAT_AMMO,
+	STAT_ARMOR_ICON,
+	STAT_ARMOR,
+	STAT_SELECTED_ICON,
+	STAT_PICKUP_ICON,
+	STAT_PICKUP_STRING,
+	STAT_TIMER_ICON,
+	STAT_TIMER,
+	STAT_HELPICON,
+	STAT_SELECTED_ITEM,
+	STAT_LAYOUTS,
+	STAT_FRAGS,
+	STAT_FLASHES,		// cleared each frame, 1 = health, 2 = armor
+	STAT_CHASE,
+	STAT_SPECTATOR,
+	// Bits from here to 31 are free for mods
+
+	MAX_STATS	= (ARRAY_INDEX_TYPE)32
+} player_stat_t;
+
+struct player_state_t
+{
+	pmove_state_t	pmove;
+	
+	vector	viewangles;
+	vector	viewoffset;
+	vector	kick_angles;
+	
+	vector	gunangles;
+	vector	gunoffset;
+	int	gunindex;
+	int	gunframe;
+	
+	float	blend[4];
+	
+	float	fov;
+	
+	refdef_flags_t	rdflags;
+	
+	int	stats[MAX_STATS];
+};
+
+// handedness values
+typedef enum int
+{
+	RIGHT_HANDED,
+	LEFT_HANDED,
+	CENTER_HANDED
+} handedness_t;
+
+// client data that stays across multiple level loads
+struct client_persistant_t
+{
+	dynstring	userinfo;
+	dynstring	netname;
+	handedness_t	hand;
+	
+	bool	connected;  // a loadgame will leave valid entities that
+				// just don't have a connection yet
+	
+	// values saved and restored from edicts when changing levels
+	int	health;
+	int	max_health;
+	int	savedFlags;
+	
+	// FIXME
+	int	selected_item;
+	// FIXME
+	//int	inventory[MAX_ITEMS];
+	
+	// ammo capacities
+	int	max_bullets;
+	int	max_shells;
+	int	max_rockets;
+	int	max_grenades;
+	int	max_cells;
+	int	max_slugs;
+	
+	// FIXME
+	int	weapon;
+	int	lastweapon;
+	
+	int	power_cubes;    // used for tracking the cubes in coop games
+	int	score;          // for calculating total unit score in coop games
+	
+	int	game_helpchanged;
+	int	helpchanged;
+	
+	bool	spectator;      // client is a spectator
+};
+
+// client data that stays across deathmatch respawns
+struct client_respawn_t
+{
+	client_persistant_t	coop_respawn;   // what to set client->pers to on a respawn
+	int			enterframe;         // level.framenum the client entered the game
+	int			score;              // frags, etc
+	vector			cmd_angles;         // angles sent over in the last command
+
+	bool	spectator;          // client is a spectator
+};
+
+typedef enum int
+{
+	WEAPON_READY,
+	WEAPON_ACTIVATING,
+	WEAPON_DROPPING,
+	WEAPON_FIRING
+} weaponstate_t;
+
+// client_t->anim_priority
+typedef enum int
+{
+	ANIM_BASIC,		// stand / run
+	ANIM_WAVE,
+	ANIM_JUMP,
+	ANIM_PAIN,
+	ANIM_ATTACK,
+	ANIM_DEATH,
+	ANIM_REVERSE
+} anim_priority_t;
+
+struct gclient_t
+{
+	player_state_t	ps;
+	int		ping;
+	int		clientNum;
+
+	// private to game
+	client_persistant_t	pers;
+	client_respawn_t	resp;
+	pmove_state_t		old_pmove;  // for detecting out-of-pmove changes
+	
+	bool	showscores;         // set layout stat
+	bool	showinventory;      // set layout stat
+	bool	showhelp;
+	bool	showhelpicon;
+	
+	int	ammo_index;
+	
+	button_bits_t	buttons;
+	button_bits_t	oldbuttons;
+	button_bits_t	latched_buttons;
+	
+	bool	weapon_thunk;
+	
+	// FIXME
+	int	newweapon;
+	
+	// sum up damage over an entire frame, so
+	// shotgun blasts give a single big kick
+	int	damage_armor;       // damage absorbed by armor
+	int	damage_parmor;      // damage absorbed by power armor
+	int	damage_blood;       // damage taken out of health
+	int	damage_knockback;   // impact damage
+	vector	damage_from;        // origin for vector calculation
+	
+	float	killer_yaw;         // when dead, look at killer
+	
+	weaponstate_t	weaponstate;
+	vector		kick_angles;    // weapon kicks
+	vector		kick_origin;
+	float		v_dmg_roll, v_dmg_pitch, v_dmg_time;    // damage kicks
+	float		fall_time, fall_value;      // for view drop on fall
+	float		damage_alpha;
+	float		bonus_alpha;
+	vector		damage_blend;
+	vector		v_angle;            // aiming direction
+	float		bobtime;            // so off-ground doesn't change it
+	vector		oldviewangles;
+	vector		oldvelocity;
+	
+	int	next_drown_framenum;
+	int	old_waterlevel;
+	int	breather_sound;
+	
+	int	machinegun_shots;   // for weapon raising
+	
+	// animation vars
+	int		anim_end;
+	anim_priority_t	anim_priority;
+	bool		anim_duck;
+	bool		anim_run;
+	
+	// powerup timers
+	int	quad_framenum;
+	int	invincible_framenum;
+	int	breather_framenum;
+	int	enviro_framenum;
+	
+	bool	grenade_blew_up;
+	int	grenade_framenum;
+	int	silencer_shots;
+	int	weapon_sound;
+	
+	int	pickup_msg_framenum;
+	
+	float	flood_locktill;     // locked from talking
+	// FIXME
+	//float	flood_when[10];     // when messages were said
+	int	flood_whenhead;     // head pointer for when said
+	
+	int	respawn_framenum;   // can respawn when time > this
+	
+	entity	chase_target;      // player we are chasing
+	bool	update_chase;       // need to update chase info?
+};
+
+.gclient_t	client;

@@ -1,0 +1,32 @@
+float(float) fabsf = #0:fabsf;
+float(float) sqrtf = #0:sqrtf;
+float(float) sinf = #0:sinf;
+float(float) cosf = #0:cosf;
+float(float, float) atan2f = #0:atan2f;
+float(float) RAD2DEG = #0:RAD2DEG;
+float(float) DEG2RAD = #0:DEG2RAD;
+
+const float M_PI = 3.14159265358979323846f;
+
+int() Q_rand = #0:Q_rand;
+int(int) Q_rand_uniform = #0:Q_rand_uniform;
+float() frand = #0:frand;
+float() crand = #0:crand;
+
+// not strictly math, but...
+typedef enum int
+{
+	false,
+	true
+} bool;
+
+// TODO: inline
+#define ANGLE2SHORT(x)  ((int)((x)*65536/360) & 65535)
+#define SHORT2ANGLE(x)  ((x)*(360.0f/65536))
+
+#define COORD2SHORT(x)  ((int)((x)*8.0f))
+#define SHORT2COORD(x)  ((x)*(1.0f/8))
+
+const ARRAY_INDEX_TYPE PITCH	= (ARRAY_INDEX_TYPE)0;
+const ARRAY_INDEX_TYPE YAW	= (ARRAY_INDEX_TYPE)1;
+const ARRAY_INDEX_TYPE ROLL	= (ARRAY_INDEX_TYPE)2;
