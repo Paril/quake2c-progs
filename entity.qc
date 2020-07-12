@@ -181,23 +181,23 @@ const int MAX_ENT_CLUSTERS = 16;
 	FL_RESPAWN
 }		flags;
 
-.dynstring	model;
+.string		model;
 .float		freetime;
 
-.dynstring	message;
-.dynstring	classname;
+.string		message;
+.string		classname;
 .int		spawnflags;
 
 .int		timestamp;
 .float		angle;
-.dynstring	target;
-.dynstring	targetname;
-.dynstring	killtarget;
-.dynstring	team;
-.dynstring	pathtarget;
-.dynstring	deathtarget;
-.dynstring	combattarget;
-.dynstring	target_ent;
+.string		target;
+.string		targetname;
+.string		killtarget;
+.string		team;
+.string		pathtarget;
+.string		deathtarget;
+.string		combattarget;
+.string		target_ent;
 
 .float		speed, accel, decel;
 .vector		movedir;
@@ -243,7 +243,7 @@ const int MAX_ENT_CLUSTERS = 16;
 
 .int	powerarmor_framenum;
 
-.dynstring	map;
+.string	map;
 .int	viewheight;
 .enum int
 {
@@ -473,8 +473,8 @@ typedef enum int
 // client data that stays across multiple level loads
 struct client_persistant_t
 {
-	dynstring	userinfo;
-	dynstring	netname;
+	string		userinfo;
+	string		netname;
 	handedness_t	hand;
 	
 	bool	connected;  // a loadgame will leave valid entities that

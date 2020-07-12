@@ -5,22 +5,16 @@ string(entity ent) ClientTeam =
 	if (!ent->is_client)
 		return "???";
 
-	dynstring team = dynstring_create(Info_ValueForKey (ent->client->pers.userinfo, "skin"));
+	string team = Info_ValueForKey (ent->client->pers.userinfo, "skin");
 	int p = strchr(team, '/');
 
 	if (p == -1)
 		return team;
 
 	if (dmflags.intVal & DF_MODELTEAMS)
-	{
-		string model = substr(team, 0, p);
-		dynstring_release(team);
-		return model;
-	}
-	
-	string skin = substr(team, p + 1);
-	dynstring_release(team);
-	return skin;
+		return substr(team, 0, p);
+
+	return substr(team, p + 1);
 }
 
 bool(entity ent1, entity ent2) OnSameTeam =

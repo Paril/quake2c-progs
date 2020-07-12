@@ -133,7 +133,7 @@ DeathmatchScoreboardMessage
 void(entity ent, entity killer) DeathmatchScoreboardMessage =
 {
 	string	entry;
-	dynstring str;
+	string	str;
 	int	stringlength;
 	int	i, j, k;
 	int	sorted[MAX_CLIENTS];
@@ -164,8 +164,6 @@ void(entity ent, entity killer) DeathmatchScoreboardMessage =
 	}
 
 	// print level name and exit rules
-	str = dynstring_alloc(1024);
-
 	stringlength = 0;
 
 	// add the clients in sorted order
@@ -193,7 +191,7 @@ void(entity ent, entity killer) DeathmatchScoreboardMessage =
 			j = strlen(entry);
 			if (stringlength + j > 1024)
 				break;
-			dynstring_append(str, entry);
+			str = strconcat(str, entry);
 			stringlength += j;
 		}
 
@@ -202,14 +200,12 @@ void(entity ent, entity killer) DeathmatchScoreboardMessage =
 		j = strlen(entry);
 		if (stringlength + j > 1024)
 			break;
-		dynstring_append(str, entry);
+		str = strconcat(str, entry);
 		stringlength += j;
 	}
 
 	gi.WriteByte(svc_layout);
 	gi.WriteString(str);
-
-	dynstring_release(str);
 }
 
 

@@ -86,7 +86,7 @@ static void() ShutdownGame =
 };
 
 // from spawn.qc
-void(dynstring mapname, dynstring entities, dynstring spawnpoint) SpawnEntities;
+void(string mapname, string entities, string spawnpoint) SpawnEntities;
 /*
 =================
 ClientEndServerFrames
@@ -118,11 +118,7 @@ static entity(string new_map) CreateTargetChangeLevel =
 {
 	entity ent = G_Spawn();
 	ent->classname = "target_changelevel";
-	
-	if (level.nextmap)
-		dynstring_release(level.nextmap);
-	
-	level.nextmap = dynstring_create(new_map);
+	level.nextmap = new_map;
 	ent->map = level.nextmap;
 	return ent;
 }
@@ -259,10 +255,7 @@ static void(void) ExitLevel =
 {
 	gi.AddCommandString(va("gamemap \"%s\"\n", level.changemap));
 	
-	if (level.changemap)
-		dynstring_release(level.changemap);
-	
-	level.changemap = null_dynstring;
+	level.changemap = "";
 	level.exitintermission = 0;
 	level.intermission_framenum = 0;
 	ClientEndServerFrames();
@@ -361,14 +354,14 @@ struct game_export_t {
 	void()		InitGame;
 	void()		ShutdownGame;
 	
-	void(dynstring mapname, dynstring entities, dynstring spawnpoint)	SpawnEntities;
+	void(string mapname, string entities, string spawnpoint)	SpawnEntities;
 	
 	bool(entity ent, string userinfo)	ClientConnect;
-	void(entity ent)				ClientBegin;
-	void(entity ent, dynstring userinfo)	ClientUserinfoChanged;
-	void(entity ent)				ClientDisconnect;
-	void(entity ent)				ClientCommand;
-	void(entity ent, usercmd_t cmd)	ClientThink;
+	void(entity ent)			ClientBegin;
+	void(entity ent, string userinfo)	ClientUserinfoChanged;
+	void(entity ent)			ClientDisconnect;
+	void(entity ent)			ClientCommand;
+	void(entity ent, usercmd_t cmd)		ClientThink;
 	
 	void()	RunFrame;
 	

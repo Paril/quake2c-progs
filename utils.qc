@@ -81,7 +81,7 @@ Marks an entity as active, and sets up some default parameters.
 void(entity e) G_InitEdict =
 {
 	e.inuse = true;
-	e.classname = string_dynstring("noclass");
+	e.classname = "noclass";
 	e.gravity = 1.0f;
 	e.groundentity = null_entity;
 };
@@ -140,10 +140,8 @@ void(entity e) G_FreeEdict =
 	if (e.s.number <= (game.maxclients + BODY_QUEUE_SIZE))
 		return;
 
-	// TODO: release dynstrings
-	
 	gi.ClearEntity(e);
-	e.classname = string_dynstring("freed");
+	e.classname = "freed";
 	e.freetime = level.time;
 }
 

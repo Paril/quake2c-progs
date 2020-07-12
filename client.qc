@@ -48,27 +48,27 @@ __used static void(entity self) SP_CreateCoopSpots =
 
     if (level.mapname == "security") {
         spot = G_Spawn();
-        spot->classname = string_dynstring("info_player_coop");
+        spot->classname = "info_player_coop";
         spot->s.origin[(ARRAY_INDEX_TYPE)0] = 188f - 64f;
         spot->s.origin[(ARRAY_INDEX_TYPE)1] = -164f;
         spot->s.origin[(ARRAY_INDEX_TYPE)2] = 80f;
-        spot->targetname = string_dynstring("jail3");
+        spot->targetname = "jail3";
         spot->s.angles[(ARRAY_INDEX_TYPE)1] = 90f;
 
         spot = G_Spawn();
-        spot->classname = string_dynstring("info_player_coop");
+        spot->classname = "info_player_coop";
         spot->s.origin[(ARRAY_INDEX_TYPE)0] = 188f + 64f;
         spot->s.origin[(ARRAY_INDEX_TYPE)1] = -164f;
         spot->s.origin[(ARRAY_INDEX_TYPE)2] = 80f;
-        spot->targetname = string_dynstring("jail3");
+        spot->targetname = "jail3";
         spot->s.angles[(ARRAY_INDEX_TYPE)1] = 90f;
 
         spot = G_Spawn();
-        spot->classname = string_dynstring("info_player_coop");
+        spot->classname = "info_player_coop";
         spot->s.origin[(ARRAY_INDEX_TYPE)0] = 188f + 128f;
         spot->s.origin[(ARRAY_INDEX_TYPE)1] = -164f;
         spot->s.origin[(ARRAY_INDEX_TYPE)2] = 80f;
-        spot->targetname = string_dynstring("jail3");
+        spot->targetname = "jail3";
         spot->s.angles[(ARRAY_INDEX_TYPE)1] = 90f;
 
         return;
@@ -1023,7 +1023,7 @@ int i, numspec;
 //==============================================================
 
 // from player.qc
-void(entity ent, dynstring userinfo) ClientUserinfoChanged;
+void(entity ent, string userinfo) ClientUserinfoChanged;
 
 // from pweapon.qc
 void(entity) ChangeWeapon;
@@ -1052,7 +1052,7 @@ static void(entity ent) PutClientInServer =
 	// deathmatch wipes most client data every spawn
 	if (deathmatch.intVal)
 	{
-		dynstring userinfo = ent.client.pers.userinfo;
+		string userinfo = ent.client.pers.userinfo;
 		
 		struct_copy_to(&ent.client.resp, resp, sizeof(resp));
 		
@@ -1061,7 +1061,7 @@ static void(entity ent) PutClientInServer =
 	}
 	else if (coop.intVal)
 	{
-		dynstring userinfo = ent.client.pers.userinfo;
+		string userinfo = ent.client.pers.userinfo;
 
 		struct_copy_to(&ent.client.resp, resp, sizeof(resp));
 
@@ -1090,13 +1090,13 @@ static void(entity ent) PutClientInServer =
 	ent.movetype = MOVETYPE_WALK;
 	ent.viewheight = 22;
 	ent.inuse = true;
-	ent.classname = string_dynstring("player");
+	ent.classname = "player";
 	ent.mass = 200;
 	ent.solid = SOLID_BBOX;
 	ent.deadflag = DEAD_NO;
 	ent.air_finished_framenum = level.framenum + 12 * BASE_FRAMERATE;
 	ent.clipmask = MASK_PLAYERSOLID;
-	ent.model = string_dynstring("players/male/tris.md2");
+	ent.model = "players/male/tris.md2";
 	ent.pain = player_pain;
 	ent.die = player_die;
 	ent.waterlevel = 0;
@@ -1125,7 +1125,7 @@ static void(entity ent) PutClientInServer =
 	}
 	else
 	{
-		ent.client.ps.fov = stof(Info_ValueForKey(dynstring_str(ent.client.pers.userinfo), "fov"));
+		ent.client.ps.fov = stof(Info_ValueForKey(ent.client.pers.userinfo, "fov"));
 		if (ent.client.ps.fov < 1.f)
 			ent.client.ps.fov = 90.f;
 		else if (ent.client.ps.fov > 160.f)
@@ -1248,7 +1248,7 @@ void(entity ent) ClientBegin =
 		// except for the persistant data that was initialized at
 		// ClientConnect() time
 		G_InitEdict(ent);
-		ent.classname = string_dynstring("player");
+		ent.classname = "player";
 		InitClientResp(ent);
 		PutClientInServer(ent);
 	}
@@ -1285,7 +1285,7 @@ The game can override any of the settings in place
 (forcing skins or names, etc) before copying it off.
 ============
 */
-void(entity ent, dynstring userinfo) ClientUserinfoChanged =
+void(entity ent, string userinfo) ClientUserinfoChanged =
 {
 	// check for malformed or illegal info strings
 	/*if (!Info_Validate(userinfo)) {
@@ -1293,14 +1293,11 @@ void(entity ent, dynstring userinfo) ClientUserinfoChanged =
 	}*/
 	
 	// set name
-	if (ent->client->pers.netname)
-		dynstring_release(ent->client->pers.netname);
-	
-	string str = Info_ValueForKey(dynstring_str(userinfo), "name");
-	ent->client->pers.netname = dynstring_create(str);
+	string str = Info_ValueForKey(userinfo, "name");
+	ent->client->pers.netname = str;
 	
 	// set spectator
-	str = Info_ValueForKey(dynstring_str(userinfo), "spectator");
+	str = Info_ValueForKey(userinfo, "spectator");
 	
 	// spectators are only supported in deathmatch
 	if (deathmatch.intVal && !strempty(str) && str != "0")
@@ -1309,7 +1306,7 @@ void(entity ent, dynstring userinfo) ClientUserinfoChanged =
 		ent.client.pers.spectator = false;
 	
 	// set skin
-	str = Info_ValueForKey(dynstring_str(userinfo), "skin");
+	str = Info_ValueForKey(userinfo, "skin");
 
 	// combine name and skin into a configstring
 	gi.configstring(CS_PLAYERSKINS + ent.s.number - 1, va("%s\\%s", ent.client.pers.netname, str));
@@ -1321,7 +1318,7 @@ void(entity ent, dynstring userinfo) ClientUserinfoChanged =
 	}
 	else
 	{
-		ent.client.ps.fov = stof(Info_ValueForKey(dynstring_str(userinfo), "fov"));
+		ent.client.ps.fov = stof(Info_ValueForKey(userinfo, "fov"));
 		if (ent.client.ps.fov < 1.f)
 			ent.client.ps.fov = 90.f;
 		else if (ent.client.ps.fov > 160.f)
@@ -1329,18 +1326,13 @@ void(entity ent, dynstring userinfo) ClientUserinfoChanged =
 	}
 	
 	// handedness
-	str = Info_ValueForKey(dynstring_str(userinfo), "hand");
+	str = Info_ValueForKey(userinfo, "hand");
 	if (!strempty(str)) {
 		ent.client.pers.hand = stoi(str);
 	}
 	
 	// save off the userinfo in case we want to check something later
-	dynstring old_userinfo = ent.client.pers.userinfo;
-	
-	ent.client.pers.userinfo = dynstring_copy(userinfo);
-	
-	if (old_userinfo)
-		dynstring_release(old_userinfo);
+	ent.client.pers.userinfo = userinfo;
 }
 
 /*
@@ -1421,7 +1413,7 @@ bool(entity ent, string userinfo) ClientConnect =
 			InitClientPersistant(ent);
 	}
 
-	ClientUserinfoChanged(ent, dynstring_create(userinfo));
+	ClientUserinfoChanged(ent, userinfo);
 
 	if (game.maxclients > 1)
 		gi.dprintf("%s connected\n", ent.client.pers.netname);

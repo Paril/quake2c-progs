@@ -45,18 +45,18 @@ __used spawn_field_t spawn_fields[] =
 struct spawn_temp_t
 {
 	// world vars
-	dynstring	sky;
+	string		sky;
 	float		skyrotate;
 	vector		skyaxis;
-	dynstring	nextmap;
+	string		nextmap;
 	
 	int		lip;
 	int		distance;
 	int		height;
-	dynstring	noise;
+	string		noise;
 	float		pausetime;
-	dynstring	item;
-	dynstring	gravity;
+	string		item;
+	string		gravity;
 	
 	float		minyaw;
 	float		maxyaw;
@@ -87,19 +87,8 @@ static bool(string key, string value) ED_ParseSpawnTemp =
 	return struct_key_parse("st", key, value);
 };
 
-static void() ClearSpawnTemp =
+static inline void() ClearSpawnTemp =
 {
-	if (st.sky)
-		dynstring_release(st.sky);
-	if (st.nextmap)
-		dynstring_release(st.nextmap);
-	if (st.noise)
-		dynstring_release(st.noise);
-	if (st.item)
-		dynstring_release(st.item);
-	if (st.gravity)
-		dynstring_release(st.gravity);
-
 	struct_clear(st, sizeof(st));
 }
 
@@ -189,6 +178,63 @@ bool(entity ent) ED_CallSpawn =
 	return false;
 }
 
+
+/*
+================
+G_FindTeams
+
+Chain together all entities with a matching team field.
+
+All but the first will have the FL_TEAMSLAVE flag set.
+All but the last will have the teamchain field set to the next one
+================
+*/
+static void() G_FindTeams =
+{
+	entity	e, e2, chain;
+	int	i, j;
+	int	c, c2;
+
+	c = 0;
+	c2 = 0;
+	for (i = 1; i < globals.num_edicts; i++)
+	{
+		e = itoe(i);
+		 
+		if (!e->inuse)
+			continue;
+		if (!e->team)
+			continue;
+		if (e->flags & FL_TEAMSLAVE)
+			continue;
+		chain = e;
+		e->teammaster = e;
+		c++;
+		c2++;
+		for (j = i + 1; j < globals.num_edicts ; j++)
+		{
+			e2 = itoe(j);
+
+			if (!e2->inuse)
+				continue;
+			if (!e2->team)
+				continue;
+			if (e2->flags & FL_TEAMSLAVE)
+				continue;
+			if (e->team == e2->team) {
+				c2++;
+				chain->teamchain = e2;
+				e2->teammaster = e;
+				chain = e2;
+				e2->flags |= FL_TEAMSLAVE;
+			}
+		}
+	}
+
+	gi.dprintf("%i teams with %i entities\n", c, c2);
+}
+
+
 /*
 ==============
 SpawnEntities
@@ -197,7 +243,7 @@ Creates a server's entity / program execution context by
 parsing textual entity definitions out of an ent file.
 ==============
 */
-__used void(dynstring mapname, dynstring entities, dynstring spawnpoint) SpawnEntities =
+__used void(string mapname, string entities, string spawnpoint) SpawnEntities =
 {
 	int entities_offset = 0;
 	int skill_level = skill.intVal;
@@ -210,13 +256,10 @@ __used void(dynstring mapname, dynstring entities, dynstring spawnpoint) SpawnEn
 		gi.cvar_forceset("skill", itos(skill_level));
 
 	SaveClientData();
-	
-	if (level.mapname)
-		dynstring_release(level.mapname);
-	
+
 	struct_clear(level, sizeof(level));
-	level.mapname = dynstring_copy(mapname);
-	game.spawnpoint = dynstring_copy(spawnpoint);
+	level.mapname = mapname;
+	game.spawnpoint = spawnpoint;
 	
 	entity ent = world;
 	int inhibit = 0;
@@ -224,7 +267,7 @@ __used void(dynstring mapname, dynstring entities, dynstring spawnpoint) SpawnEn
 	// parse ents
 	while (1)
 	{
-		string token = strtok(dynstring_str(entities), entities_offset);
+		string token = strtok(entities, entities_offset);
 		
 		if (entities_offset < 0)
 			break;
@@ -240,10 +283,10 @@ __used void(dynstring mapname, dynstring entities, dynstring spawnpoint) SpawnEn
 			G_InitEdict(ent);	
 		}
 		
-		ED_ParseEdict(dynstring_str(entities), entities_offset, ent);
+		ED_ParseEdict(entities, entities_offset, ent);
 
 		// yet another map hack
-		if (!stricmp(dynstring_str(level.mapname), "command") && !stricmp(dynstring_str(ent.classname), "trigger_once") && !stricmp(dynstring_str(ent.model), "*27"))
+		if (!stricmp(level.mapname, "command") && !stricmp(ent.classname, "trigger_once") && !stricmp(ent.model, "*27"))
 			ent->spawnflags &= ~SPAWNFLAG_NOT_HARD;
 			
 		// remove things (except the world) from different skill levels or deathmatch
@@ -287,8 +330,7 @@ __used void(dynstring mapname, dynstring entities, dynstring spawnpoint) SpawnEn
 
 	gi.dprintf("%i entities inhibited\n", inhibit);
 
-	//TODO
-	//G_FindTeams();
+	G_FindTeams();
 
 	//TODO
 	//PlayerTrail_Init();
@@ -481,18 +523,18 @@ __used static void(entity ent) SP_worldspawn =
 	SetItemNames();
 
 	if (st.nextmap)
-		level.nextmap = dynstring_copy(st.nextmap);
+		level.nextmap = st.nextmap;
 
 	// make some data visible to the server
 
 	if (ent->message) {
-		gi.configstring(CS_NAME, dynstring_str(ent->message));
-		level.level_name = dynstring_copy(ent->message);
+		gi.configstring(CS_NAME, ent->message);
+		level.level_name = ent->message;
 	} else
-		level.level_name = dynstring_copy(level.mapname);
+		level.level_name = level.mapname;
 
 	if (st.sky)
-		gi.configstring(CS_SKY, dynstring_str(st.sky));
+		gi.configstring(CS_SKY, st.sky);
 	else
 		gi.configstring(CS_SKY, "unit1_");
 
@@ -522,7 +564,7 @@ __used static void(entity ent) SP_worldspawn =
 	if (!st.gravity)
 		gi.cvar_set("sv_gravity", "800");
 	else
-		gi.cvar_set("sv_gravity", dynstring_str(st.gravity));
+		gi.cvar_set("sv_gravity", st.gravity);
 
 	snd_fry = gi.soundindex("player/fry.wav");  // standing in lava / slime
 

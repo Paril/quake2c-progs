@@ -7,13 +7,13 @@ struct level_locals_t
 	int	framenum;
 	float	time;
 
-	dynstring	level_name;  // the descriptive name (Outer Base, etc)
-	dynstring	mapname;     // the server name (base1, etc)
-	dynstring	nextmap;     // go here when fraglimit is hit
+	string	level_name;  // the descriptive name (Outer Base, etc)
+	string	mapname;     // the server name (base1, etc)
+	string	nextmap;     // go here when fraglimit is hit
 
 	// intermission state
 	int	intermission_framenum;  // time the intermission was started
-	dynstring	changemap;
+	string	changemap;
 	int	exitintermission;
 	vector	intermission_origin;
 	vector	intermission_angle;

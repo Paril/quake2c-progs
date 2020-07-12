@@ -1,13 +1,13 @@
 struct game_locals_t
 {
-	dynstring	helpmessage1;
-	dynstring	helpmessage2;
+	string		helpmessage1;
+	string		helpmessage2;
 	int		helpchanged;	// flash F1 icon if non 0, play sound
 					// and increment only if 1, 2, or 3
 	
 	// can't store spawnpoint in level, because
 	// it would get overwritten by the savegame restore
-	dynstring	spawnpoint;	// needed for coop respawns
+	string	spawnpoint;	// needed for coop respawns
 	
 	// store latched cvars here that we want to get at often
 	int	maxclients;
