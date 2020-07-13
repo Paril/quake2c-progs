@@ -1472,12 +1472,8 @@ static void(vector start, vector mins, vector maxs, vector end) PM_trace =
         gi.trace(start, mins, maxs, end, pm_passent, MASK_DEADSOLID);
 }
 
-entity() PlayerTrail_LastSpot = { return world; };
-void(vector) PlayerTrail_Add = { };
-
-void(entity) GetChaseTarget = { };
-void(entity) ChaseNext = { };
-void(entity) UpdateChaseCam = { };
+entity() PlayerTrail_LastSpot;
+void(vector pos) PlayerTrail_Add;
 
 // from pweapon.qc
 // noise types for PlayerNoise

@@ -72,6 +72,169 @@ entity(entity from, vector org, float rad) findradius =
 }
 
 /*
+=============
+G_PickTarget
+
+Searches all active entities for the next one that holds
+the matching string at fieldofs (use the FOFS() macro) in the structure.
+
+Searches beginning at the edict after from, or the beginning if world.
+world will be returned if the end of the list is reached.
+
+=============
+*/
+const int MAX_CHOICES	= 8;
+
+entity G_PickTarget(string stargetname)
+{
+	entity	ent = world;
+	int	num_choices = 0;
+	entity	choice[MAX_CHOICES];
+
+	if (!stargetname) {
+		gi.dprintf("G_PickTarget called with NULL targetname\n");
+		return world;
+	}
+
+	while (1) {
+		ent = G_Find(ent, targetname, stargetname);
+		if (ent == null_entity)
+			break;
+		choice[(ARRAY_INDEX_TYPE)(num_choices++)] = ent;
+		if (num_choices == MAX_CHOICES)
+			break;
+	}
+
+	if (!num_choices) {
+		gi.dprintf("G_PickTarget: target %s not found\n", stargetname);
+		return world;
+	}
+
+	return choice[(ARRAY_INDEX_TYPE)Q_rand_uniform(num_choices)];
+}
+
+// from utils.qc
+void(entity ent, entity cactivator) G_UseTargets;
+void G_FreeEdict(entity ent);
+
+static void(entity ent) Think_Delay
+{
+	G_UseTargets(ent, ent->activator);
+	G_FreeEdict(ent);
+}
+
+// from utils.qc
+entity G_Spawn();
+
+/*
+==============================
+G_UseTargets
+
+the global "activator" should be set to the entity that initiated the firing.
+
+If self.delay is set, a DelayedUse entity will be created that will actually
+do the SUB_UseTargets after that many seconds have passed.
+
+Centerprints any self.message to the activator.
+
+Search for (string)targetname in all entities that
+match (string)self.target and call their .use function
+
+==============================
+*/
+void(entity ent, entity cactivator) G_UseTargets =
+{
+	entity	t;
+
+//
+// check for a delay
+//
+	if (ent->delay) {
+		// create a temp object to fire at a later time
+		t = G_Spawn();
+		t->classname = "DelayedUse";
+		t->nextthink = level.framenum + (int)(ent->delay * BASE_FRAMERATE);
+		t->think = Think_Delay;
+		t->activator = cactivator;
+		if (!cactivator)
+			gi.dprintf("Think_Delay with no activator\n");
+		t->message = ent->message;
+		t->target = ent->target;
+		t->killtarget = ent->killtarget;
+		return;
+	}
+
+
+//
+// print the message
+//
+	if ((ent->message) && !(cactivator->svflags & SVF_MONSTER)) {
+		gi.centerprintf(cactivator, "%s", ent->message);
+		if (ent->noise_index)
+			gi.sound(cactivator, CHAN_AUTO, ent->noise_index, 1, ATTN_NORM, 0);
+		else
+			gi.sound(cactivator, CHAN_AUTO, gi.soundindex("misc/talk1.wav"), 1, ATTN_NORM, 0);
+	}
+
+//
+// kill killtargets
+//
+	if (ent->killtarget) {
+		t = null_entity;
+		while ((t = G_Find(t, targetname, ent->killtarget)) != null_entity) {
+			G_FreeEdict(t);
+			if (!ent->inuse) {
+				gi.dprintf("entity was removed while using killtargets\n");
+				return;
+			}
+		}
+	}
+
+//
+// fire targets
+//
+	if (ent->target) {
+		t = null_entity;
+		while ((t = G_Find(t, targetname, ent->target)) != null_entity) {
+			// doors fire area portals in a specific way
+			if (!stricmp(t->classname, "func_areaportal") &&
+				(!stricmp(ent->classname, "func_door") || !stricmp(ent->classname, "func_door_rotating")))
+				continue;
+
+			if (t == ent) {
+				gi.dprintf("WARNING: Entity used itself.\n");
+			} else {
+				if (t->use)
+					t->use(t, ent, cactivator);
+			}
+			if (!ent->inuse) {
+				gi.dprintf("entity was removed while using targets\n");
+				return;
+			}
+		}
+	}
+}
+
+const vector VEC_UP		= {0, -1, 0};
+const vector MOVEDIR_UP		= {0, 0, 1};
+const vector VEC_DOWN		= {0, -2, 0};
+const vector MOVEDIR_DOWN	= {0, 0, -1};
+
+void(__inout vector angles, __out vector movedir) G_SetMovedir =
+{
+	if (VectorCompare(angles, VEC_UP)) {
+		VectorCopy(MOVEDIR_UP, movedir);
+	} else if (VectorCompare(angles, VEC_DOWN)) {
+		VectorCopy(MOVEDIR_DOWN, movedir);
+	} else {
+		AngleVectors(angles, movedir, unref_vec, unref_vec);
+	}
+
+	VectorClear(angles);
+}
+
+
+/*
 =================
 G_InitEdict
 

@@ -30,3 +30,24 @@ typedef enum int
 const ARRAY_INDEX_TYPE PITCH	= (ARRAY_INDEX_TYPE)0;
 const ARRAY_INDEX_TYPE YAW	= (ARRAY_INDEX_TYPE)1;
 const ARRAY_INDEX_TYPE ROLL	= (ARRAY_INDEX_TYPE)2;
+
+const int INT_MAX = 2147483647;
+
+float vectoyaw(vector vec)
+{
+	float   yaw;
+
+	if (/*vec[YAW] == 0 &&*/ vec_x == 0) {
+		yaw = 0;
+		if (vec_y > 0)
+			yaw = 90f;
+		else if (vec_y < 0)
+			yaw = -90f;
+	} else {
+		yaw = (float)(int)RAD2DEG(atan2f(vec_y, vec_x));
+		if (yaw < 0)
+			yaw += 360f;
+	}
+
+	return yaw;
+}

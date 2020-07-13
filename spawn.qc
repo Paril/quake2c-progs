@@ -332,8 +332,7 @@ __used void(string mapname, string entities, string spawnpoint) SpawnEntities =
 
 	G_FindTeams();
 
-	//TODO
-	//PlayerTrail_Init();
+	PlayerTrail_Init();
 };
 
 //===================================================================

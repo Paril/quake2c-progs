@@ -512,8 +512,7 @@ void(entity self, vector start, vector aimdir, int damage, int speed, float time
 }
 
 // from misc.qc
-// TODO
-void(entity, string, int, vector) ThrowDebris = { }
+void(entity self, string modelname, float speed, vector origin) ThrowDebris;
 
 /*
 =================

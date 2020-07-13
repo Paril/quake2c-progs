@@ -14,12 +14,14 @@ import.qc
 entity.qc
 utils.qc
 items.qc
+chase.qc
 client.qc
 cmds.qc
 combat.qc
 hud.qc
 ai.qc
 view.qc
+trail.qc
 gweapon.qc
 pweapon.qc
 misc.qc

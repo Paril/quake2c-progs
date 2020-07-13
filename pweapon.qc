@@ -522,11 +522,11 @@ void(entity ent) Weapon_Grenade =
 		if (((ent->client->latched_buttons | ent->client->buttons) & BUTTON_ATTACK)) {
 			ent->client->latched_buttons &= ~BUTTON_ATTACK;
 			// TODO
-			/*if (ent->client->pers.inventory[ent->client->ammo_index]) {
+			/*if (ent->client->pers.inventory[ent->client->ammo_index]) {*/
 				ent->client->ps.gunframe = 1;
 				ent->client->weaponstate = WEAPON_FIRING;
 				ent->client->grenade_framenum = 0;
-			} else {
+			/*} else {
 				if (level.framenum >= ent->pain_debounce_framenum) {
 					gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/noammo.wav"), 1, ATTN_NORM, 0);
 					ent->pain_debounce_framenum = level.framenum + 1 * BASE_FRAMERATE;

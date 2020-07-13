@@ -1875,9 +1875,6 @@ static void(entity ent, gitem_id_t itemid) Drop_PowerArmor =
 
 //======================================================================
 
-// from utils.qc
-void(entity, entity) G_UseTargets = { };
-
 /*
 ===============
 Touch_Item

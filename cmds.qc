@@ -54,9 +54,6 @@ static void(entity ent, int itflags) SelectNextItem =
 	ent.client->pers.selected_item = -1;
 }
 
-// from chase.qc
-void(entity) ChasePrev = { };
-
 static void(entity ent, int itflags) SelectPrevItem =
 {
 	int		i;

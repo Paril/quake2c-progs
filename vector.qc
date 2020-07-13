@@ -11,14 +11,14 @@ void(vector vec, __out vector angles) vectoangles = #0:vectoangles;
 void(vector a, vector b, __out vector c) CrossProduct = #0:CrossProduct;
 
 // Definitions, to make Q2->QC easier
-#define DotProduct(a, b) (a * b)
-#define VectorSet(a, x, y, z) { a[(ARRAY_INDEX_TYPE)0] = (float)x; a[(ARRAY_INDEX_TYPE)1] = (float)y; a[(ARRAY_INDEX_TYPE)2] = (float)z; }
+#define DotProduct(a, b) ((a) * (b))
+#define VectorSet(a, x, y, z) { a[(ARRAY_INDEX_TYPE)0] = (float)(x); a[(ARRAY_INDEX_TYPE)1] = (float)(y); a[(ARRAY_INDEX_TYPE)2] = (float)(z); }
 #define VectorClear(a) a = vec3_origin
-#define VectorMA(a, s, b, c) c = a + (b * s)
-#define VectorCopy(a, b) b = a
-#define VectorSubtract(a, b, c) c = a - b
-#define VectorAdd(a, b, c) c = a + b
-#define VectorScale(a, b, c) c = a * b
-#define VectorCompare(a, b) (a == b)
-#define VectorNegate(a, b) b = -a
-#define VectorEmpty(a) (!a)
+#define VectorMA(a, s, b, c) (c) = (a) + ((b) * (s))
+#define VectorCopy(a, b) (b) = (a)
+#define VectorSubtract(a, b, c) (c) = (a) - (b)
+#define VectorAdd(a, b, c) (c) = (a) + (b)
+#define VectorScale(a, b, c) (c) = (a) * (b)
+#define VectorCompare(a, b) ((a) == (b))
+#define VectorNegate(a, b) (b) = -(a)
+#define VectorEmpty(a) (!(a))
