@@ -39,33 +39,6 @@ __used spawn_field_t spawn_fields[] =
 	{ "angles", s.angles }
 };
 
-// spawn_temp_t is only used to hold entity field values that
-// can be set from the editor, but aren't actualy present
-// in edict_t during gameplay
-struct spawn_temp_t
-{
-	// world vars
-	string		sky;
-	float		skyrotate;
-	vector		skyaxis;
-	string		nextmap;
-	
-	int		lip;
-	int		distance;
-	int		height;
-	string		noise;
-	float		pausetime;
-	string		item;
-	string		gravity;
-	
-	float		minyaw;
-	float		maxyaw;
-	float		minpitch;
-	float		maxpitch;
-	
-	float		angle;
-} st;
-
 static bool(string key, string value, entity ent) ED_ParseField =
 {
 	for (ARRAY_INDEX_TYPE i = 0; i < sizeof(spawn_fields) / sizeof(spawn_field_t); i++)
@@ -152,6 +125,7 @@ bool(entity ent) ED_CallSpawn =
 {
 	if (!ent->classname) {
 		gi.dprintf("ED_CallSpawn: NULL classname\n");
+		G_FreeEdict(ent);
 		return false;
 	}
 	
@@ -174,7 +148,7 @@ bool(entity ent) ED_CallSpawn =
 
 
 	gi.dprintf("%s doesn't have a spawn function\n", ent->classname);
-	
+	G_FreeEdict(ent);
 	return false;
 }
 
@@ -318,10 +292,7 @@ __used void(string mapname, string entities, string spawnpoint) SpawnEntities =
 		}
 
 		if (!ED_CallSpawn(ent))
-		{
-			G_FreeEdict(ent);
 			inhibit++;
-		}
 	
 		ClearSpawnTemp();
 	}

@@ -12,9 +12,9 @@ bool(entity self, entity other) visible =
 	trace_t trace;
 	
 	VectorCopy(self->s.origin, spot1);
-	spot1[(ARRAY_INDEX_TYPE)2] += self->viewheight;
+	spot1_z += self->viewheight;
 	VectorCopy(other->s.origin, spot2);
-	spot2[(ARRAY_INDEX_TYPE)2] += other->viewheight;
+	spot2_z += other->viewheight;
 	trace_and_result(trace, spot1, vec3_origin, vec3_origin, spot2, self, MASK_OPAQUE);
 	
 	if (trace.fraction == 1.0f)

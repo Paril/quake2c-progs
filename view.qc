@@ -205,7 +205,7 @@ static void(entity ent) P_FallingDamage =
 	} else {
 		if (ent.groundentity == null_entity)
 			return;
-		delta = ent.velocity[(ARRAY_INDEX_TYPE)2] - ent.client.oldvelocity[(ARRAY_INDEX_TYPE)2];
+		delta = ent.velocity_z - ent.client.oldvelocity[(ARRAY_INDEX_TYPE)2];
 	}
 	delta = delta * delta * 0.0001f;
 
@@ -465,14 +465,14 @@ static void(entity ent) SV_CalcViewOffset =
 
 	// add view height
 
-	v[(ARRAY_INDEX_TYPE)2] += ent.viewheight;
+	v_z += ent.viewheight;
 
 	// add fall height
 
 	ratio = (ent.client.fall_time - level.time) / FALL_TIME;
 	if (ratio < 0)
 		ratio = 0;
-	v[(ARRAY_INDEX_TYPE)2] -= ratio * ent.client.fall_value * 0.4f;
+	v_z -= ratio * ent.client.fall_value * 0.4f;
 
 	// add bob height
 
@@ -480,7 +480,7 @@ static void(entity ent) SV_CalcViewOffset =
 	if (bob > 6)
 		bob = 6f;
 
-	v[(ARRAY_INDEX_TYPE)2] += bob;
+	v_z += bob;
 
 	// add kick offset
 
@@ -489,18 +489,18 @@ static void(entity ent) SV_CalcViewOffset =
 	// absolutely bound offsets
 	// so the view can never be outside the player box
 
-	if (v[(ARRAY_INDEX_TYPE)0] < -14)
-		v[(ARRAY_INDEX_TYPE)0] = -14f;
-	else if (v[(ARRAY_INDEX_TYPE)0] > 14)
-		v[(ARRAY_INDEX_TYPE)0] = 14f;
-	if (v[(ARRAY_INDEX_TYPE)1] < -14)
-		v[(ARRAY_INDEX_TYPE)1] = -14f;
-	else if (v[(ARRAY_INDEX_TYPE)1] > 14)
-		v[(ARRAY_INDEX_TYPE)1] = 14f;
-	if (v[(ARRAY_INDEX_TYPE)2] < -22)
-		v[(ARRAY_INDEX_TYPE)2] = -22f;
-	else if (v[(ARRAY_INDEX_TYPE)2] > 30)
-		v[(ARRAY_INDEX_TYPE)2] = 30f;
+	if (v_x < -14)
+		v_x = -14f;
+	else if (v_x > 14)
+		v_x = 14f;
+	if (v_y < -14)
+		v_y = -14f;
+	else if (v_y > 14)
+		v_y = 14f;
+	if (v_z < -22)
+		v_z = -22f;
+	else if (v_z > 30)
+		v_z = 30f;
 
 	VectorCopy(v, ent.client.ps.viewoffset);
 }
@@ -752,7 +752,7 @@ static void(entity ent) G_SetClientSound =
 	if (ent->client->pers.weapon)
 		weap = GetItemKeyByIndex(ent->client->pers.weapon, classname);
 	else
-		weap = "";
+		weap = 0;
 
 	if (ent->waterlevel && (ent->watertype & (CONTENTS_LAVA | CONTENTS_SLIME)))
 		ent->s.sound = snd_fry;
@@ -917,7 +917,7 @@ void(entity ent) ClientEndServerFrame =
 	// calculate speed and cycle to be used for
 	// all cyclic walking effects
 	//
-	xyspeed = sqrtf(ent.velocity[(ARRAY_INDEX_TYPE)0] * ent.velocity[(ARRAY_INDEX_TYPE)0] + ent.velocity[(ARRAY_INDEX_TYPE)1] * ent.velocity[(ARRAY_INDEX_TYPE)1]);
+	xyspeed = sqrtf(ent.velocity_x * ent.velocity_x + ent.velocity_y * ent.velocity_y);
 
 	if (xyspeed < 5) {
 		bobmove = 0;

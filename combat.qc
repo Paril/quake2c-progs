@@ -28,29 +28,29 @@ bool(entity targ, entity inflictor) CanDamage =
 		return true;
 
 	VectorCopy(targ->s.origin, dest);
-	dest[(ARRAY_INDEX_TYPE)0] += 15.0f;
-	dest[(ARRAY_INDEX_TYPE)1] += 15.0f;
+	dest_x += 15.0f;
+	dest_y += 15.0f;
 	trace_and_result(trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
 	VectorCopy(targ->s.origin, dest);
-	dest[(ARRAY_INDEX_TYPE)0] += 15.0f;
-	dest[(ARRAY_INDEX_TYPE)1] -= 15.0f;
+	dest_x += 15.0f;
+	dest_y -= 15.0f;
 	trace_and_result(trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
 	VectorCopy(targ->s.origin, dest);
-	dest[(ARRAY_INDEX_TYPE)0] -= 15.0f;
-	dest[(ARRAY_INDEX_TYPE)1] += 15.0f;
+	dest_x -= 15.0f;
+	dest_y += 15.0f;
 	trace_and_result(trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
 	VectorCopy(targ->s.origin, dest);
-	dest[(ARRAY_INDEX_TYPE)0] -= 15.0f;
-	dest[(ARRAY_INDEX_TYPE)1] -= 15.0f;
+	dest_x -= 15.0f;
+	dest_y -= 15.0f;
 	trace_and_result(trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;

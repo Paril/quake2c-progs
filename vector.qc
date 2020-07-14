@@ -9,6 +9,7 @@ float(__inout vector) VectorNormalize = #0:VectorNormalize;
 float(vector) VectorLength = #0:VectorLength;
 void(vector vec, __out vector angles) vectoangles = #0:vectoangles;
 void(vector a, vector b, __out vector c) CrossProduct = #0:CrossProduct;
+void(vector point, __inout vector mins, __inout vector maxs) AddPointToBounds = #0:AddPointToBounds;
 
 // Definitions, to make Q2->QC easier
 #define DotProduct(a, b) ((a) * (b))

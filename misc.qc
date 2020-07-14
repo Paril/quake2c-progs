@@ -32,9 +32,9 @@ Misc functions
 */
 static void(int damage, __out vector v) VelocityForDamage =
 {
-	v[(ARRAY_INDEX_TYPE)0] = 100.0f * crand();
-	v[(ARRAY_INDEX_TYPE)1] = 100.0f * crand();
-	v[(ARRAY_INDEX_TYPE)2] = 200.0f + 100.0f * frand();
+	v_x = 100.0f * crand();
+	v_y = 100.0f * crand();
+	v_z = 200.0f + 100.0f * frand();
 
 	if (damage < 50)
 		VectorScale(v, 0.7f, v);
@@ -44,18 +44,18 @@ static void(int damage, __out vector v) VelocityForDamage =
 
 static void(entity ent) ClipGibVelocity =
 {
-	if (ent->velocity[(ARRAY_INDEX_TYPE)0] < -300)
-		ent->velocity[(ARRAY_INDEX_TYPE)0] = -300f;
-	else if (ent->velocity[(ARRAY_INDEX_TYPE)0] > 300)
-		ent->velocity[(ARRAY_INDEX_TYPE)0] = 300f;
-	if (ent->velocity[(ARRAY_INDEX_TYPE)1] < -300)
-		ent->velocity[(ARRAY_INDEX_TYPE)1] = -300f;
-	else if (ent->velocity[(ARRAY_INDEX_TYPE)1] > 300)
-		ent->velocity[(ARRAY_INDEX_TYPE)1] = 300f;
-	if (ent->velocity[(ARRAY_INDEX_TYPE)2] < 200)
-		ent->velocity[(ARRAY_INDEX_TYPE)2] = 200f; // always some upwards
-	else if (ent->velocity[(ARRAY_INDEX_TYPE)2] > 500)
-		ent->velocity[(ARRAY_INDEX_TYPE)2] = 500f;
+	if (ent->velocity_x < -300)
+		ent->velocity_x = -300f;
+	else if (ent->velocity_x > 300)
+		ent->velocity_x = 300f;
+	if (ent->velocity_y < -300)
+		ent->velocity_y = -300f;
+	else if (ent->velocity_y > 300)
+		ent->velocity_y = 300f;
+	if (ent->velocity_z < 200)
+		ent->velocity_z = 200f; // always some upwards
+	else if (ent->velocity_z > 500)
+		ent->velocity_z = 500f;
 }
 
 
@@ -116,9 +116,9 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowGib =
 
 	VectorScale(self->size, 0.5f, sz);
 	VectorAdd(self->absmin, sz, origin);
-	gib->s.origin[(ARRAY_INDEX_TYPE)0] = origin[(ARRAY_INDEX_TYPE)0] + crand() * sz[(ARRAY_INDEX_TYPE)0];
-	gib->s.origin[(ARRAY_INDEX_TYPE)1] = origin[(ARRAY_INDEX_TYPE)1] + crand() * sz[(ARRAY_INDEX_TYPE)1];
-	gib->s.origin[(ARRAY_INDEX_TYPE)2] = origin[(ARRAY_INDEX_TYPE)2] + crand() * sz[(ARRAY_INDEX_TYPE)2];
+	gib->s.origin[(ARRAY_INDEX_TYPE)0] = origin_x + crand() * sz_x;
+	gib->s.origin[(ARRAY_INDEX_TYPE)1] = origin_y + crand() * sz_y;
+	gib->s.origin[(ARRAY_INDEX_TYPE)2] = origin_z + crand() * sz_z;
 
 	gi.setmodel(gib, gibname);
 	gib->solid = SOLID_NOT;
@@ -139,9 +139,9 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowGib =
 	VelocityForDamage(damage, vd);
 	VectorMA(self->velocity, vscale, vd, gib->velocity);
 	ClipGibVelocity(gib);
-	gib->avelocity[(ARRAY_INDEX_TYPE)0] = frand() * 600;
-	gib->avelocity[(ARRAY_INDEX_TYPE)1] = frand() * 600;
-	gib->avelocity[(ARRAY_INDEX_TYPE)2] = frand() * 600;
+	gib->avelocity_x = frand() * 600;
+	gib->avelocity_y = frand() * 600;
+	gib->avelocity_z = frand() * 600;
 
 	gib->think = G_FreeEdict;
 	gib->nextthink = level.framenum + (int)((10 + frand() * 10) * BASE_FRAMERATE);
@@ -844,7 +844,7 @@ static void(entity self) barrel_explode =
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
 
 	VectorCopy(save, self->s.origin);
-	if (self->groundentity)
+	if (self->groundentity != null_entity)
 		BecomeExplosion2(self);
 	else
 		BecomeExplosion1(self);
@@ -1154,8 +1154,8 @@ There must be a path for it to follow once it is activated.
 */
 
 // from func.qc
-void(entity self, entity other, entity cactivator) train_use = { }
-void(entity self) func_train_find = { }
+void(entity self, entity other, entity cactivator) train_use;
+void(entity self) func_train_find;
 
 static void(entity self, entity other, entity cactivator) misc_viper_use =
 {

@@ -1,3 +1,18 @@
+// game.serverflags values
+typedef enumflags int
+{
+	SFL_CROSS_TRIGGER_1,
+	SFL_CROSS_TRIGGER_2,
+	SFL_CROSS_TRIGGER_3,
+	SFL_CROSS_TRIGGER_4,
+	SFL_CROSS_TRIGGER_5,
+	SFL_CROSS_TRIGGER_6,
+	SFL_CROSS_TRIGGER_7,
+	SFL_CROSS_TRIGGER_8
+} server_flags_t;
+
+const server_flags_t SFL_CROSS_TRIGGER_MASK	= 0x000000ff;
+
 struct game_locals_t
 {
 	string		helpmessage1;
@@ -14,7 +29,7 @@ struct game_locals_t
 	int	maxentities;
 	
 	// cross level triggers
-	int	serverflags;
+	server_flags_t	serverflags;
 	
 	// items
 	int	num_items;

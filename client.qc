@@ -189,8 +189,8 @@ static void(entity self, entity inflictor, entity attacker) ClientObituary =
 	if (deathmatch->intVal || coop->intVal) {
 		ff = meansOfDeath & MOD_FRIENDLY_FIRE;
 		mod = meansOfDeath & ~MOD_FRIENDLY_FIRE;
-		message = "";
-		message2 = "";
+		message = 0;
+		message2 = 0;
 
 		switch (mod) {
 		case MOD_SUICIDE:
@@ -470,7 +470,7 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 	self->s.sound = 0;
 	self->client->weapon_sound = 0;
 
-	self->maxs[(ARRAY_INDEX_TYPE)2] = -8f;
+	self->maxs_z = -8f;
 
 	self->svflags |= SVF_DEADMONSTER;
 
@@ -672,6 +672,8 @@ to other players
 */
 static entity() SelectRandomDeathmatchSpawnPoint =
 {
+	return null_entity;
+
 	entity	spot, spot1, spot2;
 	int	count = 0;
 	int	selection;
@@ -779,8 +781,7 @@ static entity(entity ent) SelectCoopSpawnPoint =
 			return null_entity;    // we didn't have enough...
 
 		target = spot->targetname;
-		if (!target)
-			target = "";
+
 		if (stricmp(game.spawnpoint, target) == 0) {
 			// this is a coop spawn point for one of the clients here
 			index--;
@@ -811,7 +812,7 @@ static void(entity ent, __out vector origin, __out vector angles) SelectSpawnPoi
 		spot = SelectCoopSpawnPoint(ent);
 
 	// find a single player start spot
-	if (!spot)
+	if (spot == null_entity)
 	{
 		while ((spot = G_Find(spot, classname, "info_player_start")) != null_entity)
 		{
@@ -833,7 +834,10 @@ static void(entity ent, __out vector origin, __out vector angles) SelectSpawnPoi
 				spot = G_Find(spot, classname, "info_player_start");
 			}
 			if (spot == null_entity)
-				gi.error("Couldn't find spawn point %s", game.spawnpoint);
+			{
+				gi.dprintf("Couldn't find spawn point %s", game.spawnpoint);
+				return;
+			}
 		}
 	}
 
@@ -1239,8 +1243,12 @@ void(entity ent) ClientBegin =
 		// connecting to the server, which is different than the
 		// state when the game is saved, so we need to compensate
 		// with deltaangles
-		for (ARRAY_INDEX_TYPE i = 0; i < 3; i++)
-			ent.client.ps.pmove.delta_angles[i] = ANGLE2SHORT(ent->client->ps.viewangles[i]);
+		// TODO
+		//for (ARRAY_INDEX_TYPE i = 0; i < 3; i++)
+		//	ent.client.ps.pmove.delta_angles[i] = ANGLE2SHORT(ent->client->ps.viewangles[i]);
+		ent.client.ps.pmove.delta_angles[(ARRAY_INDEX_TYPE)0] = ANGLE2SHORT(ent->client->ps.viewangles[(ARRAY_INDEX_TYPE)0]);
+		ent.client.ps.pmove.delta_angles[(ARRAY_INDEX_TYPE)1] = ANGLE2SHORT(ent->client->ps.viewangles[(ARRAY_INDEX_TYPE)1]);
+		ent.client.ps.pmove.delta_angles[(ARRAY_INDEX_TYPE)2] = ANGLE2SHORT(ent->client->ps.viewangles[(ARRAY_INDEX_TYPE)2]);
 	}
 	else
 	{

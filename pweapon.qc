@@ -11,9 +11,9 @@ static void(entity ent, vector point, vector distance, vector forward, vector ri
 
 	VectorCopy(distance, _distance);
 	if (ent.client->pers.hand == LEFT_HANDED)
-		_distance[(ARRAY_INDEX_TYPE)1] *= -1f;
+		_distance_y *= -1f;
 	else if (ent.client->pers.hand == CENTER_HANDED)
-		_distance[(ARRAY_INDEX_TYPE)1] = 0;
+		_distance_y = 0;
 	G_ProjectSource(point, _distance, forward, right, result);
 }
 
@@ -803,9 +803,9 @@ static void(entity ent) Weapon_HyperBlaster_Fire =
 			NoAmmoWeaponChange(ent);
 		} else {*/
 			rotation = (ent->client->ps.gunframe - 5) * (M_PI / 3);
-			offset[(ARRAY_INDEX_TYPE)0] = -4f * sinf(rotation);
-			offset[(ARRAY_INDEX_TYPE)1] = 0;
-			offset[(ARRAY_INDEX_TYPE)2] = 4f * cosf(rotation);
+			offset_x = -4f * sinf(rotation);
+			offset_y = 0;
+			offset_z = 4f * cosf(rotation);
 
 			if ((ent->client->ps.gunframe == 6) || (ent->client->ps.gunframe == 9))
 				effect = EF_HYPERBLASTER;

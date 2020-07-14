@@ -27,7 +27,7 @@ static void(entity self, vector start, vector dir, int speed) check_dodge =
 	trace_and_result(tr, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
 	if ((tr.ent) && (tr.ent->svflags & SVF_MONSTER) && (tr.ent->health > 0) && (tr.ent->monsterinfo.dodge) && infront(tr.ent, self)) {
 		VectorSubtract(tr.endpos, start, v);
-		eta = (VectorLength(v) - tr.ent->maxs[(ARRAY_INDEX_TYPE)0]) / speed;
+		eta = (VectorLength(v) - tr.ent->maxs_x) / speed;
 		tr.ent->monsterinfo.dodge(tr.ent, self, eta);
 	}
 }
@@ -52,18 +52,18 @@ bool(entity self, vector aim, int damage, int kick) fire_hit =
 	//see if enemy is in range
 	VectorSubtract(self->enemy->s.origin, self->s.origin, dir);
 	range = VectorLength(dir);
-	if (range > aim[(ARRAY_INDEX_TYPE)0])
+	if (range > aim_x)
 		return false;
 
-	if (aim[(ARRAY_INDEX_TYPE)1] > self->mins[(ARRAY_INDEX_TYPE)0] && aim[(ARRAY_INDEX_TYPE)1] < self->maxs[(ARRAY_INDEX_TYPE)0]) {
+	if (aim_y > self->mins_x && aim_y < self->maxs_x) {
 		// the hit is straight on so back the range up to the edge of their bbox
-		range -= self->enemy->maxs[(ARRAY_INDEX_TYPE)0];
+		range -= self->enemy->maxs_x;
 	} else {
 		// this is a side hit so adjust the "right" value out to the edge of their bbox
-		if (aim[(ARRAY_INDEX_TYPE)1] < 0)
-			aim[(ARRAY_INDEX_TYPE)1] = self->enemy->mins[(ARRAY_INDEX_TYPE)0];
+		if (aim_y < 0)
+			aim_y = self->enemy->mins_x;
 		else
-			aim[(ARRAY_INDEX_TYPE)1] = self->enemy->maxs[(ARRAY_INDEX_TYPE)0];
+			aim_y = self->enemy->maxs_x;
 	}
 
 	VectorMA(self->s.origin, range, dir, point);
@@ -79,8 +79,8 @@ bool(entity self, vector aim, int damage, int kick) fire_hit =
 
 	AngleVectors(self->s.angles, forward, right, up);
 	VectorMA(self->s.origin, range, forward, point);
-	VectorMA(point, aim[(ARRAY_INDEX_TYPE)1], right, point);
-	VectorMA(point, aim[(ARRAY_INDEX_TYPE)2], up, point);
+	VectorMA(point, aim_y, right, point);
+	VectorMA(point, aim_z, up, point);
 	VectorSubtract(point, self->enemy->s.origin, dir);
 
 	// do the damage
@@ -94,7 +94,7 @@ bool(entity self, vector aim, int damage, int kick) fire_hit =
 	VectorSubtract(v, point, v);
 	VectorNormalize(v);
 	VectorMA(self->enemy->velocity, kick, v, self->enemy->velocity);
-	if (self->enemy->velocity[(ARRAY_INDEX_TYPE)2] > 0)
+	if (self->enemy->velocity_z > 0)
 		self->enemy->groundentity = null_entity;
 	return true;
 }
@@ -387,12 +387,12 @@ static void(entity ent) Grenade_Explode =
 	VectorMA(ent->s.origin, -0.02f, ent->velocity, origin);
 	gi.WriteByte(svc_temp_entity);
 	if (ent->waterlevel) {
-		if (ent->groundentity)
+		if (ent->groundentity != null_entity)
 			gi.WriteByte(TE_GRENADE_EXPLOSION_WATER);
 		else
 			gi.WriteByte(TE_ROCKET_EXPLOSION_WATER);
 	} else {
-		if (ent->groundentity)
+		if (ent->groundentity != null_entity)
 			gi.WriteByte(TE_GRENADE_EXPLOSION);
 		else
 			gi.WriteByte(TE_ROCKET_EXPLOSION);

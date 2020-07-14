@@ -25,6 +25,9 @@ trail.qc
 gweapon.qc
 pweapon.qc
 misc.qc
+trigger.qc
+target.qc
+func.qc
 phys.qc
 
 main.qc

@@ -5,6 +5,9 @@ float(float) cosf = #0:cosf;
 float(float, float) atan2f = #0:atan2f;
 float(float) RAD2DEG = #0:RAD2DEG;
 float(float) DEG2RAD = #0:DEG2RAD;
+float(float) floorf = #0:floorf;
+float(float) ceilf = #0:ceilf;
+float(float) roundf = #0:roundf;
 
 const float M_PI = 3.14159265358979323846f;
 

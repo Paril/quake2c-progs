@@ -1990,7 +1990,7 @@ entity(entity ent, gitem_id_t itemid) Drop_Item =
 	}
 
 	VectorScale(forward, 100, dropped->velocity);
-	dropped->velocity[(ARRAY_INDEX_TYPE)2] = 300f;
+	dropped->velocity_z = 300f;
 
 	dropped->think = drop_make_touchable;
 	dropped->nextthink = level.framenum + 1 * BASE_FRAMERATE;

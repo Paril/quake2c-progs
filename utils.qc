@@ -1,7 +1,7 @@
 void G_ProjectSource(vector point, vector distance, vector forward, vector right, __out vector result)
 {
-	result = point + (forward * distance[(ARRAY_INDEX_TYPE)0]) + (right * distance[(ARRAY_INDEX_TYPE)1]);
-	result[(ARRAY_INDEX_TYPE)2] += distance[(ARRAY_INDEX_TYPE)2];
+	result = point + (forward * distance_x) + (right * distance_y);
+	result_z += distance_z;
 }
 
 /*

@@ -197,11 +197,11 @@ const int MAX_ENT_CLUSTERS = 16;
 .string		pathtarget;
 .string		deathtarget;
 .string		combattarget;
-.string		target_ent;
+.entity		target_ent;
 
 .float		speed, accel, decel;
 .vector		movedir;
-.vector		pos1, po2;
+.vector		pos1, pos2;
 
 .vector		velocity;
 .vector		avelocity;
@@ -290,6 +290,14 @@ const int MAX_ENT_CLUSTERS = 16;
 .int	style;
 .int	item; // FIXME
 
+typedef enum int
+{
+	STATE_TOP,
+	STATE_BOTTOM,
+	STATE_UP,
+	STATE_DOWN
+} move_state_t;
+
 struct moveinfo_t
 {
 	// fixed data
@@ -310,7 +318,7 @@ struct moveinfo_t
 	float	wait;
 	
 	// state data
-	int		state;
+	move_state_t	state;
 	vector		dir;
 	float		current_speed;
 	float		move_speed;

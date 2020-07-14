@@ -54,3 +54,30 @@ cvar_t  flood_waitdelay;
 cvar_t  sv_maplist;
 
 cvar_t  sv_features;
+
+// spawn_temp_t is only used to hold entity field values that
+// can be set from the editor, but aren't actualy present
+// in edict_t during gameplay
+struct spawn_temp_t
+{
+	// world vars
+	string		sky;
+	float		skyrotate;
+	vector		skyaxis;
+	string		nextmap;
+	
+	int		lip;
+	int		distance;
+	int		height;
+	string		noise;
+	float		pausetime;
+	string		item;
+	string		gravity;
+	
+	float		minyaw;
+	float		maxyaw;
+	float		minpitch;
+	float		maxpitch;
+	
+	float		angle;
+} st;

@@ -71,7 +71,7 @@ void(entity targ) BeginIntermission =
 	level.intermission_framenum = level.framenum;
 	level.changemap = targ->map;
 
-	if (strstr(level.changemap, "*")) {
+	if (strstr(level.changemap, "*") != -1) {
 		if (coop->intVal) {
 			for (i = 0 ; i < game.maxclients ; i++) {
 				cl = itoe(1 + i);
@@ -185,7 +185,7 @@ void(entity ent, entity killer) DeathmatchScoreboardMessage =
 		else if (cl_ent == killer)
 			tag = "tag2";
 		else
-			tag = "";
+			tag = 0;
 		if (tag) {
 			entry = va("xv %i yv %i picn %s ", x + 32, y, tag);
 			j = strlen(entry);

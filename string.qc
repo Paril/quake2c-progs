@@ -12,18 +12,16 @@ string(string, __inout int) strtok = #0:strtok;
 int(string) strlen = #0:strlen;
 int(string, int) strat = #0:strat;
 string(string, ...) va = #0:va;
-bool(string, string) strstr = #0:strstr;
+int(string, string) strstr = #0:strstr;
 int(string, int) strchr = #0:strchr;
 string(string, int start, optional int length) substr = #0:substr;
 string(string...) strconcat = #0:strconcat;
 
-#define strempty(s) (s == "")
-
-string null_string = "";
+#define strempty(s) (!(s))
 
 string(vector v) vtos =
 {
-	return va("%f %f %f", v[(ARRAY_INDEX_TYPE)0], v[(ARRAY_INDEX_TYPE)1], v[(ARRAY_INDEX_TYPE)2]);
+	return va("%f %f %f", v_x, v_y, v_z);
 }
 
 // FIXME: time.qc?

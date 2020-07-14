@@ -23,7 +23,7 @@ SV_TestEntityPosition
 
 ============
 */
-static entity(entity ent) SV_TestEntityPosition =
+static bool(entity ent) SV_TestEntityPosition =
 {
 	trace_t trace;
 	int	mask;
@@ -34,10 +34,7 @@ static entity(entity ent) SV_TestEntityPosition =
 		mask = MASK_SOLID;
 	trace_and_result(trace, ent->s.origin, ent->mins, ent->maxs, ent->s.origin, ent, mask);
 
-	if (trace.startsolid)
-		return world;
-
-	return null_entity;
+	return trace.startsolid;
 }
 
 
@@ -59,20 +56,20 @@ static void(entity ent) SV_CheckVelocity =
 		else if (ent->velocity[i] < -sv_maxvelocity->value)
 			ent->velocity[i] = -sv_maxvelocity->value;
 	}*/
-	if (ent->velocity[(ARRAY_INDEX_TYPE)0] > sv_maxvelocity->floatVal)
-		ent->velocity[(ARRAY_INDEX_TYPE)0] = sv_maxvelocity->floatVal;
-	else if (ent->velocity[(ARRAY_INDEX_TYPE)0] < -sv_maxvelocity->floatVal)
-		ent->velocity[(ARRAY_INDEX_TYPE)0] = -sv_maxvelocity->floatVal;
+	if (ent->velocity_x > sv_maxvelocity->floatVal)
+		ent->velocity_x = sv_maxvelocity->floatVal;
+	else if (ent->velocity_x < -sv_maxvelocity->floatVal)
+		ent->velocity_x = -sv_maxvelocity->floatVal;
 		
-	if (ent->velocity[(ARRAY_INDEX_TYPE)1] > sv_maxvelocity->floatVal)
-		ent->velocity[(ARRAY_INDEX_TYPE)1] = sv_maxvelocity->floatVal;
-	else if (ent->velocity[(ARRAY_INDEX_TYPE)1] < -sv_maxvelocity->floatVal)
-		ent->velocity[(ARRAY_INDEX_TYPE)1] = -sv_maxvelocity->floatVal;
+	if (ent->velocity_y > sv_maxvelocity->floatVal)
+		ent->velocity_y = sv_maxvelocity->floatVal;
+	else if (ent->velocity_y < -sv_maxvelocity->floatVal)
+		ent->velocity_y = -sv_maxvelocity->floatVal;
 		
-	if (ent->velocity[(ARRAY_INDEX_TYPE)2] > sv_maxvelocity->floatVal)
-		ent->velocity[(ARRAY_INDEX_TYPE)2] = sv_maxvelocity->floatVal;
-	else if (ent->velocity[(ARRAY_INDEX_TYPE)2] < -sv_maxvelocity->floatVal)
-		ent->velocity[(ARRAY_INDEX_TYPE)2] = -sv_maxvelocity->floatVal;
+	if (ent->velocity_z > sv_maxvelocity->floatVal)
+		ent->velocity_z = sv_maxvelocity->floatVal;
+	else if (ent->velocity_z < -sv_maxvelocity->floatVal)
+		ent->velocity_z = -sv_maxvelocity->floatVal;
 }
 
 /*
@@ -138,9 +135,9 @@ static int(vector in, vector normal, __out vector out, float overbounce) ClipVel
 	int	i, blocked;
 
 	blocked = 0;
-	if (normal[(ARRAY_INDEX_TYPE)2] > 0)
+	if (normal_z > 0)
 		blocked |= 1;       // floor
-	if (!normal[(ARRAY_INDEX_TYPE)2])
+	if (!normal_z)
 		blocked |= 2;       // step
 
 	backoff = DotProduct(in, normal) * overbounce;
@@ -151,20 +148,20 @@ static int(vector in, vector normal, __out vector out, float overbounce) ClipVel
 		if (out[i] > -STOP_EPSILON && out[i] < STOP_EPSILON)
 			out[i] = 0;
 	}*/
-	change = normal[(ARRAY_INDEX_TYPE)0] * backoff;
-	out[(ARRAY_INDEX_TYPE)0] = in[(ARRAY_INDEX_TYPE)0] - change;
-	if (out[(ARRAY_INDEX_TYPE)0] > -STOP_EPSILON && out[(ARRAY_INDEX_TYPE)0] < STOP_EPSILON)
-		out[(ARRAY_INDEX_TYPE)0] = 0;
+	change = normal_x * backoff;
+	out_x = in_x - change;
+	if (out_x > -STOP_EPSILON && out_x < STOP_EPSILON)
+		out_x = 0;
 		
-	change = normal[(ARRAY_INDEX_TYPE)1] * backoff;
-	out[(ARRAY_INDEX_TYPE)1] = in[(ARRAY_INDEX_TYPE)1] - change;
-	if (out[(ARRAY_INDEX_TYPE)1] > -STOP_EPSILON && out[(ARRAY_INDEX_TYPE)1] < STOP_EPSILON)
-		out[(ARRAY_INDEX_TYPE)1] = 0;
+	change = normal_y * backoff;
+	out_y = in_y - change;
+	if (out_y > -STOP_EPSILON && out_y < STOP_EPSILON)
+		out_y = 0;
 		
-	change = normal[(ARRAY_INDEX_TYPE)2] * backoff;
-	out[(ARRAY_INDEX_TYPE)2] = in[(ARRAY_INDEX_TYPE)2] - change;
-	if (out[(ARRAY_INDEX_TYPE)2] > -STOP_EPSILON && out[(ARRAY_INDEX_TYPE)2] < STOP_EPSILON)
-		out[(ARRAY_INDEX_TYPE)2] = 0;
+	change = normal_z * backoff;
+	out_z = in[(ARRAY_INDEX_TYPE)2] - change;
+	if (out_z > -STOP_EPSILON && out_z < STOP_EPSILON)
+		out_z = 0;
 
 	return blocked;
 }
@@ -315,7 +312,7 @@ SV_AddGravity
 */
 static void(entity ent) SV_AddGravity =
 {
-	ent->velocity[(ARRAY_INDEX_TYPE)2] -= ent->gravity * sv_gravity->floatVal * FRAMETIME;
+	ent->velocity_z -= ent->gravity * sv_gravity->floatVal * FRAMETIME;
 }
 
 /*
@@ -395,13 +392,14 @@ otherwise riders would continue to slide.
 static bool(entity pusher, vector move, vector amove) SV_Push =
 {
 	int		i, e;
-	entity		check, block;
+	entity		check;
+	bool		block;
 	vector		mins, maxs;
 	vector		org, org2, move2, forward, right, up;
 
 	// clamp the move to 1/8 units, so the position will
 	// be accurate for client side prediction
-	for (i = 0 ; i < 3 ; i++) {
+	/*for (i = 0 ; i < 3 ; i++) {
 		float   temp;
 		temp = move[(ARRAY_INDEX_TYPE)i] * 8.0f;
 		if (temp > 0.0f)
@@ -409,8 +407,26 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 		else
 			temp -= 0.5f;
 		move[(ARRAY_INDEX_TYPE)i] = 0.125f * (int)temp;
-	}
-
+	}*/
+	float temp = move_x * 8.0f;
+	if (temp > 0.0f)
+		temp += 0.5f;
+	else
+		temp -= 0.5f;
+	move_x = 0.125f * (int)temp;
+	temp = move_y * 8.0f;
+	if (temp > 0.0f)
+		temp += 0.5f;
+	else
+		temp -= 0.5f;
+	move_y = 0.125f * (int)temp;
+	temp = move_z * 8.0f;
+	if (temp > 0.0f)
+		temp += 0.5f;
+	else
+		temp -= 0.5f;
+	move_z = 0.125f * (int)temp;
+	
 	// find the bounding box
 	mins = pusher.absmin + move;
 	maxs = pusher.absmax + move;
@@ -452,18 +468,20 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 		// if the entity is standing on the pusher, it will definitely be moved
 		if (check->groundentity != pusher) {
 			// see if the ent needs to be tested
-			if (check->absmin[(ARRAY_INDEX_TYPE)0] >= maxs[(ARRAY_INDEX_TYPE)0]
-				|| check->absmin[(ARRAY_INDEX_TYPE)1] >= maxs[(ARRAY_INDEX_TYPE)1]
-				|| check->absmin[(ARRAY_INDEX_TYPE)2] >= maxs[(ARRAY_INDEX_TYPE)2]
-				|| check->absmax[(ARRAY_INDEX_TYPE)0] <= mins[(ARRAY_INDEX_TYPE)0]
-				|| check->absmax[(ARRAY_INDEX_TYPE)1] <= mins[(ARRAY_INDEX_TYPE)1]
-				|| check->absmax[(ARRAY_INDEX_TYPE)2] <= mins[(ARRAY_INDEX_TYPE)2])
+			if (check->absmin_x >= maxs_x
+				|| check->absmin_y >= maxs_y
+				|| check->absmin_z >= maxs_z
+				|| check->absmax_x <= mins_x
+				|| check->absmax_y <= mins_y
+				|| check->absmax_z <= mins_z)
 				continue;
 
 			// see if the ent's bbox is inside the pusher's final position
 			if (!SV_TestEntityPosition(check))
 				continue;
 		}
+
+		gi.dprintf("%i poosher check %i (%f %f %f)\n", pusher.s.number, check.s.number, check.s.origin[(ARRAY_INDEX_TYPE)0], check.s.origin[(ARRAY_INDEX_TYPE)1], check.s.origin[(ARRAY_INDEX_TYPE)2]);
 
 		if ((pusher->movetype == MOVETYPE_PUSH) || (check->groundentity == pusher)) {
 			// move this entity
@@ -488,9 +506,9 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 
 			// figure movement due to the pusher's amove
 			VectorSubtract(check->s.origin, pusher->s.origin, org);
-			org2[(ARRAY_INDEX_TYPE)0] = DotProduct(org, forward);
-			org2[(ARRAY_INDEX_TYPE)1] = -DotProduct(org, right);
-			org2[(ARRAY_INDEX_TYPE)2] = DotProduct(org, up);
+			org2_x = DotProduct(org, forward);
+			org2_y = -DotProduct(org, right);
+			org2_z = DotProduct(org, up);
 			VectorSubtract(org2, org, move2);
 			VectorAdd(check->s.origin, move2, check->s.origin);
 
@@ -673,7 +691,7 @@ static void(entity ent) SV_Physics_Toss =
 	if (ent->flags & FL_TEAMSLAVE)
 		return;
 
-	if (ent->velocity[(ARRAY_INDEX_TYPE)2] > 0)
+	if (ent->velocity_z > 0)
 		ent->groundentity = null_entity;
 
 // check for the groundentity going away
@@ -713,7 +731,7 @@ static void(entity ent) SV_Physics_Toss =
 
 		// stop if on ground
 		if (trace.plane.normal[(ARRAY_INDEX_TYPE)2] > 0.7f) {
-			if (ent->velocity[(ARRAY_INDEX_TYPE)2] < 60f || ent->movetype != MOVETYPE_BOUNCE) {
+			if (ent->velocity_z < 60f || ent->movetype != MOVETYPE_BOUNCE) {
 				ent->groundentity = trace.ent;
 				ent->groundentity_linkcount = trace.ent->linkcount;
 				VectorClear(ent->velocity);
@@ -788,34 +806,34 @@ static void(entity ent) SV_AddRotationalFriction =
 				ent->avelocity[n] = 0;
 		}
 	}*/
-	if (ent->avelocity[(ARRAY_INDEX_TYPE)0] > 0) {
-		ent->avelocity[(ARRAY_INDEX_TYPE)0] -= adjustment;
-		if (ent->avelocity[(ARRAY_INDEX_TYPE)0] < 0)
-			ent->avelocity[(ARRAY_INDEX_TYPE)0] = 0;
+	if (ent->avelocity_x > 0) {
+		ent->avelocity_x -= adjustment;
+		if (ent->avelocity_x < 0)
+			ent->avelocity_x = 0;
 	} else {
-		ent->avelocity[(ARRAY_INDEX_TYPE)0] += adjustment;
-		if (ent->avelocity[(ARRAY_INDEX_TYPE)0] > 0)
-			ent->avelocity[(ARRAY_INDEX_TYPE)0] = 0;
+		ent->avelocity_x += adjustment;
+		if (ent->avelocity_x > 0)
+			ent->avelocity_x = 0;
 	}
 	
-	if (ent->avelocity[(ARRAY_INDEX_TYPE)1] > 0) {
-		ent->avelocity[(ARRAY_INDEX_TYPE)1] -= adjustment;
-		if (ent->avelocity[(ARRAY_INDEX_TYPE)1] < 0)
-			ent->avelocity[(ARRAY_INDEX_TYPE)1] = 0;
+	if (ent->avelocity_y > 0) {
+		ent->avelocity_y -= adjustment;
+		if (ent->avelocity_y < 0)
+			ent->avelocity_y = 0;
 	} else {
-		ent->avelocity[(ARRAY_INDEX_TYPE)1] += adjustment;
-		if (ent->avelocity[(ARRAY_INDEX_TYPE)1] > 0)
-			ent->avelocity[(ARRAY_INDEX_TYPE)1] = 0;
+		ent->avelocity_y += adjustment;
+		if (ent->avelocity_y > 0)
+			ent->avelocity_y = 0;
 	}
 	
-	if (ent->avelocity[(ARRAY_INDEX_TYPE)2] > 0) {
-		ent->avelocity[(ARRAY_INDEX_TYPE)2] -= adjustment;
-		if (ent->avelocity[(ARRAY_INDEX_TYPE)2] < 0)
-			ent->avelocity[(ARRAY_INDEX_TYPE)2] = 0;
+	if (ent->avelocity_z > 0) {
+		ent->avelocity_z -= adjustment;
+		if (ent->avelocity_z < 0)
+			ent->avelocity_z = 0;
 	} else {
-		ent->avelocity[(ARRAY_INDEX_TYPE)2] += adjustment;
-		if (ent->avelocity[(ARRAY_INDEX_TYPE)2] > 0)
-			ent->avelocity[(ARRAY_INDEX_TYPE)2] = 0;
+		ent->avelocity_z += adjustment;
+		if (ent->avelocity_z > 0)
+			ent->avelocity_z = 0;
 	}
 }
 
@@ -854,33 +872,33 @@ static void(entity ent) SV_Physics_Step =
 	if (! wasonground)
 		if (!(ent->flags & FL_FLY))
 			if (!((ent->flags & FL_SWIM) && (ent->waterlevel > 2))) {
-				if (ent->velocity[(ARRAY_INDEX_TYPE)2] < sv_gravity->floatVal * -0.1f)
+				if (ent->velocity_z < sv_gravity->floatVal * -0.1f)
 					hitsound = true;
 				if (ent->waterlevel == 0)
 					SV_AddGravity(ent);
 			}
 
 	// friction for flying monsters that have been given vertical velocity
-	if ((ent->flags & FL_FLY) && (ent->velocity[(ARRAY_INDEX_TYPE)2] != 0)) {
-		speed = fabsf(ent->velocity[(ARRAY_INDEX_TYPE)2]);
+	if ((ent->flags & FL_FLY) && (ent->velocity_z != 0)) {
+		speed = fabsf(ent->velocity_z);
 		control = speed < sv_stopspeed ? sv_stopspeed : speed;
 		friction = sv_friction / 3;
 		newspeed = speed - (FRAMETIME * control * friction);
 		if (newspeed < 0)
 			newspeed = 0;
 		newspeed /= speed;
-		ent->velocity[(ARRAY_INDEX_TYPE)2] *= newspeed;
+		ent->velocity_z *= newspeed;
 	}
 
 	// friction for flying monsters that have been given vertical velocity
-	if ((ent->flags & FL_SWIM) && (ent->velocity[(ARRAY_INDEX_TYPE)2] != 0)) {
-		speed = fabsf(ent->velocity[(ARRAY_INDEX_TYPE)2]);
+	if ((ent->flags & FL_SWIM) && (ent->velocity_z != 0)) {
+		speed = fabsf(ent->velocity_z);
 		control = speed < sv_stopspeed ? sv_stopspeed : speed;
 		newspeed = speed - (FRAMETIME * control * sv_waterfriction * ent->waterlevel);
 		if (newspeed < 0)
 			newspeed = 0;
 		newspeed /= speed;
-		ent->velocity[(ARRAY_INDEX_TYPE)2] *= newspeed;
+		ent->velocity_z *= newspeed;
 	}
 
 	if (ent.velocity) {
@@ -888,7 +906,7 @@ static void(entity ent) SV_Physics_Step =
 		// let dead monsters who aren't completely onground slide
 		if ((wasonground) || (ent->flags & (FL_SWIM | FL_FLY)))
 			if (!(ent->health <= 0 && !M_CheckBottom(ent))) {
-				speed = sqrtf(ent.velocity[(ARRAY_INDEX_TYPE)0] * ent.velocity[(ARRAY_INDEX_TYPE)0] + ent.velocity[(ARRAY_INDEX_TYPE)1] * ent.velocity[(ARRAY_INDEX_TYPE)1]);
+				speed = sqrtf(ent.velocity_x * ent.velocity_x + ent.velocity_y * ent.velocity_y);
 				if (speed) {
 					friction = sv_friction;
 
@@ -899,8 +917,8 @@ static void(entity ent) SV_Physics_Step =
 						newspeed = 0;
 					newspeed /= speed;
 
-					ent.velocity[(ARRAY_INDEX_TYPE)0] *= newspeed;
-					ent.velocity[(ARRAY_INDEX_TYPE)1] *= newspeed;
+					ent.velocity_x *= newspeed;
+					ent.velocity_y *= newspeed;
 				}
 			}
 
@@ -915,7 +933,7 @@ static void(entity ent) SV_Physics_Step =
 		if (!ent->inuse)
 			return;
 
-		if (ent->groundentity)
+		if (ent->groundentity != null_entity)
 			if (!wasonground)
 				if (hitsound)
 					gi.sound(ent, 0, gi.soundindex("world/land.wav"), 1, 1, 0);

@@ -255,7 +255,7 @@ static void(void) ExitLevel =
 {
 	gi.AddCommandString(va("gamemap \"%s\"\n", level.changemap));
 	
-	level.changemap = "";
+	level.changemap = 0;
 	level.exitintermission = 0;
 	level.intermission_framenum = 0;
 	ClientEndServerFrames();
