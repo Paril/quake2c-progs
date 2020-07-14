@@ -672,8 +672,6 @@ to other players
 */
 static entity() SelectRandomDeathmatchSpawnPoint =
 {
-	return null_entity;
-
 	entity	spot, spot1, spot2;
 	int	count = 0;
 	int	selection;
@@ -1555,6 +1553,9 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 
 		pm.trace = PM_trace;    // adds default parms
 		pm.pointcontents = gi.pointcontents;
+		
+		pm.ent_touch_next = pushed.next;
+		pm.ent_touch_prev = pushed.prev;
 
 		// perform a pmove
 		gi.Pmove(pm);
@@ -1609,6 +1610,12 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 			G_TouchTriggers(ent);
 
 		// touch other objects
+		for (entity other = pm.touch_head; other != null_entity; other = other.pushed.next)
+		{
+			if (!other->touch)
+				continue;
+			other->touch(other, ent, null_plane, null_surface);
+		}
 		/*for (i = 0 ; i < pm.numtouch ; i++) {
 			other = pm.touchents[(ARRAY_INDEX_TYPE)i];
 			for (j = 0 ; j < i ; j++)

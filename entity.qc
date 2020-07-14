@@ -637,3 +637,12 @@ struct gclient_t
 };
 
 .gclient_t	client;
+
+.struct
+{
+	entity	next, prev;
+	vector	origin, angles;
+#if USE_SMOOTH_DELTA_ANGLES
+	int	deltayaw;
+#endif
+} pushed;

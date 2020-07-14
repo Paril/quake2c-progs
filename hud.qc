@@ -281,7 +281,7 @@ static void(entity ent) HelpComputer =
 			game.helpmessage1,
 			game.helpmessage2);
 	
-	str = va(	"xv 50 yv 164 string2 \" kills     goals    secrets\" "
+	str = va(	"%sxv 50 yv 164 string2 \" kills     goals    secrets\" "
 			"xv 50 yv 172 string2 \"%3i/%3i     %i/%i       %i/%i\" ",
 			str,
 			level.killed_monsters, level.total_monsters,

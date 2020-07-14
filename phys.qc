@@ -367,18 +367,7 @@ retry:
 		G_TouchTriggers(ent);
 }
 
-
-typedef struct {
-	entity	ent;
-	vector	origin;
-	vector	angles;
-#if USE_SMOOTH_DELTA_ANGLES
-	int     deltayaw;
-#endif
-} pushed_t;
-
-static pushed_t	pushed[MAX_EDICTS];
-static int	pushed_p;
+static entity	pushed_head;
 static entity	obstacle;
 
 /*
@@ -436,14 +425,20 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 	AngleVectors(org, forward, right, up);
 
 // save the pusher's original position
-	pushed[(ARRAY_INDEX_TYPE)pushed_p]->ent = pusher;
-	VectorCopy(pusher->s.origin, pushed[(ARRAY_INDEX_TYPE)pushed_p]->origin);
-	VectorCopy(pusher->s.angles, pushed[(ARRAY_INDEX_TYPE)pushed_p]->angles);
+	pusher.pushed.next = world;
+	pusher.pushed.prev = pushed_head;
+
+	if (pushed_head)
+		pushed_head.pushed.next = pusher;
+
+	VectorCopy(pusher->s.origin, pusher.pushed.origin);
+	VectorCopy(pusher->s.angles, pusher.pushed.angles);
 #if USE_SMOOTH_DELTA_ANGLES
 	if (pusher->client)
-		pushed[(ARRAY_INDEX_TYPE)pushed_p]->deltayaw = pusher->client->ps.pmove.delta_angles[YAW];
+		pusher.pushed.deltayaw = pusher->client->ps.pmove.delta_angles[YAW];
 #endif
-	pushed_p++;
+
+	pushed_head = pusher;
 
 // move the pusher to it's final position
 	VectorAdd(pusher->s.origin, move, pusher->s.origin);
@@ -481,18 +476,22 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 				continue;
 		}
 
-		gi.dprintf("%i poosher check %i (%f %f %f)\n", pusher.s.number, check.s.number, check.s.origin[(ARRAY_INDEX_TYPE)0], check.s.origin[(ARRAY_INDEX_TYPE)1], check.s.origin[(ARRAY_INDEX_TYPE)2]);
 
 		if ((pusher->movetype == MOVETYPE_PUSH) || (check->groundentity == pusher)) {
 			// move this entity
-			pushed[(ARRAY_INDEX_TYPE)pushed_p]->ent = check;
-			VectorCopy(check->s.origin, pushed[(ARRAY_INDEX_TYPE)pushed_p]->origin);
-			VectorCopy(check->s.angles, pushed[(ARRAY_INDEX_TYPE)pushed_p]->angles);
+			VectorCopy(check->s.origin, check.pushed.origin);
+			VectorCopy(check->s.angles, check.pushed.angles);
 #if USE_SMOOTH_DELTA_ANGLES
 			if (check->client)
-				pushed[(ARRAY_INDEX_TYPE)pushed_p]->deltayaw = check->client->ps.pmove.delta_angles[YAW];
+				check.pushed.deltayaw = check->client->ps.pmove.delta_angles[YAW];
 #endif
-			pushed_p++;
+			check.pushed.next = world;
+			check.pushed.prev = pushed_head;
+			
+			if (pushed_head)
+				pushed_head.pushed.next = check;
+			
+			pushed_head = check;
 
 			// try moving the contacted entity
 			VectorAdd(check->s.origin, move, check->s.origin);
@@ -530,7 +529,10 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 			VectorSubtract(check->s.origin, move, check->s.origin);
 			block = SV_TestEntityPosition(check);
 			if (!block) {
-				pushed_p--;
+				pushed_head = pushed_head.pushed.prev;
+				
+				if (pushed_head)
+					pushed_head.pushed.next = world;
 				continue;
 			}
 		}
@@ -541,23 +543,23 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 		// move back any entities we already moved
 		// go backwards, so if the same entity was pushed
 		// twice, it goes back to the original position
-		for (int p = pushed_p - 1 ; p >= 0 ; p--) {
-			VectorCopy(pushed[(ARRAY_INDEX_TYPE)p]->origin, pushed[(ARRAY_INDEX_TYPE)p]->ent->s.origin);
-			VectorCopy(pushed[(ARRAY_INDEX_TYPE)p]->angles, pushed[(ARRAY_INDEX_TYPE)p]->ent->s.angles);
+		for (entity p = pushed_head; p; p = p.pushed.prev) {
+			VectorCopy(p.pushed.origin, p->s.origin);
+			VectorCopy(p.pushed.angles, p->s.angles);
 #if USE_SMOOTH_DELTA_ANGLES
-			if (pushed[(ARRAY_INDEX_TYPE)p]->ent->client) {
-				pushed[(ARRAY_INDEX_TYPE)p]->ent->client->ps.pmove.delta_angles[YAW] = pushed[(ARRAY_INDEX_TYPE)p]->deltayaw;
+			if (p->client) {
+				p->client->ps.pmove.delta_angles[YAW] = p.pushed->deltayaw;
 			}
 #endif
-			gi.linkentity(pushed[(ARRAY_INDEX_TYPE)p]->ent);
+			gi.linkentity(p);
 		}
 		return false;
 	}
 
 //FIXME: is there a better way to handle this?
 	// see if anything we moved has touched a trigger
-	for (int p = pushed_p - 1 ; p >= 0 ; p--)
-		G_TouchTriggers(pushed[(ARRAY_INDEX_TYPE)p]->ent);
+	for (entity p = pushed_head; p; p = p.pushed.prev)
+		G_TouchTriggers(p);
 
 	return true;
 }
@@ -583,7 +585,7 @@ static void(entity ent) SV_Physics_Pusher =
 	// any moves or calling any think functions
 	// if the move is blocked, all moved objects will be backed out
 //retry:
-	pushed_p = 0;
+	pushed_head = world;
 	for (part = ent ; part ; part = part->teamchain) {
 		if (!VectorEmpty(part->velocity) || !VectorEmpty(part->avelocity)) {
 			// object is moving
@@ -594,8 +596,6 @@ static void(entity ent) SV_Physics_Pusher =
 				break;  // move was blocked
 		}
 	}
-	if (pushed_p >= MAX_EDICTS)
-		gi.error("pushed_p > &pushed[MAX_EDICTS], memory corrupted");
 
 	if (part) {
 		// the move failed, bump all nextthink times and back out moves

@@ -710,8 +710,6 @@ struct pmove_state_t
 	int		delta_angles[3];
 };
 
-const int MAX_TOUCH = 32;
-
 struct pmove_t
 {
 	// inout
@@ -721,9 +719,11 @@ struct pmove_t
 	usercmd_t	cmd;
 	bool		snapinitial;
 	
+	.entity		ent_touch_next;
+	.entity		ent_touch_prev;
+	
 	// out
-	int	numtouch;
-	entity	touchents[MAX_TOUCH];
+	entity	touch_head;
 	
 	vector	viewangles;
 	float	viewheight;
