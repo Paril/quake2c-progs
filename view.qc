@@ -92,7 +92,7 @@ static void(void) P_WorldEffects =
 					gi.sound(current_player, CHAN_AUTO, gi.soundindex("player/u_breath1.wav"), 1, ATTN_NORM, 0);
 				else
 					gi.sound(current_player, CHAN_AUTO, gi.soundindex("player/u_breath2.wav"), 1, ATTN_NORM, 0);
-				current_player.client.breather_sound = BitxorInt(current_player.client.breather_sound, 1);
+				current_player.client.breather_sound ^= 1;
 				PlayerNoise(current_player, current_player->s.origin, PNOISE_SELF);
 			}
 		}

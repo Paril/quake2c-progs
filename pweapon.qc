@@ -157,7 +157,7 @@ void(entity ent) ChangeWeapon =
 	// set visible model
 	if (ent->s.modelindex == 255) {
 		if (ent->client->pers.weapon)
-			i = LShiftInt(GetItemKeyByIndex(ent->client->pers.weapon, weapmodel) & 0xff, 8);
+			i = (GetItemKeyByIndex(ent->client->pers.weapon, weapmodel) & 0xff) << 8;
 		else
 			i = 0;
 		ent->s.skinnum = ent.s.number | i;

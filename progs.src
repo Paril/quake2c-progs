@@ -20,9 +20,13 @@ cmds.qc
 combat.qc
 hud.qc
 ai.qc
+move.qc
 view.qc
 trail.qc
 gweapon.qc
+monster.qc
+flash.qc
+infantry.qc
 pweapon.qc
 misc.qc
 trigger.qc

@@ -54,3 +54,9 @@ float vectoyaw(vector vec)
 
 	return yaw;
 }
+
+float anglemod(float a)
+{
+    a = (360.0f / 65536) * ((int)(a * (65536 / 360.0f)) & 65535);
+    return a;
+}

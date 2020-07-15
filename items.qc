@@ -1545,11 +1545,11 @@ static bool(entity ent, entity other) Pickup_Key =
 {
 	if (coop->intVal) {
 		if (ent->classname == "key_power_cube") {
-			if (other->client->pers.power_cubes & (RShiftInt((ent->spawnflags & 0x0000ff00), 8)))
+			if (other->client->pers.power_cubes & ((ent->spawnflags & 0x0000ff00) >> 8))
 				return false;
 			// FIXME
 			//other->client->pers.inventory[ITEM_INDEX(ent->item)]++;
-			other->client->pers.power_cubes |= (RShiftInt((ent->spawnflags & 0x0000ff00), 8));
+			other->client->pers.power_cubes |= ((ent->spawnflags & 0x0000ff00) >> 8);
 		} else {
 			// FIXME
 			/*if (other->client->pers.inventory[ITEM_INDEX(ent->item)])
@@ -2200,7 +2200,7 @@ void(entity ent, gitem_id_t it) SpawnItem =
 	}
 
 	if (coop->intVal && ent->classname == "key_power_cube") {
-		ent->spawnflags |= LShiftInt(1, (8 + level.power_cubes));
+		ent->spawnflags |= (1 << (8 + level.power_cubes));
 		level.power_cubes++;
 	}
 

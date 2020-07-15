@@ -292,8 +292,7 @@ static void() RunFrame =
 	level.time = level.framenum * FRAMETIME;
 	
 	// choose a client for monsters to target this frame
-	//TODO
-	//AI_SetSightClient();
+	AI_SetSightClient();
 	
 	// exit intermissions
 	if (level.exitintermission)
@@ -336,12 +335,10 @@ static void() RunFrame =
 	}
 	
 	// see if it is time to end a deathmatch
-	//TODO
-	//CheckDMRules();
+	CheckDMRules();
 	
 	// see if needpass needs updated
-	//TODO
-	//CheckNeedPass();
+	CheckNeedPass();
 	
 	// build the playerstate_t structures for all players
 	ClientEndServerFrames();

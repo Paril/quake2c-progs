@@ -837,10 +837,6 @@ static void(entity ent) SV_AddRotationalFriction =
 	}
 }
 
-//TODO
-void(entity ent) M_CheckGround = { }
-bool(entity ent) M_CheckBottom = { return false; }
-
 static void(entity ent) SV_Physics_Step =
 {
 	bool	wasonground;

@@ -20,7 +20,7 @@ __used struct {
 	void(entity, string) setmodel;
 	
 	void(vector start, vector mins, vector maxs, vector end, entity passent, int contentmask) trace;
-	void(__out trace_t tr) trace_result;
+	void(trace_t *tr) trace_result;
 	
 	int(vector) pointcontents;
 	bool(vector, vector) inPVS;
@@ -32,7 +32,7 @@ __used struct {
 	void(entity) unlinkentity;
 	box_edicts_t(vector mins, vector maxs, int maxcount, box_edicts_area_t areatype, __out int count) BoxEdicts;
 	void(box_edicts_t) FreeBoxEdicts;
-	void(__variant) Pmove;
+	void(pmove_t *) Pmove;
 	
 	void(vector, multicast_t) multicast;
 	void(entity, bool reliable) unicast;
@@ -125,4 +125,4 @@ __used struct {
 
 	
 // dirty shortcut to trace and fetch results
-#define trace_and_result(tr, start, mins, maxs, end, passent, contentmask) { gi.trace(start, mins, maxs, end, passent, contentmask); gi.trace_result(tr); }
+#define trace_and_result(tr, start, mins, maxs, end, passent, contentmask) { gi.trace(start, mins, maxs, end, passent, contentmask); gi.trace_result(&(tr)); }

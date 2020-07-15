@@ -1,5 +1,6 @@
-// TODO: eventually ditch this
-typedef float ARRAY_INDEX_TYPE;
+#pragma target fte
+
+typedef int ARRAY_INDEX_TYPE;
 
 int(int, int) BitorInt = #0:BitorInt;
 int(int, int) BitandInt = #0:BitandInt;
@@ -13,7 +14,5 @@ int(int, int) LShiftInt = #0:LShiftInt;
 int(int, int) RShiftInt = #0:RShiftInt;
 float(int) itof = #0:itof;
 int(float) ftoi = #0:ftoi;
-
-int(int) TwosCompInt = #0:TwosCompInt;
 
 __variant(string) func_get = #0:func_get;

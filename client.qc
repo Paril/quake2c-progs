@@ -553,7 +553,7 @@ but is called after each death and level change in deathmatch
 */
 static void(entity ent) InitClientPersistant =
 {
-	memset(&ent.client.pers, 0, sizeof(ent.client.pers));
+	memclear(&ent.client.pers, sizeof(ent.client.pers));
 	
 	gitem_id_t it = FindItem("Blaster");
 	ent.client.pers.selected_item = ITEM_INDEX(it);
@@ -577,7 +577,7 @@ static void(entity ent) InitClientPersistant =
 
 static void(entity ent) InitClientResp =
 {
-	memset(&ent.client.resp, 0, sizeof(client_respawn_t));
+	memclear(&ent.client.resp, sizeof(client_respawn_t));
 	ent.client.resp.enterframe = level.framenum;
 	memcpy(&ent.client.resp.coop_respawn, &ent.client.pers, sizeof(client_persistant_t));
 }
@@ -1056,7 +1056,7 @@ static void(entity ent) PutClientInServer =
 	{
 		string userinfo = ent.client.pers.userinfo;
 		
-		struct_copy_to(&ent.client.resp, resp, sizeof(resp));
+		memcpy(&resp, &ent.client.resp, sizeof(resp));
 		
 		InitClientPersistant(ent);
 		ClientUserinfoChanged(ent, userinfo);
@@ -1065,23 +1065,23 @@ static void(entity ent) PutClientInServer =
 	{
 		string userinfo = ent.client.pers.userinfo;
 
-		struct_copy_to(&ent.client.resp, resp, sizeof(resp));
+		memcpy(&resp, &ent.client.resp, sizeof(resp));
 
 		resp.coop_respawn.game_helpchanged = ent.client.pers.game_helpchanged;
 		resp.coop_respawn.helpchanged = ent.client.pers.helpchanged;
-		struct_copy_from(resp.coop_respawn, &ent.client.pers, sizeof(resp.coop_respawn));
+		memcpy(&ent.client.pers, &resp.coop_respawn, sizeof(resp.coop_respawn));
 		ClientUserinfoChanged(ent, userinfo);
 		if (resp.score > ent.client.pers.score)
 			ent.client.pers.score = resp.score;
 	}
 
 	// clear everything but the persistant data
-	struct_copy_to(&ent.client.pers, saved, sizeof(saved));
-	memset(&ent.client, 0, sizeof(ent.client));
-	struct_copy_from(saved, &ent.client.pers, sizeof(saved));
+	memcpy(&saved, &ent.client.pers, sizeof(saved));
+	memclear(&ent.client, sizeof(ent.client));
+	memcpy(&ent.client.pers, &saved, sizeof(saved));
 	if (ent.client.pers.health <= 0)
 		InitClientPersistant(ent);
-	struct_copy_from(resp, &ent.client.resp, sizeof(resp));
+	memcpy(&ent.client.resp, &resp, sizeof(resp));
 
 	// copy some data from the client to the entity
 	FetchClientEntData(ent);
@@ -1111,8 +1111,7 @@ static void(entity ent) PutClientInServer =
 	ent.velocity = vec3_origin;
 
 	// clear playerstate values
-	memset(&ent.client.ps, 0, sizeof(ent.client.ps));
-	gi.SyncPlayerState(ent);
+	memclear(&ent.client.ps, sizeof(ent.client.ps));
 
 	/*for (ARRAY_INDEX_TYPE i = 0; i < 3; i++) {
 		ent.client.ps.pmove.origin[i] = COORD2SHORT(spawn_origin[i]);
@@ -1531,7 +1530,7 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 			ent.client->ps.pmove.pm_type = PM_NORMAL;
 
 		ent.client->ps.pmove.gravity = sv_gravity.intVal;
-		struct_copy_to(&ent.client.ps.pmove, pm.s, sizeof(pm.s));
+		memcpy(&pm.s, &ent.client.ps.pmove, sizeof(pm.s));
 
 		/*for (i = 0 ; i < 3 ; i++) {
 			pm.s.origin[i] = COORD2SHORT(ent->s.origin[i]);
@@ -1544,7 +1543,7 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 		pm.s.origin[(ARRAY_INDEX_TYPE)2] = COORD2SHORT(ent->s.origin[(ARRAY_INDEX_TYPE)2]);
 		pm.s.velocity[(ARRAY_INDEX_TYPE)2] = COORD2SHORT(ent->velocity[(ARRAY_INDEX_TYPE)2]);
 
-		if (struct_cmp_to(&ent.client->old_pmove, pm.s, sizeof(pm.s))) {
+		if (memcmp(&ent.client->old_pmove, &pm.s, sizeof(pm.s))) {
 			pm.snapinitial = true;
 			//      gi.dprintf ("pmove changed!\n");
 		}
@@ -1558,11 +1557,10 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 		pm.ent_touch_prev = pushed.prev;
 
 		// perform a pmove
-		gi.Pmove(pm);
+		gi.Pmove(&pm);
 
 		// save results of pmove
-		struct_copy_from(pm.s, &ent.client.ps.pmove, sizeof(pm.s));
-		gi.SyncPlayerState(ent);
+		memcpy(&ent.client.ps.pmove, &pm.s, sizeof(pm.s));
 		memcpy(&ent.client.old_pmove, &ent.client.ps.pmove, sizeof(ent.client.old_pmove));
 
 		/*for (i = 0 ; i < 3 ; i++) {
@@ -1632,7 +1630,7 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 
 	ent.client->oldbuttons = ent.client->buttons;
 	ent.client->buttons = ucmd->buttons;
-	ent.client->latched_buttons |= ent.client->buttons & TwosCompInt(ent.client->oldbuttons);
+	ent.client->latched_buttons |= ent.client->buttons & ~ent.client->oldbuttons;
 
 	// save light level the player is standing on for
 	// monster sighting AI

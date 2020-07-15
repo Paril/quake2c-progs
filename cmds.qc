@@ -272,7 +272,7 @@ static void(entity ent) Cmd_God_f =
 		return;
 	}
 
-	ent->flags = BitxorInt(ent->flags, FL_GODMODE);
+	ent->flags ^= FL_GODMODE;
 	if (!(ent->flags & FL_GODMODE) )
 		msg = "godmode OFF\n";
 	else
@@ -301,7 +301,7 @@ static void(entity ent) Cmd_Notarget_f =
 		return;
 	}
 
-	ent->flags = BitxorInt(ent.flags, FL_NOTARGET);
+	ent->flags ^= FL_NOTARGET;
 	if (!(ent->flags & FL_NOTARGET) )
 		msg = "notarget OFF\n";
 	else

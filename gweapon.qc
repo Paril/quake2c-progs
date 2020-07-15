@@ -1,7 +1,3 @@
-// from ai.qc
-// TODO
-bool(entity, entity) infront = { return true; };
-
 /*
 =================
 check_dodge

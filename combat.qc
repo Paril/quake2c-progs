@@ -259,6 +259,8 @@ static int(entity ent, vector point, vector normal, int damage, int te_sparks, d
 	return save;
 }
 
+void(entity self) FoundTarget;
+
 static void(entity targ, entity attacker) M_ReactToDamage =
 {
 	if (!(attacker->is_client) && !(attacker->svflags & SVF_MONSTER))
@@ -290,9 +292,8 @@ static void(entity targ, entity attacker) M_ReactToDamage =
 			targ->oldenemy = targ->enemy;
 		}
 		targ->enemy = attacker;
-		//TODO
-		//if (!(targ->monsterinfo.aiflags & AI_DUCKED))
-		//	FoundTarget(targ);
+		if (!(targ->monsterinfo.aiflags & AI_DUCKED))
+			FoundTarget(targ);
 		return;
 	}
 
@@ -307,27 +308,24 @@ static void(entity targ, entity attacker) M_ReactToDamage =
 		if (targ->enemy && targ->enemy->is_client)
 			targ->oldenemy = targ->enemy;
 		targ->enemy = attacker;
-		//TODO
-		//if (!(targ->monsterinfo.aiflags & AI_DUCKED))
-		//	FoundTarget(targ);
+		if (!(targ->monsterinfo.aiflags & AI_DUCKED))
+			FoundTarget(targ);
 	}
 	// if they *meant* to shoot us, then shoot back
 	else if (attacker->enemy == targ) {
 		if (targ->enemy && targ->enemy->is_client)
 			targ->oldenemy = targ->enemy;
 		targ->enemy = attacker;
-		//TODO
-		//if (!(targ->monsterinfo.aiflags & AI_DUCKED))
-		//	FoundTarget(targ);
+		if (!(targ->monsterinfo.aiflags & AI_DUCKED))
+			FoundTarget(targ);
 	}
 	// otherwise get mad at whoever they are mad at (help our buddy) unless it is us!
 	else if (attacker->enemy && attacker->enemy != targ) {
 		if (targ->enemy && targ->enemy->is_client)
 			targ->oldenemy = targ->enemy;
 		targ->enemy = attacker->enemy;
-		//TODO
-		//if (!(targ->monsterinfo.aiflags & AI_DUCKED))
-		//	FoundTarget(targ);
+		if (!(targ->monsterinfo.aiflags & AI_DUCKED))
+			FoundTarget(targ);
 	}
 }
 

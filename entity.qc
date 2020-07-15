@@ -363,6 +363,15 @@ typedef enumflags int
 	AI_RESURRECTING
 } ai_flags_t;
 
+//monster attack state
+typedef enum int
+{
+	AS_STRAIGHT = 1,
+	AS_SLIDING,
+	AS_MELEE,
+	AS_MISSILE
+} ai_attack_state_t;
+
 // power armor types
 typedef enum int
 {
@@ -392,14 +401,14 @@ struct monsterinfo_t
 	int	pause_framenum;
 	int	attack_finished;
 	
-	vector	saved_goal;
-	int	search_framenum;
-	int	trail_framenum;
-	vector	last_sighting;
-	int	attack_state;
-	int	lefty;
-	int	idle_framenum;
-	int	linkcount;
+	vector			saved_goal;
+	int			search_framenum;
+	int			trail_framenum;
+	vector			last_sighting;
+	ai_attack_state_t	attack_state;
+	int			lefty;
+	int			idle_framenum;
+	int			linkcount;
 	
 	int	power_armor_type;
 	int	power_armor_power;

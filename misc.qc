@@ -6,7 +6,7 @@ Used to group brushes together just for editor convenience.
 
 static void(entity ent, entity other, entity activator) Use_Areaportal =
 {
-	ent->count = BitxorInt(ent->count, 1);        // toggle state
+	ent->count ^= 1;        // toggle state
 	gi.SetAreaPortalState(ent->style, ent->count);
 }
 
@@ -750,9 +750,6 @@ __used static void(entity self) SP_func_explosive =
 	gi.linkentity(self);
 }
 
-// from monster.qc
-void(entity, float, float) M_walkmove = { }
-
 /*QUAKED misc_explobox (0 .5 .8) (-16 -16 0) (16 16 40)
 Large exploding box.  You can override its mass (100),
 health (80), and dmg (150).
@@ -857,9 +854,6 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 	self->think = barrel_explode;
 	self->activator = attacker;
 }
-
-// from monster.qc
-void(entity) M_droptofloor = { }
 
 __used static void(entity self) SP_misc_explobox =
 {

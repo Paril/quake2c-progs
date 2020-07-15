@@ -205,7 +205,7 @@ static void(entity self, entity other, entity cactivator) trigger_key_use =
 			int cube;
 
 			for (cube = 0; cube < 8; cube++)
-				if (cactivator->client->pers.power_cubes & LShiftInt(1, cube))
+				if (cactivator->client->pers.power_cubes & (1 << cube))
 					break;
 			for (player = 1; player <= game.maxclients; player++) {
 				ent = itoe(player);
@@ -213,10 +213,10 @@ static void(entity self, entity other, entity cactivator) trigger_key_use =
 					continue;
 				if (!ent->is_client)
 					continue;
-				if (ent->client->pers.power_cubes & LShiftInt(1, cube)) {
+				if (ent->client->pers.power_cubes & (1 << cube)) {
 					// TODO
 					//ent->client->pers.inventory[index]--;
-					ent->client->pers.power_cubes &= ~LShiftInt(1, cube);
+					ent->client->pers.power_cubes &= ~(1 << cube);
 				}
 			}
 		} else {

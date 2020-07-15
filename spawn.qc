@@ -1,7 +1,7 @@
 struct spawn_field_t
 {
 	string		key;
-	__variant	field;
+	.__variant	field;
 };
 
 __used spawn_field_t spawn_fields[] =
@@ -29,7 +29,7 @@ __used spawn_field_t spawn_fields[] =
 	{ "count", count },
 	{ "health", health },
 	{ "sounds", sounds },
-	{ "light", -1 },
+	{ "light", (.__variant)(__variant)-1 },
 	{ "dmg", dmg },
 	{ "mass", mass },
 	{ "volume", volume },
@@ -41,12 +41,12 @@ __used spawn_field_t spawn_fields[] =
 
 static bool(string key, string value, entity ent) ED_ParseField =
 {
-	for (ARRAY_INDEX_TYPE i = 0; i < sizeof(spawn_fields) / sizeof(spawn_field_t); i++)
+	for (ARRAY_INDEX_TYPE i = 0; i < spawn_fields.length; i++)
 	{
 		if (stricmp(spawn_fields[i].key, key))
 			continue;
 		
-		if (spawn_fields[i].field != -1)
+		if (spawn_fields[i].field != (.__variant)(__variant)-1)
 			entity_key_parse(ent, spawn_fields[i].field, value);
 
 		return true;
@@ -62,7 +62,7 @@ static bool(string key, string value) ED_ParseSpawnTemp =
 
 static inline void() ClearSpawnTemp =
 {
-	struct_clear(st, sizeof(st));
+	memclear(&st, sizeof(st));
 }
 
 static void(string entities, __inout int entities_offset, entity ent) ED_ParseEdict =
@@ -231,7 +231,7 @@ __used void(string mapname, string entities, string spawnpoint) SpawnEntities =
 
 	SaveClientData();
 
-	struct_clear(level, sizeof(level));
+	memclear(&level, sizeof(level));
 	level.mapname = mapname;
 	game.spawnpoint = spawnpoint;
 	
