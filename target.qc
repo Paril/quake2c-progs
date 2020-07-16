@@ -58,16 +58,15 @@ static void(entity ent, entity other, entity cactivator) Use_Target_Speaker =
 
 __used static void(entity ent) SP_target_speaker =
 {
-	string	buffer;
+	string	buffer = st.noise;
 
-	if (!st.noise) {
+	if (!buffer) {
 		gi.dprintf("target_speaker with no noise set at %s\n", vtos(ent->s.origin));
 		return;
 	}
+
 	if (strstr(st.noise, ".wav") == -1)
 		buffer = va("%s.wav", st.noise);
-	else
-		buffer = st.noise;
 
 	ent->noise_index = gi.soundindex(buffer);
 
@@ -153,7 +152,7 @@ __used static void(entity ent) SP_target_secret =
 	ent->svflags = SVF_NOCLIENT;
 	level.total_secrets++;
 	// map bug hack
-	if (!stricmp(level.mapname, "mine3") && ent->s.origin[(ARRAY_INDEX_TYPE)0] == 280 && ent->s.origin[(ARRAY_INDEX_TYPE)1] == -2048 && ent->s.origin[(ARRAY_INDEX_TYPE)2] == -624)
+	if (!stricmp(level.mapname, "mine3") && ent->s.origin[0] == 280 && ent->s.origin[1] == -2048 && ent->s.origin[2] == -624)
 		ent->message = "You have found a secret area.";
 }
 
@@ -494,7 +493,7 @@ static void(entity self) target_laser_think =
 	VectorCopy(self->s.origin, start);
 	VectorMA(start, 2048, self->movedir, end);
 	while (1) {
-		trace_and_result(tr, start, vec3_origin, vec3_origin, end, ignore, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_DEADMONSTER);
+		gi.trace(&tr, start, vec3_origin, vec3_origin, end, ignore, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_DEADMONSTER);
 
 		if (!tr.ent)
 			break;

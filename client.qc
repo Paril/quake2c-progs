@@ -49,27 +49,27 @@ __used static void(entity self) SP_CreateCoopSpots =
     if (level.mapname == "security") {
         spot = G_Spawn();
         spot->classname = "info_player_coop";
-        spot->s.origin[(ARRAY_INDEX_TYPE)0] = 188f - 64f;
-        spot->s.origin[(ARRAY_INDEX_TYPE)1] = -164f;
-        spot->s.origin[(ARRAY_INDEX_TYPE)2] = 80f;
+        spot->s.origin[0] = 188f - 64f;
+        spot->s.origin[1] = -164f;
+        spot->s.origin[2] = 80f;
         spot->targetname = "jail3";
-        spot->s.angles[(ARRAY_INDEX_TYPE)1] = 90f;
+        spot->s.angles[1] = 90f;
 
         spot = G_Spawn();
         spot->classname = "info_player_coop";
-        spot->s.origin[(ARRAY_INDEX_TYPE)0] = 188f + 64f;
-        spot->s.origin[(ARRAY_INDEX_TYPE)1] = -164f;
-        spot->s.origin[(ARRAY_INDEX_TYPE)2] = 80f;
+        spot->s.origin[0] = 188f + 64f;
+        spot->s.origin[1] = -164f;
+        spot->s.origin[2] = 80f;
         spot->targetname = "jail3";
-        spot->s.angles[(ARRAY_INDEX_TYPE)1] = 90f;
+        spot->s.angles[1] = 90f;
 
         spot = G_Spawn();
         spot->classname = "info_player_coop";
-        spot->s.origin[(ARRAY_INDEX_TYPE)0] = 188f + 128f;
-        spot->s.origin[(ARRAY_INDEX_TYPE)1] = -164f;
-        spot->s.origin[(ARRAY_INDEX_TYPE)2] = 80f;
+        spot->s.origin[0] = 188f + 128f;
+        spot->s.origin[1] = -164f;
+        spot->s.origin[2] = 80f;
         spot->targetname = "jail3";
-        spot->s.angles[(ARRAY_INDEX_TYPE)1] = 90f;
+        spot->s.angles[1] = 90f;
 
         return;
     }
@@ -374,9 +374,8 @@ static void(entity self) TossClientWeapon =
 		return;
 
 	it = self->client->pers.weapon;
-	// TODO
-	//if (! self->client->pers.inventory[self->client->ammo_index])
-	//	item = NULL;
+	if (!self->client->pers.inventory[self->client->ammo_index])
+		it = 0;
 	
 	if (item && GetItemKeyByIndex(it, pickup_name) == "Blaster")
 		it = 0;
@@ -557,8 +556,7 @@ static void(entity ent) InitClientPersistant =
 	
 	gitem_id_t it = FindItem("Blaster");
 	ent.client.pers.selected_item = ITEM_INDEX(it);
-	//TODO
-	//ent.client.pers.inventory[(float)ent.client.pers.selected_item] = 1;
+	ent.client.pers.inventory[ent.client.pers.selected_item] = 1;
 	
 	ent.client.pers.weapon = it;
 	
@@ -840,7 +838,7 @@ static void(entity ent, __out vector origin, __out vector angles) SelectSpawnPoi
 	}
 
 	VectorCopy(spot->s.origin, origin);
-	origin[(ARRAY_INDEX_TYPE)2] += 9f;
+	origin[2] += 9f;
 	VectorCopy(spot->s.angles, angles);
 }
 
@@ -863,7 +861,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 		gi.sound(self, CHAN_BODY, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
 		for (n = 0; n < 4; n++)
 			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
-		self->s.origin[(ARRAY_INDEX_TYPE)2] -= 48f;
+		self->s.origin[2] -= 48f;
 		ThrowClientHead(self, damage);
 		self->takedamage = DAMAGE_NO;
 	}
@@ -1116,9 +1114,9 @@ static void(entity ent) PutClientInServer =
 	/*for (ARRAY_INDEX_TYPE i = 0; i < 3; i++) {
 		ent.client.ps.pmove.origin[i] = COORD2SHORT(spawn_origin[i]);
 	}*/
-	ent.client.ps.pmove.origin[(ARRAY_INDEX_TYPE)0] = COORD2SHORT(spawn_origin[(ARRAY_INDEX_TYPE)0]);
-	ent.client.ps.pmove.origin[(ARRAY_INDEX_TYPE)1] = COORD2SHORT(spawn_origin[(ARRAY_INDEX_TYPE)1]);
-	ent.client.ps.pmove.origin[(ARRAY_INDEX_TYPE)2] = COORD2SHORT(spawn_origin[(ARRAY_INDEX_TYPE)2]);
+	ent.client.ps.pmove.origin[0] = COORD2SHORT(spawn_origin[0]);
+	ent.client.ps.pmove.origin[1] = COORD2SHORT(spawn_origin[1]);
+	ent.client.ps.pmove.origin[2] = COORD2SHORT(spawn_origin[2]);
 
 	if (deathmatch.intVal && (dmflags.intVal & DF_FIXED_FOV))
 	{
@@ -1152,9 +1150,9 @@ static void(entity ent) PutClientInServer =
 	/*for (ARRAY_INDEX_TYPE i = 0 ; i < 3 ; i++) {
 		ent.client.ps.pmove.delta_angles[i] = ANGLE2SHORT(spawn_angles[i] - ent.client.resp.cmd_angles[i]);
 	}*/
-	ent.client.ps.pmove.delta_angles[(ARRAY_INDEX_TYPE)0] = ANGLE2SHORT(spawn_angles[(ARRAY_INDEX_TYPE)0] - ent.client.resp.cmd_angles[(ARRAY_INDEX_TYPE)0]);
-	ent.client.ps.pmove.delta_angles[(ARRAY_INDEX_TYPE)1] = ANGLE2SHORT(spawn_angles[(ARRAY_INDEX_TYPE)1] - ent.client.resp.cmd_angles[(ARRAY_INDEX_TYPE)1]);
-	ent.client.ps.pmove.delta_angles[(ARRAY_INDEX_TYPE)2] = ANGLE2SHORT(spawn_angles[(ARRAY_INDEX_TYPE)2] - ent.client.resp.cmd_angles[(ARRAY_INDEX_TYPE)2]);
+	ent.client.ps.pmove.delta_angles[0] = ANGLE2SHORT(spawn_angles[0] - ent.client.resp.cmd_angles[0]);
+	ent.client.ps.pmove.delta_angles[1] = ANGLE2SHORT(spawn_angles[1] - ent.client.resp.cmd_angles[1]);
+	ent.client.ps.pmove.delta_angles[2] = ANGLE2SHORT(spawn_angles[2] - ent.client.resp.cmd_angles[2]);
 
 	ent.s.angles[PITCH] = 0;
 	ent.s.angles[YAW] = spawn_angles[YAW];
@@ -1240,12 +1238,9 @@ void(entity ent) ClientBegin =
 		// connecting to the server, which is different than the
 		// state when the game is saved, so we need to compensate
 		// with deltaangles
-		// TODO
-		//for (ARRAY_INDEX_TYPE i = 0; i < 3; i++)
-		//	ent.client.ps.pmove.delta_angles[i] = ANGLE2SHORT(ent->client->ps.viewangles[i]);
-		ent.client.ps.pmove.delta_angles[(ARRAY_INDEX_TYPE)0] = ANGLE2SHORT(ent->client->ps.viewangles[(ARRAY_INDEX_TYPE)0]);
-		ent.client.ps.pmove.delta_angles[(ARRAY_INDEX_TYPE)1] = ANGLE2SHORT(ent->client->ps.viewangles[(ARRAY_INDEX_TYPE)1]);
-		ent.client.ps.pmove.delta_angles[(ARRAY_INDEX_TYPE)2] = ANGLE2SHORT(ent->client->ps.viewangles[(ARRAY_INDEX_TYPE)2]);
+		ent.client.ps.pmove.delta_angles[0] = ANGLE2SHORT(ent->client->ps.viewangles[0]);
+		ent.client.ps.pmove.delta_angles[1] = ANGLE2SHORT(ent->client->ps.viewangles[1]);
+		ent.client.ps.pmove.delta_angles[2] = ANGLE2SHORT(ent->client->ps.viewangles[2]);
 	}
 	else
 	{
@@ -1462,8 +1457,6 @@ void(entity ent) ClientDisconnect =
 	ent->inuse = false;
 	ent->classname = "disconnected";
 	ent->client->pers.connected = false;
-
-	// TODO: release dynstrings
 }
 
 static entity pm_passent;
@@ -1472,9 +1465,9 @@ static entity pm_passent;
 static void(vector start, vector mins, vector maxs, vector end) PM_trace =
 {
     if (pm_passent->health > 0)
-        gi.trace(start, mins, maxs, end, pm_passent, MASK_PLAYERSOLID);
+        gi.trace_(start, mins, maxs, end, pm_passent, MASK_PLAYERSOLID);
     else
-        gi.trace(start, mins, maxs, end, pm_passent, MASK_DEADSOLID);
+        gi.trace_(start, mins, maxs, end, pm_passent, MASK_DEADSOLID);
 }
 
 entity() PlayerTrail_LastSpot;
@@ -1495,7 +1488,7 @@ void(entity) Think_Weapon;
 void(entity ent, usercmd_t ucmd) ClientThink =
 {
 	entity	other;
-	int	i, j;
+	int	i;
 	pmove_t	pm;
 
 	level.current_entity = ent;
@@ -1513,9 +1506,9 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 
 	if (ent->client->chase_target) {
 
-		ent.client->resp.cmd_angles[(ARRAY_INDEX_TYPE)0] = SHORT2ANGLE(ucmd->angles[(ARRAY_INDEX_TYPE)0]);
-		ent.client->resp.cmd_angles[(ARRAY_INDEX_TYPE)1] = SHORT2ANGLE(ucmd->angles[(ARRAY_INDEX_TYPE)1]);
-		ent.client->resp.cmd_angles[(ARRAY_INDEX_TYPE)2] = SHORT2ANGLE(ucmd->angles[(ARRAY_INDEX_TYPE)2]);
+		ent.client->resp.cmd_angles[0] = SHORT2ANGLE(ucmd->angles[0]);
+		ent.client->resp.cmd_angles[1] = SHORT2ANGLE(ucmd->angles[1]);
+		ent.client->resp.cmd_angles[2] = SHORT2ANGLE(ucmd->angles[2]);
 
 	} else {
 
@@ -1532,16 +1525,12 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 		ent.client->ps.pmove.gravity = sv_gravity.intVal;
 		memcpy(&pm.s, &ent.client.ps.pmove, sizeof(pm.s));
 
-		/*for (i = 0 ; i < 3 ; i++) {
-			pm.s.origin[i] = COORD2SHORT(ent->s.origin[i]);
-			pm.s.velocity[i] = COORD2SHORT(ent->velocity[i]);
-		}*/
-		pm.s.origin[(ARRAY_INDEX_TYPE)0] = COORD2SHORT(ent->s.origin[(ARRAY_INDEX_TYPE)0]);
-		pm.s.velocity[(ARRAY_INDEX_TYPE)0] = COORD2SHORT(ent->velocity[(ARRAY_INDEX_TYPE)0]);
-		pm.s.origin[(ARRAY_INDEX_TYPE)1] = COORD2SHORT(ent->s.origin[(ARRAY_INDEX_TYPE)1]);
-		pm.s.velocity[(ARRAY_INDEX_TYPE)1] = COORD2SHORT(ent->velocity[(ARRAY_INDEX_TYPE)1]);
-		pm.s.origin[(ARRAY_INDEX_TYPE)2] = COORD2SHORT(ent->s.origin[(ARRAY_INDEX_TYPE)2]);
-		pm.s.velocity[(ARRAY_INDEX_TYPE)2] = COORD2SHORT(ent->velocity[(ARRAY_INDEX_TYPE)2]);
+		pm.s.origin[0] = COORD2SHORT(ent->s.origin[0]);
+		pm.s.velocity[0] = COORD2SHORT(ent->velocity[0]);
+		pm.s.origin[1] = COORD2SHORT(ent->s.origin[1]);
+		pm.s.velocity[1] = COORD2SHORT(ent->velocity[1]);
+		pm.s.origin[2] = COORD2SHORT(ent->s.origin[2]);
+		pm.s.velocity[2] = COORD2SHORT(ent->velocity[2]);
 
 		if (memcmp(&ent.client->old_pmove, &pm.s, sizeof(pm.s))) {
 			pm.snapinitial = true;
@@ -1563,23 +1552,19 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 		memcpy(&ent.client.ps.pmove, &pm.s, sizeof(pm.s));
 		memcpy(&ent.client.old_pmove, &ent.client.ps.pmove, sizeof(ent.client.old_pmove));
 
-		/*for (i = 0 ; i < 3 ; i++) {
-			ent->s.origin[i] = SHORT2COORD(pm.s.origin[i]);
-			ent->velocity[i] = SHORT2COORD(pm.s.velocity[i]);
-		}*/
-		ent->s.origin[(ARRAY_INDEX_TYPE)0] = SHORT2COORD(pm.s.origin[(ARRAY_INDEX_TYPE)0]);
-		ent->velocity[(ARRAY_INDEX_TYPE)0] = SHORT2COORD(pm.s.velocity[(ARRAY_INDEX_TYPE)0]);
-		ent->s.origin[(ARRAY_INDEX_TYPE)1] = SHORT2COORD(pm.s.origin[(ARRAY_INDEX_TYPE)1]);
-		ent->velocity[(ARRAY_INDEX_TYPE)1] = SHORT2COORD(pm.s.velocity[(ARRAY_INDEX_TYPE)1]);
-		ent->s.origin[(ARRAY_INDEX_TYPE)2] = SHORT2COORD(pm.s.origin[(ARRAY_INDEX_TYPE)2]);
-		ent->velocity[(ARRAY_INDEX_TYPE)2] = SHORT2COORD(pm.s.velocity[(ARRAY_INDEX_TYPE)2]);
+		ent->s.origin[0] = SHORT2COORD(pm.s.origin[0]);
+		ent->velocity[0] = SHORT2COORD(pm.s.velocity[0]);
+		ent->s.origin[1] = SHORT2COORD(pm.s.origin[1]);
+		ent->velocity[1] = SHORT2COORD(pm.s.velocity[1]);
+		ent->s.origin[2] = SHORT2COORD(pm.s.origin[2]);
+		ent->velocity[2] = SHORT2COORD(pm.s.velocity[2]);
 
 		VectorCopy(pm.mins, ent->mins);
 		VectorCopy(pm.maxs, ent->maxs);
 
-		ent.client->resp.cmd_angles[(ARRAY_INDEX_TYPE)0] = SHORT2ANGLE(ucmd->angles[(ARRAY_INDEX_TYPE)0]);
-		ent.client->resp.cmd_angles[(ARRAY_INDEX_TYPE)1] = SHORT2ANGLE(ucmd->angles[(ARRAY_INDEX_TYPE)1]);
-		ent.client->resp.cmd_angles[(ARRAY_INDEX_TYPE)2] = SHORT2ANGLE(ucmd->angles[(ARRAY_INDEX_TYPE)2]);
+		ent.client->resp.cmd_angles[0] = SHORT2ANGLE(ucmd->angles[0]);
+		ent.client->resp.cmd_angles[1] = SHORT2ANGLE(ucmd->angles[1]);
+		ent.client->resp.cmd_angles[2] = SHORT2ANGLE(ucmd->angles[2]);
 
 		if (ent->groundentity != null_entity && pm.groundentity == null_entity && (pm.cmd.upmove >= 10) && (pm.waterlevel == 0)) {
 			gi.sound(ent, CHAN_VOICE, gi.soundindex("*jump1.wav"), 1, ATTN_NORM, 0);
@@ -1614,17 +1599,6 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 				continue;
 			other->touch(other, ent, null_plane, null_surface);
 		}
-		/*for (i = 0 ; i < pm.numtouch ; i++) {
-			other = pm.touchents[(ARRAY_INDEX_TYPE)i];
-			for (j = 0 ; j < i ; j++)
-				if (pm.touchents[(ARRAY_INDEX_TYPE)j] == other)
-					break;
-			if (j != i)
-				continue;   // duplicated
-			if (!other->touch)
-				continue;
-			other->touch(other, ent, null_plane, null_surface);
-		}*/
 
 	}
 

@@ -30,9 +30,7 @@ typedef enum int
 #define COORD2SHORT(x)  ((int)((x)*8.0f))
 #define SHORT2COORD(x)  ((x)*(1.0f/8))
 
-const ARRAY_INDEX_TYPE PITCH	= (ARRAY_INDEX_TYPE)0;
-const ARRAY_INDEX_TYPE YAW	= (ARRAY_INDEX_TYPE)1;
-const ARRAY_INDEX_TYPE ROLL	= (ARRAY_INDEX_TYPE)2;
+enum int { PITCH, YAW, ROLL };
 
 const int INT_MAX = 2147483647;
 

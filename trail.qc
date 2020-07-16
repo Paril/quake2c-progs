@@ -30,8 +30,8 @@ void() PlayerTrail_Init =
 		return;
 
 	for (n = 0; n < TRAIL_LENGTH; n++) {
-		trail[(ARRAY_INDEX_TYPE)n] = G_Spawn();
-		trail[(ARRAY_INDEX_TYPE)n]->classname = "player_trail";
+		trail[n] = G_Spawn();
+		trail[n]->classname = "player_trail";
 	}
 
 	trail_head = 0;
@@ -46,12 +46,12 @@ void(vector spot) PlayerTrail_Add =
 	if (!trail_active)
 		return;
 
-	VectorCopy(spot, trail[(ARRAY_INDEX_TYPE)trail_head]->s.origin);
+	VectorCopy(spot, trail[trail_head]->s.origin);
 
-	trail[(ARRAY_INDEX_TYPE)trail_head]->timestamp = level.framenum;
+	trail[trail_head]->timestamp = level.framenum;
 
-	VectorSubtract(spot, trail[(ARRAY_INDEX_TYPE)PREV(trail_head)]->s.origin, temp);
-	trail[(ARRAY_INDEX_TYPE)trail_head]->s.angles[YAW] = vectoyaw(temp);
+	VectorSubtract(spot, trail[PREV(trail_head)]->s.origin, temp);
+	trail[trail_head]->s.angles[YAW] = vectoyaw(temp);
 
 	trail_head = NEXT(trail_head);
 }
@@ -76,21 +76,21 @@ entity(entity self) PlayerTrail_PickFirst =
 		return world;
 
 	for (marker = trail_head, n = TRAIL_LENGTH; n; n--) {
-		if (trail[(ARRAY_INDEX_TYPE)marker]->timestamp <= self->monsterinfo.trail_framenum)
+		if (trail[marker]->timestamp <= self->monsterinfo.trail_framenum)
 			marker = NEXT(marker);
 		else
 			break;
 	}
 
-	if (visible(self, trail[(ARRAY_INDEX_TYPE)marker])) {
-		return trail[(ARRAY_INDEX_TYPE)marker];
+	if (visible(self, trail[marker])) {
+		return trail[marker];
 	}
 
-	if (visible(self, trail[(ARRAY_INDEX_TYPE)PREV(marker)])) {
-		return trail[(ARRAY_INDEX_TYPE)PREV(marker)];
+	if (visible(self, trail[PREV(marker)])) {
+		return trail[PREV(marker)];
 	}
 
-	return trail[(ARRAY_INDEX_TYPE)marker];
+	return trail[marker];
 }
 
 entity(entity self) PlayerTrail_PickNext =
@@ -102,16 +102,16 @@ entity(entity self) PlayerTrail_PickNext =
 		return world;
 
 	for (marker = trail_head, n = TRAIL_LENGTH; n; n--) {
-		if (trail[(ARRAY_INDEX_TYPE)marker]->timestamp <= self->monsterinfo.trail_framenum)
+		if (trail[marker]->timestamp <= self->monsterinfo.trail_framenum)
 			marker = NEXT(marker);
 		else
 			break;
 	}
 
-	return trail[(ARRAY_INDEX_TYPE)marker];
+	return trail[marker];
 }
 
 entity() PlayerTrail_LastSpot =
 {
-	return trail[(ARRAY_INDEX_TYPE)PREV(trail_head)];
+	return trail[PREV(trail_head)];
 }

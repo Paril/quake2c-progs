@@ -13,7 +13,7 @@ void(vector point, __inout vector mins, __inout vector maxs) AddPointToBounds = 
 
 // Definitions, to make Q2->QC easier
 #define DotProduct(a, b) ((a) * (b))
-#define VectorSet(a, x, y, z) { a[(ARRAY_INDEX_TYPE)0] = (float)(x); a[(ARRAY_INDEX_TYPE)1] = (float)(y); a[(ARRAY_INDEX_TYPE)2] = (float)(z); }
+#define VectorSet(a, x, y, z) { a[0] = (float)(x); a[1] = (float)(y); a[2] = (float)(z); }
 #define VectorClear(a) a = vec3_origin
 #define VectorMA(a, s, b, c) (c) = (a) + ((b) * (s))
 #define VectorCopy(a, b) (b) = (a)

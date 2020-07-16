@@ -1,5 +1,28 @@
 const string GAMEVERSION = "progs";
 
+// extended features
+typedef enumflags int
+{
+	GMF_CLIENTNUM,
+	GMF_PROPERINUSE,
+	GMF_MVDSPEC,
+	GMF_WANT_ALL_DISCONNECTS,
+	
+	GMF_ENHANCED_SAVEGAMES		= 0x00000400,
+	GMF_VARIABLE_FPS,
+	GMF_EXTRA_USERINFO,
+	GMF_IPV6_ADDRESS_AWARE
+} game_features_t;
+
+// features this game supports
+const game_features_t G_FEATURES	= (GMF_PROPERINUSE | GMF_WANT_ALL_DISCONNECTS | GMF_ENHANCED_SAVEGAMES);
+
+static void(trace_t *tr, vector start, vector mins, vector maxs, vector end, entity passent, int contentmask) trace_wrap =
+{
+	gi.trace_(start, mins, maxs, end, passent, contentmask);
+	gi.trace_result(tr);
+};
+
 /*
 ============
 InitGame
@@ -11,6 +34,8 @@ is loaded.
 */
 static void() InitGame =
 {
+	gi.trace = trace_wrap;
+	
 	gi.dprintf("===== "__FUNC__" =====\n");
 	
 	gun_x = gi.cvar("gun_x", "0", 0);
@@ -68,8 +93,7 @@ static void() InitGame =
 	sv_features = gi.cvar("sv_features", "", 0);
 	
 	// export our own features
-	//TODO
-	//gi.cvar_forceset("g_features", G_FEATURES);
+	gi.cvar_forceset("g_features", va("%i", G_FEATURES));
 	
 	game.maxclients = maxclients.intVal;
 	game.maxentities = maxentities.intVal;
@@ -320,8 +344,7 @@ static void() RunFrame =
 		if ((ent->groundentity != null_entity) && (ent->groundentity->linkcount != ent->groundentity_linkcount)) {
 			ent->groundentity = null_entity;
 			if (!(ent->flags & (FL_SWIM | FL_FLY)) && (ent->svflags & SVF_MONSTER)) {
-				//TODO
-				//M_CheckGround(ent);
+				M_CheckGround(ent);
 			}
 		}
 	
@@ -330,7 +353,6 @@ static void() RunFrame =
 			continue;
 		}
 	
-		//TODO
 		G_RunEntity(ent);
 	}
 	

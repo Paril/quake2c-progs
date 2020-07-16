@@ -95,7 +95,7 @@ static const mframe_t infantry_frames_fidget [] = {
 	{ ai_stand, -3 },
 	{ ai_stand, -2 }
 };
-static var mmove_t infantry_move_fidget = { FRAME_stand01, FRAME_stand49 };
+static var mmove_t infantry_move_fidget = { FRAME_stand01, FRAME_stand49, infantry_stand };
 
 static void(entity self) infantry_fidget =
 {
@@ -157,7 +157,7 @@ static const mframe_t infantry_frames_pain1 [] = {
 	{ ai_move, 6 },
 	{ ai_move, 2 }
 };
-static var mmove_t infantry_move_pain1 = { FRAME_pain101, FRAME_pain110 };
+static var mmove_t infantry_move_pain1 = { FRAME_pain101, FRAME_pain110, infantry_run };
 
 static const mframe_t infantry_frames_pain2 [] = {
 	{ ai_move, -3 },
@@ -171,7 +171,7 @@ static const mframe_t infantry_frames_pain2 [] = {
 	{ ai_move, 5 },
 	{ ai_move, 2 }
 };
-static var mmove_t infantry_move_pain2 = { FRAME_pain201, FRAME_pain210 };
+static var mmove_t infantry_move_pain2 = { FRAME_pain201, FRAME_pain210, infantry_run };
 
 static void(entity self, entity other, float kick, int damage) infantry_pain =
 {
@@ -216,7 +216,7 @@ static const vector aimangles[] = {
 
 static void(entity self) InfantryMachineGun =
 {
-	vector	start, target;
+	vector	start = vec3_origin, target;
 	vector	forward, right;
 	vector	vec;
 	int     flash_number;
@@ -225,7 +225,7 @@ static void(entity self) InfantryMachineGun =
 		flash_number = MZ2_INFANTRY_MACHINEGUN_1;
 		
 		AngleVectors(self->s.angles, forward, right, unref_vec);
-		G_ProjectSource(self->s.origin, monster_flash_offset[(ARRAY_INDEX_TYPE)MZ2_INFANTRY_MACHINEGUN_1], forward, right, start);
+		G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_INFANTRY_MACHINEGUN_1], forward, right, start);
 
 		if (self->enemy) {
 			VectorMA(self->enemy->s.origin, -0.2f, self->enemy->velocity, target);
@@ -239,9 +239,9 @@ static void(entity self) InfantryMachineGun =
 		flash_number = MZ2_INFANTRY_MACHINEGUN_2 + (self->s.frame - FRAME_death211);
 
 		AngleVectors(self->s.angles, forward, right, unref_vec);
-		G_ProjectSource(self->s.origin, monster_flash_offset[(ARRAY_INDEX_TYPE)flash_number], forward, right, start);
+		G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
-		VectorSubtract(self->s.angles, aimangles[(ARRAY_INDEX_TYPE)(flash_number - MZ2_INFANTRY_MACHINEGUN_2)], vec);
+		VectorSubtract(self->s.angles, aimangles[(flash_number - MZ2_INFANTRY_MACHINEGUN_2)], vec);
 		AngleVectors(vec, forward, unref_vec, unref_vec);
 	}
 
@@ -286,7 +286,7 @@ static const mframe_t infantry_frames_death1 [] = {
 	{ ai_move, -3 },
 	{ ai_move, -3 }
 };
-static var mmove_t infantry_move_death1 = { FRAME_death101, FRAME_death120 };
+static var mmove_t infantry_move_death1 = { FRAME_death101, FRAME_death120, infantry_dead };
 
 // Off with his head
 static const mframe_t infantry_frames_death2 [] = {
@@ -316,7 +316,7 @@ static const mframe_t infantry_frames_death2 [] = {
 	{ ai_move, 4 },
 	{ ai_move, 0 }
 };
-static var mmove_t infantry_move_death2 = { FRAME_death201, FRAME_death225 };
+static var mmove_t infantry_move_death2 = { FRAME_death201, FRAME_death225, infantry_dead };
 
 static const mframe_t infantry_frames_death3 [] = {
 	{ ai_move, 0 },
@@ -329,7 +329,7 @@ static const mframe_t infantry_frames_death3 [] = {
 	{ ai_move, 0 },
 	{ ai_move, 0 }
 };
-static var mmove_t infantry_move_death3 = { FRAME_death301, FRAME_death309 };
+static var mmove_t infantry_move_death3 = { FRAME_death301, FRAME_death309, infantry_dead };
 
 // from misc.qc
 void(entity self, string gibname, int damage, gib_type_t type) ThrowHead;
@@ -405,7 +405,7 @@ static mframe_t infantry_frames_duck [] = {
 	{ ai_move, 4, infantry_duck_up },
 	{ ai_move, 0 }
 };
-static var mmove_t infantry_move_duck = { FRAME_duck01, FRAME_duck05 };
+static var mmove_t infantry_move_duck = { FRAME_duck01, FRAME_duck05, infantry_run };
 
 static void(entity self, entity attacker, float eta) infantry_dodge =
 {
@@ -455,7 +455,7 @@ static mframe_t infantry_frames_attack1 [] = {
 	{ ai_charge, -2 },
 	{ ai_charge, -3 }
 };
-static var mmove_t infantry_move_attack1 = { FRAME_attak101, FRAME_attak115 };
+static var mmove_t infantry_move_attack1 = { FRAME_attak101, FRAME_attak115, infantry_run };
 
 
 static void(entity self) infantry_swing =
@@ -482,7 +482,7 @@ static mframe_t infantry_frames_attack2 [] = {
 	{ ai_charge, 6 },
 	{ ai_charge, 3 },
 };
-static var mmove_t infantry_move_attack2 = { FRAME_attak201, FRAME_attak208 };
+static var mmove_t infantry_move_attack2 = { FRAME_attak201, FRAME_attak208, infantry_run };
 
 static void(entity self) infantry_attack =
 {
@@ -506,25 +506,16 @@ __used static void(entity self) SP_monster_infantry =
 	{
 		infantry_move_stand.frame = &infantry_frames_stand;
 		infantry_move_fidget.frame = &infantry_frames_fidget;
-		infantry_move_fidget.endfunc = infantry_stand;
 		infantry_move_walk.frame = &infantry_frames_walk;
 		infantry_move_run.frame = &infantry_frames_run;
 		infantry_move_pain1.frame = &infantry_frames_pain1;
-		infantry_move_pain1.endfunc = infantry_run;
 		infantry_move_pain2.frame = &infantry_frames_pain2;
-		infantry_move_pain2.endfunc = infantry_run;
 		infantry_move_death1.frame = &infantry_frames_death1;
-		infantry_move_death1.endfunc = infantry_dead;
 		infantry_move_death2.frame = &infantry_frames_death2;
-		infantry_move_death2.endfunc = infantry_dead;
 		infantry_move_death3.frame = &infantry_frames_death3;
-		infantry_move_death3.endfunc = infantry_dead;
 		infantry_move_duck.frame = &infantry_frames_duck;
-		infantry_move_duck.endfunc = infantry_run;
 		infantry_move_attack1.frame = &infantry_frames_attack1;
-		infantry_move_attack1.endfunc = infantry_run;
 		infantry_move_attack2.frame = &infantry_frames_attack2;
-		infantry_move_attack2.endfunc = infantry_run;
 	}
 
 	sound_pain1 = gi.soundindex("infantry/infpain1.wav");

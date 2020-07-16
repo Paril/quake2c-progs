@@ -47,11 +47,11 @@ realcheck:
 	start_x = stop_x = (cmins_x + cmaxs_x) * 0.5f;
 	start_y = stop_y = (cmins_y + cmaxs_y) * 0.5f;
 	stop_z = start_z - 2 * STEPSIZE;
-	trace_and_result(trace, start, vec3_origin, vec3_origin, stop, ent, MASK_MONSTERSOLID);
+	gi.trace(&trace, start, vec3_origin, vec3_origin, stop, ent, MASK_MONSTERSOLID);
 
 	if (trace.fraction == 1.0f)
 		return false;
-	mid = bottom = trace.endpos[(ARRAY_INDEX_TYPE)2];
+	mid = bottom = trace.endpos[2];
 
 // the corners must be within 16 of the midpoint
 	for (x = 0 ; x <= 1 ; x++)
@@ -59,11 +59,11 @@ realcheck:
 			start_x = stop_x = x ? cmaxs_x : cmins_x;
 			start_y = stop_y = y ? cmaxs_y : cmins_y;
 
-			trace_and_result(trace, start, vec3_origin, vec3_origin, stop, ent, MASK_MONSTERSOLID);
+			gi.trace(&trace, start, vec3_origin, vec3_origin, stop, ent, MASK_MONSTERSOLID);
 
-			if (trace.fraction != 1.0f && trace.endpos[(ARRAY_INDEX_TYPE)2] > bottom)
-				bottom = trace.endpos[(ARRAY_INDEX_TYPE)2];
-			if (trace.fraction == 1.0f || mid - trace.endpos[(ARRAY_INDEX_TYPE)2] > STEPSIZE)
+			if (trace.fraction != 1.0f && trace.endpos[2] > bottom)
+				bottom = trace.endpos[2];
+			if (trace.fraction == 1.0f || mid - trace.endpos[2] > STEPSIZE)
 				return false;
 		}
 
@@ -106,7 +106,7 @@ bool(entity ent, vector move, bool relink) SV_movestep =
 			if (i == 0 && ent->enemy) {
 				if (!ent->goalentity)
 					ent->goalentity = ent->enemy;
-				dz = ent->s.origin[(ARRAY_INDEX_TYPE)2] - ent->goalentity->s.origin[(ARRAY_INDEX_TYPE)2];
+				dz = ent->s.origin[2] - ent->goalentity->s.origin[2];
 				if (ent->goalentity->is_client) {
 					if (dz > 40)
 						neworg_z -= 8;
@@ -124,14 +124,14 @@ bool(entity ent, vector move, bool relink) SV_movestep =
 						neworg_z += dz;
 				}
 			}
-			trace_and_result(trace, ent->s.origin, ent->mins, ent->maxs, neworg, ent, MASK_MONSTERSOLID);
+			gi.trace(&trace, ent->s.origin, ent->mins, ent->maxs, neworg, ent, MASK_MONSTERSOLID);
 
 			// fly monsters don't enter water voluntarily
 			if (ent->flags & FL_FLY) {
 				if (!ent->waterlevel) {
-					test_x = trace.endpos[(ARRAY_INDEX_TYPE)0];
-					test_y = trace.endpos[(ARRAY_INDEX_TYPE)1];
-					test_z = trace.endpos[(ARRAY_INDEX_TYPE)2] + ent->mins_z + 1;
+					test_x = trace.endpos[0];
+					test_y = trace.endpos[1];
+					test_z = trace.endpos[2] + ent->mins_z + 1;
 					contents = gi.pointcontents(test);
 					if (contents & MASK_WATER)
 						return false;
@@ -141,9 +141,9 @@ bool(entity ent, vector move, bool relink) SV_movestep =
 			// swim monsters don't exit water voluntarily
 			if (ent->flags & FL_SWIM) {
 				if (ent->waterlevel < 2) {
-					test_x = trace.endpos[(ARRAY_INDEX_TYPE)0];
-					test_y = trace.endpos[(ARRAY_INDEX_TYPE)1];
-					test_z = trace.endpos[(ARRAY_INDEX_TYPE)2] + ent->mins_z + 1;
+					test_x = trace.endpos[0];
+					test_y = trace.endpos[1];
+					test_z = trace.endpos[2] + ent->mins_z + 1;
 					contents = gi.pointcontents(test);
 					if (!(contents & MASK_WATER))
 						return false;
@@ -176,14 +176,14 @@ bool(entity ent, vector move, bool relink) SV_movestep =
 	VectorCopy(neworg, end);
 	end_z -= stepsize * 2;
 
-	trace_and_result(trace, neworg, ent->mins, ent->maxs, end, ent, MASK_MONSTERSOLID);
+	gi.trace(&trace, neworg, ent->mins, ent->maxs, end, ent, MASK_MONSTERSOLID);
 
 	if (trace.allsolid)
 		return false;
 
 	if (trace.startsolid) {
 		neworg_z -= stepsize;
-		trace_and_result(trace, neworg, ent->mins, ent->maxs, end, ent, MASK_MONSTERSOLID);
+		gi.trace(&trace, neworg, ent->mins, ent->maxs, end, ent, MASK_MONSTERSOLID);
 		if (trace.allsolid || trace.startsolid)
 			return false;
 	}
@@ -191,9 +191,9 @@ bool(entity ent, vector move, bool relink) SV_movestep =
 
 	// don't go in to water
 	if (ent->waterlevel == 0) {
-		test_x = trace.endpos[(ARRAY_INDEX_TYPE)0];
-		test_y = trace.endpos[(ARRAY_INDEX_TYPE)1];
-		test_z = trace.endpos[(ARRAY_INDEX_TYPE)2] + ent->mins_z + 1;
+		test_x = trace.endpos[0];
+		test_y = trace.endpos[1];
+		test_z = trace.endpos[2] + ent->mins_z + 1;
 		contents = gi.pointcontents(test);
 
 		if (contents & MASK_WATER)
@@ -360,8 +360,8 @@ void(entity actor, entity enemy, float dist) SV_NewChaseDir =
 	olddir = anglemod((int)(actor->ideal_yaw / 45) * 45);
 	turnaround = anglemod(olddir - 180);
 
-	deltax = enemy->s.origin[(ARRAY_INDEX_TYPE)0] - actor->s.origin[(ARRAY_INDEX_TYPE)0];
-	deltay = enemy->s.origin[(ARRAY_INDEX_TYPE)1] - actor->s.origin[(ARRAY_INDEX_TYPE)1];
+	deltax = enemy->s.origin[0] - actor->s.origin[0];
+	deltay = enemy->s.origin[1] - actor->s.origin[1];
 	if (deltax > 10)
 		d_y = 0;
 	else if (deltax < -10)
@@ -376,7 +376,7 @@ void(entity actor, entity enemy, float dist) SV_NewChaseDir =
 		d_z = DI_NODIR;
 
 // try direct route
-	if (d[(ARRAY_INDEX_TYPE)1] != DI_NODIR && d[(ARRAY_INDEX_TYPE)2] != DI_NODIR) {
+	if (d[1] != DI_NODIR && d[2] != DI_NODIR) {
 		if (d_y == 0)
 			tdir = d_z == 90f ? 45f : 315f;
 		else

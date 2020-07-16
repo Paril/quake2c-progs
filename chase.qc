@@ -6,7 +6,6 @@ void(entity ent) UpdateChaseCam =
 	entity	targ;
 	vector	forward, right;
 	trace_t	trace;
-	int	i;
 	vector	angles;
 
 	// is our chase target gone?
@@ -34,14 +33,14 @@ void(entity ent) UpdateChaseCam =
 	VectorNormalize(forward);
 	VectorMA(ownerv, -30, forward, o);
 
-	if (o_z < targ->s.origin[(ARRAY_INDEX_TYPE)2] + 20f)
-		o_z = targ->s.origin[(ARRAY_INDEX_TYPE)2] + 20f;
+	if (o_z < targ->s.origin[2] + 20f)
+		o_z = targ->s.origin[2] + 20f;
 
 	// jump animation lifts
 	if (targ->groundentity == null_entity)
 		o_z += 16;
 
-	trace_and_result(trace, ownerv, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
+	gi.trace(&trace, ownerv, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
 
 	VectorCopy(trace.endpos, goal);
 
@@ -50,7 +49,7 @@ void(entity ent) UpdateChaseCam =
 	// pad for floors and ceilings
 	VectorCopy(goal, o);
 	o_z += 6;
-	trace_and_result(trace, goal, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
+	gi.trace(&trace, goal, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
 	if (trace.fraction < 1) {
 		VectorCopy(trace.endpos, goal);
 		goal_z -= 6;
@@ -58,7 +57,7 @@ void(entity ent) UpdateChaseCam =
 
 	VectorCopy(goal, o);
 	o_z -= 6;
-	trace_and_result(trace, goal, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
+	gi.trace(&trace, goal, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
 	if (trace.fraction < 1) {
 		VectorCopy(trace.endpos, goal);
 		goal_z += 6;
@@ -70,11 +69,9 @@ void(entity ent) UpdateChaseCam =
 		ent->client->ps.pmove.pm_type = PM_FREEZE;
 
 	VectorCopy(goal, ent->s.origin);
-	//for (i = 0 ; i < 3 ; i++)
-	//	ent->client->ps.pmove.delta_angles[i] = ANGLE2SHORT(targ->client->v_angle[i] - ent->client->resp.cmd_angles[i]);
-	ent->client->ps.pmove.delta_angles[(ARRAY_INDEX_TYPE)0] = ANGLE2SHORT(targ->client->v_angle[(ARRAY_INDEX_TYPE)0] - ent->client->resp.cmd_angles[(ARRAY_INDEX_TYPE)0]);
-	ent->client->ps.pmove.delta_angles[(ARRAY_INDEX_TYPE)1] = ANGLE2SHORT(targ->client->v_angle[(ARRAY_INDEX_TYPE)1] - ent->client->resp.cmd_angles[(ARRAY_INDEX_TYPE)1]);
-	ent->client->ps.pmove.delta_angles[(ARRAY_INDEX_TYPE)2] = ANGLE2SHORT(targ->client->v_angle[(ARRAY_INDEX_TYPE)2] - ent->client->resp.cmd_angles[(ARRAY_INDEX_TYPE)2]);
+	ent->client->ps.pmove.delta_angles[0] = ANGLE2SHORT(targ->client->v_angle[0] - ent->client->resp.cmd_angles[0]);
+	ent->client->ps.pmove.delta_angles[1] = ANGLE2SHORT(targ->client->v_angle[1] - ent->client->resp.cmd_angles[1]);
+	ent->client->ps.pmove.delta_angles[2] = ANGLE2SHORT(targ->client->v_angle[2] - ent->client->resp.cmd_angles[2]);
 
 	if (targ->deadflag) {
 		ent->client->ps.viewangles[ROLL] = 40f;

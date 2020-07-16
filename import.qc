@@ -1,7 +1,7 @@
 accessor cvar_t : int;
 accessor box_edicts_t : int;
 
-__used struct {
+__used var struct {
 	void(print_level_t, string fmt, ...) bprintf;
 	void(string fmt, ...) dprintf;
 	void(entity, print_level_t, string fmt, ...) cprintf;
@@ -19,7 +19,7 @@ __used struct {
 	
 	void(entity, string) setmodel;
 	
-	void(vector start, vector mins, vector maxs, vector end, entity passent, int contentmask) trace;
+	void(vector start, vector mins, vector maxs, vector end, entity passent, int contentmask) trace_;
 	void(trace_t *tr) trace_result;
 	
 	int(vector) pointcontents;
@@ -62,6 +62,9 @@ __used struct {
 	void(int)	SetNumEdicts;
 	void(entity)	ClearEntity;
 	void(entity)	SyncPlayerState;
+	
+	// temporary
+	void(trace_t *tr, vector start, vector mins, vector maxs, vector end, entity passent, int contentmask) trace;
 } gi = {
 	#0:bprintf,
 	#0:dprintf,
@@ -122,7 +125,3 @@ __used struct {
 	#0:ClearEntity,
 	#0:SyncPlayerState
 };
-
-	
-// dirty shortcut to trace and fetch results
-#define trace_and_result(tr, start, mins, maxs, end, passent, contentmask) { gi.trace(start, mins, maxs, end, passent, contentmask); gi.trace_result(&(tr)); }

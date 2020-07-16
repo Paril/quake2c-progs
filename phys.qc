@@ -32,7 +32,7 @@ static bool(entity ent) SV_TestEntityPosition =
 		mask = ent->clipmask;
 	else
 		mask = MASK_SOLID;
-	trace_and_result(trace, ent->s.origin, ent->mins, ent->maxs, ent->s.origin, ent, mask);
+	gi.trace(&trace, ent->s.origin, ent->mins, ent->maxs, ent->s.origin, ent, mask);
 
 	return trace.startsolid;
 }
@@ -159,7 +159,7 @@ static int(vector in, vector normal, __out vector out, float overbounce) ClipVel
 		out_y = 0;
 		
 	change = normal_z * backoff;
-	out_z = in[(ARRAY_INDEX_TYPE)2] - change;
+	out_z = in[2] - change;
 	if (out_z > -STOP_EPSILON && out_z < STOP_EPSILON)
 		out_z = 0;
 
@@ -184,11 +184,11 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 {
 	entity	hit;
 	int	bumpcount, numbumps;
-	vector	dir;
+	vector	dir = vec3_origin;
 	float	d;
 	int	numplanes;
 	vector	planes[MAX_CLIP_PLANES];
-	vector	primal_velocity, original_velocity, new_velocity;
+	vector	primal_velocity, original_velocity, new_velocity = vec3_origin;
 	int	i, j;
 	trace_t	trace;
 	vector	end;
@@ -208,7 +208,7 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 	for (bumpcount = 0 ; bumpcount < numbumps ; bumpcount++) {
 		end = ent.s.origin + time_left * ent->velocity;
 
-		trace_and_result(trace, ent->s.origin, ent->mins, ent->maxs, end, ent, mask);
+		gi.trace(&trace, ent->s.origin, ent->mins, ent->maxs, end, ent, mask);
 
 		if (trace.allsolid) {
 			// entity is trapped in another solid
@@ -228,14 +228,14 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 
 		hit = trace.ent;
 
-		if (trace.plane.normal[(ARRAY_INDEX_TYPE)2] > 0.7f) {
+		if (trace.plane.normal[2] > 0.7f) {
 			blocked |= 1;       // floor
 			if (hit->solid == SOLID_BSP) {
 				ent->groundentity = hit;
 				ent->groundentity_linkcount = hit->linkcount;
 			}
 		}
-		if (!trace.plane.normal[(ARRAY_INDEX_TYPE)2]) {
+		if (!trace.plane.normal[2]) {
 			blocked |= 2;       // step
 		}
 
@@ -257,18 +257,18 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 			return 3;
 		}
 
-		VectorCopy(trace.plane.normal, planes[(ARRAY_INDEX_TYPE)numplanes]);
+		VectorCopy(trace.plane.normal, planes[numplanes]);
 		numplanes++;
 
 //
 // modify original_velocity so it parallels all of the clip planes
 //
 		for (i = 0 ; i < numplanes ; i++) {
-			ClipVelocity(original_velocity, planes[(ARRAY_INDEX_TYPE)i], new_velocity, 1);
+			ClipVelocity(original_velocity, planes[i], new_velocity, 1);
 
 			for (j = 0 ; j < numplanes ; j++)
-				if ((j != i) && !VectorCompare(planes[(ARRAY_INDEX_TYPE)i], planes[(ARRAY_INDEX_TYPE)j])) {
-					if (DotProduct(new_velocity, planes[(ARRAY_INDEX_TYPE)j]) < 0)
+				if ((j != i) && !VectorCompare(planes[i], planes[j])) {
+					if (DotProduct(new_velocity, planes[j]) < 0)
 						break;  // not ok
 				}
 			if (j == numplanes)
@@ -285,7 +285,7 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 				VectorClear(ent->velocity);
 				return 7;
 			}
-			CrossProduct(planes[(ARRAY_INDEX_TYPE)0], planes[(ARRAY_INDEX_TYPE)1], dir);
+			CrossProduct(planes[0], planes[1], dir);
 			d = DotProduct(dir, ent->velocity);
 			VectorScale(dir, d, ent->velocity);
 		}
@@ -345,7 +345,7 @@ retry:
 	else
 		mask = MASK_SOLID;
 
-	trace_and_result(trace, start, ent->mins, ent->maxs, end, ent, mask);
+	gi.trace(&trace, start, ent->mins, ent->maxs, end, ent, mask);
 
 	VectorCopy(trace.endpos, ent->s.origin);
 	gi.linkentity(ent);
@@ -390,12 +390,12 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 	// be accurate for client side prediction
 	/*for (i = 0 ; i < 3 ; i++) {
 		float   temp;
-		temp = move[(ARRAY_INDEX_TYPE)i] * 8.0f;
+		temp = move[i] * 8.0f;
 		if (temp > 0.0f)
 			temp += 0.5f;
 		else
 			temp -= 0.5f;
-		move[(ARRAY_INDEX_TYPE)i] = 0.125f * (int)temp;
+		move[i] = 0.125f * (int)temp;
 	}*/
 	float temp = move_x * 8.0f;
 	if (temp > 0.0f)
@@ -730,7 +730,7 @@ static void(entity ent) SV_Physics_Toss =
 		ClipVelocity(ent->velocity, trace.plane.normal, ent->velocity, backoff);
 
 		// stop if on ground
-		if (trace.plane.normal[(ARRAY_INDEX_TYPE)2] > 0.7f) {
+		if (trace.plane.normal[2] > 0.7f) {
 			if (ent->velocity_z < 60f || ent->movetype != MOVETYPE_BOUNCE) {
 				ent->groundentity = trace.ent;
 				ent->groundentity_linkcount = trace.ent->linkcount;

@@ -20,7 +20,7 @@ static void(entity self, vector start, vector dir, int speed) check_dodge =
 			return;
 	}
 	VectorMA(start, 8192, dir, end);
-	trace_and_result(tr, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+	gi.trace(&tr, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
 	if ((tr.ent) && (tr.ent->svflags & SVF_MONSTER) && (tr.ent->health > 0) && (tr.ent->monsterinfo.dodge) && infront(tr.ent, self)) {
 		VectorSubtract(tr.endpos, start, v);
 		eta = (VectorLength(v) - tr.ent->maxs_x) / speed;
@@ -64,7 +64,7 @@ bool(entity self, vector aim, int damage, int kick) fire_hit =
 
 	VectorMA(self->s.origin, range, dir, point);
 
-	trace_and_result(tr, self->s.origin, vec3_origin, vec3_origin, point, self, MASK_SHOT);
+	gi.trace(&tr, self->s.origin, vec3_origin, vec3_origin, point, self, MASK_SHOT);
 	if (tr.fraction < 1) {
 		if (!tr.ent->takedamage)
 			return false;
@@ -110,11 +110,11 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 	vector	end;
 	float	r;
 	float	u;
-	vector	water_start;
+	vector	water_start = vec3_origin;
 	bool	water = false;
 	int	content_mask = MASK_SHOT | MASK_WATER;
 	
-	trace_and_result(tr, self->s.origin, vec3_origin, vec3_origin, start, self, MASK_SHOT);
+	gi.trace(&tr, self->s.origin, vec3_origin, vec3_origin, start, self, MASK_SHOT);
 	if (!(tr.fraction < 1.0f)) {
 		vectoangles(aimdir, dir);
 
@@ -132,7 +132,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 			content_mask &= ~MASK_WATER;
 		}
 
-		trace_and_result(tr, start, vec3_origin, vec3_origin, end, self, content_mask);
+		gi.trace(&tr, start, vec3_origin, vec3_origin, end, self, content_mask);
 
 		// see if we hit water
 		if (tr.contents & MASK_WATER) {
@@ -176,7 +176,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 			}
 
 			// re-trace ignoring water this time
-			trace_and_result(tr, water_start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+			gi.trace(&tr, water_start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
 		}
 	}
 
@@ -210,7 +210,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 		if (gi.pointcontents(pos) & MASK_WATER)
 			VectorCopy(pos, tr.endpos);
 		else
-			trace_and_result(tr, pos, vec3_origin, vec3_origin, water_start, tr.ent, MASK_WATER);
+			gi.trace(&tr, pos, vec3_origin, vec3_origin, water_start, tr.ent, MASK_WATER);
 
 		VectorAdd(water_start, tr.endpos, pos);
 		VectorScale(pos, 0.5f, pos);
@@ -331,8 +331,8 @@ void(entity self, vector start, vector dir, int damage, int speed, int effect, b
 
 	if (self->is_client)
 		check_dodge(self, bolt->s.origin, dir, speed);
-		
-	trace_and_result(tr, self->s.origin, vec3_origin, vec3_origin, bolt->s.origin, bolt, MASK_SHOT);
+
+	gi.trace(&tr, self->s.origin, vec3_origin, vec3_origin, bolt->s.origin, bolt, MASK_SHOT);
 	
 	if (tr.fraction < 1.0f) {
 		VectorMA(bolt->s.origin, -10, dir, bolt->s.origin);
@@ -613,7 +613,7 @@ void(entity self, vector start, vector aimdir, int damage, int kick) fire_rail =
 	water = false;
 	mask = MASK_SHOT | CONTENTS_SLIME | CONTENTS_LAVA;
 	while (ignore != null_entity) {
-		trace_and_result(tr, from, vec3_origin, vec3_origin, end, ignore, mask);
+		gi.trace(&tr, from, vec3_origin, vec3_origin, end, ignore, mask);
 
 		if (tr.contents & (CONTENTS_SLIME | CONTENTS_LAVA)) {
 			mask &= ~(CONTENTS_SLIME | CONTENTS_LAVA);
@@ -777,7 +777,7 @@ static void(entity self) bfg_think =
 		VectorCopy(self->s.origin, start);
 		VectorMA(start, 2048, dir, end);
 		while (1) {
-			trace_and_result(tr, start, vec3_origin, vec3_origin, end, ignore, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_DEADMONSTER);
+			gi.trace(&tr, start, vec3_origin, vec3_origin, end, ignore, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_DEADMONSTER);
 
 			if (!tr.ent)
 				break;

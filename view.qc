@@ -200,12 +200,12 @@ static void(entity ent) P_FallingDamage =
 	if (ent.movetype == MOVETYPE_NOCLIP)
 		return;
 
-	if ((ent.client.oldvelocity[(ARRAY_INDEX_TYPE)2] < 0f) && (ent.velocity[(ARRAY_INDEX_TYPE)2] > ent.client.oldvelocity[(ARRAY_INDEX_TYPE)2]) && (ent.groundentity == null_entity)) {
-		delta = ent.client.oldvelocity[(ARRAY_INDEX_TYPE)2];
+	if ((ent.client.oldvelocity[2] < 0f) && (ent.velocity[2] > ent.client.oldvelocity[2]) && (ent.groundentity == null_entity)) {
+		delta = ent.client.oldvelocity[2];
 	} else {
 		if (ent.groundentity == null_entity)
 			return;
-		delta = ent.velocity_z - ent.client.oldvelocity[(ARRAY_INDEX_TYPE)2];
+		delta = ent.velocity_z - ent.client.oldvelocity[2];
 	}
 	delta = delta * delta * 0.0001f;
 
@@ -554,9 +554,9 @@ static void(entity ent) SV_CalcGunOffset =
 			ent->client->ps.gunangles[ROLL] += 0.1f * delta; \
 		ent->client->ps.gunangles[i] += 0.2f * delta
 
-	FIGURE_GUN_ANGLE((ARRAY_INDEX_TYPE)0);
-	FIGURE_GUN_ANGLE((ARRAY_INDEX_TYPE)1);
-	FIGURE_GUN_ANGLE((ARRAY_INDEX_TYPE)2);
+	FIGURE_GUN_ANGLE(0);
+	FIGURE_GUN_ANGLE(1);
+	FIGURE_GUN_ANGLE(2);
 
 	// gun height
 	VectorClear(ent->client->ps.gunoffset);
@@ -590,10 +590,10 @@ static void(float r, float g, float b, float a, __inout float v_blend_r, __inout
 }
 
 #define SV_AddBlend(r, g, b, a, vec) \
-	SV_AddBlend_(r, g, b, a, vec[(ARRAY_INDEX_TYPE)0], vec[(ARRAY_INDEX_TYPE)1], vec[(ARRAY_INDEX_TYPE)2], vec[(ARRAY_INDEX_TYPE)3])
+	SV_AddBlend_(r, g, b, a, vec[0], vec[1], vec[2], vec[3])
 
 #define SV_AddBlendVector(rgb, alpha, vec) \
-	SV_AddBlend(rgb[(ARRAY_INDEX_TYPE)0], rgb[(ARRAY_INDEX_TYPE)1], rgb[(ARRAY_INDEX_TYPE)2], alpha, vec)
+	SV_AddBlend(rgb[0], rgb[1], rgb[2], alpha, vec)
 
 /*
 =============
@@ -606,7 +606,7 @@ static void(entity ent) SV_CalcBlend =
 	vector	vieworg;
 	int	remaining;
 
-	ent->client->ps.blend[(ARRAY_INDEX_TYPE)0] = ent->client->ps.blend[(ARRAY_INDEX_TYPE)1] = ent->client->ps.blend[(ARRAY_INDEX_TYPE)2] = ent->client->ps.blend[(ARRAY_INDEX_TYPE)3] = 0f;
+	ent->client->ps.blend[0] = ent->client->ps.blend[1] = ent->client->ps.blend[2] = ent->client->ps.blend[3] = 0f;
 
 	// add for contents
 	VectorAdd(ent->s.origin, ent->client->ps.viewoffset, vieworg);
@@ -876,12 +876,12 @@ void(entity ent) ClientEndServerFrame =
 		ent.client.ps.pmove.origin[i] = COORD2SHORT(ent.s.origin[i]);
 		ent.client.ps.pmove.velocity[i] = COORD2SHORT(ent.velocity[i]);
 	}*/
-	ent.client.ps.pmove.origin[(ARRAY_INDEX_TYPE)0] = COORD2SHORT(ent.s.origin[(ARRAY_INDEX_TYPE)0]);
-	ent.client.ps.pmove.velocity[(ARRAY_INDEX_TYPE)0] = COORD2SHORT(ent.velocity[(ARRAY_INDEX_TYPE)0]);
-	ent.client.ps.pmove.origin[(ARRAY_INDEX_TYPE)1] = COORD2SHORT(ent.s.origin[(ARRAY_INDEX_TYPE)1]);
-	ent.client.ps.pmove.velocity[(ARRAY_INDEX_TYPE)1] = COORD2SHORT(ent.velocity[(ARRAY_INDEX_TYPE)1]);
-	ent.client.ps.pmove.origin[(ARRAY_INDEX_TYPE)2] = COORD2SHORT(ent.s.origin[(ARRAY_INDEX_TYPE)2]);
-	ent.client.ps.pmove.velocity[(ARRAY_INDEX_TYPE)2] = COORD2SHORT(ent.velocity[(ARRAY_INDEX_TYPE)2]);
+	ent.client.ps.pmove.origin[0] = COORD2SHORT(ent.s.origin[0]);
+	ent.client.ps.pmove.velocity[0] = COORD2SHORT(ent.velocity[0]);
+	ent.client.ps.pmove.origin[1] = COORD2SHORT(ent.s.origin[1]);
+	ent.client.ps.pmove.velocity[1] = COORD2SHORT(ent.velocity[1]);
+	ent.client.ps.pmove.origin[2] = COORD2SHORT(ent.s.origin[2]);
+	ent.client.ps.pmove.velocity[2] = COORD2SHORT(ent.velocity[2]);
 
 	//
 	// If the end of unit layout is displayed, don't give
@@ -890,7 +890,7 @@ void(entity ent) ClientEndServerFrame =
 	if (level.intermission_framenum)
 	{
 		// FIXME: add view drifting here?
-		ent.client.ps.blend[(ARRAY_INDEX_TYPE)3] = 0f;
+		ent.client.ps.blend[3] = 0f;
 		ent.client.ps.fov = 90f;
 		G_SetStats(ent);
 		return;

@@ -14,13 +14,13 @@ void(entity ent) MoveClientToIntermission =
 	if (deathmatch->intVal || coop->intVal)
 		ent->client->showscores = true;
 	VectorCopy(level.intermission_origin, ent->s.origin);
-	ent->client->ps.pmove.origin[(ARRAY_INDEX_TYPE)0] = COORD2SHORT(level.intermission_origin[(ARRAY_INDEX_TYPE)0]);
-	ent->client->ps.pmove.origin[(ARRAY_INDEX_TYPE)1] = COORD2SHORT(level.intermission_origin[(ARRAY_INDEX_TYPE)1]);
-	ent->client->ps.pmove.origin[(ARRAY_INDEX_TYPE)2] = COORD2SHORT(level.intermission_origin[(ARRAY_INDEX_TYPE)2]);
+	ent->client->ps.pmove.origin[0] = COORD2SHORT(level.intermission_origin[0]);
+	ent->client->ps.pmove.origin[1] = COORD2SHORT(level.intermission_origin[1]);
+	ent->client->ps.pmove.origin[2] = COORD2SHORT(level.intermission_origin[2]);
 	VectorCopy(level.intermission_angle, ent->client->ps.viewangles);
 	ent->client->ps.pmove.pm_type = PM_FREEZE;
 	ent->client->ps.gunindex = 0;
-	ent->client->ps.blend[(ARRAY_INDEX_TYPE)3] = 0;
+	ent->client->ps.blend[3] = 0;
 	ent->client->ps.rdflags &= ~RDF_UNDERWATER;
 
 	// clean up powerup info
@@ -78,11 +78,10 @@ void(entity targ) BeginIntermission =
 				if (!cl->inuse)
 					continue;
 				// strip players of all keys between units
-				//TODO
-				/*for (n = 0; n < MAX_ITEMS; n++) {
-					if (itemlist[n].flags & IT_KEY)
-						client->client->pers.inventory[n] = 0;
-				}*/
+				for (n = 0; n < MAX_ITEMS; n++) {
+					if (GetItemKeyByIndex(n, flags) & IT_KEY)
+						cl->client->pers.inventory[n] = 0;
+				}
 			}
 		}
 	} else {
@@ -133,11 +132,11 @@ DeathmatchScoreboardMessage
 void(entity ent, entity killer) DeathmatchScoreboardMessage =
 {
 	string	entry;
-	string	str;
+	string	str = "";
 	int	stringlength;
 	int	i, j, k;
-	int	sorted[MAX_CLIENTS];
-	int	sortedscores[MAX_CLIENTS];
+	int	sorted[MAX_CLIENTS] = { 0 };
+	int	sortedscores[MAX_CLIENTS] = { 0 };
 	int	score, total;
 	int	x, y;
 	entity	cl_ent;
@@ -151,15 +150,15 @@ void(entity ent, entity killer) DeathmatchScoreboardMessage =
 			continue;
 		score = cl_ent.client.resp.score;
 		for (j = 0 ; j < total ; j++) {
-			if (score > sortedscores[(ARRAY_INDEX_TYPE)j])
+			if (score > sortedscores[j])
 				break;
 		}
 		for (k = total ; k > j ; k--) {
-			sorted[(ARRAY_INDEX_TYPE)k] = sorted[(ARRAY_INDEX_TYPE)(k - 1)];
-			sortedscores[(ARRAY_INDEX_TYPE)k] = sortedscores[(ARRAY_INDEX_TYPE)(k - 1)];
+			sorted[k] = sorted[(k - 1)];
+			sortedscores[k] = sortedscores[(k - 1)];
 		}
-		sorted[(ARRAY_INDEX_TYPE)j] = i;
-		sortedscores[(ARRAY_INDEX_TYPE)j] = score;
+		sorted[j] = i;
+		sortedscores[j] = score;
 		total++;
 	}
 
@@ -171,7 +170,7 @@ void(entity ent, entity killer) DeathmatchScoreboardMessage =
 		total = 12;
 
 	for (i = 0 ; i < total ; i++) {
-		cl_ent = itoe(1 + sorted[(ARRAY_INDEX_TYPE)i]);
+		cl_ent = itoe(1 + sorted[i]);
 
 		if (i >= 6)
 			x = 160;
@@ -196,7 +195,7 @@ void(entity ent, entity killer) DeathmatchScoreboardMessage =
 		}
 
 		// send the layout
-		entry = va("client %i %i %i %i %i %i ", x, y, sorted[(ARRAY_INDEX_TYPE)i], cl_ent.client->resp.score, cl_ent.client->ping, ((level.framenum - cl_ent.client->resp.enterframe) / 600));
+		entry = va("client %i %i %i %i %i %i ", x, y, sorted[i], cl_ent.client->resp.score, cl_ent.client->ping, ((level.framenum - cl_ent.client->resp.enterframe) / 600));
 		j = strlen(entry);
 		if (stringlength + j > 1024)
 			break;
@@ -333,33 +332,31 @@ G_SetStats
 void(entity ent) G_SetStats =
 {
 	gitem_id_t	it;
-	int	index, cells;
+	int	index, cells = 0;
 	int	power_armor_type;
 
 	//
 	// health
 	//
-	ent->client->ps.stats[(ARRAY_INDEX_TYPE)STAT_HEALTH_ICON] = level.pic_health;
+	ent->client->ps.stats[STAT_HEALTH_ICON] = level.pic_health;
 	ent->client->ps.stats[STAT_HEALTH] = ent->health;
 
 	//
 	// ammo
 	//
-	if (!ent->client->ammo_index /* || !ent->client->pers.inventory[ent->client->ammo_index] */) {
+	if (!ent->client->ammo_index || !ent->client->pers.inventory[ent->client->ammo_index]) {
 		ent->client->ps.stats[STAT_AMMO_ICON] = 0;
 		ent->client->ps.stats[STAT_AMMO] = 0;
 	} else {
-		//TODO
-		//item = &itemlist[ent->client->ammo_index];
-		/*ent->client->ps.stats[STAT_AMMO_ICON] = gi.imageindex(item->icon);
-		ent->client->ps.stats[STAT_AMMO] = ent->client->pers.inventory[ent->client->ammo_index];*/
+		it = ent->client->ammo_index;
+		ent->client->ps.stats[STAT_AMMO_ICON] = gi.imageindex(GetItemKeyByIndex(it, icon));
+		ent->client->ps.stats[STAT_AMMO] = ent->client->pers.inventory[ent->client->ammo_index];
 	}
 
-	//TODO
 	//
 	// armor
 	//
-	/*power_armor_type = PowerArmorType(ent);
+	power_armor_type = PowerArmorType(ent);
 	if (power_armor_type) {
 		cells = ent->client->pers.inventory[ITEM_INDEX(FindItem("cells"))];
 		if (cells == 0) {
@@ -368,7 +365,7 @@ void(entity ent) G_SetStats =
 			gi.sound(ent, CHAN_ITEM, gi.soundindex("misc/power2.wav"), 1, ATTN_NORM, 0);
 			power_armor_type = 0;;
 		}
-	}*/
+	}
 
 	index = ArmorIndex(ent);
 	if (power_armor_type && (!index || (level.framenum & 8))) {
@@ -378,8 +375,7 @@ void(entity ent) G_SetStats =
 	} else if (index) {
 		it = GetItemByIndex(index);
 		ent->client->ps.stats[STAT_ARMOR_ICON] = gi.imageindex(GetItemKeyByIndex(it, icon));
-		// TODO
-		//ent->client->ps.stats[STAT_ARMOR] = ent->client->pers.inventory[index];
+		ent->client->ps.stats[STAT_ARMOR] = ent->client->pers.inventory[index];
 	} else {
 		ent->client->ps.stats[STAT_ARMOR_ICON] = 0;
 		ent->client->ps.stats[STAT_ARMOR] = 0;
@@ -476,7 +472,7 @@ void(entity ent) G_CheckChaseStats =
 		if (!cl.inuse || cl.client.chase_target != ent)
 			continue;
 		// FIXME: sizeof
-		memcpy(&cl.client->ps.stats[(ARRAY_INDEX_TYPE)0], &ent->client->ps.stats[(ARRAY_INDEX_TYPE)0], sizeof(int) * MAX_STATS);
+		memcpy(&cl.client->ps.stats[0], &ent->client->ps.stats[0], sizeof(int) * MAX_STATS);
 		G_SetSpectatorStats(cl);
 	}
 }

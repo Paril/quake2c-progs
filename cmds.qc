@@ -39,9 +39,8 @@ static void(entity ent, int itflags) SelectNextItem =
 	for (i=1 ; i<=MAX_ITEMS ; i++)
 	{
 		index = (ent.client->pers.selected_item + i)%MAX_ITEMS;
-		// TODO
-		/*if (!cl->pers.inventory[index])
-			continue;*/
+		if (!ent.client->pers.inventory[index])
+			continue;
 		if (!GetItemKeyByIndex(index, use))
 			continue;
 		if (!(GetItemKeyByIndex(index, flags) & itflags))
@@ -68,9 +67,8 @@ static void(entity ent, int itflags) SelectPrevItem =
 	for (i=1 ; i<=MAX_ITEMS ; i++)
 	{
 		index = (ent.client->pers.selected_item + MAX_ITEMS - i)%MAX_ITEMS;
-		// TODO
-		/*if (!cl->pers.inventory[index])
-			continue;*/
+		if (!ent.client->pers.inventory[index])
+			continue;
 		if (!GetItemKeyByIndex(index, use))
 			continue;
 		if (!(GetItemKeyByIndex(index, flags) & itflags))
@@ -85,8 +83,7 @@ static void(entity ent, int itflags) SelectPrevItem =
 
 void(entity ent) ValidateSelectedItem =
 {
-	// TODO
-	//if (cl->pers.inventory[cl->pers.selected_item])
+	if (ent.client->pers.inventory[ent.client->pers.selected_item])
 		return;		// valid
 
 	SelectNextItem (ent, -1);
@@ -143,8 +140,7 @@ static void(entity ent) Cmd_Give_f =
 				continue;
 			if (!(GetItemKeyByIndex(it, flags) & IT_WEAPON))
 				continue;
-			// TODO
-			//ent->client->pers.inventory[i] += 1;
+			ent->client->pers.inventory[i] += 1;
 		}
 		if (!give_all)
 			return;
@@ -167,8 +163,7 @@ static void(entity ent) Cmd_Give_f =
 
 	if (give_all || stricmp(name, "armor") == 0)
 	{
-		// TODO
-		/*gitem_armor_id_t	info;
+		gitem_armor_id_t	info;
 
 		it = FindItem("Jacket Armor");
 		ent->client->pers.inventory[ITEM_INDEX(it)] = 0;
@@ -177,8 +172,8 @@ static void(entity ent) Cmd_Give_f =
 		ent->client->pers.inventory[ITEM_INDEX(it)] = 0;
 
 		it = FindItem("Body Armor");
-		info = (gitem_armor_t *)it->info;
-		ent->client->pers.inventory[ITEM_INDEX(it)] = info->max_count;*/
+		info = GetItemKeyByIndex(it, info);
+		ent->client->pers.inventory[ITEM_INDEX(it)] = GetArmorInfoKeyByIndex(info, max_count);
 
 		if (!give_all)
 			return;
@@ -207,8 +202,7 @@ static void(entity ent) Cmd_Give_f =
 				continue;
 			if (GetItemKeyByIndex(it, flags) & (IT_ARMOR|IT_WEAPON|IT_AMMO))
 				continue;
-			// TODO
-			//ent->client->pers.inventory[i] = 1;
+			ent->client->pers.inventory[i] = 1;
 		}
 		return;
 	}
@@ -235,11 +229,10 @@ static void(entity ent) Cmd_Give_f =
 
 	if (GetItemKeyByIndex(it, flags) & IT_AMMO)
 	{
-		// TODO
-		/*if (gi.argc() == 3)
-			ent->client->pers.inventory[index] = atoi(gi.argv(2));
+		if (gi.argc() == 3)
+			ent->client->pers.inventory[index] = stoi(gi.argv(2));
 		else
-			ent->client->pers.inventory[index] += it->quantity;*/
+			ent->client->pers.inventory[index] += GetItemKeyByIndex(it, quantity);
 	}
 	else
 	{
@@ -369,12 +362,11 @@ static void(entity ent) Cmd_Use_f =
 		return;
 	}
 	index = ITEM_INDEX(it);
-	// TODO
-	/*if (!ent->client->pers.inventory[index])
+	if (!ent->client->pers.inventory[index])
 	{
 		gi.cprintf (ent, PRINT_HIGH, "Out of item: %s\n", s);
 		return;
-	}*/
+	}
 
 	GetItemKeyByIndex(it, use) (ent, it);
 }
@@ -406,12 +398,11 @@ static void(entity ent) Cmd_Drop_f =
 		return;
 	}
 	index = ITEM_INDEX(it);
-	// TODO
-	/*if (!ent->client->pers.inventory[index])
+	if (!ent->client->pers.inventory[index])
 	{
 		gi.cprintf (ent, PRINT_HIGH, "Out of item: %s\n", s);
 		return;
-	}*/
+	}
 
 	GetItemKeyByIndex(it, drop) (ent, it);
 }
@@ -440,8 +431,7 @@ static void(entity ent) Cmd_Inven_f =
 	gi.WriteByte (svc_inventory);
 	for (i=0 ; i<MAX_ITEMS ; i++)
 	{
-		// TODO
-		gi.WriteShort (0);//ent.client->pers.inventory[i]);
+		gi.WriteShort (ent.client->pers.inventory[i]);
 	}
 	gi.unicast (ent, true);
 }
@@ -492,9 +482,8 @@ static void(entity ent) Cmd_WeapPrev_f =
 	for (i=1 ; i<=MAX_ITEMS ; i++)
 	{
 		index = (selected_weapon + i)%MAX_ITEMS;
-		// TODO
-		/*if (!ent.client->pers.inventory[index])
-			continue;*/
+		if (!ent.client->pers.inventory[index])
+			continue;
 		it = index;
 		if (!GetItemKeyByIndex(it, use))
 			continue;
@@ -526,9 +515,8 @@ static void(entity ent) Cmd_WeapNext_f =
 	for (i=1 ; i<=MAX_ITEMS ; i++)
 	{
 		index = (selected_weapon + MAX_ITEMS - i)%MAX_ITEMS;
-		// TODO
-		/*if (!cl->pers.inventory[index])
-			continue;*/
+		if (!ent.client->pers.inventory[index])
+			continue;
 		it = index;
 		if (!GetItemKeyByIndex(it, use))
 			continue;
@@ -554,9 +542,8 @@ static void(entity ent) Cmd_WeapLast_f =
 		return;
 
 	index = ITEM_INDEX(ent.client->pers.lastweapon);
-	// TODO
-	/*if (!ent.client->pers.inventory[index])
-		return;*/
+	if (!ent.client->pers.inventory[index])
+		return;
 	it = index;
 	if (!GetItemKeyByIndex(it, use))
 		return;
@@ -775,26 +762,24 @@ static void(entity ent, bool team, bool arg0) Cmd_Say_f =
 
 	if (flood_msgs->intVal)
 	{
-		// TODO
-		/*if (level.time < ent.client->flood_locktill)
+		if (level.time < ent.client->flood_locktill)
 		{
 			gi.cprintf(ent, PRINT_HIGH, "You can't talk for %d more seconds\n", (int)(ent.client->flood_locktill - level.time));
 			return;
 		}
 		i = ent.client->flood_whenhead - flood_msgs->intVal + 1;
 		if (i < 0)
-		i = (sizeof(cl->flood_when)/sizeof(cl->flood_when[0])) + i;
+			i = client.flood_when.length + i;
             
-		if (cl->flood_when[i] && level.time - cl->flood_when[i] < flood_persecond->value)
+		if (ent.client->flood_when[i] && level.time - ent.client->flood_when[i] < flood_persecond->intVal)
 		{
-			cl->flood_locktill = level.time + flood_waitdelay->value;
-			gi.cprintf(ent, PRINT_CHAT, "Flood protection:  You can't talk for %d seconds.\n", (int)flood_waitdelay->value);
+			ent.client->flood_locktill = level.time + flood_waitdelay->intVal;
+			gi.cprintf(ent, PRINT_CHAT, "Flood protection:  You can't talk for %d seconds.\n", (int)flood_waitdelay->intVal);
 			return;
 		}
 
-		cl->flood_whenhead = (cl->flood_whenhead + 1) %
-			(sizeof(cl->flood_when)/sizeof(cl->flood_when[0]));
-		cl->flood_when[cl->flood_whenhead] = level.time;*/
+		ent.client->flood_whenhead = (ent.client->flood_whenhead + 1) % client.flood_when.length;
+		ent.client->flood_when[ent.client->flood_whenhead] = level.time;
 	}
 
 	if (dedicated->intVal)

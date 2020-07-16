@@ -15,7 +15,7 @@ bool(entity targ, entity inflictor) CanDamage =
 	if (targ->movetype == MOVETYPE_PUSH) {
 		VectorAdd(targ->absmin, targ->absmax, dest);
 		VectorScale(dest, 0.5f, dest);
-		trace_and_result(trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
+		gi.trace(&trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 		if (trace.fraction == 1.0f)
 			return true;
 		if (trace.ent == targ)
@@ -23,35 +23,35 @@ bool(entity targ, entity inflictor) CanDamage =
 		return false;
 	}
 
-	trace_and_result(trace, inflictor->s.origin, vec3_origin, vec3_origin, targ->s.origin, inflictor, MASK_SOLID);
+	gi.trace(&trace, inflictor->s.origin, vec3_origin, vec3_origin, targ->s.origin, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
 	VectorCopy(targ->s.origin, dest);
 	dest_x += 15.0f;
 	dest_y += 15.0f;
-	trace_and_result(trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
+	gi.trace(&trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
 	VectorCopy(targ->s.origin, dest);
 	dest_x += 15.0f;
 	dest_y -= 15.0f;
-	trace_and_result(trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
+	gi.trace(&trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
 	VectorCopy(targ->s.origin, dest);
 	dest_x -= 15.0f;
 	dest_y += 15.0f;
-	trace_and_result(trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
+	gi.trace(&trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
 	VectorCopy(targ->s.origin, dest);
 	dest_x -= 15.0f;
 	dest_y -= 15.0f;
-	trace_and_result(trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
+	gi.trace(&trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
@@ -59,6 +59,8 @@ bool(entity targ, entity inflictor) CanDamage =
 	return false;
 }
 
+// from monster.qc
+void(entity) monster_death_use;
 
 /*
 ============
@@ -91,8 +93,7 @@ static void(entity targ, entity inflictor, entity attacker, int damage, vector p
 
 	if ((targ->svflags & SVF_MONSTER) && (targ->deadflag != DEAD_DEAD)) {
 		targ->touch = 0;
-		//TODO
-		//monster_death_use(targ);
+		monster_death_use(targ);
 	}
 
 	targ->die(targ, inflictor, attacker, damage, point);
@@ -149,7 +150,7 @@ static int(entity ent, vector point, vector normal, int damage, damage_flags_t d
 	int	index;
 	int	damagePerCell;
 	int	pa_te_type;
-	int	power;
+	int	power = 0;
 	int	power_used;
 
 	if (!damage)
@@ -158,14 +159,13 @@ static int(entity ent, vector point, vector normal, int damage, damage_flags_t d
 	if (dflags & DAMAGE_NO_ARMOR)
 		return 0;
 
-	index = 0;  // shut up gcc
+	index = 0;  // shut up qcc
 
 	if (ent.is_client) {
 		power_armor_type = PowerArmorType(ent);
 		if (power_armor_type != POWER_ARMOR_NONE) {
-			//TODO
-			//index = ITEM_INDEX(FindItem("Cells"));
-			//power = client->pers.inventory[index];
+			index = ITEM_INDEX(FindItem("Cells"));
+			power = ent.client->pers.inventory[index];
 		}
 	} else if (ent->svflags & SVF_MONSTER) {
 		power_armor_type = ent->monsterinfo.power_armor_type;
@@ -212,8 +212,7 @@ static int(entity ent, vector point, vector normal, int damage, damage_flags_t d
 	power_used = save / damagePerCell;
 
 	if (ent.is_client)
-	//TODO
-		{}//client->pers.inventory[index] -= power_used;
+		ent.client->pers.inventory[index] -= power_used;
 	else
 		ent->monsterinfo.power_armor_power -= power_used;
 	return save;
@@ -223,7 +222,7 @@ static int(entity ent, vector point, vector normal, int damage, int te_sparks, d
 {
 	int	save;
 	int	index;
-	//gitem_t	*armor;
+	gitem_id_t	armor;
 
 	if (!damage)
 		return 0;
@@ -234,26 +233,24 @@ static int(entity ent, vector point, vector normal, int damage, int te_sparks, d
 	if (dflags & DAMAGE_NO_ARMOR)
 		return 0;
 
-	//TODO
-	/*index = ArmorIndex(ent);
+	index = ArmorIndex(ent);
 	if (!index)
 		return 0;
 
 	armor = GetItemByIndex(index);
 
 	if (dflags & DAMAGE_ENERGY)
-		save = ceil(((gitem_armor_t *)armor->info)->energy_protection * damage);
+		save = (int)ceilf(GetArmorInfoKeyByIndex(GetItemKeyByIndex(armor, info), energy_protection) * damage);
 	else
-		save = ceil(((gitem_armor_t *)armor->info)->normal_protection * damage);
+		save = (int)ceilf(GetArmorInfoKeyByIndex(GetItemKeyByIndex(armor, info), normal_protection) * damage);
 
-	if (save >= client->pers.inventory[index])
-		save = client->pers.inventory[index];*/
+	if (save >= ent.client->pers.inventory[index])
+		save = ent.client->pers.inventory[index];
 
 	if (!save)
 		return 0;
-	//TODO
 
-	//client->pers.inventory[index] -= save;
+	ent.client->pers.inventory[index] -= save;
 	SpawnDamage(te_sparks, point, normal, save);
 
 	return save;

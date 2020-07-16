@@ -116,9 +116,9 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowGib =
 
 	VectorScale(self->size, 0.5f, sz);
 	VectorAdd(self->absmin, sz, origin);
-	gib->s.origin[(ARRAY_INDEX_TYPE)0] = origin_x + crand() * sz_x;
-	gib->s.origin[(ARRAY_INDEX_TYPE)1] = origin_y + crand() * sz_y;
-	gib->s.origin[(ARRAY_INDEX_TYPE)2] = origin_z + crand() * sz_z;
+	gib->s.origin[0] = origin_x + crand() * sz_x;
+	gib->s.origin[1] = origin_y + crand() * sz_y;
+	gib->s.origin[2] = origin_z + crand() * sz_z;
 
 	gi.setmodel(gib, gibname);
 	gib->solid = SOLID_NOT;
@@ -205,7 +205,7 @@ void(entity self, int damage) ThrowClientHead =
 		self->s.skinnum = 0;
 	}
 
-	self->s.origin[(ARRAY_INDEX_TYPE)2] += 32;
+	self->s.origin[2] += 32;
 	self->s.frame = 0;
 	gi.setmodel(self, gibname);
 	VectorSet(self->mins, -16, -16, 0);
@@ -564,7 +564,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) func_obj
 	// only squash thing we fall on top of
 	if (!plane.normal)
 		return;
-	if (plane->normal[(ARRAY_INDEX_TYPE)2] < 1.0f)
+	if (plane->normal[2] < 1.0f)
 		return;
 	if (other->takedamage == DAMAGE_NO)
 		return;
@@ -781,13 +781,13 @@ static void(entity self) barrel_explode =
 
 	// a few big chunks
 	spd = 1.5f * (float)self->dmg / 200.0f;
-	org_x = self->s.origin[(ARRAY_INDEX_TYPE)0] + crand() * self->size_x;
-	org_y = self->s.origin[(ARRAY_INDEX_TYPE)1] + crand() * self->size_y;
-	org_z = self->s.origin[(ARRAY_INDEX_TYPE)2] + crand() * self->size_z;
+	org_x = self->s.origin[0] + crand() * self->size_x;
+	org_y = self->s.origin[1] + crand() * self->size_y;
+	org_z = self->s.origin[2] + crand() * self->size_z;
 	ThrowDebris(self, "models/objects/debris1/tris.md2", spd, org);
-	org_x = self->s.origin[(ARRAY_INDEX_TYPE)0] + crand() * self->size_x;
-	org_y = self->s.origin[(ARRAY_INDEX_TYPE)1] + crand() * self->size_y;
-	org_z = self->s.origin[(ARRAY_INDEX_TYPE)2] + crand() * self->size_z;
+	org_x = self->s.origin[0] + crand() * self->size_x;
+	org_y = self->s.origin[1] + crand() * self->size_y;
+	org_z = self->s.origin[2] + crand() * self->size_z;
 	ThrowDebris(self, "models/objects/debris1/tris.md2", spd, org);
 
 	// bottom corners
@@ -807,37 +807,37 @@ static void(entity self) barrel_explode =
 
 	// a bunch of little chunks
 	spd = 2f * self->dmg / 200f;
-	org_x = self->s.origin[(ARRAY_INDEX_TYPE)0] + crand() * self->size_x;
-	org_y = self->s.origin[(ARRAY_INDEX_TYPE)1] + crand() * self->size_y;
-	org_z = self->s.origin[(ARRAY_INDEX_TYPE)2] + crand() * self->size_z;
+	org_x = self->s.origin[0] + crand() * self->size_x;
+	org_y = self->s.origin[1] + crand() * self->size_y;
+	org_z = self->s.origin[2] + crand() * self->size_z;
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org_x = self->s.origin[(ARRAY_INDEX_TYPE)0] + crand() * self->size_x;
-	org_y = self->s.origin[(ARRAY_INDEX_TYPE)1] + crand() * self->size_y;
-	org_z = self->s.origin[(ARRAY_INDEX_TYPE)2] + crand() * self->size_z;
+	org_x = self->s.origin[0] + crand() * self->size_x;
+	org_y = self->s.origin[1] + crand() * self->size_y;
+	org_z = self->s.origin[2] + crand() * self->size_z;
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org_x = self->s.origin[(ARRAY_INDEX_TYPE)0] + crand() * self->size_x;
-	org_y = self->s.origin[(ARRAY_INDEX_TYPE)1] + crand() * self->size_y;
-	org_z = self->s.origin[(ARRAY_INDEX_TYPE)2] + crand() * self->size_z;
+	org_x = self->s.origin[0] + crand() * self->size_x;
+	org_y = self->s.origin[1] + crand() * self->size_y;
+	org_z = self->s.origin[2] + crand() * self->size_z;
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org_x = self->s.origin[(ARRAY_INDEX_TYPE)0] + crand() * self->size_x;
-	org_y = self->s.origin[(ARRAY_INDEX_TYPE)1] + crand() * self->size_y;
-	org_z = self->s.origin[(ARRAY_INDEX_TYPE)2] + crand() * self->size_z;
+	org_x = self->s.origin[0] + crand() * self->size_x;
+	org_y = self->s.origin[1] + crand() * self->size_y;
+	org_z = self->s.origin[2] + crand() * self->size_z;
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org_x = self->s.origin[(ARRAY_INDEX_TYPE)0] + crand() * self->size_x;
-	org_y = self->s.origin[(ARRAY_INDEX_TYPE)1] + crand() * self->size_y;
-	org_z = self->s.origin[(ARRAY_INDEX_TYPE)2] + crand() * self->size_z;
+	org_x = self->s.origin[0] + crand() * self->size_x;
+	org_y = self->s.origin[1] + crand() * self->size_y;
+	org_z = self->s.origin[2] + crand() * self->size_z;
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org_x = self->s.origin[(ARRAY_INDEX_TYPE)0] + crand() * self->size_x;
-	org_y = self->s.origin[(ARRAY_INDEX_TYPE)1] + crand() * self->size_y;
-	org_z = self->s.origin[(ARRAY_INDEX_TYPE)2] + crand() * self->size_z;
+	org_x = self->s.origin[0] + crand() * self->size_x;
+	org_y = self->s.origin[1] + crand() * self->size_y;
+	org_z = self->s.origin[2] + crand() * self->size_z;
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org_x = self->s.origin[(ARRAY_INDEX_TYPE)0] + crand() * self->size_x;
-	org_y = self->s.origin[(ARRAY_INDEX_TYPE)1] + crand() * self->size_y;
-	org_z = self->s.origin[(ARRAY_INDEX_TYPE)2] + crand() * self->size_z;
+	org_x = self->s.origin[0] + crand() * self->size_x;
+	org_y = self->s.origin[1] + crand() * self->size_y;
+	org_z = self->s.origin[2] + crand() * self->size_z;
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org_x = self->s.origin[(ARRAY_INDEX_TYPE)0] + crand() * self->size_x;
-	org_y = self->s.origin[(ARRAY_INDEX_TYPE)1] + crand() * self->size_y;
-	org_z = self->s.origin[(ARRAY_INDEX_TYPE)2] + crand() * self->size_z;
+	org_x = self->s.origin[0] + crand() * self->size_x;
+	org_y = self->s.origin[1] + crand() * self->size_y;
+	org_z = self->s.origin[2] + crand() * self->size_z;
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
 
 	VectorCopy(save, self->s.origin);
@@ -1039,7 +1039,7 @@ __used static void(entity self, entity other, entity cactivator) commander_body_
 static void(entity self) commander_body_drop =
 {
 	self->movetype = MOVETYPE_TOSS;
-	self->s.origin[(ARRAY_INDEX_TYPE)2] += 2;
+	self->s.origin[2] += 2;
 }
 
 __used static void(entity self) SP_monster_commander_body =
@@ -1205,7 +1205,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) misc_vip
 {
 	G_UseTargets(self, self.activator);
 
-	self->s.origin[(ARRAY_INDEX_TYPE)2] = self->absmin_z + 1;
+	self->s.origin[2] = self->absmin_z + 1;
 	T_RadiusDamage(self, self, self->dmg, 0, self->dmg + 40, MOD_BOMB);
 	BecomeExplosion2(self);
 }
@@ -1224,9 +1224,9 @@ static void(entity self) misc_viper_bomb_prethink =
 	VectorScale(self->moveinfo.dir, 1.0f + diff, v);
 	v_z = diff;
 
-	diff = self->s.angles[(ARRAY_INDEX_TYPE)2];
+	diff = self->s.angles[2];
 	vectoangles(v, self->s.angles);
-	self->s.angles[(ARRAY_INDEX_TYPE)2] = diff + 10;
+	self->s.angles[2] = diff + 10;
 }
 
 static void(entity self, entity other, entity cactivator) misc_viper_bomb_use =
@@ -1627,7 +1627,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) teleport
 
 	VectorCopy(dest->s.origin, other->s.origin);
 	VectorCopy(dest->s.origin, other->s.old_origin);
-	other->s.origin[(ARRAY_INDEX_TYPE)2] += 10;
+	other->s.origin[2] += 10;
 
 	// clear the velocity and hold them in place briefly
 	VectorClear(other->velocity);
@@ -1642,9 +1642,9 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) teleport
 	//for (i = 0 ; i < 3 ; i++) {
 	//	other->client->ps.pmove.delta_angles[i] = ANGLE2SHORT(dest->s.angles[i] - other->client->resp.cmd_angles[i]);
 	//}
-	other->client->ps.pmove.delta_angles[(ARRAY_INDEX_TYPE)0] = ANGLE2SHORT(dest->s.angles[(ARRAY_INDEX_TYPE)0] - other->client->resp.cmd_angles[(ARRAY_INDEX_TYPE)0]);
-	other->client->ps.pmove.delta_angles[(ARRAY_INDEX_TYPE)1] = ANGLE2SHORT(dest->s.angles[(ARRAY_INDEX_TYPE)1] - other->client->resp.cmd_angles[(ARRAY_INDEX_TYPE)1]);
-	other->client->ps.pmove.delta_angles[(ARRAY_INDEX_TYPE)2] = ANGLE2SHORT(dest->s.angles[(ARRAY_INDEX_TYPE)2] - other->client->resp.cmd_angles[(ARRAY_INDEX_TYPE)2]);
+	other->client->ps.pmove.delta_angles[0] = ANGLE2SHORT(dest->s.angles[0] - other->client->resp.cmd_angles[0]);
+	other->client->ps.pmove.delta_angles[1] = ANGLE2SHORT(dest->s.angles[1] - other->client->resp.cmd_angles[1]);
+	other->client->ps.pmove.delta_angles[2] = ANGLE2SHORT(dest->s.angles[2] - other->client->resp.cmd_angles[2]);
 
 	VectorClear(other->s.angles);
 	VectorClear(other->client->ps.viewangles);

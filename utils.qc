@@ -89,7 +89,7 @@ entity G_PickTarget(string stargetname)
 {
 	entity	ent = world;
 	int	num_choices = 0;
-	entity	choice[MAX_CHOICES];
+	entity	choice[MAX_CHOICES] = { 0 };
 
 	if (!stargetname) {
 		gi.dprintf("G_PickTarget called with NULL targetname\n");
@@ -100,7 +100,7 @@ entity G_PickTarget(string stargetname)
 		ent = G_Find(ent, targetname, stargetname);
 		if (ent == null_entity)
 			break;
-		choice[(ARRAY_INDEX_TYPE)(num_choices++)] = ent;
+		choice[num_choices++] = ent;
 		if (num_choices == MAX_CHOICES)
 			break;
 	}
@@ -110,7 +110,7 @@ entity G_PickTarget(string stargetname)
 		return world;
 	}
 
-	return choice[(ARRAY_INDEX_TYPE)Q_rand_uniform(num_choices)];
+	return choice[Q_rand_uniform(num_choices)];
 }
 
 // from utils.qc
@@ -362,7 +362,7 @@ bool(entity ent) KillBox =
 	trace_t     tr;
 
 	while (1) {
-		trace_and_result(tr, ent->s.origin, ent->mins, ent->maxs, ent->s.origin, world, MASK_PLAYERSOLID);
+		gi.trace(&tr, ent->s.origin, ent->mins, ent->maxs, ent->s.origin, world, MASK_PLAYERSOLID);
 
 		if (!tr.ent)
 			break;

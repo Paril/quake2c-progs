@@ -1,20 +1,6 @@
 // contains definitions that pertain to the game/server API
 const int GAMEC_API_VERSION	= 1;
 
-// extended features
-enumflags
-{
-	GMF_CLIENTNUM,
-	GMF_PROPERINUSE,
-	GMF_MVDSPEC,
-	GMF_WANT_ALL_DISCONNECTS,
-	
-	GMF_ENHANCED_SAVEGAMES		= 0x00000400,
-	GMF_VARIABLE_FPS,
-	GMF_EXTRA_USERINFO,
-	GMF_IPV6_ADDRESS_AWARE
-} game_features_t;
-
 //
 // per-level limits
 //

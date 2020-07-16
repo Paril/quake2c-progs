@@ -4,7 +4,7 @@ struct spawn_field_t
 	.__variant	field;
 };
 
-__used spawn_field_t spawn_fields[] =
+var __used spawn_field_t spawn_fields[] =
 {
 	{ "classname", classname },
 	{ "model", model },
@@ -39,9 +39,14 @@ __used spawn_field_t spawn_fields[] =
 	{ "angles", s.angles }
 };
 
+__used static void(entity ent) SP_func_group = 
+{
+	G_FreeEdict(ent);
+}
+
 static bool(string key, string value, entity ent) ED_ParseField =
 {
-	for (ARRAY_INDEX_TYPE i = 0; i < spawn_fields.length; i++)
+	for (int i = 0; i < spawn_fields.length; i++)
 	{
 		if (stricmp(spawn_fields[i].key, key))
 			continue;
@@ -510,7 +515,7 @@ __used static void(entity ent) SP_worldspawn =
 
 	gi.configstring(CS_SKYROTATE, va("%f", st.skyrotate));
 
-	gi.configstring(CS_SKYAXIS, va("%f %f %f", st.skyaxis[(ARRAY_INDEX_TYPE)0], st.skyaxis[(ARRAY_INDEX_TYPE)1], st.skyaxis[(ARRAY_INDEX_TYPE)2]));
+	gi.configstring(CS_SKYAXIS, va("%f %f %f", st.skyaxis[0], st.skyaxis[1], st.skyaxis[2]));
 
 	gi.configstring(CS_CDTRACK, va("%i", ent->sounds));
 

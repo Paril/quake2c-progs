@@ -130,14 +130,14 @@ void(entity ent) M_CheckGround =
 	}
 
 // if the hull point one-quarter unit down is solid the entity is on ground
-	point_x = ent->s.origin[(ARRAY_INDEX_TYPE)0];
-	point_y = ent->s.origin[(ARRAY_INDEX_TYPE)1];
-	point_z = ent->s.origin[(ARRAY_INDEX_TYPE)2] - 0.25f;
+	point_x = ent->s.origin[0];
+	point_y = ent->s.origin[1];
+	point_z = ent->s.origin[2] - 0.25f;
 
-	trace_and_result(trace, ent->s.origin, ent->mins, ent->maxs, point, ent, MASK_MONSTERSOLID);
+	gi.trace(&trace, ent->s.origin, ent->mins, ent->maxs, point, ent, MASK_MONSTERSOLID);
 
 	// check steepness
-	if (trace.plane.normal[(ARRAY_INDEX_TYPE)2] < 0.7f && !trace.startsolid) {
+	if (trace.plane.normal[2] < 0.7f && !trace.startsolid) {
 		ent->groundentity = null_entity;
 		return;
 	}
@@ -163,9 +163,9 @@ static void(entity ent) M_CatagorizePosition =
 //
 // get waterlevel
 //
-	point_x = ent->s.origin[(ARRAY_INDEX_TYPE)0];
-	point_y = ent->s.origin[(ARRAY_INDEX_TYPE)1];
-	point_z = ent->s.origin[(ARRAY_INDEX_TYPE)2] + ent->mins_z + 1;
+	point_x = ent->s.origin[0];
+	point_y = ent->s.origin[1];
+	point_z = ent->s.origin[2] + ent->mins_z + 1;
 	cont = gi.pointcontents(point);
 
 	if (!(cont & MASK_WATER)) {
@@ -266,11 +266,11 @@ void(entity ent) M_droptofloor =
 	vector	end;
 	trace_t	trace;
 
-	ent->s.origin[(ARRAY_INDEX_TYPE)2] += 1;
+	ent->s.origin[2] += 1;
 	VectorCopy(ent->s.origin, end);
 	end_z -= 256;
 
-	trace_and_result(trace, ent->s.origin, ent->mins, ent->maxs, end, ent, MASK_MONSTERSOLID);
+	gi.trace(&trace, ent->s.origin, ent->mins, ent->maxs, end, ent, MASK_MONSTERSOLID);
 
 	if (trace.fraction == 1 || trace.allsolid)
 		return;
@@ -413,7 +413,7 @@ static void(entity self) monster_start_go;
 
 static void(entity self) monster_triggered_spawn =
 {
-	self->s.origin[(ARRAY_INDEX_TYPE)2] += 1;
+	self->s.origin[2] += 1;
 	KillBox(self);
 
 	self->solid = SOLID_BBOX;
@@ -459,7 +459,7 @@ When a monster dies, it fires all of its targets with the current
 enemy as activator.
 ================
 */
-static void(entity self) monster_death_use =
+void(entity self) monster_death_use =
 {
 	self->flags &= ~(FL_FLY | FL_SWIM);
 	self->monsterinfo.aiflags &= AI_GOOD_GUY;

@@ -186,15 +186,14 @@ static void(entity self, entity other, entity cactivator) trigger_key_use =
 		return;
 
 	index = ITEM_INDEX(self->item);
-	// TODO
-	/*if (!cactivator->client->pers.inventory[index]) {
+	if (!cactivator->client->pers.inventory[index]) {
 		if (level.framenum < self->touch_debounce_framenum)
 			return;
-		self->touch_debounce_framenum = level.framenum + 5.0f * BASE_FRAMERATE;
-		gi.centerprintf(cactivator, "You need the %s", self->item->pickup_name);
+		self->touch_debounce_framenum = level.framenum + (int)(5.0f * BASE_FRAMERATE);
+		gi.centerprintf(cactivator, "You need the %s", GetItemKeyByIndex(self->item, pickup_name));
 		gi.sound(cactivator, CHAN_AUTO, gi.soundindex("misc/keytry.wav"), 1, ATTN_NORM, 0);
 		return;
-	}*/
+	}
 
 	gi.sound(cactivator, CHAN_AUTO, gi.soundindex("misc/keyuse.wav"), 1, ATTN_NORM, 0);
 	if (coop->intVal) {
@@ -214,8 +213,7 @@ static void(entity self, entity other, entity cactivator) trigger_key_use =
 				if (!ent->is_client)
 					continue;
 				if (ent->client->pers.power_cubes & (1 << cube)) {
-					// TODO
-					//ent->client->pers.inventory[index]--;
+					ent->client->pers.inventory[index]--;
 					ent->client->pers.power_cubes &= ~(1 << cube);
 				}
 			}
@@ -226,13 +224,11 @@ static void(entity self, entity other, entity cactivator) trigger_key_use =
 					continue;
 				if (!ent->is_client)
 					continue;
-				// TODO
-				//ent->client->pers.inventory[index] = 0;
+				ent->client->pers.inventory[index] = 0;
 			}
 		}
 	} else {
-		// TODO
-		//activator->client->pers.inventory[index]--;
+		cactivator->client->pers.inventory[index]--;
 	}
 
 	G_UseTargets(self, cactivator);

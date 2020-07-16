@@ -27,6 +27,7 @@ gweapon.qc
 monster.qc
 flash.qc
 infantry.qc
+soldier.qc
 pweapon.qc
 misc.qc
 trigger.qc

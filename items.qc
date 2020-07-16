@@ -123,7 +123,7 @@ gitem_armor_t armor_infos[] =
 	{ }
 };
 
-#define GetArmorInfoKeyByIndex(index, key) armor_infos[(ARRAY_INDEX_TYPE)index].key
+#define GetArmorInfoKeyByIndex(index, key) armor_infos[index].key
 
 static int  jacket_armor_index;
 static int  combat_armor_index;
@@ -200,7 +200,7 @@ static bool(entity, entity)	Pickup_Health;
 
 void() InitItems =
 {
-	#define ADD_ITEM(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s) itemlist[(ARRAY_INDEX_TYPE)(id)].classname = a; itemlist[(ARRAY_INDEX_TYPE)(id)].pickup = b; itemlist[(ARRAY_INDEX_TYPE)(id)].use = c; itemlist[(ARRAY_INDEX_TYPE)(id)].drop = d; itemlist[(ARRAY_INDEX_TYPE)(id)].weaponthink = e; itemlist[(ARRAY_INDEX_TYPE)(id)].pickup_sound = f; itemlist[(ARRAY_INDEX_TYPE)(id)].world_model = g; itemlist[(ARRAY_INDEX_TYPE)(id)].world_model_flags = h; itemlist[(ARRAY_INDEX_TYPE)(id)].view_model = i; itemlist[(ARRAY_INDEX_TYPE)(id)].icon = j; itemlist[(ARRAY_INDEX_TYPE)(id)].pickup_name = k; itemlist[(ARRAY_INDEX_TYPE)(id)].count_width = l; itemlist[(ARRAY_INDEX_TYPE)(id)].quantity = m; itemlist[(ARRAY_INDEX_TYPE)(id)].ammo = n; itemlist[(ARRAY_INDEX_TYPE)(id)].flags = o; itemlist[(ARRAY_INDEX_TYPE)(id)].weapmodel = p; itemlist[(ARRAY_INDEX_TYPE)(id)].info = q; itemlist[(ARRAY_INDEX_TYPE)(id)].tag = r; itemlist[(ARRAY_INDEX_TYPE)(id)].precaches = s; id++
+	#define ADD_ITEM(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s) itemlist[(id)].classname = a; itemlist[(id)].pickup = b; itemlist[(id)].use = c; itemlist[(id)].drop = d; itemlist[(id)].weaponthink = e; itemlist[(id)].pickup_sound = f; itemlist[(id)].world_model = g; itemlist[(id)].world_model_flags = h; itemlist[(id)].view_model = i; itemlist[(id)].icon = j; itemlist[(id)].pickup_name = k; itemlist[(id)].count_width = l; itemlist[(id)].quantity = m; itemlist[(id)].ammo = n; itemlist[(id)].flags = o; itemlist[(id)].weapmodel = p; itemlist[(id)].info = q; itemlist[(id)].tag = r; itemlist[(id)].precaches = s; id++
 	int id = 0;
 	
 	ADD_ITEM(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); // leave index 0 alone
@@ -1189,7 +1189,7 @@ void() InitItems =
 GetItemByIndex
 ===============
 */
-#define GetItemKeyByIndex(index, key) (itemlist[(ARRAY_INDEX_TYPE)index].key)
+#define GetItemKeyByIndex(index, key) (itemlist[index].key)
 
 #define ITEM_INDEX(item) item
 	
@@ -1277,17 +1277,16 @@ void(entity ent, int delay) SetRespawn =
 
 static bool(entity ent, entity other) Pickup_Powerup =
 {
-	//FIXME
-	/*int     quantity;
+	int     quantity;
 
 	quantity = other->client->pers.inventory[ITEM_INDEX(ent->item)];
-	if ((skill->value == 1 && quantity >= 2) || (skill->value >= 2 && quantity >= 1))
+	if ((skill->intVal == 1 && quantity >= 2) || (skill->intVal >= 2 && quantity >= 1))
 		return false;
 
-	if ((coop->value) && (ent->item->flags & IT_STAY_COOP) && (quantity > 0))
+	if ((coop->intVal) && (GetItemKeyByIndex(ent->item, flags) & IT_STAY_COOP) && (quantity > 0))
 		return false;
 
-	other->client->pers.inventory[ITEM_INDEX(ent->item)]++;*/
+	other->client->pers.inventory[ITEM_INDEX(ent->item)]++;
 
 	if (deathmatch->intVal) {
 		if (!(ent->spawnflags & DROPPED_ITEM))
@@ -1312,8 +1311,7 @@ void(entity) ValidateSelectedItem;
 static void(entity ent, gitem_id_t item) Drop_General =
 {
 	Drop_Item(ent, item);
-	//FIXME
-	//ent->client->pers.inventory[ITEM_INDEX(item)]--;
+	ent->client->pers.inventory[ITEM_INDEX(item)]--;
 	ValidateSelectedItem(ent);
 }
 
@@ -1361,19 +1359,17 @@ static bool(entity ent, entity other) Pickup_Bandolier =
 	itemid = FindItem("Bullets");
 	if (itemid) {
 		index = ITEM_INDEX(itemid);
-		// FIXME
-		/*other->client->pers.inventory[index] += item->quantity;
+		other->client->pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
 		if (other->client->pers.inventory[index] > other->client->pers.max_bullets)
-			other->client->pers.inventory[index] = other->client->pers.max_bullets;*/
+			other->client->pers.inventory[index] = other->client->pers.max_bullets;
 	}
 
 	itemid = FindItem("Shells");
 	if (itemid) {
 		index = ITEM_INDEX(itemid);
-		// FIXME
-		/*other->client->pers.inventory[index] += item->quantity;
+		other->client->pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
 		if (other->client->pers.inventory[index] > other->client->pers.max_shells)
-			other->client->pers.inventory[index] = other->client->pers.max_shells;*/
+			other->client->pers.inventory[index] = other->client->pers.max_shells;
 	}
 
 	if (!(ent->spawnflags & DROPPED_ITEM) && (deathmatch->intVal))
@@ -1403,55 +1399,49 @@ static bool(entity ent, entity other) Pickup_Pack =
 	itemid = FindItem("Bullets");
 	if (itemid) {
 		index = ITEM_INDEX(itemid);
-		// FIXME
-		/*other->client->pers.inventory[index] += item->quantity;
+		other->client->pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
 		if (other->client->pers.inventory[index] > other->client->pers.max_bullets)
-			other->client->pers.inventory[index] = other->client->pers.max_bullets;*/
+			other->client->pers.inventory[index] = other->client->pers.max_bullets;
 	}
 
 	itemid = FindItem("Shells");
 	if (itemid) {
 		index = ITEM_INDEX(itemid);
-		// FIXME
-		/*other->client->pers.inventory[index] += item->quantity;
+		other->client->pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
 		if (other->client->pers.inventory[index] > other->client->pers.max_shells)
-			other->client->pers.inventory[index] = other->client->pers.max_shells;*/
+			other->client->pers.inventory[index] = other->client->pers.max_shells;
 	}
 
 	itemid = FindItem("Cells");
 	if (itemid) {
 		index = ITEM_INDEX(itemid);
-		// FIXME
-		/*other->client->pers.inventory[index] += item->quantity;
+		other->client->pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
 		if (other->client->pers.inventory[index] > other->client->pers.max_cells)
-			other->client->pers.inventory[index] = other->client->pers.max_cells;*/
+			other->client->pers.inventory[index] = other->client->pers.max_cells;
 	}
 
 	itemid = FindItem("Grenades");
 	if (itemid) {
 		index = ITEM_INDEX(itemid);
-		// FIXME
-		/*other->client->pers.inventory[index] += item->quantity;
+		other->client->pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
 		if (other->client->pers.inventory[index] > other->client->pers.max_grenades)
-			other->client->pers.inventory[index] = other->client->pers.max_grenades;*/
+			other->client->pers.inventory[index] = other->client->pers.max_grenades;
 	}
 
 	itemid = FindItem("Rockets");
 	if (itemid) {
 		index = ITEM_INDEX(itemid);
-		// FIXME
-		/*other->client->pers.inventory[index] += item->quantity;
+		other->client->pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
 		if (other->client->pers.inventory[index] > other->client->pers.max_rockets)
-			other->client->pers.inventory[index] = other->client->pers.max_rockets;*/
+			other->client->pers.inventory[index] = other->client->pers.max_rockets;
 	}
 
 	itemid = FindItem("Slugs");
 	if (itemid) {
 		index = ITEM_INDEX(itemid);
-		// FIXME
-		/*other->client->pers.inventory[index] += item->quantity;
+		other->client->pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
 		if (other->client->pers.inventory[index] > other->client->pers.max_slugs)
-			other->client->pers.inventory[index] = other->client->pers.max_slugs;*/
+			other->client->pers.inventory[index] = other->client->pers.max_slugs;
 	}
 
 	if (!(ent->spawnflags & DROPPED_ITEM) && (deathmatch->intVal))
@@ -1466,8 +1456,7 @@ static void(entity ent, gitem_id_t item) Use_Quad =
 {
 	int     timeout;
 
-	// FIXME
-	//ent->client->pers.inventory[ITEM_INDEX(item)]--;
+	ent->client->pers.inventory[ITEM_INDEX(item)]--;
 	ValidateSelectedItem(ent);
 
 	if (quad_drop_timeout_hack) {
@@ -1489,8 +1478,7 @@ static void(entity ent, gitem_id_t item) Use_Quad =
 
 static void(entity ent, gitem_id_t item) Use_Breather =
 {
-	// FIXME
-	//ent->client->pers.inventory[ITEM_INDEX(item)]--;
+	ent->client->pers.inventory[ITEM_INDEX(item)]--;
 	ValidateSelectedItem(ent);
 
 	if (ent->client->breather_framenum > level.framenum)
@@ -1503,8 +1491,7 @@ static void(entity ent, gitem_id_t item) Use_Breather =
 
 static void(entity ent, gitem_id_t item) Use_Envirosuit =
 {
-	// FIXME
-	//ent->client->pers.inventory[ITEM_INDEX(item)]--;
+	ent->client->pers.inventory[ITEM_INDEX(item)]--;
 	ValidateSelectedItem(ent);
 
 	if (ent->client->enviro_framenum > level.framenum)
@@ -1517,8 +1504,7 @@ static void(entity ent, gitem_id_t item) Use_Envirosuit =
 
 static void(entity ent, gitem_id_t item) Use_Invulnerability =
 {
-	// FIXME
-	//ent->client->pers.inventory[ITEM_INDEX(item)]--;
+	ent->client->pers.inventory[ITEM_INDEX(item)]--;
 	ValidateSelectedItem(ent);
 
 	if (ent->client->invincible_framenum > level.framenum)
@@ -1533,8 +1519,7 @@ static void(entity ent, gitem_id_t item) Use_Invulnerability =
 
 static void(entity ent, gitem_id_t item) Use_Silencer =
 {
-	// FIXME
-	//ent->client->pers.inventory[ITEM_INDEX(item)]--;
+	ent->client->pers.inventory[ITEM_INDEX(item)]--;
 	ValidateSelectedItem(ent);
 	ent->client->silencer_shots += 30;
 }
@@ -1547,19 +1532,16 @@ static bool(entity ent, entity other) Pickup_Key =
 		if (ent->classname == "key_power_cube") {
 			if (other->client->pers.power_cubes & ((ent->spawnflags & 0x0000ff00) >> 8))
 				return false;
-			// FIXME
-			//other->client->pers.inventory[ITEM_INDEX(ent->item)]++;
+			other->client->pers.inventory[ITEM_INDEX(ent->item)]++;
 			other->client->pers.power_cubes |= ((ent->spawnflags & 0x0000ff00) >> 8);
 		} else {
-			// FIXME
-			/*if (other->client->pers.inventory[ITEM_INDEX(ent->item)])
+			if (other->client->pers.inventory[ITEM_INDEX(ent->item)])
 				return false;
-			other->client->pers.inventory[ITEM_INDEX(ent->item)] = 1;*/
+			other->client->pers.inventory[ITEM_INDEX(ent->item)] = 1;
 		}
 		return true;
 	}
-	// FIXME
-	//other->client->pers.inventory[ITEM_INDEX(ent->item)]++;
+	other->client->pers.inventory[ITEM_INDEX(ent->item)]++;
 	return true;
 }
 
@@ -1592,25 +1574,22 @@ bool(entity ent, gitem_id_t itemid, int count) Add_Ammo =
 
 	index = ITEM_INDEX(itemid);
 
-	// FIXME
-	/*if (ent->client->pers.inventory[index] == max)
+	if (ent->client->pers.inventory[index] == max)
 		return false;
 
 	ent->client->pers.inventory[index] += count;
 
 	if (ent->client->pers.inventory[index] > max)
-		ent->client->pers.inventory[index] = max;*/
+		ent->client->pers.inventory[index] = max;
 
 	return true;
 }
 
 static bool(entity ent, entity other) Pickup_Ammo =
 {
-	int	oldcount;
-	int	ammocount;
-	bool	weapon;
-
-	weapon = (GetItemKeyByIndex(ent->item, flags) & IT_WEAPON);
+	int	oldcount = 0;
+	int	ammocount = 0;
+	bool	weapon = (GetItemKeyByIndex(ent->item, flags) & IT_WEAPON);
 	if ((weapon) && (dmflags->intVal & DF_INFINITE_AMMO))
 		ammocount = 1000;
 	else if (ent->count)
@@ -1618,8 +1597,7 @@ static bool(entity ent, entity other) Pickup_Ammo =
 	else
 		ammocount = GetItemKeyByIndex(ent->item, quantity);
 
-	// fixme
-	//oldcount = other->client->pers.inventory[ITEM_INDEX(ent->item)];
+	oldcount = other->client->pers.inventory[ITEM_INDEX(ent->item)];
 
 	if (!Add_Ammo(other, ent->item, ammocount))
 		return false;
@@ -1642,23 +1620,21 @@ static void(entity ent, gitem_id_t itemid) Drop_Ammo =
 	index = ITEM_INDEX(itemid);
 	dropped = Drop_Item(ent, itemid);
 
-	// FIXME
-	/*if (ent->client->pers.inventory[index] >= item->quantity)
-		dropped->count = item->quantity;
+	if (ent->client->pers.inventory[index] >= GetItemKeyByIndex(itemid, quantity))
+		dropped->count = GetItemKeyByIndex(itemid, quantity);
 	else
-		dropped->count = ent->client->pers.inventory[index];*/
+		dropped->count = ent->client->pers.inventory[index];
 
-	// FIXME
-	/*if (ent->client->pers.weapon &&
+	if (ent->client->pers.weapon &&
 		GetItemKeyByIndex(ent->client->pers.weapon, tag) == AMMO_GRENADES &&
-		item->tag == AMMO_GRENADES &&
-		ent->client->pers.inventory[index] - dropped->count <= 0) {
+		GetItemKeyByIndex(itemid, tag) == AMMO_GRENADES &&
+		ent->client->pers.inventory[index] - dropped.count <= 0) {
 		gi.cprintf(ent, PRINT_HIGH, "Can't drop current weapon\n");
 		G_FreeEdict(dropped);
 		return;
 	}
 
-	ent->client->pers.inventory[index] -= dropped->count;*/
+	ent->client->pers.inventory[index] -= dropped.count;
 	ValidateSelectedItem(ent);
 }
 
@@ -1714,15 +1690,14 @@ int(entity ent) ArmorIndex =
 	if (!ent->is_client)
 		return 0;
 
-	// FIXME
-	/*if (ent->client->pers.inventory[jacket_armor_index] > 0)
+	if (ent->client->pers.inventory[jacket_armor_index] > 0)
 		return jacket_armor_index;
 
 	if (ent->client->pers.inventory[combat_armor_index] > 0)
 		return combat_armor_index;
 
 	if (ent->client->pers.inventory[body_armor_index] > 0)
-		return body_armor_index;*/
+		return body_armor_index;
 
 	return 0;
 }
@@ -1743,17 +1718,15 @@ static bool(entity ent, entity other) Pickup_Armor =
 
 	// handle armor shards specially
 	if (GetItemKeyByIndex(ent->item, tag) == ARMOR_SHARD) {
-		// FIXME
-		/*if (!old_armor_index)
+		if (!old_armor_index)
 			other->client->pers.inventory[jacket_armor_index] = 2;
 		else
-			other->client->pers.inventory[old_armor_index] += 2;*/
+			other->client->pers.inventory[old_armor_index] += 2;
 	}
 
 	// if player has no armor, just use it
 	else if (!old_armor_index) {
-		// FIXME
-		//other->client->pers.inventory[ITEM_INDEX(ent->item)] = newinfo->base_count;
+		other->client->pers.inventory[ITEM_INDEX(ent->item)] = GetArmorInfoKeyByIndex(newinfo, base_count);
 	}
 
 	// use the better armor
@@ -1769,34 +1742,30 @@ static bool(entity ent, entity other) Pickup_Armor =
 		if (GetArmorInfoKeyByIndex(newinfo, normal_protection) > GetArmorInfoKeyByIndex(oldinfo, normal_protection)) {
 			// calc new armor values
 			salvage = GetArmorInfoKeyByIndex(oldinfo, normal_protection) / GetArmorInfoKeyByIndex(newinfo, normal_protection);
-			// FIXME
-			//salvagecount = salvage * other->client->pers.inventory[old_armor_index];
+			salvagecount = (int)(salvage * other->client->pers.inventory[old_armor_index]);
 			newcount = GetArmorInfoKeyByIndex(newinfo, base_count) + salvagecount;
 			if (newcount > GetArmorInfoKeyByIndex(newinfo, max_count))
 				newcount = GetArmorInfoKeyByIndex(newinfo, max_count);
 
-			// FIXME
 			// zero count of old armor so it goes away
-			//other->client->pers.inventory[old_armor_index] = 0;
+			other->client->pers.inventory[old_armor_index] = 0;
 
 			// change armor to new item with computed value
-			//other->client->pers.inventory[ITEM_INDEX(ent->item)] = newcount;
+			other->client->pers.inventory[ITEM_INDEX(ent->item)] = newcount;
 		} else {
 			// calc new armor values
 			salvage = GetArmorInfoKeyByIndex(newinfo, normal_protection) / GetArmorInfoKeyByIndex(oldinfo, normal_protection);
 			salvagecount = (int)(salvage * GetArmorInfoKeyByIndex(newinfo, base_count));
-			// FIXME
-			//newcount = other->client->pers.inventory[old_armor_index] + salvagecount;
+			newcount = other->client->pers.inventory[old_armor_index] + salvagecount;
 			if (newcount > GetArmorInfoKeyByIndex(oldinfo, max_count))
 				newcount = GetArmorInfoKeyByIndex(oldinfo, max_count);
 
-			// FIXME
 			// if we're already maxed out then we don't need the new armor
-			//if (other->client->pers.inventory[old_armor_index] >= newcount)
-			//	return false;
+			if (other->client->pers.inventory[old_armor_index] >= newcount)
+				return false;
 
 			// update current armor value
-			//other->client->pers.inventory[old_armor_index] = newcount;
+			other->client->pers.inventory[old_armor_index] = newcount;
 		}
 	}
 
@@ -1816,12 +1785,11 @@ power_armor_type_t(entity ent) PowerArmorType =
 	if (!(ent->flags & FL_POWER_ARMOR))
 		return POWER_ARMOR_NONE;
 
-	// TODO
-	/*if (ent->client->pers.inventory[power_shield_index] > 0)
+	if (ent->client->pers.inventory[power_shield_index] > 0)
 		return POWER_ARMOR_SHIELD;
 
 	if (ent->client->pers.inventory[power_screen_index] > 0)
-		return POWER_ARMOR_SCREEN;*/
+		return POWER_ARMOR_SCREEN;
 
 	return POWER_ARMOR_NONE;
 }
@@ -1835,11 +1803,10 @@ static void(entity ent, gitem_id_t itemid) Use_PowerArmor =
 		gi.sound(ent, CHAN_AUTO, gi.soundindex("misc/power2.wav"), 1, ATTN_NORM, 0);
 	} else {
 		index = ITEM_INDEX(FindItem("cells"));
-		// FIXME
-		/*if (!ent->client->pers.inventory[index]) {
+		if (!ent->client->pers.inventory[index]) {
 			gi.cprintf(ent, PRINT_HIGH, "No cells for power armor.\n");
 			return;
-		}*/
+		}
 		ent->flags |= FL_POWER_ARMOR;
 		gi.sound(ent, CHAN_AUTO, gi.soundindex("misc/power1.wav"), 1, ATTN_NORM, 0);
 	}
@@ -1847,12 +1814,9 @@ static void(entity ent, gitem_id_t itemid) Use_PowerArmor =
 
 static bool(entity ent, entity other) Pickup_PowerArmor =
 {
-	int     quantity;
+	int	quantity = other->client->pers.inventory[ITEM_INDEX(ent->item)];
 
-	// FIXME
-	//quantity = other->client->pers.inventory[ITEM_INDEX(ent->item)];
-
-	//other->client->pers.inventory[ITEM_INDEX(ent->item)]++;
+	other->client->pers.inventory[ITEM_INDEX(ent->item)]++;
 
 	if (deathmatch->intVal) {
 		if (!(ent->spawnflags & DROPPED_ITEM))
@@ -1867,9 +1831,8 @@ static bool(entity ent, entity other) Pickup_PowerArmor =
 
 static void(entity ent, gitem_id_t itemid) Drop_PowerArmor =
 {
-	// FIXME
-	//if ((ent->flags & FL_POWER_ARMOR) && (ent->client->pers.inventory[ITEM_INDEX(item)] == 1))
-	//	Use_PowerArmor(ent, item);
+	if ((ent->flags & FL_POWER_ARMOR) && (ent->client->pers.inventory[ITEM_INDEX(itemid)] == 1))
+		Use_PowerArmor(ent, itemid);
 	Drop_General(ent, itemid);
 }
 
@@ -1982,7 +1945,7 @@ entity(entity ent, gitem_id_t itemid) Drop_Item =
 		AngleVectors(ent->client->v_angle, forward, right, unref_vec);
 		VectorSet(offset, 24, 0, -16);
 		G_ProjectSource(ent->s.origin, offset, forward, right, dropped->s.origin);
-		trace_and_result(trace, ent->s.origin, dropped->mins, dropped->maxs, dropped->s.origin, ent, CONTENTS_SOLID);
+		gi.trace(&trace, ent->s.origin, dropped->mins, dropped->maxs, dropped->s.origin, ent, CONTENTS_SOLID);
 		VectorCopy(trace.endpos, dropped->s.origin);
 	} else {
 		AngleVectors(ent->s.angles, forward, right, unref_vec);
@@ -2045,7 +2008,7 @@ static void(entity ent) droptofloor =
 	v = '0 0 -128';
 	VectorAdd(ent->s.origin, v, dest);
 
-	trace_and_result(tr, ent->s.origin, ent->mins, ent->maxs, dest, ent, MASK_SOLID);
+	gi.trace(&tr, ent->s.origin, ent->mins, ent->maxs, dest, ent, MASK_SOLID);
 	if (tr.startsolid) {
 		gi.dprintf("droptofloor: %s startsolid at %s\n", ent->classname, vtos(ent->s.origin));
 		G_FreeEdict(ent);

@@ -270,7 +270,7 @@ bool(entity self, entity other) visible =
 	spot1_z += self->viewheight;
 	VectorCopy(other->s.origin, spot2);
 	spot2_z += other->viewheight;
-	trace_and_result(trace, spot1, vec3_origin, vec3_origin, spot2, self, MASK_OPAQUE);
+	gi.trace(&trace, spot1, vec3_origin, vec3_origin, spot2, self, MASK_OPAQUE);
 	
 	if (trace.fraction == 1.0f)
 		return true;
@@ -559,7 +559,7 @@ bool(entity self) M_CheckAttack =
 		VectorCopy(self->enemy->s.origin, spot2);
 		spot2_z += self->enemy->viewheight;
 
-		trace_and_result(tr, spot1, vec3_origin, vec3_origin, spot2, self, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_SLIME | CONTENTS_LAVA | CONTENTS_WINDOW);
+		gi.trace(&tr, spot1, vec3_origin, vec3_origin, spot2, self, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_SLIME | CONTENTS_LAVA | CONTENTS_WINDOW);
 
 		// do we have a clear shot?
 		if (tr.ent != self->enemy)
@@ -939,7 +939,7 @@ void(entity self, float dist) ai_run =
 	if (new) {
 //      gi.dprintf("checking for course correction\n");
 
-		trace_and_result(tr, self->s.origin, self->mins, self->maxs, self->monsterinfo.last_sighting, self, MASK_PLAYERSOLID);
+		gi.trace(&tr, self->s.origin, self->mins, self->maxs, self->monsterinfo.last_sighting, self, MASK_PLAYERSOLID);
 		if (tr.fraction < 1) {
 			VectorSubtract(self->goalentity->s.origin, self->s.origin, v);
 			d1 = VectorLength(v);
@@ -950,12 +950,12 @@ void(entity self, float dist) ai_run =
 
 			VectorSet(v, d2, -16, 0);
 			G_ProjectSource(self->s.origin, v, v_forward, v_right, left_target);
-			trace_and_result(tr, self->s.origin, self->mins, self->maxs, left_target, self, MASK_PLAYERSOLID);
+			gi.trace(&tr, self->s.origin, self->mins, self->maxs, left_target, self, MASK_PLAYERSOLID);
 			left = tr.fraction;
 
 			VectorSet(v, d2, 16, 0);
 			G_ProjectSource(self->s.origin, v, v_forward, v_right, right_target);
-			trace_and_result(tr, self->s.origin, self->mins, self->maxs, right_target, self, MASK_PLAYERSOLID);
+			gi.trace(&tr, self->s.origin, self->mins, self->maxs, right_target, self, MASK_PLAYERSOLID);
 			right = tr.fraction;
 
 			center = (d1 * center) / d2;

@@ -288,7 +288,7 @@ const int MAX_ENT_CLUSTERS = 16;
 
 .int	light_level;
 .int	style;
-.int	item; // FIXME
+.int	item;
 
 typedef enum int
 {
@@ -339,8 +339,8 @@ struct mmove_t
 {
 	int		firstframe;
 	int		lastframe;
-	mframe_t	*frame;
 	void(entity)	endfunc;
+	mframe_t	*frame;
 };
 
 //monster ai flags
@@ -430,7 +430,7 @@ typedef enumflags int
 } refdef_flags_t;
 
 // player_state->stats[] indexes
-typedef enum : ARRAY_INDEX_TYPE
+typedef enum : int
 {
 	// For engine compatibility, these 18 IDs should remain the same
 	// and keep their described usage
@@ -454,7 +454,7 @@ typedef enum : ARRAY_INDEX_TYPE
 	STAT_SPECTATOR,
 	// Bits from here to 31 are free for mods
 
-	MAX_STATS	= (ARRAY_INDEX_TYPE)32
+	MAX_STATS	= (int)32
 } player_stat_t;
 
 struct player_state_t
@@ -502,10 +502,8 @@ struct client_persistant_t
 	int	max_health;
 	int	savedFlags;
 	
-	// FIXME
 	int	selected_item;
-	// FIXME
-	//int	inventory[MAX_ITEMS];
+	int	inventory[MAX_ITEMS];
 	
 	// ammo capacities
 	int	max_bullets;
@@ -515,7 +513,6 @@ struct client_persistant_t
 	int	max_cells;
 	int	max_slugs;
 	
-	// FIXME
 	int	weapon;
 	int	lastweapon;
 	
@@ -582,8 +579,7 @@ struct gclient_t
 	button_bits_t	latched_buttons;
 	
 	bool	weapon_thunk;
-	
-	// FIXME
+
 	int	newweapon;
 	
 	// sum up damage over an entire frame, so
@@ -635,8 +631,7 @@ struct gclient_t
 	int	pickup_msg_framenum;
 	
 	float	flood_locktill;     // locked from talking
-	// FIXME
-	//float	flood_when[10];     // when messages were said
+	float	flood_when[10];     // when messages were said
 	int	flood_whenhead;     // head pointer for when said
 	
 	int	respawn_framenum;   // can respawn when time > this
