@@ -251,6 +251,10 @@ static void(entity ent) P_FallingDamage =
 	}
 }
 
+const vector power_color = '0.0 1.0 0.0';
+const vector acolor = '1.0 1.0 1.0';
+const vector bcolor = '1.0 0.0 0.0';
+
 /*
 ===============
 P_DamageFeedback
@@ -264,9 +268,6 @@ static void(entity player) P_DamageFeedback =
 	float   realcount, dcount, kick;
 	vector  v;
 	int     r, l;
-	const	vector power_color = '0.0 1.0 0.0';
-	const	vector acolor = '1.0 1.0 1.0';
-	const	vector bcolor = '1.0 0.0 0.0';
 
 	// flash the backgrounds behind the status numbers
 	player.client.ps.stats[STAT_FLASHES] = 0;
@@ -574,23 +575,20 @@ static void(entity ent) SV_CalcGunOffset =
 SV_AddBlend
 =============
 */
-static void(float r, float g, float b, float a, __inout float v_blend_r, __inout float v_blend_g, __inout float v_blend_b, __inout float v_blend_a) SV_AddBlend_ =
+static void(float r, float g, float b, float a, float *v_blend) SV_AddBlend =
 {
 	float   a2, a3;
 
 	if (a <= 0)
 		return;
-	a2 = v_blend_a + (1 - v_blend_a) * a; // new total alpha
-	a3 = v_blend_a / a2;   // fraction of color from old
+	a2 = v_blend[3] + (1 - v_blend[3]) * a; // new total alpha
+	a3 = v_blend[3] / a2;   // fraction of color from old
 
-	v_blend_r = v_blend_r * a3 + r * (1 - a3);
-	v_blend_g = v_blend_g * a3 + g * (1 - a3);
-	v_blend_b = v_blend_b * a3 + b * (1 - a3);
-	v_blend_a = a2;
+	v_blend[0] = v_blend[0] * a3 + r * (1 - a3);
+	v_blend[1] = v_blend[1] * a3 + g * (1 - a3);
+	v_blend[2] = v_blend[2] * a3 + b * (1 - a3);
+	v_blend[3] = a2;
 }
-
-#define SV_AddBlend(r, g, b, a, vec) \
-	SV_AddBlend_(r, g, b, a, vec[0], vec[1], vec[2], vec[3])
 
 #define SV_AddBlendVector(rgb, alpha, vec) \
 	SV_AddBlend(rgb[0], rgb[1], rgb[2], alpha, vec)
@@ -617,11 +615,11 @@ static void(entity ent) SV_CalcBlend =
 		ent->client->ps.rdflags &= ~RDF_UNDERWATER;
 
 	if (contents & (CONTENTS_SOLID | CONTENTS_LAVA))
-		SV_AddBlend(1.0f, 0.3f, 0.0f, 0.6f, ent.client.ps.blend);
+		SV_AddBlend(1.0f, 0.3f, 0.0f, 0.6f, &ent.client.ps.blend[0]);
 	else if (contents & CONTENTS_SLIME)
-		SV_AddBlend(0.0f, 0.1f, 0.05f, 0.6f, ent->client->ps.blend);
+		SV_AddBlend(0.0f, 0.1f, 0.05f, 0.6f, &ent->client->ps.blend[0]);
 	else if (contents & CONTENTS_WATER)
-		SV_AddBlend(0.5f, 0.3f, 0.2f, 0.4f, ent->client->ps.blend);
+		SV_AddBlend(0.5f, 0.3f, 0.2f, 0.4f, &ent->client->ps.blend[0]);
 
 	// add for powerups
 	if (ent->client->quad_framenum > level.framenum) {
@@ -629,33 +627,33 @@ static void(entity ent) SV_CalcBlend =
 		if (remaining == 30)    // beginning to fade
 			gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage2.wav"), 1, ATTN_NORM, 0);
 		if (remaining > 30 || (remaining & 4))
-			SV_AddBlend(0, 0, 1, 0.08f, ent->client->ps.blend);
+			SV_AddBlend(0, 0, 1, 0.08f, &ent->client->ps.blend[0]);
 	} else if (ent->client->invincible_framenum > level.framenum) {
 		remaining = ent->client->invincible_framenum - level.framenum;
 		if (remaining == 30)    // beginning to fade
 			gi.sound(ent, CHAN_ITEM, gi.soundindex("items/protect2.wav"), 1, ATTN_NORM, 0);
 		if (remaining > 30 || (remaining & 4))
-			SV_AddBlend(1, 1, 0, 0.08f, ent->client->ps.blend);
+			SV_AddBlend(1, 1, 0, 0.08f, &ent->client->ps.blend[0]);
 	} else if (ent->client->enviro_framenum > level.framenum) {
 		remaining = ent->client->enviro_framenum - level.framenum;
 		if (remaining == 30)    // beginning to fade
 			gi.sound(ent, CHAN_ITEM, gi.soundindex("items/airout.wav"), 1, ATTN_NORM, 0);
 		if (remaining > 30 || (remaining & 4))
-			SV_AddBlend(0, 1, 0, 0.08f, ent->client->ps.blend);
+			SV_AddBlend(0, 1, 0, 0.08f, &ent->client->ps.blend[0]);
 	} else if (ent->client->breather_framenum > level.framenum) {
 		remaining = ent->client->breather_framenum - level.framenum;
 		if (remaining == 30)    // beginning to fade
 			gi.sound(ent, CHAN_ITEM, gi.soundindex("items/airout.wav"), 1, ATTN_NORM, 0);
 		if (remaining > 30 || (remaining & 4))
-			SV_AddBlend(0.4f, 1, 0.4f, 0.04f, ent->client->ps.blend);
+			SV_AddBlend(0.4f, 1, 0.4f, 0.04f, &ent->client->ps.blend[0]);
 	}
 
 	// add for damage
 	if (ent->client->damage_alpha > 0)
-		SV_AddBlendVector(ent->client->damage_blend, ent->client->damage_alpha, ent->client->ps.blend);
+		SV_AddBlendVector(ent->client->damage_blend, ent->client->damage_alpha, &ent->client->ps.blend[0]);
 
 	if (ent->client->bonus_alpha > 0)
-		SV_AddBlend(0.85f, 0.7f, 0.3f, ent->client->bonus_alpha, ent->client->ps.blend);
+		SV_AddBlend(0.85f, 0.7f, 0.3f, ent->client->bonus_alpha, &ent->client->ps.blend[0]);
 
 	// drop the damage value
 	ent->client->damage_alpha -= 0.06f;
