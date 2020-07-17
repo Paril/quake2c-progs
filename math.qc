@@ -23,18 +23,31 @@ typedef enum int
 	true
 } bool;
 
-// TODO: inline
-#define ANGLE2SHORT(x)  ((int)((x)*65536/360) & 65535)
-#define SHORT2ANGLE(x)  ((x)*(360.0f/65536))
+inline int(float x) ANGLE2SHORT =
+{
+	return (int)(x * 65536 / 360) & 65535;
+}
 
-#define COORD2SHORT(x)  ((int)((x)*8.0f))
-#define SHORT2COORD(x)  ((x)*(1.0f/8))
+inline float(int x) SHORT2ANGLE =
+{
+	return x * (360.0f / 65536);
+}
+
+inline int(float x) COORD2SHORT =
+{
+	return (int)(x * 8.0f);
+}
+
+inline float(int x) SHORT2COORD = 
+{
+	return x * (1.0f / 8);
+}
 
 enum int { PITCH, YAW, ROLL };
 
 const int INT_MAX = 2147483647;
 
-float vectoyaw(vector vec)
+float(vector vec) vectoyaw =
 {
 	float   yaw;
 
@@ -53,7 +66,7 @@ float vectoyaw(vector vec)
 	return yaw;
 }
 
-float anglemod(float a)
+inline float(float a) anglemod =
 {
     a = (360.0f / 65536) * ((int)(a * (65536 / 360.0f)) & 65535);
     return a;

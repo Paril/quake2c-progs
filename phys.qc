@@ -91,8 +91,9 @@ static bool(entity ent) SV_RunThink =
 
 	ent->nextthink = 0;
 	if (!ent->think)
-		gi.error("NULL ent->think");
-	ent->think(ent);
+		gi.dprintf("NULL ent->think: %s @ %s", ent.classname, vtos(ent.s.origin));
+	else
+		ent->think(ent);
 
 	return false;
 }

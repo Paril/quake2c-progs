@@ -17,12 +17,6 @@ typedef enumflags int
 // features this game supports
 const game_features_t G_FEATURES	= (GMF_PROPERINUSE | GMF_WANT_ALL_DISCONNECTS | GMF_ENHANCED_SAVEGAMES);
 
-static void(trace_t *tr, vector start, vector mins, vector maxs, vector end, entity passent, int contentmask) trace_wrap =
-{
-	gi.trace_(start, mins, maxs, end, passent, contentmask);
-	gi.trace_result(tr);
-};
-
 /*
 ============
 InitGame
@@ -34,8 +28,6 @@ is loaded.
 */
 static void() InitGame =
 {
-	gi.trace = trace_wrap;
-	
 	gi.dprintf("===== "__FUNC__" =====\n");
 	
 	gun_x = gi.cvar("gun_x", "0", 0);
@@ -157,7 +149,6 @@ The timelimit or fraglimit has been exceeded
 static void() EndDMLevel =
 {
 	entity	ent;
-	//char *s, *t, *f;
 	static string seps = " ,\n\r";
 
 	// stay on same level flag
@@ -168,28 +159,31 @@ static void() EndDMLevel =
 
 	// see if it's in the map list
 	if (sv_maplist.str) {
-		/*s = strdup(sv_maplist->string);
-		f = NULL;
-		t = strtok(s, seps);
-		while (t != NULL) {
-			if (Q_stricmp(t, level.mapname) == 0) {
+		string st = sv_maplist.str;
+		string f = 0;
+		int s_offset = 0;
+		string t = strtok(st, s_offset);
+		while (t) {
+			if (stricmp(t, level.mapname) == 0)
+			{
 				// it's in the list, go to the next one
-				t = strtok(NULL, seps);
-				if (t == NULL) { // end of list, go to first one
-					if (f == NULL) // there isn't a first one, same level
+				t = strtok(st, s_offset);
+				if (!t)
+				{ // end of list, go to first one
+					if (!f) // there isn't a first one, same level
 						BeginIntermission(CreateTargetChangeLevel(level.mapname));
 					else
 						BeginIntermission(CreateTargetChangeLevel(f));
-				} else
+				}
+				else
 					BeginIntermission(CreateTargetChangeLevel(t));
-				free(s);
+
 				return;
 			}
 			if (!f)
 				f = t;
-			t = strtok(NULL, seps);
+			t = strtok(st, s_offset);
 		}
-		free(s);*/
 	}
 
 	if (level.nextmap) // go to a specific map
@@ -366,6 +360,64 @@ static void() RunFrame =
 	ClientEndServerFrames();
 }
 
+static void(bool autosave) PreWriteGame =
+{
+	if (!autosave)
+		SaveClientData();
+
+	game.autosaved = autosave;
+};
+
+static void(bool autosave) PostWriteGame =
+{
+	game.autosaved = false;
+};
+
+static void() PreReadGame =
+{
+};
+
+static void() PostReadGame =
+{
+};
+
+static void() PreWriteLevel =
+{
+};
+
+static void() PostWriteLevel =
+{
+};
+
+static void() PreReadLevel = 
+{
+};
+
+static void(int num_edicts) PostReadLevel = 
+{
+	globals.num_edicts = num_edicts;
+	
+	// mark all clients as unconnected
+	for (int i = 0 ; i < game.maxclients; i++)
+	{
+		entity ent = itoe(i + 1);
+		ent->client->pers.connected = false;
+	}
+
+	// do any load time things at this point
+	for (int i = 0 ; i < globals.num_edicts; i++)
+	{
+		entity ent = itoe(i);
+
+		if (!ent->inuse)
+			continue;
+
+		// fire any cross-level triggers
+		if (ent->classname == "target_crosslevel_target")
+			ent->nextthink = level.framenum + (int)(ent->delay * BASE_FRAMERATE);
+	}
+};
+
 struct game_export_t {
 	int	apiversion;
 	int	clientsize;
@@ -375,16 +427,28 @@ struct game_export_t {
 	
 	void(string mapname, string entities, string spawnpoint)	SpawnEntities;
 	
-	bool(entity ent, string userinfo)	ClientConnect;
-	void(entity ent)			ClientBegin;
-	void(entity ent, string userinfo)	ClientUserinfoChanged;
-	void(entity ent)			ClientDisconnect;
-	void(entity ent)			ClientCommand;
-	void(entity ent, usercmd_t cmd)		ClientThink;
+	bool(entity ent, __inout string userinfo)	ClientConnect;
+	void(entity ent)				ClientBegin;
+	void(entity ent, string userinfo)		ClientUserinfoChanged;
+	void(entity ent)				ClientDisconnect;
+	void(entity ent)				ClientCommand;
+	void(entity ent, usercmd_t cmd)			ClientThink;
 	
 	void()	RunFrame;
 	
 	void()	ServerCommand;
+	
+	void(bool autosave)	PreWriteGame;
+	void(bool autosave)	PostWriteGame;
+	
+	void()	PreReadGame;
+	void()	PostReadGame;
+	
+	void()	PreWriteLevel;
+	void()	PostWriteLevel;
+	
+	void()			PreReadLevel;
+	void(int num_edicts)	PostReadLevel;
 };
 
 // Main entry point; if you need to do any global stuff, this is where
@@ -409,4 +473,13 @@ __used void(__out game_export_t exports) GetGameAPI =
 	exports.RunFrame = RunFrame;
 
 	exports.ServerCommand = ServerCommand;
+	
+	exports.PreWriteGame = PreWriteGame;
+	exports.PostReadGame = PostReadGame;
+	
+	exports.PreWriteLevel = PreWriteLevel;
+	exports.PostWriteLevel = PostWriteLevel;
+	
+	exports.PreReadLevel = PreReadLevel;
+	exports.PostReadLevel = PostReadLevel;
 }

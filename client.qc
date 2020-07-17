@@ -1347,7 +1347,7 @@ Changing levels will NOT cause this to be called again, but
 loadgames will.
 ============
 */
-bool(entity ent, string userinfo) ClientConnect =
+bool(entity ent, __inout string userinfo) ClientConnect =
 {
 	// check to see if they are on the banned IP list
 	/*string value = Info_ValueForKey(userinfo, "ip");
@@ -1462,12 +1462,12 @@ void(entity ent) ClientDisconnect =
 static entity pm_passent;
 
 // pmove doesn't need to know about passent and contentmask
-static void(vector start, vector mins, vector maxs, vector end) PM_trace =
+static void(trace_t *tr, vector start, vector mins, vector maxs, vector end) PM_trace =
 {
     if (pm_passent->health > 0)
-        gi.trace_(start, mins, maxs, end, pm_passent, MASK_PLAYERSOLID);
+        gi.trace(tr, start, mins, maxs, end, pm_passent, MASK_PLAYERSOLID);
     else
-        gi.trace_(start, mins, maxs, end, pm_passent, MASK_DEADSOLID);
+        gi.trace(tr, start, mins, maxs, end, pm_passent, MASK_DEADSOLID);
 }
 
 entity() PlayerTrail_LastSpot;

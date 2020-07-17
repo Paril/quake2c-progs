@@ -575,7 +575,7 @@ static void(entity ent) SV_CalcGunOffset =
 SV_AddBlend
 =============
 */
-static void(float r, float g, float b, float a, float *v_blend) SV_AddBlend =
+static void(vector rgb, float a, float *v_blend) SV_AddBlend =
 {
 	float   a2, a3;
 
@@ -583,15 +583,20 @@ static void(float r, float g, float b, float a, float *v_blend) SV_AddBlend =
 		return;
 	a2 = v_blend[3] + (1 - v_blend[3]) * a; // new total alpha
 	a3 = v_blend[3] / a2;   // fraction of color from old
+	
+	*((vector *)v_blend) = (*((vector *)v_blend) * a3) + (rgb * (1 - a3));
 
-	v_blend[0] = v_blend[0] * a3 + r * (1 - a3);
-	v_blend[1] = v_blend[1] * a3 + g * (1 - a3);
-	v_blend[2] = v_blend[2] * a3 + b * (1 - a3);
 	v_blend[3] = a2;
 }
 
-#define SV_AddBlendVector(rgb, alpha, vec) \
-	SV_AddBlend(rgb[0], rgb[1], rgb[2], alpha, vec)
+const vector lava_blend = '1.0 0.3 0.0';
+const vector bonus_blend = '0.85 0.7 0.3';
+const vector slime_blend = '0.0 0.1 0.05';
+const vector water_blend = '0.5 0.3 0.2';
+const vector quad_blend = '0 0 1';
+const vector invul_blend = '1 1 0';
+const vector enviro_blend = '0 1 0';
+const vector breather_blend = '0.4f 1 0.4f';
 
 /*
 =============
@@ -615,11 +620,11 @@ static void(entity ent) SV_CalcBlend =
 		ent->client->ps.rdflags &= ~RDF_UNDERWATER;
 
 	if (contents & (CONTENTS_SOLID | CONTENTS_LAVA))
-		SV_AddBlend(1.0f, 0.3f, 0.0f, 0.6f, &ent.client.ps.blend[0]);
+		SV_AddBlend(lava_blend, 0.6f, &ent.client.ps.blend[0]);
 	else if (contents & CONTENTS_SLIME)
-		SV_AddBlend(0.0f, 0.1f, 0.05f, 0.6f, &ent->client->ps.blend[0]);
+		SV_AddBlend(slime_blend, 0.6f, &ent->client->ps.blend[0]);
 	else if (contents & CONTENTS_WATER)
-		SV_AddBlend(0.5f, 0.3f, 0.2f, 0.4f, &ent->client->ps.blend[0]);
+		SV_AddBlend(water_blend, 0.4f, &ent->client->ps.blend[0]);
 
 	// add for powerups
 	if (ent->client->quad_framenum > level.framenum) {
@@ -627,33 +632,33 @@ static void(entity ent) SV_CalcBlend =
 		if (remaining == 30)    // beginning to fade
 			gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage2.wav"), 1, ATTN_NORM, 0);
 		if (remaining > 30 || (remaining & 4))
-			SV_AddBlend(0, 0, 1, 0.08f, &ent->client->ps.blend[0]);
+			SV_AddBlend(quad_blend, 0.08f, &ent->client->ps.blend[0]);
 	} else if (ent->client->invincible_framenum > level.framenum) {
 		remaining = ent->client->invincible_framenum - level.framenum;
 		if (remaining == 30)    // beginning to fade
 			gi.sound(ent, CHAN_ITEM, gi.soundindex("items/protect2.wav"), 1, ATTN_NORM, 0);
 		if (remaining > 30 || (remaining & 4))
-			SV_AddBlend(1, 1, 0, 0.08f, &ent->client->ps.blend[0]);
+			SV_AddBlend(invul_blend, 0.08f, &ent->client->ps.blend[0]);
 	} else if (ent->client->enviro_framenum > level.framenum) {
 		remaining = ent->client->enviro_framenum - level.framenum;
 		if (remaining == 30)    // beginning to fade
 			gi.sound(ent, CHAN_ITEM, gi.soundindex("items/airout.wav"), 1, ATTN_NORM, 0);
 		if (remaining > 30 || (remaining & 4))
-			SV_AddBlend(0, 1, 0, 0.08f, &ent->client->ps.blend[0]);
+			SV_AddBlend(enviro_blend, 0.08f, &ent->client->ps.blend[0]);
 	} else if (ent->client->breather_framenum > level.framenum) {
 		remaining = ent->client->breather_framenum - level.framenum;
 		if (remaining == 30)    // beginning to fade
 			gi.sound(ent, CHAN_ITEM, gi.soundindex("items/airout.wav"), 1, ATTN_NORM, 0);
 		if (remaining > 30 || (remaining & 4))
-			SV_AddBlend(0.4f, 1, 0.4f, 0.04f, &ent->client->ps.blend[0]);
+			SV_AddBlend(breather_blend, 0.04f, &ent->client->ps.blend[0]);
 	}
 
 	// add for damage
 	if (ent->client->damage_alpha > 0)
-		SV_AddBlendVector(ent->client->damage_blend, ent->client->damage_alpha, &ent->client->ps.blend[0]);
+		SV_AddBlend(ent->client->damage_blend, ent->client->damage_alpha, &ent->client->ps.blend[0]);
 
 	if (ent->client->bonus_alpha > 0)
-		SV_AddBlend(0.85f, 0.7f, 0.3f, ent->client->bonus_alpha, &ent->client->ps.blend[0]);
+		SV_AddBlend(bonus_blend, ent->client->bonus_alpha, &ent->client->ps.blend[0]);
 
 	// drop the damage value
 	ent->client->damage_alpha -= 0.06f;

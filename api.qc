@@ -416,7 +416,7 @@ typedef enum int
 } sound_channel_t;
 
 // sound attenuation values
-typedef enum float
+typedef enum : float
 {
 	ATTN_NONE,	// full volume the entire level
 	ATTN_NORM,
@@ -721,7 +721,7 @@ struct pmove_t
 	int		waterlevel;
 	
 	// in (callbacks)
-	void(vector start, vector mins, vector maxs, vector end) trace;
+	void(trace_t *tr, vector start, vector mins, vector maxs, vector end) trace;
 	content_flags_t(vector)	pointcontents;
 };
 

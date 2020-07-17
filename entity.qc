@@ -117,7 +117,7 @@ const int MAX_ENT_CLUSTERS = 16;
 
 .struct link_t
 {
-	link_t *prev, *next;
+	int	prev, next;
 }		area;
 
 .int		num_clusters;
@@ -597,9 +597,9 @@ struct gclient_t
 	vector		kick_origin;
 	float		v_dmg_roll, v_dmg_pitch, v_dmg_time;    // damage kicks
 	float		fall_time, fall_value;      // for view drop on fall
-	float		damage_alpha;
 	float		bonus_alpha;
 	vector		damage_blend;
+	float		damage_alpha;
 	vector		v_angle;            // aiming direction
 	float		bobtime;            // so off-ground doesn't change it
 	vector		oldviewangles;

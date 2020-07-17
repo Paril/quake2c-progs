@@ -19,8 +19,7 @@ __used var struct {
 	
 	void(entity, string) setmodel;
 	
-	void(vector start, vector mins, vector maxs, vector end, entity passent, int contentmask) trace_;
-	void(trace_t *tr) trace_result;
+	void(trace_t *tr, vector start, vector mins, vector maxs, vector end, entity passent, int contentmask) trace;
 	
 	int(vector) pointcontents;
 	bool(vector, vector) inPVS;
@@ -62,9 +61,6 @@ __used var struct {
 	void(int)	SetNumEdicts;
 	void(entity)	ClearEntity;
 	void(entity)	SyncPlayerState;
-	
-	// temporary
-	void(trace_t *tr, vector start, vector mins, vector maxs, vector end, entity passent, int contentmask) trace;
 } gi = {
 	#0:bprintf,
 	#0:dprintf,
@@ -84,7 +80,6 @@ __used var struct {
 	#0:setmodel,
 	
 	#0:trace,
-	#0:trace_result,
 	#0:pointcontents,
 	#0:inPVS,
 	#0:inPHS,

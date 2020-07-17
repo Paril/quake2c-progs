@@ -130,7 +130,7 @@ static void(entity self) soldier_walk1_random =
 		self->monsterinfo.nextframe = FRAME_walk101;
 }
 
-mframe_t soldier_frames_walk1 [] = {
+static mframe_t soldier_frames_walk1 [] = {
 	{ ai_walk, 3 },
 	{ ai_walk, 6 },
 	{ ai_walk, 2 },
