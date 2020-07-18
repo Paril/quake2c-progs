@@ -62,7 +62,7 @@ static void turret_breach_fire(entity self)
 	VectorMA(start, self->move_origin[1], r, start);
 	VectorMA(start, self->move_origin[2], u, start);
 
-	damage = 100 + (int)(frand() * 50);
+	damage = (int)random(100f, 150f);
 	speed = 550 + 50 * skill->intVal;
 	fire_rocket(self->teammaster->owner, start, f, damage, speed, 150, damage);
 	gi.positioned_sound(start, self, CHAN_WEAPON, gi.soundindex("weapons/rocklf1a.wav"), 1, ATTN_NORM, 0);

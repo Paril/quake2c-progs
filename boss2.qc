@@ -8,7 +8,7 @@ static int  sound_search1;
 
 static void boss2_search(entity self)
 {
-	if (frand() < 0.5f)
+	if (random() < 0.5f)
 		gi.sound(self, CHAN_VOICE, sound_search1, 1, ATTN_NONE, 0);
 }
 
@@ -214,7 +214,7 @@ static void boss2_attack_mg(entity self);
 static void boss2_reattack_mg(entity self)
 {
 	if (infront(self, self->enemy))
-		if (frand() <= 0.7f)
+		if (random() <= 0.7f)
 			boss2_attack_mg(self);
 		else
 			self->monsterinfo.currentmove = &boss2_move_attack_post_mg;
@@ -398,7 +398,7 @@ static void boss2_attack(entity self)
 	if (range <= 125) {
 		self->monsterinfo.currentmove = &boss2_move_attack_pre_mg;
 	} else {
-		if (frand() <= 0.6f)
+		if (random() <= 0.6f)
 			self->monsterinfo.currentmove = &boss2_move_attack_pre_mg;
 		else
 			self->monsterinfo.currentmove = &boss2_move_attack_rocket;
@@ -497,14 +497,14 @@ static bool Boss2_CheckAttack(entity self)
 		return false;
 	}
 
-	if (frand() < chance) {
+	if (random() < chance) {
 		self->monsterinfo.attack_state = AS_MISSILE;
-		self->monsterinfo.attack_finished = level.framenum + (int)(2 * frand() * BASE_FRAMERATE);
+		self->monsterinfo.attack_finished = level.framenum + (int)random(2f * BASE_FRAMERATE);
 		return true;
 	}
 
 	if (self->flags & FL_FLY) {
-		if (frand() < 0.3f)
+		if (random() < 0.3f)
 			self->monsterinfo.attack_state = AS_SLIDING;
 		else
 			self->monsterinfo.attack_state = AS_STRAIGHT;

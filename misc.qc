@@ -32,9 +32,7 @@ Misc functions
 */
 static void(int damage, __out vector v) VelocityForDamage =
 {
-	v_x = 100.0f * crand();
-	v_y = 100.0f * crand();
-	v_z = 200.0f + 100.0f * frand();
+	v = randomv('-100 -100 200', '100 100 300');
 
 	if (damage < 50)
 		VectorScale(v, 0.7f, v);
@@ -71,7 +69,7 @@ static void(entity self) gib_think =
 
 	if (self->s.frame == 10) {
 		self->think = G_FreeEdict;
-		self->nextthink = level.framenum + (int)((8 + frand() * 10) * BASE_FRAMERATE);
+		self->nextthink = level.framenum + (int)(random(8f, 18f) * BASE_FRAMERATE);
 	}
 }
 
@@ -116,9 +114,7 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowGib =
 
 	VectorScale(self->size, 0.5f, sz);
 	VectorAdd(self->absmin, sz, origin);
-	gib->s.origin[0] = origin_x + crand() * sz_x;
-	gib->s.origin[1] = origin_y + crand() * sz_y;
-	gib->s.origin[2] = origin_z + crand() * sz_z;
+	gib->s.origin = origin + randomv(-sz, sz);
 
 	gi.setmodel(gib, gibname);
 	gib->solid = SOLID_NOT;
@@ -139,12 +135,10 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowGib =
 	VelocityForDamage(damage, vd);
 	VectorMA(self->velocity, vscale, vd, gib->velocity);
 	ClipGibVelocity(gib);
-	gib->avelocity_x = frand() * 600;
-	gib->avelocity_y = frand() * 600;
-	gib->avelocity_z = frand() * 600;
+	gib->avelocity = randomv('600 600 600');
 
 	gib->think = G_FreeEdict;
-	gib->nextthink = level.framenum + (int)((10 + frand() * 10) * BASE_FRAMERATE);
+	gib->nextthink = level.framenum + (int)(random(10f, 20f) * BASE_FRAMERATE);
 
 	gi.linkentity(gib);
 }
@@ -183,10 +177,10 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowHead =
 	VectorMA(self->velocity, vscale, vd, self->velocity);
 	ClipGibVelocity(self);
 
-	self->avelocity[YAW] = crand() * 600;
+	self->avelocity[YAW] = random(-600f, 600f);
 
 	self->think = G_FreeEdict;
-	self->nextthink = level.framenum + (int)((10 + frand() * 10) * BASE_FRAMERATE);
+	self->nextthink = level.framenum + (int)(random(10f, 20f) * BASE_FRAMERATE);
 
 	gi.linkentity(self);
 }
@@ -250,17 +244,15 @@ void(entity self, string modelname, float speed, vector origin) ThrowDebris =
 	chunk = G_Spawn();
 	VectorCopy(origin, chunk->s.origin);
 	gi.setmodel(chunk, modelname);
-	v_x = 100 * crand();
-	v_y = 100 * crand();
-	v_z = 100 + 100 * crand();
+	v_x = random(-100f, 100f);
+	v_y = random(-100f, 100f);
+	v_z = random(0f, 200f);
 	VectorMA(self->velocity, speed, v, chunk->velocity);
 	chunk->movetype = MOVETYPE_BOUNCE;
 	chunk->solid = SOLID_NOT;
-	chunk->avelocity_x = frand() * 600;
-	chunk->avelocity_y = frand() * 600;
-	chunk->avelocity_z = frand() * 600;
+	chunk->avelocity = randomv('600 600 600');
 	chunk->think = G_FreeEdict;
-	chunk->nextthink = level.framenum + (int)((5 + frand() * 5) * BASE_FRAMERATE);
+	chunk->nextthink = level.framenum + (int)(random(5f, 10f) * BASE_FRAMERATE);
 	chunk->s.frame = 0;
 	chunk->flags = 0;
 	chunk->classname = "debris";
@@ -670,9 +662,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 		if (count > 8)
 			count = 8;
 		while (count--) {
-			chunkorigin_x = origin_x + crand() * csize_x;
-			chunkorigin_y = origin_y + crand() * csize_y;
-			chunkorigin_z = origin_z + crand() * csize_z;
+			chunkorigin = origin + randomv(-csize, csize);
 			ThrowDebris(self, "models/objects/debris1/tris.md2", 1, chunkorigin);
 		}
 	}
@@ -682,9 +672,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 	if (count > 16)
 		count = 16;
 	while (count--) {
-		chunkorigin_x = origin_x + crand() * csize_x;
-		chunkorigin_y = origin_y + crand() * csize_y;
-		chunkorigin_z = origin_z + crand() * csize_z;
+		chunkorigin = origin + randomv(-csize, csize);
 		ThrowDebris(self, "models/objects/debris2/tris.md2", 2, chunkorigin);
 	}
 
@@ -781,13 +769,9 @@ static void(entity self) barrel_explode =
 
 	// a few big chunks
 	spd = 1.5f * (float)self->dmg / 200.0f;
-	org_x = self->s.origin[0] + crand() * self->size_x;
-	org_y = self->s.origin[1] + crand() * self->size_y;
-	org_z = self->s.origin[2] + crand() * self->size_z;
+	org = self->s.origin + randomv(-self->size, self->size);
 	ThrowDebris(self, "models/objects/debris1/tris.md2", spd, org);
-	org_x = self->s.origin[0] + crand() * self->size_x;
-	org_y = self->s.origin[1] + crand() * self->size_y;
-	org_z = self->s.origin[2] + crand() * self->size_z;
+	org = self->s.origin + randomv(-self->size, self->size);
 	ThrowDebris(self, "models/objects/debris1/tris.md2", spd, org);
 
 	// bottom corners
@@ -807,37 +791,21 @@ static void(entity self) barrel_explode =
 
 	// a bunch of little chunks
 	spd = 2f * self->dmg / 200f;
-	org_x = self->s.origin[0] + crand() * self->size_x;
-	org_y = self->s.origin[1] + crand() * self->size_y;
-	org_z = self->s.origin[2] + crand() * self->size_z;
+	org = self->s.origin + randomv(-self->size, self->size);
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org_x = self->s.origin[0] + crand() * self->size_x;
-	org_y = self->s.origin[1] + crand() * self->size_y;
-	org_z = self->s.origin[2] + crand() * self->size_z;
+	org = self->s.origin + randomv(-self->size, self->size);
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org_x = self->s.origin[0] + crand() * self->size_x;
-	org_y = self->s.origin[1] + crand() * self->size_y;
-	org_z = self->s.origin[2] + crand() * self->size_z;
+	org = self->s.origin + randomv(-self->size, self->size);
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org_x = self->s.origin[0] + crand() * self->size_x;
-	org_y = self->s.origin[1] + crand() * self->size_y;
-	org_z = self->s.origin[2] + crand() * self->size_z;
+	org = self->s.origin + randomv(-self->size, self->size);
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org_x = self->s.origin[0] + crand() * self->size_x;
-	org_y = self->s.origin[1] + crand() * self->size_y;
-	org_z = self->s.origin[2] + crand() * self->size_z;
+	org = self->s.origin + randomv(-self->size, self->size);
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org_x = self->s.origin[0] + crand() * self->size_x;
-	org_y = self->s.origin[1] + crand() * self->size_y;
-	org_z = self->s.origin[2] + crand() * self->size_z;
+	org = self->s.origin + randomv(-self->size, self->size);
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org_x = self->s.origin[0] + crand() * self->size_x;
-	org_y = self->s.origin[1] + crand() * self->size_y;
-	org_z = self->s.origin[2] + crand() * self->size_z;
+	org = self->s.origin + randomv(-self->size, self->size);
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
-	org_x = self->s.origin[0] + crand() * self->size_x;
-	org_y = self->s.origin[1] + crand() * self->size_y;
-	org_z = self->s.origin[2] + crand() * self->size_z;
+	org = self->s.origin + randomv(-self->size, self->size);
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
 
 	VectorCopy(save, self->s.origin);
@@ -1372,9 +1340,7 @@ API_FUNC static void(entity ent) SP_misc_gib_arm =
 	ent->movetype = MOVETYPE_TOSS;
 	ent->svflags |= SVF_MONSTER;
 	ent->deadflag = DEAD_DEAD;
-	ent->avelocity_x = frand() * 200;
-	ent->avelocity_y = frand() * 200;
-	ent->avelocity_z = frand() * 200;
+	ent->avelocity = randomv('200 200 200');
 	ent->think = G_FreeEdict;
 	ent->nextthink = level.framenum + 30 * BASE_FRAMERATE;
 	gi.linkentity(ent);
@@ -1393,9 +1359,7 @@ API_FUNC static void(entity ent) SP_misc_gib_leg =
 	ent->movetype = MOVETYPE_TOSS;
 	ent->svflags |= SVF_MONSTER;
 	ent->deadflag = DEAD_DEAD;
-	ent->avelocity_x = frand() * 200;
-	ent->avelocity_y = frand() * 200;
-	ent->avelocity_z = frand() * 200;
+	ent->avelocity = randomv('200 200 200');
 	ent->think = G_FreeEdict;
 	ent->nextthink = level.framenum + 30 * BASE_FRAMERATE;
 	gi.linkentity(ent);
@@ -1414,9 +1378,7 @@ API_FUNC static void(entity ent) SP_misc_gib_head =
 	ent->movetype = MOVETYPE_TOSS;
 	ent->svflags |= SVF_MONSTER;
 	ent->deadflag = DEAD_DEAD;
-	ent->avelocity_x = frand() * 200;
-	ent->avelocity_y = frand() * 200;
-	ent->avelocity_z = frand() * 200;
+	ent->avelocity = randomv('200 200 200');
 	ent->think = G_FreeEdict;
 	ent->nextthink = level.framenum + 30 * BASE_FRAMERATE;
 	gi.linkentity(ent);

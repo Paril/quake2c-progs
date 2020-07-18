@@ -725,8 +725,8 @@ static void(entity self) target_earthquake_think =
 			continue;
 
 		e->groundentity = null_entity;
-		e->velocity_x += crand() * 150;
-		e->velocity_y += crand() * 150;
+		e->velocity_x += random(-150f, 150f);
+		e->velocity_y += random(-150f, 150f);
 		e->velocity_z = self->speed * (100.0f / e->mass);
 	}
 

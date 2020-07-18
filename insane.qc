@@ -110,8 +110,8 @@ static void insane_checkdown(entity self)
 //  if ( (self->s.frame == FRAME_stand94) || (self->s.frame == FRAME_stand65) )
 	if (self->spawnflags & 32)              // Always stand
 		return;
-	if (frand() < 0.3f) {
-		if (frand() < 0.5f)
+	if (random() < 0.3f) {
+		if (random() < 0.5f)
 			self->monsterinfo.currentmove = &insane_move_uptodown;
 		else
 			self->monsterinfo.currentmove = &insane_move_jumpdown;
@@ -167,7 +167,7 @@ static void insane_checkup(entity self)
 	// If Hold_Ground and Crawl are set
 	if ((self->spawnflags & 4) && (self->spawnflags & 16))
 		return;
-	if (frand() < 0.5f)
+	if (random() < 0.5f)
 		self->monsterinfo.currentmove = &insane_move_downtoup;
 }
 
@@ -399,7 +399,7 @@ static var mmove_t insane_move_struggle_cross = { FRAME_cross16, FRAME_cross30 }
 
 static void insane_cross(entity self)
 {
-	if (frand() < 0.8f)
+	if (random() < 0.8f)
 		self->monsterinfo.currentmove = &insane_move_cross;
 	else
 		self->monsterinfo.currentmove = &insane_move_struggle_cross;
@@ -414,7 +414,7 @@ static void insane_walk(entity self)
 		}
 	if (self->spawnflags & 4)
 		self->monsterinfo.currentmove = &insane_move_crawl;
-	else if (frand() <= 0.5f)
+	else if (random() <= 0.5f)
 		self->monsterinfo.currentmove = &insane_move_walk_normal;
 	else
 		self->monsterinfo.currentmove = &insane_move_walk_insane;
@@ -429,7 +429,7 @@ static void insane_run(entity self)
 		}
 	if (self->spawnflags & 4)               // Crawling?
 		self->monsterinfo.currentmove = &insane_move_runcrawl;
-	else if (frand() <= 0.5f)              // Else, mix it up
+	else if (random() <= 0.5f)              // Else, mix it up
 		self->monsterinfo.currentmove = &insane_move_run_normal;
 	else
 		self->monsterinfo.currentmove = &insane_move_run_insane;
@@ -489,7 +489,7 @@ static void insane_stand(entity self)
 	// If Hold_Ground and Crawl are set
 	else if ((self->spawnflags & 4) && (self->spawnflags & 16))
 		self->monsterinfo.currentmove = &insane_move_down;
-	else if (frand() < 0.5f)
+	else if (random() < 0.5f)
 		self->monsterinfo.currentmove = &insane_move_stand_normal;
 	else
 		self->monsterinfo.currentmove = &insane_move_stand_insane;

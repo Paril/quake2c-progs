@@ -15,7 +15,7 @@ static void hover_sight(entity self, entity other)
 
 static void hover_search(entity self)
 {
-	if (frand() < 0.5f)
+	if (random() < 0.5f)
 		gi.sound(self, CHAN_VOICE, sound_search1, 1, ATTN_NORM, 0);
 	else
 		gi.sound(self, CHAN_VOICE, sound_search2, 1, ATTN_NORM, 0);
@@ -228,7 +228,7 @@ static void hover_reattack(entity self)
 {
 	if (self->enemy->health > 0)
 		if (visible(self, self->enemy))
-			if (frand() <= 0.6f) {
+			if (random() <= 0.6f) {
 				hover_attack1(self);
 				return;
 			}
@@ -313,7 +313,7 @@ static void hover_pain(entity self, entity other, float kick, int damage)
 		return;     // no pain anims in nightmare
 
 	if (damage <= 25) {
-		if (frand() < 0.5f) {
+		if (random() < 0.5f) {
 			gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 			self->monsterinfo.currentmove = &hover_move_pain3;
 		} else {
@@ -366,7 +366,7 @@ static void hover_die(entity self, entity inflictor, entity attacker, int damage
 		return;
 
 // regular death
-	if (frand() < 0.5f)
+	if (random() < 0.5f)
 		gi.sound(self, CHAN_VOICE, sound_death1, 1, ATTN_NORM, 0);
 	else
 		gi.sound(self, CHAN_VOICE, sound_death2, 1, ATTN_NORM, 0);

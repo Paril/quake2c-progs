@@ -1646,7 +1646,7 @@ These can used but not touched.
 static void(entity self) func_timer_think =
 {
 	G_UseTargets(self, self->activator);
-	self->nextthink = level.framenum + (int)((self->wait + crand() * self->random) * BASE_FRAMERATE);
+	self->nextthink = level.framenum + (int)((self->wait + random(-self->rand, self->rand)) * BASE_FRAMERATE);
 }
 
 static void(entity self, entity other, entity cactivator) func_timer_use =
@@ -1674,13 +1674,13 @@ API_FUNC static void(entity self) SP_func_timer =
 	self->use = func_timer_use;
 	self->think = func_timer_think;
 
-	if (self->random >= self->wait) {
-		self->random = self->wait - FRAMETIME;
+	if (self->rand >= self->wait) {
+		self->rand = self->wait - FRAMETIME;
 		gi.dprintf("func_timer at %s has random >= wait\n", vtos(self->s.origin));
 	}
 
 	if (self->spawnflags & 1) {
-		self->nextthink = level.framenum + (int)((1.0f + st.pausetime + self->delay + self->wait + crand() * self->random) * BASE_FRAMERATE);
+		self->nextthink = level.framenum + (int)((1.0f + st.pausetime + self->delay + self->wait + random(-self->rand, self->rand)) * BASE_FRAMERATE);
 		self->activator = self;
 	}
 

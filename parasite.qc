@@ -84,7 +84,7 @@ static void parasite_do_fidget(entity self)
 
 static void parasite_refidget(entity self)
 {
-	if (frand() <= 0.8f)
+	if (random() <= 0.8f)
 		self->monsterinfo.currentmove = &parasite_move_fidget;
 	else
 		self->monsterinfo.currentmove = &parasite_move_end_fidget;
@@ -232,7 +232,7 @@ static void parasite_pain(entity self, entity other, float kick, int damage)
 	if (skill->intVal == 3)
 		return;     // no pain anims in nightmare
 
-	if (frand() < 0.5f)
+	if (random() < 0.5f)
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 	else
 		gi.sound(self, CHAN_VOICE, sound_pain2, 1, ATTN_NORM, 0);

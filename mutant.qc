@@ -121,7 +121,7 @@ static void mutant_stand(entity self)
 
 static void mutant_idle_loop(entity self)
 {
-	if (frand() < 0.75f)
+	if (random() < 0.75f)
 		self->monsterinfo.nextframe = FRAME_stand155;
 }
 
@@ -242,7 +242,7 @@ static void mutant_check_refire(entity self)
 	if (!self->enemy || !self->enemy->inuse || self->enemy->health <= 0)
 		return;
 
-	if (((skill->intVal == 3) && (frand() < 0.5f)) || (range(self, self->enemy) == RANGE_MELEE))
+	if (((skill->intVal == 3) && (random() < 0.5f)) || (range(self, self->enemy) == RANGE_MELEE))
 		self->monsterinfo.nextframe = FRAME_attack09;
 }
 
@@ -283,7 +283,7 @@ static void mutant_jump_touch(entity self, entity other, cplane_t plane, csurfac
 			VectorCopy(self->velocity, normal);
 			VectorNormalize(normal);
 			VectorMA(self->s.origin, self->maxs[0], normal, point);
-			damage = (int)(40 + 10 * frand());
+			damage = (int)random(40f, 50f);
 			T_Damage(other, self, self, self->velocity, point, normal, damage, damage, 0, MOD_UNKNOWN);
 		}
 	}
@@ -377,7 +377,7 @@ static bool mutant_check_jump(entity self)
 	if (distance < 100)
 		return false;
 	if (distance > 100) {
-		if (frand() < 0.9f)
+		if (random() < 0.9f)
 			return false;
 	}
 
@@ -457,7 +457,7 @@ static void mutant_pain(entity self, entity other, float kick, int damage)
 	if (skill->intVal == 3)
 		return;     // no pain anims in nightmare
 
-	r = frand();
+	r = random();
 	if (r < 0.33f) {
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 		self->monsterinfo.currentmove = &mutant_move_pain1;
@@ -536,7 +536,7 @@ static void mutant_die(entity self, entity inflictor, entity attacker, int damag
 	self->takedamage = DAMAGE_YES;
 	self->s.skinnum = 1;
 
-	if (frand() < 0.5f)
+	if (random() < 0.5f)
 		self->monsterinfo.currentmove = &mutant_move_death1;
 	else
 		self->monsterinfo.currentmove = &mutant_move_death2;

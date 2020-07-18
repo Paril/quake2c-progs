@@ -340,7 +340,7 @@ static void(entity self) flyer_melee =
 static void(entity self) flyer_check_melee =
 {
 	if (range(self, self->enemy) == RANGE_MELEE)
-		if (frand() <= 0.8f)
+		if (random() <= 0.8f)
 			self->monsterinfo.currentmove = &flyer_move_loop_melee;
 		else
 			self->monsterinfo.currentmove = &flyer_move_end_melee;

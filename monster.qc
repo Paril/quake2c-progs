@@ -103,11 +103,11 @@ void(entity self) M_FlyCheck =
 	if (self->waterlevel)
 		return;
 
-	if (frand() > 0.5f)
+	if (random() > 0.5f)
 		return;
 
 	self->think = M_FliesOn;
-	self->nextthink = level.framenum + (int)((5 + 10 * frand()) * BASE_FRAMERATE);
+	self->nextthink = level.framenum + (int)random(5f * BASE_FRAMERATE, 15f * BASE_FRAMERATE);
 }
 
 void(entity self, float time) AttackFinished =
@@ -246,7 +246,7 @@ static void(entity ent) M_WorldEffects =
 	if (!(ent->flags & FL_INWATER)) {
 		if (!(ent->svflags & SVF_DEADMONSTER)) {
 			if (ent->watertype & CONTENTS_LAVA)
-				if (frand() <= 0.5f)
+				if (random() <= 0.5f)
 					gi.sound(ent, CHAN_BODY, gi.soundindex("player/lava1.wav"), 1, ATTN_NORM, 0);
 				else
 					gi.sound(ent, CHAN_BODY, gi.soundindex("player/lava2.wav"), 1, ATTN_NORM, 0);

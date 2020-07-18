@@ -21,7 +21,7 @@ static void jorg_search(entity self)
 {
 	float r;
 
-	r = frand();
+	r = random();
 
 	if (r <= 0.3f)
 		gi.sound(self, CHAN_VOICE, sound_search1, 1, ATTN_NORM, 0);
@@ -371,7 +371,7 @@ static var mmove_t jorg_move_end_attack1 = { FRAME_attak115, FRAME_attak118, jor
 static void jorg_reattack1(entity self)
 {
 	if (visible(self, self->enemy))
-		if (frand() < 0.9f)
+		if (random() < 0.9f)
 			self->monsterinfo.currentmove = &jorg_move_attack1;
 		else {
 			self->s.sound = 0;
@@ -400,7 +400,7 @@ static void jorg_pain(entity self, entity other, float kick, int damage)
 
 	// Lessen the chance of him going into his pain frames if he takes little damage
 	if (damage <= 40)
-		if (frand() <= 0.6f)
+		if (random() <= 0.6f)
 			return;
 
 	/*
@@ -409,16 +409,16 @@ static void jorg_pain(entity self, entity other, float kick, int damage)
 	*/
 
 	if ((self->s.frame >= FRAME_attak101) && (self->s.frame <= FRAME_attak108))
-		if (frand() <= 0.005f)
+		if (random() <= 0.005f)
 			return;
 
 	if ((self->s.frame >= FRAME_attak109) && (self->s.frame <= FRAME_attak114))
-		if (frand() <= 0.00005f)
+		if (random() <= 0.00005f)
 			return;
 
 
 	if ((self->s.frame >= FRAME_attak201) && (self->s.frame <= FRAME_attak208))
-		if (frand() <= 0.005f)
+		if (random() <= 0.005f)
 			return;
 
 
@@ -433,7 +433,7 @@ static void jorg_pain(entity self, entity other, float kick, int damage)
 		gi.sound(self, CHAN_VOICE, sound_pain2, 1, ATTN_NORM, 0);
 		self->monsterinfo.currentmove = &jorg_move_pain2;
 	} else {
-		if (frand() <= 0.3f) {
+		if (random() <= 0.3f) {
 			gi.sound(self, CHAN_VOICE, sound_pain3, 1, ATTN_NORM, 0);
 			self->monsterinfo.currentmove = &jorg_move_pain3;
 		}
@@ -442,7 +442,7 @@ static void jorg_pain(entity self, entity other, float kick, int damage)
 
 static void jorg_attack(entity self)
 {
-	if (frand() <= 0.75f) {
+	if (random() <= 0.75f) {
 		gi.sound(self, CHAN_VOICE, sound_attack1, 1, ATTN_NORM, 0);
 		self->s.sound = gi.soundindex("boss3/w_loop.wav");
 		self->monsterinfo.currentmove = &jorg_move_start_attack1;
@@ -523,14 +523,14 @@ static bool Jorg_CheckAttack(entity self)
 		return false;
 	}
 
-	if (frand() < chance) {
+	if (random() < chance) {
 		self->monsterinfo.attack_state = AS_MISSILE;
-		self->monsterinfo.attack_finished = level.framenum + (int)(2 * frand() * BASE_FRAMERATE);
+		self->monsterinfo.attack_finished = level.framenum + (int)random(2f * BASE_FRAMERATE);
 		return true;
 	}
 
 	if (self->flags & FL_FLY) {
-		if (frand() < 0.3f)
+		if (random() < 0.3f)
 			self->monsterinfo.attack_state = AS_SLIDING;
 		else
 			self->monsterinfo.attack_state = AS_STRAIGHT;

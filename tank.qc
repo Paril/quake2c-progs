@@ -242,7 +242,7 @@ static void tank_pain(entity self, entity other, float kick, int damage)
 		return;
 
 	if (damage <= 30)
-		if (frand() > 0.2f)
+		if (random() > 0.2f)
 			return;
 
 	// If hard or nightmare, don't go into pain while attacking
@@ -406,7 +406,7 @@ static void tank_reattack_blaster(entity self)
 	if (skill->intVal >= 2)
 		if (visible(self, self->enemy))
 			if (self->enemy->health > 0)
-				if (frand() <= 0.6f) {
+				if (random() <= 0.6f) {
 					self->monsterinfo.currentmove = &tank_move_reattack_blast;
 					return;
 				}
@@ -570,7 +570,7 @@ static void tank_refire_rocket(entity self)
 	if (skill->intVal >= 2)
 		if (self->enemy->health > 0)
 			if (visible(self, self->enemy))
-				if (frand() <= 0.4f) {
+				if (random() <= 0.4f) {
 					self->monsterinfo.currentmove = &tank_move_attack_fire_rocket;
 					return;
 				}
@@ -597,7 +597,7 @@ static void tank_attack(entity self)
 	VectorSubtract(self->enemy->s.origin, self->s.origin, vec);
 	range = VectorLength(vec);
 
-	r = frand();
+	r = random();
 
 	if (range <= 125) {
 		if (r < 0.4f)

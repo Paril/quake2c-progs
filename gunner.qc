@@ -84,7 +84,7 @@ static void(entity self) gunner_fidget =
 {
 	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
 		return;
-	if (frand() <= 0.05f)
+	if (random() <= 0.05f)
 		self->monsterinfo.currentmove = &gunner_move_fidget;
 }
 
@@ -299,7 +299,7 @@ static void(entity self) gunner_duck_down =
 		return;
 	self->monsterinfo.aiflags |= AI_DUCKED;
 	if (skill->intVal >= 2) {
-		if (frand() > 0.5f)
+		if (random() > 0.5f)
 			GunnerGrenade(self);
 	}
 
@@ -339,7 +339,7 @@ static var mmove_t gunner_move_duck = { FRAME_duck01, FRAME_duck08, gunner_run }
 
 static void(entity self, entity attacker, float eta) gunner_dodge =
 {
-	if (frand() > 0.25f)
+	if (random() > 0.25f)
 		return;
 
 	if (!self->enemy)
@@ -465,7 +465,7 @@ static void(entity self) gunner_attack =
 	if (range(self, self->enemy) == RANGE_MELEE) {
 		self->monsterinfo.currentmove = &gunner_move_attack_chain;
 	} else {
-		if (frand() <= 0.5f)
+		if (random() <= 0.5f)
 			self->monsterinfo.currentmove = &gunner_move_attack_grenade;
 		else
 			self->monsterinfo.currentmove = &gunner_move_attack_chain;
@@ -481,7 +481,7 @@ static void(entity self) gunner_refire_chain =
 {
 	if (self->enemy->health > 0)
 		if (visible(self, self->enemy))
-			if (frand() <= 0.5f) {
+			if (random() <= 0.5f) {
 				self->monsterinfo.currentmove = &gunner_move_fire_chain;
 				return;
 			}

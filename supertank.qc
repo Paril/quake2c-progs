@@ -18,7 +18,7 @@ static void TreadSound(entity self)
 
 static void supertank_search(entity self)
 {
-	if (frand() < 0.5f)
+	if (random() < 0.5f)
 		gi.sound(self, CHAN_VOICE, sound_search1, 1, ATTN_NORM, 0);
 	else
 		gi.sound(self, CHAN_VOICE, sound_search2, 1, ATTN_NORM, 0);
@@ -406,7 +406,7 @@ static var mmove_t supertank_move_end_attack1 = { FRAME_attak1_7, FRAME_attak1_2
 static void supertank_reattack1(entity self)
 {
 	if (visible(self, self->enemy))
-		if (frand() < 0.9f)
+		if (random() < 0.9f)
 			self->monsterinfo.currentmove = &supertank_move_attack1;
 		else
 			self->monsterinfo.currentmove = &supertank_move_end_attack1;
@@ -425,7 +425,7 @@ static void supertank_pain(entity self, entity other, float kick, int damage)
 
 	// Lessen the chance of him going into his pain frames
 	if (damage <= 25)
-		if (frand() < 0.2f)
+		if (random() < 0.2f)
 			return;
 
 	// Don't go into pain if he's firing his rockets
@@ -468,7 +468,7 @@ static void supertank_attack(entity self)
 		self->monsterinfo.currentmove = &supertank_move_attack1;
 	} else {
 		// fire rockets more often at distance
-		if (frand() < 0.3f)
+		if (random() < 0.3f)
 			self->monsterinfo.currentmove = &supertank_move_attack1;
 		else
 			self->monsterinfo.currentmove = &supertank_move_attack2;

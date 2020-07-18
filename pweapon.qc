@@ -655,7 +655,7 @@ static void(entity ent) Weapon_RocketLauncher_Fire =
 	float	damage_radius;
 	int	radius_damage;
 
-	damage = 100 + (int)(frand() * 20.0f);
+	damage = (int)random(100f, 120f);
 	radius_damage = 120;
 	damage_radius = 120f;
 	if (is_quad) {
@@ -882,12 +882,12 @@ static void(entity ent) Machinegun_Fire =
 		kick *= 4;
 	}
 
-	ent->client->kick_origin[1] = crand() * 0.35f;
-	ent->client->kick_angles[1] = crand() * 0.7f;
-	ent->client->kick_origin[2] = crand() * 0.35f;
-	ent->client->kick_angles[2] = crand() * 0.7f;
+	ent->client->kick_origin[1] = random(-0.35f, 0.35f);
+	ent->client->kick_angles[1] = random(-0.7f, 0.7f);
+	ent->client->kick_origin[2] = random(-0.35f, 0.35f);
+	ent->client->kick_angles[2] = random(-0.7f, 0.7f);
 	
-	ent->client->kick_origin[0] = crand() * 0.35f;
+	ent->client->kick_origin[0] = random(-0.35f, 0.35f);
 	ent->client->kick_angles[0] = ent->client->machinegun_shots * -1.5f;
 
 	// raise the gun as it is firing
@@ -917,10 +917,10 @@ static void(entity ent) Machinegun_Fire =
 
 	ent->client->anim_priority = ANIM_ATTACK;
 	if (ent->client->ps.pmove.pm_flags & PMF_DUCKED) {
-		ent->s.frame = FRAME_crattak1 - (int)(frand() + 0.25f);
+		ent->s.frame = FRAME_crattak1 - (int)random(0.25f, 1.25f);
 		ent->client->anim_end = FRAME_crattak9;
 	} else {
-		ent->s.frame = FRAME_attack1 - (int)(frand() + 0.25f);
+		ent->s.frame = FRAME_attack1 - (int)random(0.25f, 1.25f);
 		ent->client->anim_end = FRAME_attack8;
 	}
 }
@@ -1013,19 +1013,15 @@ static void(entity ent) Chaingun_Fire =
 		damage *= 4;
 		kick *= 4;
 	}
-
-	ent->client->kick_origin[0] = crand() * 0.35f;
-	ent->client->kick_angles[0] = crand() * 0.7f;
-	ent->client->kick_origin[1] = crand() * 0.35f;
-	ent->client->kick_angles[1] = crand() * 0.7f;
-	ent->client->kick_origin[2] = crand() * 0.35f;
-	ent->client->kick_angles[2] = crand() * 0.7f;
+	
+	ent->client->kick_origin = randomv('-0.35 -0.35 -0.35', '0.35 0.35 0.35');
+	ent->client->kick_angles = randomv('-0.7 -0.7 -0.7', '0.7 0.7 0.7');
 
 	for (i = 0 ; i < shots ; i++) {
 		// get start / end positions
 		AngleVectors(ent->client->v_angle, forward, right, up);
-		r = 7 + crand() * 4;
-		u = crand() * 4;
+		r = random(3f, 11f);
+		u = random(-4f, 4f);
 		VectorSet(offset, 0, r, u + ent->viewheight - 8);
 		P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
 
@@ -1308,7 +1304,7 @@ static void(entity ent) weapon_bfg_fire =
 
 	// make a big pitch kick with an inverse fall
 	ent->client->v_dmg_pitch = -40f;
-	ent->client->v_dmg_roll = crand() * 8f;
+	ent->client->v_dmg_roll = random(-8f, 8f);
 	ent->client->v_dmg_time = level.time + DAMAGE_TIME;
 
 	if (is_quad)

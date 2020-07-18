@@ -155,7 +155,7 @@ static var mmove_t floater_move_stand2 = { FRAME_stand201, FRAME_stand252 };
 
 static void floater_stand(entity self)
 {
-	if (frand() <= 0.5f)
+	if (random() <= 0.5f)
 		self->monsterinfo.currentmove = &floater_move_stand1;
 	else
 		self->monsterinfo.currentmove = &floater_move_stand2;
@@ -454,7 +454,7 @@ static void floater_attack(entity self)
 
 static void floater_melee(entity self)
 {
-	if (frand() < 0.5f)
+	if (random() < 0.5f)
 		self->monsterinfo.currentmove = &floater_move_attack3;
 	else
 		self->monsterinfo.currentmove = &floater_move_attack2;
@@ -552,7 +552,7 @@ API_FUNC static void SP_monster_floater(entity self)
 
 	gi.linkentity(self);
 
-	if (frand() <= 0.5f)
+	if (random() <= 0.5f)
 		self->monsterinfo.currentmove = &floater_move_stand1;
 	else
 		self->monsterinfo.currentmove = &floater_move_stand2;

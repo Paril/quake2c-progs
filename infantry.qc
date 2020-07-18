@@ -406,7 +406,7 @@ static var mmove_t infantry_move_duck = { FRAME_duck01, FRAME_duck05, infantry_r
 
 static void(entity self, entity attacker, float eta) infantry_dodge =
 {
-	if (frand() > 0.25f)
+	if (random() > 0.25f)
 		return;
 
 	if (!self->enemy)

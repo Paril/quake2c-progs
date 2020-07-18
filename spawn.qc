@@ -22,7 +22,7 @@ API_FUNC static spawn_field_t spawn_fields[] =
 	{ "team", (int)(__variant)team },
 	{ "wait", (int)(__variant)wait },
 	{ "delay", (int)(__variant)delay },
-	{ "random", (int)(__variant)random },
+	{ "random", (int)(__variant)rand },
 	{ "move_origin", (int)(__variant)move_origin },
 	{ "move_angles", (int)(__variant)move_angles },
 	{ "style", (int)(__variant)style },

@@ -15,7 +15,7 @@ static int  sound_cock;
 
 static void(entity self) soldier_idle =
 {
-	if (frand() > 0.8f)
+	if (random() > 0.8f)
 		gi.sound(self, CHAN_VOICE, sound_idle, 1, ATTN_IDLE, 0);
 }
 
@@ -113,7 +113,7 @@ static var mmove_t soldier_move_stand3 = { FRAME_stand301, FRAME_stand339 };
 
 static void(entity self) soldier_stand =
 {
-	if ((self->monsterinfo.currentmove == &soldier_move_stand3) || (frand() < 0.8f))
+	if ((self->monsterinfo.currentmove == &soldier_move_stand3) || (random() < 0.8f))
 		self->monsterinfo.currentmove = &soldier_move_stand1;
 	else
 		self->monsterinfo.currentmove = &soldier_move_stand3;
@@ -126,7 +126,7 @@ static void(entity self) soldier_stand =
 
 static void(entity self) soldier_walk1_random =
 {
-	if (frand() > 0.1f)
+	if (random() > 0.1f)
 		self->monsterinfo.nextframe = FRAME_walk101;
 }
 
@@ -183,7 +183,7 @@ static var mmove_t soldier_move_walk2 = { FRAME_walk209, FRAME_walk218 };
 
 static void(entity self) soldier_walk =
 {
-	if (frand() < 0.5f)
+	if (random() < 0.5f)
 		self->monsterinfo.currentmove = &soldier_move_walk1;
 	else
 		self->monsterinfo.currentmove = &soldier_move_walk2;
@@ -326,7 +326,7 @@ static void(entity self, entity other, float kick, int damage) soldier_pain =
 	if (skill->intVal == 3)
 		return;     // no pain anims in nightmare
 
-	r = frand();
+	r = random();
 
 	if (r < 0.33f)
 		self->monsterinfo.currentmove = &soldier_move_pain1;
@@ -374,8 +374,8 @@ static void(entity self, int flash_number) soldier_fire =
 		vectoangles(aim, dir);
 		AngleVectors(dir, forward, right, up);
 
-		r = crand() * 1000;
-		u = crand() * 500;
+		r = random(-1000f, 1000f);
+		u = random(-500f, 500f);
 		VectorMA(start, 8192, forward, end);
 		VectorMA(end, r, right, end);
 		VectorMA(end, u, up, end);
@@ -416,7 +416,7 @@ static void(entity self) soldier_attack1_refire1 =
 	if (self->enemy->health <= 0)
 		return;
 
-	if (((skill->intVal == 3) && (frand() < 0.5f)) || (range(self, self->enemy) == RANGE_MELEE))
+	if (((skill->intVal == 3) && (random() < 0.5f)) || (range(self, self->enemy) == RANGE_MELEE))
 		self->monsterinfo.nextframe = FRAME_attak102;
 	else
 		self->monsterinfo.nextframe = FRAME_attak110;
@@ -430,7 +430,7 @@ static void(entity self) soldier_attack1_refire2 =
 	if (self->enemy->health <= 0)
 		return;
 
-	if (((skill->intVal == 3) && (frand() < 0.5f)) || (range(self, self->enemy) == RANGE_MELEE))
+	if (((skill->intVal == 3) && (random() < 0.5f)) || (range(self, self->enemy) == RANGE_MELEE))
 		self->monsterinfo.nextframe = FRAME_attak102;
 }
 
@@ -465,7 +465,7 @@ static void(entity self) soldier_attack2_refire1 =
 	if (self->enemy->health <= 0)
 		return;
 
-	if (((skill->intVal == 3) && (frand() < 0.5f)) || (range(self, self->enemy) == RANGE_MELEE))
+	if (((skill->intVal == 3) && (random() < 0.5f)) || (range(self, self->enemy) == RANGE_MELEE))
 		self->monsterinfo.nextframe = FRAME_attak204;
 	else
 		self->monsterinfo.nextframe = FRAME_attak216;
@@ -479,7 +479,7 @@ static void(entity self) soldier_attack2_refire2 =
 	if (self->enemy->health <= 0)
 		return;
 
-	if (((skill->intVal == 3) && (frand() < 0.5f)) || (range(self, self->enemy) == RANGE_MELEE))
+	if (((skill->intVal == 3) && (random() < 0.5f)) || (range(self, self->enemy) == RANGE_MELEE))
 		self->monsterinfo.nextframe = FRAME_attak204;
 }
 
@@ -615,7 +615,7 @@ static var mmove_t soldier_move_attack6 = { FRAME_runs01, FRAME_runs14, soldier_
 static void(entity self) soldier_attack =
 {
 	if (self->s.skinnum < 4) {
-		if (frand() < 0.5f)
+		if (random() < 0.5f)
 			self->monsterinfo.currentmove = &soldier_move_attack1;
 		else
 			self->monsterinfo.currentmove = &soldier_move_attack2;
@@ -631,13 +631,13 @@ static void(entity self) soldier_attack =
 
 static void(entity self, entity other) soldier_sight =
 {
-	if (frand() < 0.5f)
+	if (random() < 0.5f)
 		gi.sound(self, CHAN_VOICE, sound_sight1, 1, ATTN_NORM, 0);
 	else
 		gi.sound(self, CHAN_VOICE, sound_sight2, 1, ATTN_NORM, 0);
 
 	if ((skill->intVal > 0) && (range(self, self->enemy) >= RANGE_MID)) {
-		if (frand() > 0.5f)
+		if (random() > 0.5f)
 			self->monsterinfo.currentmove = &soldier_move_attack6;
 	}
 }
@@ -667,7 +667,7 @@ static void(entity self, entity attacker, float eta) soldier_dodge =
 {
 	float	r;
 
-	r = frand();
+	r = random();
 	if (r > 0.25f)
 		return;
 
@@ -680,7 +680,7 @@ static void(entity self, entity attacker, float eta) soldier_dodge =
 	}
 
 	self->monsterinfo.pause_framenum = level.framenum + (int)((eta + 0.3f) * BASE_FRAMERATE);
-	r = frand();
+	r = random();
 
 	if (skill->intVal == 1) {
 		if (r > 0.33f)

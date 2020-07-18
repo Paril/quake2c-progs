@@ -281,7 +281,7 @@ static void medic_pain(entity self, entity other, float kick, int damage)
 	if (skill->intVal == 3)
 		return;     // no pain anims in nightmare
 
-	if (frand() < 0.5f) {
+	if (random() < 0.5f) {
 		self->monsterinfo.currentmove = &medic_move_pain1;
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 	} else {
@@ -441,7 +441,7 @@ static var mmove_t medic_move_duck = { FRAME_duck1, FRAME_duck16, medic_run };
 
 static void medic_dodge(entity self, entity attacker, float eta)
 {
-	if (frand() > 0.25f)
+	if (random() > 0.25f)
 		return;
 
 	if (!self->enemy)
@@ -473,7 +473,7 @@ static var mmove_t medic_move_attackHyperBlaster = { FRAME_attack15, FRAME_attac
 static void medic_continue(entity self)
 {
 	if (visible(self, self->enemy))
-		if (frand() <= 0.95f)
+		if (random() <= 0.95f)
 			self->monsterinfo.currentmove = &medic_move_attackHyperBlaster;
 }
 

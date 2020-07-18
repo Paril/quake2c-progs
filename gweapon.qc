@@ -16,7 +16,7 @@ static void(entity self, vector start, vector dir, int speed) check_dodge =
 
 	// easy mode only ducks one quarter the time
 	if (skill->intVal == 0) {
-		if (frand() > 0.25f)
+		if (random() > 0.25f)
 			return;
 	}
 	VectorMA(start, 8192, dir, end);
@@ -120,8 +120,8 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 
 		AngleVectors(dir, forward, right, up);
 
-		r = crand() * hspread;
-		u = crand() * vspread;
+		r = crandom() * hspread;
+		u = crandom() * vspread;
 		VectorMA(start, 8192, forward, end);
 		VectorMA(end, r, right, end);
 		VectorMA(end, u, up, end);
@@ -168,8 +168,8 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 				VectorSubtract(end, start, dir);
 				vectoangles(dir, dir);
 				AngleVectors(dir, forward, right, up);
-				r = crand() * hspread * 2;
-				u = crand() * vspread * 2;
+				r = crandom() * hspread * 2;
+				u = crandom() * vspread * 2;
 				VectorMA(water_start, 8192, forward, end);
 				VectorMA(end, r, right, end);
 				VectorMA(end, u, up, end);
@@ -411,7 +411,7 @@ static void(entity ent, entity other, cplane_t plane, csurface_t surf) Grenade_T
 
 	if (!other->takedamage) {
 		if (ent->spawnflags & 1) {
-			if (frand() > 0.5f)
+			if (random() > 0.5f)
 				gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/hgrenb1a.wav"), 1, ATTN_NORM, 0);
 			else
 				gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/hgrenb2a.wav"), 1, ATTN_NORM, 0);
@@ -438,9 +438,9 @@ void(entity self, vector start, vector aimdir, int damage, int speed, float time
 	grenade = G_Spawn();
 	VectorCopy(start, grenade->s.origin);
 	VectorScale(aimdir, speed, grenade->velocity);
-	scale = 200 + crand() * 10.0f;
+	scale = random(190f, 210f);
 	VectorMA(grenade->velocity, scale, up, grenade->velocity);
-	scale = crand() * 10.0f;
+	scale = random(-10f, 10f);
 	VectorMA(grenade->velocity, scale, right, grenade->velocity);
 	VectorSet(grenade->avelocity, 300, 300, 300);
 	grenade->movetype = MOVETYPE_BOUNCE;
@@ -474,9 +474,9 @@ void(entity self, vector start, vector aimdir, int damage, int speed, float time
 	grenade = G_Spawn();
 	VectorCopy(start, grenade->s.origin);
 	VectorScale(aimdir, speed, grenade->velocity);
-	scale = 200 + crand() * 10.0f;
+	scale = random(-190f, 210f);
 	VectorMA(grenade->velocity, scale, up, grenade->velocity);
-	scale = crand() * 10.0f;
+	scale = random(-10f, 10f);
 	VectorMA(grenade->velocity, scale, right, grenade->velocity);
 	VectorSet(grenade->avelocity, 300, 300, 300);
 	grenade->movetype = MOVETYPE_BOUNCE;

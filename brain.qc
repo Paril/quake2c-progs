@@ -232,7 +232,7 @@ static mframe_t brain_frames_duck [] =
 static var mmove_t brain_move_duck = { FRAME_duck01, FRAME_duck08 };
 
 static void brain_dodge(entity self, entity attacker, float eta) {
-	if (frand() > 0.25f)
+	if (random() > 0.25f)
 		return;
 
 	if (!self->enemy)
@@ -374,7 +374,7 @@ static mframe_t brain_frames_attack2 [] =
 static var mmove_t brain_move_attack2 = { FRAME_attak201, FRAME_attak217 };
 
 static void brain_melee(entity self) {
-	if (frand() <= 0.5f)
+	if (random() <= 0.5f)
 		self->monsterinfo.currentmove = &brain_move_attack1;
 	else
 		self->monsterinfo.currentmove = &brain_move_attack2;
@@ -422,7 +422,7 @@ static void brain_pain(entity self, entity other, float kick, int damage) {
 	if (skill->intVal == 3)
 		return;     // no pain anims in nightmare
 
-	r = frand();
+	r = random();
 	if (r < 0.33f) {
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 		self->monsterinfo.currentmove = &brain_move_pain1;
@@ -471,7 +471,7 @@ static void brain_die(entity self, entity inflictor, entity attacker, int damage
 	gi.sound(self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
 	self->deadflag = DEAD_DEAD;
 	self->takedamage = DAMAGE_YES;
-	if (frand() <= 0.5f)
+	if (random() <= 0.5f)
 		self->monsterinfo.currentmove = &brain_move_death1;
 	else
 		self->monsterinfo.currentmove = &brain_move_death2;

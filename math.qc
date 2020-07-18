@@ -14,29 +14,26 @@ const float M_PI = 3.14159265358979323846f;
 
 int() Q_rand = #0:Q_rand;
 int(int) Q_rand_uniform = #0:Q_rand_uniform;
-float() frand = #0:frand;
-float() crand = #0:crand;
 
-inline float() frand_intrinsic =
-{
-	float x;
-	asm RAND0 x;
-	return x;
-};
+#ifndef USE_RAND_INTRINSICS
+float() frandom = #0:frandom;
+float() crandom = #0:crandom;
+vector() frandomv = #0:frandomv;
+vector() crandomv = #0:crandomv;
 
-inline float(float y) frand_max_intrinsic =
+#define random frandom
+#define randomv frandomv
+#else
+inline float crandom()
 {
-	float x;
-	asm RAND1 y, x;
-	return x;
-};
+	return random(-1f, 1f);
+}
 
-inline float(float min, float max) frand_minmax_intrinsic =
+inline vector crandomv()
 {
-	float x;
-	asm RAND2 min, max, x;
-	return x;
-};
+	return randomv('-1 -1 -1', '1 1 1');
+}
+#endif
 
 // not strictly math, but...
 typedef enum int
@@ -47,7 +44,7 @@ typedef enum int
 
 inline int(float x) ANGLE2SHORT =
 {
-	return (int)(x * 65536 / 360) & 65535;
+	return (int)(x * (65536f / 360f)) & 65535;
 }
 
 inline float(int x) SHORT2ANGLE =

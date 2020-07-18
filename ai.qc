@@ -123,9 +123,9 @@ void(entity self, float dist) ai_stand =
 	if (!(self->spawnflags & 1) && (self->monsterinfo.idle) && (level.framenum > self->monsterinfo.idle_framenum)) {
 		if (self->monsterinfo.idle_framenum) {
 			self->monsterinfo.idle(self);
-			self->monsterinfo.idle_framenum = level.framenum + (int)((1 + frand()) * 15 * BASE_FRAMERATE);
+			self->monsterinfo.idle_framenum = level.framenum + (int)random(15f * BASE_FRAMERATE, 30f * BASE_FRAMERATE);
 		} else {
-			self->monsterinfo.idle_framenum = level.framenum + (int)(frand() * 15 * BASE_FRAMERATE);
+			self->monsterinfo.idle_framenum = level.framenum + (int)random(15f * BASE_FRAMERATE);
 		}
 	}
 }
@@ -149,9 +149,9 @@ void(entity self, float dist) ai_walk =
 	if ((self->monsterinfo.search) && (level.framenum > self->monsterinfo.idle_framenum)) {
 		if (self->monsterinfo.idle_framenum) {
 			self->monsterinfo.search(self);
-			self->monsterinfo.idle_framenum = level.framenum + (int)((1 + frand()) * 15 * BASE_FRAMERATE);
+			self->monsterinfo.idle_framenum = level.framenum + (int)random(15f * BASE_FRAMERATE, 30f * BASE_FRAMERATE);
 		} else {
-			self->monsterinfo.idle_framenum = level.framenum + (int)(frand() * 15 * BASE_FRAMERATE);
+			self->monsterinfo.idle_framenum = level.framenum + (int)random(15f * BASE_FRAMERATE);
 		}
 	}
 }
@@ -605,14 +605,14 @@ bool(entity self) M_CheckAttack =
 	else if (skill->intVal >= 2)
 		chance *= 2;
 
-	if (frand() < chance) {
+	if (random() < chance) {
 		self->monsterinfo.attack_state = AS_MISSILE;
-		self->monsterinfo.attack_finished = level.framenum + (int)(2 * frand() * BASE_FRAMERATE);
+		self->monsterinfo.attack_finished = level.framenum + (int)random(2f * BASE_FRAMERATE);
 		return true;
 	}
 
 	if (self->flags & FL_FLY) {
-		if (frand() < 0.3f)
+		if (random() < 0.3f)
 			self->monsterinfo.attack_state = AS_SLIDING;
 		else
 			self->monsterinfo.attack_state = AS_STRAIGHT;

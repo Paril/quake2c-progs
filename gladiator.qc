@@ -213,7 +213,7 @@ static void gladiator_pain(entity self, entity other, float kick, int damage)
 
 	self->pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
 
-	if (frand() < 0.5f)
+	if (random() < 0.5f)
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 	else
 		gi.sound(self, CHAN_VOICE, sound_pain2, 1, ATTN_NORM, 0);

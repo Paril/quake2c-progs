@@ -45,7 +45,7 @@ static void(entity self) berserk_fidget =
 {
 	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
 		return;
-	if (frand() > 0.15f)
+	if (random() > 0.15f)
 		return;
 
 	self->monsterinfo.currentmove = &berserk_move_stand_fidget;
@@ -205,7 +205,7 @@ static void(entity self, entity other, float kick, int damage) berserk_pain =
 	if (skill->intVal == 3)
 		return;     // no pain anims in nightmare
 
-	if ((damage < 20) || (frand() < 0.5f))
+	if ((damage < 20) || (random() < 0.5f))
 		self->monsterinfo.currentmove = &berserk_move_pain1;
 	else
 		self->monsterinfo.currentmove = &berserk_move_pain2;

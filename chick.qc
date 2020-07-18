@@ -19,7 +19,7 @@ static int  sound_search;
 
 static void ChickMoan(entity self)
 {
-	if (frand() < 0.5f)
+	if (random() < 0.5f)
 		gi.sound(self, CHAN_VOICE, sound_idle1, 1, ATTN_IDLE, 0);
 	else
 		gi.sound(self, CHAN_VOICE, sound_idle2, 1, ATTN_IDLE, 0);
@@ -63,7 +63,7 @@ static void chick_fidget(entity self)
 {
 	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
 		return;
-	if (frand() <= 0.3f)
+	if (random() <= 0.3f)
 		self->monsterinfo.currentmove = &chick_move_fidget;
 }
 
@@ -223,7 +223,7 @@ static void chick_pain(entity self, entity other, float kick, int damage)
 
 	self->pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
 
-	r = frand();
+	r = random();
 	if (r < 0.33f)
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 	else if (r < 0.66f)
@@ -369,7 +369,7 @@ static var mmove_t chick_move_duck = { FRAME_duck01, FRAME_duck07, chick_run };
 
 static void chick_dodge(entity self, entity attacker, float eta)
 {
-	if (frand() > 0.25f)
+	if (random() > 0.25f)
 		return;
 
 	if (!self->enemy)
@@ -432,7 +432,7 @@ static void chick_rerocket(entity self)
 	if (self->enemy->health > 0) {
 		if (range(self, self->enemy) > RANGE_MELEE)
 			if (visible(self, self->enemy))
-				if (frand() <= 0.6f) {
+				if (random() <= 0.6f) {
 					chick_attack1(self);
 					return;
 				}
@@ -495,7 +495,7 @@ static void chick_reslash(entity self)
 {
 	if (self->enemy->health > 0) {
 		if (range(self, self->enemy) == RANGE_MELEE) {
-			if (frand() <= 0.9f) {
+			if (random() <= 0.9f) {
 				chick_slash(self);
 				return;
 			} else {

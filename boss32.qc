@@ -19,7 +19,7 @@ static void makron_taunt(entity self)
 {
 	float r;
 
-	r = frand();
+	r = random();
 	if (r <= 0.3f)
 		gi.sound(self, CHAN_AUTO, sound_taunt1, 1, ATTN_NONE, 0);
 	else if (r <= 0.6f)
@@ -518,7 +518,7 @@ static void makron_pain(entity self, entity other, float kick, int damage)
 
 	// Lessen the chance of him going into his pain frames
 	if (damage <= 25)
-		if (frand() < 0.2f)
+		if (random() < 0.2f)
 			return;
 
 	self->pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
@@ -534,12 +534,12 @@ static void makron_pain(entity self, entity other, float kick, int damage)
 		self->monsterinfo.currentmove = &makron_move_pain5;
 	} else {
 		if (damage <= 150) {
-			if (frand() <= 0.45f) {
+			if (random() <= 0.45f) {
 				gi.sound(self, CHAN_VOICE, sound_pain6, 1, ATTN_NONE, 0);
 				self->monsterinfo.currentmove = &makron_move_pain6;
 			}
 		} else {
-			if (frand() <= 0.35f) {
+			if (random() <= 0.35f) {
 				gi.sound(self, CHAN_VOICE, sound_pain6, 1, ATTN_NONE, 0);
 				self->monsterinfo.currentmove = &makron_move_pain6;
 			}
@@ -556,7 +556,7 @@ static void makron_attack(entity self)
 {
 	float   r;
 
-	r = frand();
+	r = random();
 
 	if (r <= 0.3f)
 		self->monsterinfo.currentmove = &makron_move_attack3;
@@ -699,14 +699,14 @@ static bool Makron_CheckAttack(entity self)
 		return false;
 	}
 
-	if (frand() < chance) {
+	if (random() < chance) {
 		self->monsterinfo.attack_state = AS_MISSILE;
-		self->monsterinfo.attack_finished = level.framenum + (int)(2 * frand() * BASE_FRAMERATE);
+		self->monsterinfo.attack_finished = level.framenum + (int)random(2f * BASE_FRAMERATE);
 		return true;
 	}
 
 	if (self->flags & FL_FLY) {
-		if (frand() < 0.3f)
+		if (random() < 0.3f)
 			self->monsterinfo.attack_state = AS_SLIDING;
 		else
 			self->monsterinfo.attack_state = AS_STRAIGHT;
