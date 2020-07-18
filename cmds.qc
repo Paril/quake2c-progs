@@ -36,9 +36,9 @@ static void(entity ent, int itflags) SelectNextItem =
 	}
 
 	// scan  for the next valid one
-	for (i=1 ; i<=MAX_ITEMS ; i++)
+	for (i=1 ; i<=itemlist.length ; i++)
 	{
-		index = (ent.client->pers.selected_item + i)%MAX_ITEMS;
+		index = (ent.client->pers.selected_item + i)%itemlist.length;
 		if (!ent.client->pers.inventory[index])
 			continue;
 		if (!GetItemKeyByIndex(index, use))
@@ -64,9 +64,9 @@ static void(entity ent, int itflags) SelectPrevItem =
 	}
 
 	// scan  for the next valid one
-	for (i=1 ; i<=MAX_ITEMS ; i++)
+	for (i=1 ; i<=itemlist.length ; i++)
 	{
-		index = (ent.client->pers.selected_item + MAX_ITEMS - i)%MAX_ITEMS;
+		index = (ent.client->pers.selected_item + itemlist.length - i)%itemlist.length;
 		if (!ent.client->pers.inventory[index])
 			continue;
 		if (!GetItemKeyByIndex(index, use))
@@ -133,7 +133,7 @@ static void(entity ent) Cmd_Give_f =
 
 	if (give_all || stricmp(name, "weapons") == 0)
 	{
-		for (i=0 ; i<game.num_items ; i++)
+		for (i = 0; i < itemlist.length; i++)
 		{
 			it = i;
 			if (!GetItemKeyByIndex(it, pickup))
@@ -148,7 +148,7 @@ static void(entity ent) Cmd_Give_f =
 
 	if (give_all || stricmp(name, "ammo") == 0)
 	{
-		for (i=0 ; i<game.num_items ; i++)
+		for (i=0 ; i< itemlist.length; i++)
 		{
 			it = i;
 			if (!GetItemKeyByIndex(it, pickup))
@@ -195,7 +195,7 @@ static void(entity ent) Cmd_Give_f =
 
 	if (give_all)
 	{
-		for (i=0 ; i<game.num_items ; i++)
+		for (i=0 ; i<itemlist.length ; i++)
 		{
 			it = i;
 			if (!GetItemKeyByIndex(it, pickup))
@@ -431,7 +431,10 @@ static void(entity ent) Cmd_Inven_f =
 	gi.WriteByte (svc_inventory);
 	for (i=0 ; i<MAX_ITEMS ; i++)
 	{
-		gi.WriteShort (ent.client->pers.inventory[i]);
+		if (i < itemlist.length)
+			gi.WriteShort (ent.client->pers.inventory[i]);
+		else
+			gi.WriteShort(0);
 	}
 	gi.unicast (ent, true);
 }
@@ -479,9 +482,9 @@ static void(entity ent) Cmd_WeapPrev_f =
 	selected_weapon = ITEM_INDEX(ent.client->pers.weapon);
 
 	// scan  for the next valid one
-	for (i=1 ; i<=MAX_ITEMS ; i++)
+	for (i=1 ; i<=itemlist.length ; i++)
 	{
-		index = (selected_weapon + i)%MAX_ITEMS;
+		index = (selected_weapon + i)%itemlist.length;
 		if (!ent.client->pers.inventory[index])
 			continue;
 		it = index;
@@ -512,9 +515,9 @@ static void(entity ent) Cmd_WeapNext_f =
 	selected_weapon = ITEM_INDEX(ent.client->pers.weapon);
 
 	// scan  for the next valid one
-	for (i=1 ; i<=MAX_ITEMS ; i++)
+	for (i=1 ; i<=itemlist.length ; i++)
 	{
-		index = (selected_weapon + MAX_ITEMS - i)%MAX_ITEMS;
+		index = (selected_weapon + itemlist.length - i)%itemlist.length;
 		if (!ent.client->pers.inventory[index])
 			continue;
 		it = index;

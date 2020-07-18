@@ -31,9 +31,6 @@ struct game_locals_t
 	// cross level triggers
 	server_flags_t	serverflags;
 	
-	// items
-	int	num_items;
-	
 	bool	autosaved;
 };
 
@@ -48,7 +45,7 @@ bool(string, string, string) struct_key_parse = #0:struct_key_parse;
 void(entity, .__variant, string) entity_key_parse = #0:entity_key_parse;
 
 // dmflags->value flags
-enumflags
+enumflags : int
 {
 	DF_NO_HEALTH,
 	DF_NO_ITEMS,
@@ -77,7 +74,7 @@ enumflags
 	DF_NO_NUKES,
 	DF_NO_SPHERES
 //ROGUE
-} dmflags_t;
+};
 
 // damage flags
 typedef enumflags int

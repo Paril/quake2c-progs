@@ -764,3 +764,51 @@ typedef enum int
 	svc_deltapacketentities,	// [...]
 	svc_frame
 } svc_ops_t;
+
+// entity_state_t->effects
+// Effects are things handled on the client side (lights, particles, frame animations)
+// that happen constantly on the given entity.
+// An entity that has effects will be sent to the client
+// even if it has a zero index model.
+typedef enumflags int
+{
+	EF_ROTATE,	// rotate (bonus items)
+	EF_GIB,		// leave a trail
+	EF_UNUSED,
+	EF_BLASTER,	// redlight + trail
+	EF_ROCKET,	// redlight + trail
+	EF_GRENADE,
+	EF_HYPERBLASTER,
+	EF_BFG,
+	EF_COLOR_SHELL,
+	EF_POWERSCREEN,
+	EF_ANIM01,		// automatically cycle between frames 0 and 1 at 2 hz
+	EF_ANIM23,		// automatically cycle between frames 2 and 3 at 2 hz
+	EF_ANIM_ALL,		// automatically cycle through all frames at 2hz
+	EF_ANIM_ALLFAST,	// automatically cycle through all frames at 10hz
+	EF_FLIES,
+	EF_QUAD,
+	EF_PENT,
+	EF_TELEPORTER,		// particle fountain
+	EF_FLAG1,
+	EF_FLAG2,
+// RAFAEL
+	EF_IONRIPPER,
+	EF_GREENGIB,
+	EF_BLUEHYPERBLASTER,
+	EF_SPINNINGLIGHTS,
+	EF_PLASMA,
+	EF_TRAP,
+// RAFAEL
+
+//ROGUE
+	EF_TRACKER,
+	EF_DOUBLE,
+	EF_SPHERETRANS,
+	EF_TAGTRAIL,
+	EF_HALF_DAMAGE,
+//ROGUE
+} entity_effects_t;
+
+// FIXME loop bug
+const entity_effects_t EF_TRACKERTRAIL = 0x80000000;

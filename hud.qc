@@ -78,7 +78,7 @@ void(entity targ) BeginIntermission =
 				if (!cl->inuse)
 					continue;
 				// strip players of all keys between units
-				for (n = 0; n < MAX_ITEMS; n++) {
+				for (n = 0; n < itemlist.length; n++) {
 					if (GetItemKeyByIndex(n, flags) & IT_KEY)
 						cl->client->pers.inventory[n] = 0;
 				}

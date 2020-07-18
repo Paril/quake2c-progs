@@ -42,7 +42,7 @@ static void(entity self) SP_FixCoopSpots =
 // some maps don't have any coop spots at all, so we need to create them
 // where they should have been
 
-__used static void(entity self) SP_CreateCoopSpots =
+static void(entity self) SP_CreateCoopSpots =
 {
     entity spot;
 
@@ -79,7 +79,7 @@ __used static void(entity self) SP_CreateCoopSpots =
 /*QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)
 The normal starting point for a level.
 */
-__used static void(entity self) SP_info_player_start =
+API_FUNC static void(entity self) SP_info_player_start =
 {
     if (!coop->intVal)
         return;
@@ -95,7 +95,7 @@ void(entity) SP_misc_teleporter_dest;
 /*QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32)
 potential spawning position for deathmatch games
 */
-__used static void(entity self) SP_info_player_deathmatch =
+API_FUNC static void(entity self) SP_info_player_deathmatch =
 {
     if (!deathmatch.intVal) {
         G_FreeEdict(self);
@@ -107,7 +107,7 @@ __used static void(entity self) SP_info_player_deathmatch =
 /*QUAKED info_player_coop (1 0 1) (-16 -16 -24) (16 16 32)
 potential spawning position for coop games
 */
-__used static void(entity self) SP_info_player_coop =
+API_FUNC static void(entity self) SP_info_player_coop =
 {
     if (!coop.intVal) {
         G_FreeEdict(self);
@@ -139,7 +139,7 @@ __used static void(entity self) SP_info_player_coop =
 The deathmatch intermission point will be at one of these
 Use 'angles' instead of 'angle', so you can set pitch or roll as well as yaw.  'pitch yaw roll'
 */
-__used static void() SP_info_player_intermission =
+API_FUNC static void() SP_info_player_intermission =
 {
 }
 
@@ -484,11 +484,11 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 
 		// clear inventory
 		// this is kind of ugly, but it's how we want to handle keys in coop
-		/*or (n = 0; n < game.num_items; n++) {
-			if (coop->value && itemlist[n].flags & IT_KEY)
+		for (int n = 0; n < itemlist.length; n++) {
+			if (coop->intVal && itemlist[n].flags & IT_KEY)
 				self->client->resp.coop_respawn.inventory[n] = self->client->pers.inventory[n];
 			self->client->pers.inventory[n] = 0;
-		}*/
+		}
 	}
 
 	// remove powerups
@@ -1111,9 +1111,6 @@ static void(entity ent) PutClientInServer =
 	// clear playerstate values
 	memclear(&ent.client.ps, sizeof(ent.client.ps));
 
-	/*for (ARRAY_INDEX_TYPE i = 0; i < 3; i++) {
-		ent.client.ps.pmove.origin[i] = COORD2SHORT(spawn_origin[i]);
-	}*/
 	ent.client.ps.pmove.origin[0] = COORD2SHORT(spawn_origin[0]);
 	ent.client.ps.pmove.origin[1] = COORD2SHORT(spawn_origin[1]);
 	ent.client.ps.pmove.origin[2] = COORD2SHORT(spawn_origin[2]);
@@ -1147,9 +1144,6 @@ static void(entity ent) PutClientInServer =
 	ent->s.old_origin = ent->s.origin;
 
 	// set the delta angle
-	/*for (ARRAY_INDEX_TYPE i = 0 ; i < 3 ; i++) {
-		ent.client.ps.pmove.delta_angles[i] = ANGLE2SHORT(spawn_angles[i] - ent.client.resp.cmd_angles[i]);
-	}*/
 	ent.client.ps.pmove.delta_angles[0] = ANGLE2SHORT(spawn_angles[0] - ent.client.resp.cmd_angles[0]);
 	ent.client.ps.pmove.delta_angles[1] = ANGLE2SHORT(spawn_angles[1] - ent.client.resp.cmd_angles[1]);
 	ent.client.ps.pmove.delta_angles[2] = ANGLE2SHORT(spawn_angles[2] - ent.client.resp.cmd_angles[2]);

@@ -436,14 +436,6 @@ SV_CloseEnough
 */
 static bool(entity ent, entity goal, float dist) SV_CloseEnough =
 {
-	/*int     i;
-
-	for (i = 0 ; i < 3 ; i++) {
-		if (goal->absmin[i] > ent->absmax[i] + dist)
-			return false;
-		if (goal->absmax[i] < ent->absmin[i] - dist)
-			return false;
-	}*/
 	if (goal->absmin_x > ent->absmax_x + dist)
 		return false;
 	if (goal->absmax_x < ent->absmin_x - dist)

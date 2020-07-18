@@ -16,7 +16,7 @@ This is a non-visible object that divides the world into
 areas that are seperated when this portal is not activated.
 Usually enclosed in the middle of a door.
 */
-__used static void(entity ent) SP_func_areaportal =
+API_FUNC static void(entity ent) SP_func_areaportal =
 {
 	ent->use = Use_Areaportal;
 	ent->count = 0;     // always start closed;
@@ -348,7 +348,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) path_cor
 	}
 }
 
-__used static void(entity self) SP_path_corner =
+API_FUNC static void(entity self) SP_path_corner =
 {
 	if (!self->targetname) {
 		gi.dprintf("path_corner with no targetname at %s\n", vtos(self->s.origin));
@@ -415,7 +415,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) point_co
 	}
 }
 
-__used static void(entity self) SP_point_combat =
+API_FUNC static void(entity self) SP_point_combat =
 {
 	if (deathmatch.intVal) {
 		G_FreeEdict(self);
@@ -432,7 +432,7 @@ __used static void(entity self) SP_point_combat =
 /*QUAKED info_null (0 0.5 0) (-4 -4 -4) (4 4 4)
 Used as a positional target for spotlights, etc.
 */
-__used void(entity self) SP_info_null =
+API_FUNC void(entity self) SP_info_null =
 {
 	G_FreeEdict(self);
 }
@@ -440,7 +440,7 @@ __used void(entity self) SP_info_null =
 /*QUAKED info_notnull (0 0.5 0) (-4 -4 -4) (4 4 4)
 Used as a positional target for lightning.
 */
-__used void(entity self) SP_info_notnull =
+API_FUNC void(entity self) SP_info_notnull =
 {
 	VectorCopy(self->s.origin, self->absmin);
 	VectorCopy(self->s.origin, self->absmax);
@@ -467,7 +467,7 @@ static void(entity self, entity other, entity cactivator) light_use =
 	}
 }
 
-__used static void(entity self) SP_light =
+API_FUNC static void(entity self) SP_light =
 {
 	// no targeted lights in deathmatch, because they cause global messages
 	if (!self->targetname || deathmatch->intVal) {
@@ -514,7 +514,7 @@ static void(entity self, entity other, entity cactivator) func_wall_use =
 		self->use = 0;
 }
 
-__used static void(entity self) SP_func_wall =
+API_FUNC static void(entity self) SP_func_wall =
 {
 	self->movetype = MOVETYPE_PUSH;
 	gi.setmodel(self, self->model);
@@ -586,7 +586,7 @@ static void(entity self, entity other, entity cactivator) func_object_use =
 	func_object_release(self);
 }
 
-__used static void(entity self) SP_func_object =
+API_FUNC static void(entity self) SP_func_object =
 {
 	gi.setmodel(self, self->model);
 
@@ -710,7 +710,7 @@ static void(entity self, entity other, entity cactivator) func_explosive_spawn =
 	gi.linkentity(self);
 }
 
-__used static void(entity self) SP_func_explosive =
+API_FUNC static void(entity self) SP_func_explosive =
 {
 	if (deathmatch->intVal) {
 		// auto-remove for deathmatch
@@ -855,7 +855,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 	self->activator = attacker;
 }
 
-__used static void(entity self) SP_misc_explobox =
+API_FUNC static void(entity self) SP_misc_explobox =
 {
 	if (deathmatch->intVal) {
 		// auto-remove for deathmatch
@@ -922,7 +922,7 @@ static void(entity self) misc_blackhole_think =
 	}
 }
 
-__used static void(entity ent) SP_misc_blackhole =
+API_FUNC static void(entity ent) SP_misc_blackhole =
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_NOT;
@@ -949,7 +949,7 @@ static void(entity self) misc_eastertank_think =
 	}
 }
 
-__used static void(entity ent) SP_misc_eastertank =
+API_FUNC static void(entity ent) SP_misc_eastertank =
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_BBOX;
@@ -974,7 +974,7 @@ static void(entity self) misc_easterchick_think =
 	}
 }
 
-__used static void(entity ent) SP_misc_easterchick =
+API_FUNC static void(entity ent) SP_misc_easterchick =
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_BBOX;
@@ -999,7 +999,7 @@ static void(entity self) misc_easterchick2_think =
 	}
 }
 
-__used static void(entity ent) SP_misc_easterchick2 =
+API_FUNC static void(entity ent) SP_misc_easterchick2 =
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_BBOX;
@@ -1029,7 +1029,7 @@ static void(entity self) commander_body_think =
 		gi.sound(self, CHAN_BODY, gi.soundindex("tank/thud.wav"), 1, ATTN_NORM, 0);
 }
 
-__used static void(entity self, entity other, entity cactivator) commander_body_use =
+API_FUNC static void(entity self, entity other, entity cactivator) commander_body_use =
 {
 	self->think = commander_body_think;
 	self->nextthink = level.framenum + 1;
@@ -1042,7 +1042,7 @@ static void(entity self) commander_body_drop =
 	self->s.origin[2] += 2;
 }
 
-__used static void(entity self) SP_monster_commander_body =
+API_FUNC static void(entity self) SP_monster_commander_body =
 {
 	self->movetype = MOVETYPE_NONE;
 	self->solid = SOLID_BBOX;
@@ -1074,7 +1074,7 @@ static void(entity ent) misc_banner_think =
 	ent->nextthink = level.framenum + 1;
 }
 
-__used static void(entity ent) SP_misc_banner =
+API_FUNC static void(entity ent) SP_misc_banner =
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_NOT;
@@ -1102,7 +1102,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 	ThrowHead(self, "models/objects/gibs/head2/tris.md2", damage, GIB_ORGANIC);
 }
 
-__used static void(entity ent) SP_misc_deadsoldier =
+API_FUNC static void(entity ent) SP_misc_deadsoldier =
 {
 	if (deathmatch->intVal) {
 		// auto-remove for deathmatch
@@ -1158,7 +1158,7 @@ static void(entity self, entity other, entity cactivator) misc_viper_use =
 	train_use(self, other, cactivator);
 }
 
-__used static void(entity ent) SP_misc_viper =
+API_FUNC static void(entity ent) SP_misc_viper =
 {
 	if (!ent->target) {
 		gi.dprintf("misc_viper without a target at %s\n", vtos(ent->absmin));
@@ -1187,7 +1187,7 @@ __used static void(entity ent) SP_misc_viper =
 /*QUAKED misc_bigviper (1 .5 0) (-176 -120 -24) (176 120 72)
 This is a large stationary viper as seen in Paul's intro
 */
-__used static void(entity ent) SP_misc_bigviper =
+API_FUNC static void(entity ent) SP_misc_bigviper =
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_BBOX;
@@ -1249,7 +1249,7 @@ static void(entity self, entity other, entity cactivator) misc_viper_bomb_use =
 	VectorCopy(viper->moveinfo.dir, self->moveinfo.dir);
 }
 
-__used static void(entity self) SP_misc_viper_bomb =
+API_FUNC static void(entity self) SP_misc_viper_bomb =
 {
 	self->movetype = MOVETYPE_NONE;
 	self->solid = SOLID_NOT;
@@ -1282,7 +1282,7 @@ static void(entity self, entity other, entity cactivator) misc_strogg_ship_use =
 	train_use(self, other, cactivator);
 }
 
-__used static void(entity ent) SP_misc_strogg_ship =
+API_FUNC static void(entity ent) SP_misc_strogg_ship =
 {
 	if (!ent->target) {
 		gi.dprintf("%s without a target at %s\n", ent->classname, vtos(ent->absmin));
@@ -1325,7 +1325,7 @@ static void(entity self, entity other, entity cactivator) misc_satellite_dish_us
 	self->nextthink = level.framenum + 1;
 }
 
-__used static void(entity ent) SP_misc_satellite_dish =
+API_FUNC static void(entity ent) SP_misc_satellite_dish =
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_BBOX;
@@ -1339,7 +1339,7 @@ __used static void(entity ent) SP_misc_satellite_dish =
 
 /*QUAKED light_mine1 (0 1 0) (-2 -2 -12) (2 2 12)
 */
-__used static void(entity ent) SP_light_mine1 =
+API_FUNC static void(entity ent) SP_light_mine1 =
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_BBOX;
@@ -1350,7 +1350,7 @@ __used static void(entity ent) SP_light_mine1 =
 
 /*QUAKED light_mine2 (0 1 0) (-2 -2 -12) (2 2 12)
 */
-__used static void(entity ent) SP_light_mine2 =
+API_FUNC static void(entity ent) SP_light_mine2 =
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_BBOX;
@@ -1362,7 +1362,7 @@ __used static void(entity ent) SP_light_mine2 =
 /*QUAKED misc_gib_arm (1 0 0) (-8 -8 -8) (8 8 8)
 Intended for use with the target_spawner
 */
-__used static void(entity ent) SP_misc_gib_arm =
+API_FUNC static void(entity ent) SP_misc_gib_arm =
 {
 	gi.setmodel(ent, "models/objects/gibs/arm/tris.md2");
 	ent->solid = SOLID_NOT;
@@ -1383,7 +1383,7 @@ __used static void(entity ent) SP_misc_gib_arm =
 /*QUAKED misc_gib_leg (1 0 0) (-8 -8 -8) (8 8 8)
 Intended for use with the target_spawner
 */
-__used static void(entity ent) SP_misc_gib_leg =
+API_FUNC static void(entity ent) SP_misc_gib_leg =
 {
 	gi.setmodel(ent, "models/objects/gibs/leg/tris.md2");
 	ent->solid = SOLID_NOT;
@@ -1404,7 +1404,7 @@ __used static void(entity ent) SP_misc_gib_leg =
 /*QUAKED misc_gib_head (1 0 0) (-8 -8 -8) (8 8 8)
 Intended for use with the target_spawner
 */
-__used static void(entity ent) SP_misc_gib_head =
+API_FUNC static void(entity ent) SP_misc_gib_head =
 {
 	gi.setmodel(ent, "models/objects/gibs/head/tris.md2");
 	ent->solid = SOLID_NOT;
@@ -1429,7 +1429,7 @@ used with target_string (must be on same "team")
 "count" is position in the string (starts at 1)
 */
 
-__used static void(entity self) SP_target_character =
+API_FUNC static void(entity self) SP_target_character =
 {
 	self->movetype = MOVETYPE_PUSH;
 	gi.setmodel(self, self->model);
@@ -1471,7 +1471,7 @@ static void(entity self, entity other, entity activator) target_string_use =
 	}
 }
 
-__used static void(entity self) SP_target_string =
+API_FUNC static void(entity self) SP_target_string =
 {
 	self->use = target_string_use;
 }
@@ -1580,7 +1580,7 @@ static void(entity self, entity other, entity cactivator) func_clock_use =
 	self->think(self);
 }
 
-__used static void(entity self) SP_func_clock =
+API_FUNC static void(entity self) SP_func_clock =
 {
 	if (!self->target) {
 		gi.dprintf("%s with no target at %s\n", self->classname, vtos(self->s.origin));
@@ -1612,7 +1612,7 @@ __used static void(entity self) SP_func_clock =
 static void(entity self, entity other, cplane_t plane, csurface_t surf) teleporter_touch =
 {
 	entity	dest;
-	int	i;
+
 
 	if (!other->is_client)
 		return;
@@ -1639,9 +1639,6 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) teleport
 	other->s.event = EV_PLAYER_TELEPORT;
 
 	// set angles
-	//for (i = 0 ; i < 3 ; i++) {
-	//	other->client->ps.pmove.delta_angles[i] = ANGLE2SHORT(dest->s.angles[i] - other->client->resp.cmd_angles[i]);
-	//}
 	other->client->ps.pmove.delta_angles[0] = ANGLE2SHORT(dest->s.angles[0] - other->client->resp.cmd_angles[0]);
 	other->client->ps.pmove.delta_angles[1] = ANGLE2SHORT(dest->s.angles[1] - other->client->resp.cmd_angles[1]);
 	other->client->ps.pmove.delta_angles[2] = ANGLE2SHORT(dest->s.angles[2] - other->client->resp.cmd_angles[2]);
@@ -1659,7 +1656,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) teleport
 /*QUAKED misc_teleporter (1 0 0) (-32 -32 -24) (32 32 -16)
 Stepping onto this disc will teleport players to the targeted misc_teleporter_dest object.
 */
-__used static void(entity ent) SP_misc_teleporter =
+API_FUNC static void(entity ent) SP_misc_teleporter =
 {
 	entity	trig;
 
@@ -1694,7 +1691,7 @@ __used static void(entity ent) SP_misc_teleporter =
 /*QUAKED misc_teleporter_dest (1 0 0) (-32 -32 -24) (32 32 -16)
 Point teleporters at these.
 */
-__used void(entity ent) SP_misc_teleporter_dest =
+API_FUNC void(entity ent) SP_misc_teleporter_dest =
 {
     gi.setmodel(ent, "models/objects/dmspot/tris.md2");
     ent->s.skinnum = 0;

@@ -8,6 +8,7 @@ float(float) DEG2RAD = #0:DEG2RAD;
 float(float) floorf = #0:floorf;
 float(float) ceilf = #0:ceilf;
 float(float) roundf = #0:roundf;
+float(float) tanf = #0:tanf;
 
 const float M_PI = 3.14159265358979323846f;
 

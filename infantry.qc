@@ -39,7 +39,7 @@ static const mframe_t infantry_frames_stand [] = {
 };
 static var mmove_t infantry_move_stand = { FRAME_stand50, FRAME_stand71 };
 
-static void(entity self) infantry_stand =
+void(entity self) infantry_stand =
 {
 	self->monsterinfo.currentmove = &infantry_move_stand;
 }
@@ -331,10 +331,7 @@ static const mframe_t infantry_frames_death3 [] = {
 };
 static var mmove_t infantry_move_death3 = { FRAME_death301, FRAME_death309, infantry_dead };
 
-// from misc.qc
-void(entity self, string gibname, int damage, gib_type_t type) ThrowHead;
-
-static void(entity self, entity inflictor, entity attacker, int damage, vector point) infantry_die =
+void(entity self, entity inflictor, entity attacker, int damage, vector point) infantry_die =
 {
 	int     n;
 
@@ -495,7 +492,7 @@ static void(entity self) infantry_attack =
 
 /*QUAKED monster_infantry (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
 */
-__used static void(entity self) SP_monster_infantry =
+API_FUNC static void(entity self) SP_monster_infantry =
 {
 	if (deathmatch->intVal) {
 		G_FreeEdict(self);

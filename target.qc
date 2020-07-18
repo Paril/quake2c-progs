@@ -56,7 +56,7 @@ static void(entity ent, entity other, entity cactivator) Use_Target_Speaker =
 	}
 }
 
-__used static void(entity ent) SP_target_speaker =
+API_FUNC static void(entity ent) SP_target_speaker =
 {
 	string	buffer = st.noise;
 
@@ -105,7 +105,7 @@ static void(entity ent, entity other, entity cactivator) Use_Target_Help =
 /*QUAKED target_help (1 0 1) (-16 -16 -24) (16 16 24) help1
 When fired, the "message" key becomes the current personal computer string, and the message light will be set on all clients status bars.
 */
-__used static void(entity ent) SP_target_help =
+API_FUNC static void(entity ent) SP_target_help =
 {
 	if (deathmatch->intVal) {
 		// auto-remove for deathmatch
@@ -137,7 +137,7 @@ static void(entity ent, entity other, entity cactivator) use_target_secret =
 	G_FreeEdict(ent);
 }
 
-__used static void(entity ent) SP_target_secret =
+API_FUNC static void(entity ent) SP_target_secret =
 {
 	if (deathmatch->intVal) {
 		// auto-remove for deathmatch
@@ -175,7 +175,7 @@ static void(entity ent, entity other, entity cactivator) use_target_goal =
 	G_FreeEdict(ent);
 }
 
-__used static void(entity ent) SP_target_goal =
+API_FUNC static void(entity ent) SP_target_goal =
 {
 	if (deathmatch->intVal) {
 		// auto-remove for deathmatch
@@ -230,7 +230,7 @@ static void(entity self, entity other, entity cactivator) use_target_explosion =
 	self->nextthink = level.framenum + (int)(self->delay * BASE_FRAMERATE);
 }
 
-__used static void(entity ent) SP_target_explosion =
+API_FUNC static void(entity ent) SP_target_explosion =
 {
 	ent->use = use_target_explosion;
 	ent->svflags = SVF_NOCLIENT;
@@ -271,7 +271,7 @@ static void(entity self, entity other, entity cactivator) use_target_changelevel
 	BeginIntermission(self);
 }
 
-__used static void(entity ent) SP_target_changelevel =
+API_FUNC static void(entity ent) SP_target_changelevel =
 {
 	if (!ent->map) {
 		gi.dprintf("target_changelevel with no map at %s\n", vtos(ent->s.origin));
@@ -320,7 +320,7 @@ static void(entity self, entity other, entity cactivator) use_target_splash =
 		T_RadiusDamage(self, cactivator, self->dmg, 0, self->dmg + 40, MOD_SPLASH);
 }
 
-__used static void(entity self) SP_target_splash =
+API_FUNC static void(entity self) SP_target_splash =
 {
 	self->use = use_target_splash;
 	G_SetMovedir(self->s.angles, self->movedir);
@@ -366,7 +366,7 @@ static void(entity self, entity other, entity cactivator) use_target_spawner =
 		VectorCopy(self->movedir, ent->velocity);
 }
 
-__used static void(entity self) SP_target_spawner =
+API_FUNC static void(entity self) SP_target_spawner =
 {
 	self->use = use_target_spawner;
 	self->svflags = SVF_NOCLIENT;
@@ -402,7 +402,7 @@ static void(entity self, entity other, entity cactivator) use_target_blaster =
 	gi.sound(self, CHAN_VOICE, self->noise_index, 1, ATTN_NORM, 0);
 }
 
-__used static void(entity self) SP_target_blaster =
+API_FUNC static void(entity self) SP_target_blaster =
 {
 	self->use = use_target_blaster;
 	G_SetMovedir(self->s.angles, self->movedir);
@@ -428,7 +428,7 @@ static void(entity self, entity other, entity cactivator) trigger_crosslevel_tri
 	G_FreeEdict(self);
 }
 
-__used static void(entity self) SP_target_crosslevel_trigger =
+API_FUNC static void(entity self) SP_target_crosslevel_trigger =
 {
 	self->svflags = SVF_NOCLIENT;
 	self->use = trigger_crosslevel_trigger_use;
@@ -448,7 +448,7 @@ static void(entity self) target_crosslevel_target_think =
 	}
 }
 
-__used static void(entity self) SP_target_crosslevel_target =
+API_FUNC static void(entity self) SP_target_crosslevel_target =
 {
 	if (!self->delay)
 		self->delay = 1f;
@@ -604,7 +604,7 @@ static void(entity self) target_laser_start =
 		target_laser_off(self);
 }
 
-__used static void(entity self) SP_target_laser =
+API_FUNC static void(entity self) SP_target_laser =
 {
 	// let everything else get spawned before we start firing
 	self->think = target_laser_start;
@@ -668,9 +668,9 @@ static void(entity self, entity other, entity cactivator) target_lightramp_use =
 	target_lightramp_think(self);
 }
 
-__used static void(entity self) SP_target_lightramp =
+API_FUNC static void(entity self) SP_target_lightramp =
 {
-	if (!self->message || strlen(self->message) != 2 || strat(self->message, 0) < 'a' || strat(self->message, 'z') || strat(self->message, 1) < 'a' || strat(self->message, 1) > 'z' || strat(self->message, 0) == strat(self->message, 1)) {
+	if (!self->message || strlen(self->message) != 2 || strat(self->message, 0) < 'a' || strat(self->message, 0) > 'z' || strat(self->message, 1) < 'a' || strat(self->message, 1) > 'z' || strat(self->message, 0) == strat(self->message, 1)) {
 		gi.dprintf("target_lightramp has bad ramp (%s) at %s\n", self->message, vtos(self->s.origin));
 		G_FreeEdict(self);
 		return;
@@ -742,7 +742,7 @@ static void(entity self, entity other, entity cactivator) target_earthquake_use 
 	self->last_move_framenum = 0;
 }
 
-__used static void(entity self) SP_target_earthquake =
+API_FUNC static void(entity self) SP_target_earthquake =
 {
 	if (!self->targetname)
 		gi.dprintf("untargeted %s at %s\n", self->classname, vtos(self->s.origin));

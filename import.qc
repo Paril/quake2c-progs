@@ -1,7 +1,7 @@
 accessor cvar_t : int;
 accessor box_edicts_t : int;
 
-__used var struct {
+var struct {
 	void(print_level_t, string fmt, ...) bprintf;
 	void(string fmt, ...) dprintf;
 	void(entity, print_level_t, string fmt, ...) cprintf;

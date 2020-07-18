@@ -45,17 +45,9 @@ SV_CheckVelocity
 */
 static void(entity ent) SV_CheckVelocity =
 {
-	/*int     i;
-
 //
 // bound velocity
 //
-	for (i = 0 ; i < 3 ; i++) {
-		if (ent->velocity[i] > sv_maxvelocity->value)
-			ent->velocity[i] = sv_maxvelocity->value;
-		else if (ent->velocity[i] < -sv_maxvelocity->value)
-			ent->velocity[i] = -sv_maxvelocity->value;
-	}*/
 	if (ent->velocity_x > sv_maxvelocity->floatVal)
 		ent->velocity_x = sv_maxvelocity->floatVal;
 	else if (ent->velocity_x < -sv_maxvelocity->floatVal)
@@ -133,7 +125,7 @@ static int(vector in, vector normal, __out vector out, float overbounce) ClipVel
 {
 	float	backoff;
 	float	change;
-	int	i, blocked;
+	int	blocked;
 
 	blocked = 0;
 	if (normal_z > 0)
@@ -143,12 +135,6 @@ static int(vector in, vector normal, __out vector out, float overbounce) ClipVel
 
 	backoff = DotProduct(in, normal) * overbounce;
 
-	/*for (i = 0 ; i < 3 ; i++) {
-		change = normal[i] * backoff;
-		out[i] = in[i] - change;
-		if (out[i] > -STOP_EPSILON && out[i] < STOP_EPSILON)
-			out[i] = 0;
-	}*/
 	change = normal_x * backoff;
 	out_x = in_x - change;
 	if (out_x > -STOP_EPSILON && out_x < STOP_EPSILON)
@@ -381,7 +367,7 @@ otherwise riders would continue to slide.
 */
 static bool(entity pusher, vector move, vector amove) SV_Push =
 {
-	int		i, e;
+	int		e;
 	entity		check;
 	bool		block;
 	vector		mins, maxs;
@@ -389,15 +375,6 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 
 	// clamp the move to 1/8 units, so the position will
 	// be accurate for client side prediction
-	/*for (i = 0 ; i < 3 ; i++) {
-		float   temp;
-		temp = move[i] * 8.0f;
-		if (temp > 0.0f)
-			temp += 0.5f;
-		else
-			temp -= 0.5f;
-		move[i] = 0.125f * (int)temp;
-	}*/
 	float temp = move_x * 8.0f;
 	if (temp > 0.0f)
 		temp += 0.5f;
@@ -791,22 +768,11 @@ const float sv_waterfriction	= 1f;
 
 static void(entity ent) SV_AddRotationalFriction =
 {
-	int	n;
 	float	adjustment;
 
 	VectorMA(ent->s.angles, FRAMETIME, ent->avelocity, ent->s.angles);
 	adjustment = FRAMETIME * sv_stopspeed * sv_friction;
-	/*for (n = 0; n < 3; n++) {
-		if (ent->avelocity[n] > 0) {
-			ent->avelocity[n] -= adjustment;
-			if (ent->avelocity[n] < 0)
-				ent->avelocity[n] = 0;
-		} else {
-			ent->avelocity[n] += adjustment;
-			if (ent->avelocity[n] > 0)
-				ent->avelocity[n] = 0;
-		}
-	}*/
+
 	if (ent->avelocity_x > 0) {
 		ent->avelocity_x -= adjustment;
 		if (ent->avelocity_x < 0)

@@ -513,7 +513,6 @@ SV_CalcGunOffset
 */
 static void(entity ent) SV_CalcGunOffset =
 {
-	int     i;
 	float   delta;
 
 	// gun angles from bobbing
@@ -527,20 +526,6 @@ static void(entity ent) SV_CalcGunOffset =
 	ent->client->ps.gunangles[PITCH] = xyspeed * bobfracsin * 0.005f;
 
 	// gun angles from delta movement
-	/*for (i = 0 ; i < 3 ; i++) {
-		delta = ent->client->oldviewangles[i] - ent->client->ps.viewangles[i];
-		if (delta > 180)
-			delta -= 360;
-		if (delta < -180)
-			delta += 360;
-		if (delta > 45)
-			delta = 45;
-		if (delta < -45)
-			delta = -45;
-		if (i == YAW)
-			ent->client->ps.gunangles[ROLL] += 0.1f * delta;
-		ent->client->ps.gunangles[i] += 0.2f * delta;
-	}*/
 	#define FIGURE_GUN_ANGLE(i) \
 		delta = ent->client->oldviewangles[i] - ent->client->ps.viewangles[i]; \
 		if (delta > 180) \
@@ -561,13 +546,6 @@ static void(entity ent) SV_CalcGunOffset =
 
 	// gun height
 	VectorClear(ent->client->ps.gunoffset);
-
-	// gun_x / gun_y / gun_z are development tools
-	/*for (i = 0 ; i < 3 ; i++) {
-		ent->client->ps.gunoffset[i] += forward[i] * (gun_y->value);
-		ent->client->ps.gunoffset[i] += right[i] * gun_x->value;
-		ent->client->ps.gunoffset[i] += up[i] * (-gun_z->value);
-	}*/
 }
 
 /*
@@ -863,7 +841,6 @@ and right after spawning
 void(entity ent) ClientEndServerFrame =
 {
 	float   bobtime;
-	int     i;
 
 	current_player = ent;
 
@@ -875,10 +852,6 @@ void(entity ent) ClientEndServerFrame =
 	// If it wasn't updated here, the view position would lag a frame
 	// behind the body position when pushed -- "sinking into plats"
 	//
-	/*for (i = 0 ; i < 3 ; i++) {
-		ent.client.ps.pmove.origin[i] = COORD2SHORT(ent.s.origin[i]);
-		ent.client.ps.pmove.velocity[i] = COORD2SHORT(ent.velocity[i]);
-	}*/
 	ent.client.ps.pmove.origin[0] = COORD2SHORT(ent.s.origin[0]);
 	ent.client.ps.pmove.velocity[0] = COORD2SHORT(ent.velocity[0]);
 	ent.client.ps.pmove.origin[1] = COORD2SHORT(ent.s.origin[1]);

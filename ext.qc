@@ -21,3 +21,6 @@ float(int) itof = #0:itof;
 int(float) ftoi = #0:ftoi;
 
 __variant(string) func_get = #0:func_get;
+
+// function is visible to func_get and to the game code
+#define API_FUNC __used

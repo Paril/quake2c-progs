@@ -11,6 +11,7 @@ game.qc
 globals.qc
 level.qc
 import.qc
+itemlist.qc
 entity.qc
 utils.qc
 items.qc
@@ -26,8 +27,17 @@ trail.qc
 gweapon.qc
 monster.qc
 flash.qc
-infantry.qc
 soldier.qc
+infantry.qc
+turret.qc
+gunner.qc
+flyer.qc
+berserk.qc
+float.qc
+parasite.qc
+tank.qc
+insane.qc
+flipper.qc
 pweapon.qc
 misc.qc
 trigger.qc

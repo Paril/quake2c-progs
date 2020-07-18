@@ -1,45 +1,45 @@
 struct spawn_field_t
 {
 	string		key;
-	.__variant	field;
+	int		field;
 };
 
-var __used spawn_field_t spawn_fields[] =
+API_FUNC static spawn_field_t spawn_fields[] =
 {
-	{ "classname", classname },
-	{ "model", model },
-	{ "spawnflags", spawnflags },
-	{ "speed", speed },
-	{ "accel", accel },
-	{ "decel", decel },
-	{ "target", target },
-	{ "targetname", targetname },
-	{ "pathtarget", pathtarget },
-	{ "deathtarget", deathtarget },
-	{ "killtarget", killtarget },
-	{ "combattarget", combattarget },
-	{ "message", message },
-	{ "team", team },
-	{ "wait", wait },
-	{ "delay", delay },
-	{ "random", random },
-	{ "move_origin", move_origin },
-	{ "move_angles", move_angles },
-	{ "style", style },
-	{ "count", count },
-	{ "health", health },
-	{ "sounds", sounds },
-	{ "light", (.__variant)(__variant)-1 },
-	{ "dmg", dmg },
-	{ "mass", mass },
-	{ "volume", volume },
-	{ "attenuation", attenuation },
-	{ "map", map },
-	{ "origin", s.origin },
-	{ "angles", s.angles }
+	{ "classname", (int)(__variant)classname },
+	{ "model", (int)(__variant)model },
+	{ "spawnflags", (int)(__variant)spawnflags },
+	{ "speed", (int)(__variant)speed },
+	{ "accel", (int)(__variant)accel },
+	{ "decel", (int)(__variant)decel },
+	{ "target", (int)(__variant)target },
+	{ "targetname", (int)(__variant)targetname },
+	{ "pathtarget", (int)(__variant)pathtarget },
+	{ "deathtarget", (int)(__variant)deathtarget },
+	{ "killtarget", (int)(__variant)killtarget },
+	{ "combattarget", (int)(__variant)combattarget },
+	{ "message", (int)(__variant)message },
+	{ "team", (int)(__variant)team },
+	{ "wait", (int)(__variant)wait },
+	{ "delay", (int)(__variant)delay },
+	{ "random", (int)(__variant)random },
+	{ "move_origin", (int)(__variant)move_origin },
+	{ "move_angles", (int)(__variant)move_angles },
+	{ "style", (int)(__variant)style },
+	{ "count", (int)(__variant)count },
+	{ "health", (int)(__variant)health },
+	{ "sounds", (int)(__variant)sounds },
+	{ "light", (int)(__variant)-1 },
+	{ "dmg", (int)(__variant)dmg },
+	{ "mass", (int)(__variant)mass },
+	{ "volume", (int)(__variant)volume },
+	{ "attenuation", (int)(__variant)attenuation },
+	{ "map", (int)(__variant)map },
+	{ "origin", (int)(__variant)s.origin },
+	{ "angles", (int)(__variant)s.angles }
 };
 
-__used static void(entity ent) SP_func_group = 
+API_FUNC static void(entity ent) SP_func_group = 
 {
 	G_FreeEdict(ent);
 }
@@ -51,8 +51,8 @@ static bool(string key, string value, entity ent) ED_ParseField =
 		if (stricmp(spawn_fields[i].key, key))
 			continue;
 		
-		if (spawn_fields[i].field != (.__variant)(__variant)-1)
-			entity_key_parse(ent, spawn_fields[i].field, value);
+		if (spawn_fields[i].field != -1)
+			entity_key_parse(ent, (.__variant)(__variant)spawn_fields[i].field, value);
 
 		return true;
 	}
@@ -222,7 +222,7 @@ Creates a server's entity / program execution context by
 parsing textual entity definitions out of an ent file.
 ==============
 */
-__used void(string mapname, string entities, string spawnpoint) SpawnEntities =
+void(string mapname, string entities, string spawnpoint) SpawnEntities =
 {
 	int entities_offset = 0;
 	int skill_level = skill.intVal;
@@ -482,7 +482,7 @@ Only used for the world.
 "gravity"   800 is default gravity
 "message"   text to print at user logon
 */
-__used static void(entity ent) SP_worldspawn =
+API_FUNC static void(entity ent) SP_worldspawn =
 {
 	ent->movetype = MOVETYPE_PUSH;
 	ent->solid = SOLID_BSP;

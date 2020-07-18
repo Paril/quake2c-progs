@@ -149,7 +149,6 @@ The timelimit or fraglimit has been exceeded
 static void() EndDMLevel =
 {
 	entity	ent;
-	static string seps = " ,\n\r";
 
 	// stay on same level flag
 	if (dmflags->intVal & DF_SAME_LEVEL) {
@@ -453,7 +452,7 @@ struct game_export_t {
 
 // Main entry point; if you need to do any global stuff, this is where
 // ya do it.
-__used void(__out game_export_t exports) GetGameAPI =
+API_FUNC void(__out game_export_t exports) GetGameAPI =
 {
 	exports.apiversion = GAMEC_API_VERSION;
 	exports.clientsize = sizeof(gclient_t);

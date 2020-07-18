@@ -391,7 +391,7 @@ monster_use
 Using a monster makes it angry at the current activator
 ================
 */
-static void(entity self, entity other, entity cactivator) monster_use =
+void(entity self, entity other, entity cactivator) monster_use =
 {
 	if (self->enemy)
 		return;

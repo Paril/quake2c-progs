@@ -457,7 +457,7 @@ Set "sounds" to one of the following:
 1) base fast
 2) chain slow
 */
-__used static void(entity ent) SP_func_plat =
+API_FUNC static void(entity ent) SP_func_plat =
 {
 	VectorClear(ent->s.angles);
 	ent->solid = SOLID_BSP;
@@ -561,7 +561,7 @@ static void(entity self, entity other, entity cactivator) rotating_use =
 	}
 }
 
-__used static void(entity ent) SP_func_rotating =
+API_FUNC static void(entity ent) SP_func_rotating =
 {
 	ent->solid = SOLID_BSP;
 	if (ent->spawnflags & 32)
@@ -700,7 +700,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 	button_fire(self);
 }
 
-__used static void(entity ent) SP_func_button =
+API_FUNC static void(entity ent) SP_func_button =
 {
 	vector	abs_movedir;
 	float	dist;
@@ -1052,7 +1052,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) door_tou
 	gi.sound(other, CHAN_AUTO, gi.soundindex("misc/talk1.wav"), 1, ATTN_NORM, 0);
 }
 
-__used static void(entity ent) SP_func_door =
+API_FUNC static void(entity ent) SP_func_door =
 {
 	vector	abs_movedir;
 
@@ -1170,7 +1170,7 @@ REVERSE will cause the door to rotate in the opposite direction.
 4)  heavy
 */
 
-__used static void(entity ent) SP_func_door_rotating =
+API_FUNC static void(entity ent) SP_func_door_rotating =
 {
 	VectorClear(ent->s.angles);
 
@@ -1282,7 +1282,7 @@ START_OPEN causes the water to move to its destination when spawned and operate 
 2)  lava
 */
 
-__used static void(entity self) SP_func_water =
+API_FUNC static void(entity self) SP_func_water =
 {
 	vector	abs_movedir;
 
@@ -1536,7 +1536,7 @@ void(entity self, entity other, entity cactivator) train_use =
 	}
 }
 
-__used static void(entity self) SP_func_train =
+API_FUNC static void(entity self) SP_func_train =
 {
 	self->movetype = MOVETYPE_PUSH;
 
@@ -1622,7 +1622,7 @@ static void(entity self) trigger_elevator_init =
 
 }
 
-__used static void(entity self) SP_trigger_elevator =
+API_FUNC static void(entity self) SP_trigger_elevator =
 {
 	self->think = trigger_elevator_init;
 	self->nextthink = level.framenum + 1;
@@ -1666,7 +1666,7 @@ static void(entity self, entity other, entity cactivator) func_timer_use =
 		func_timer_think(self);
 }
 
-__used static void(entity self) SP_func_timer =
+API_FUNC static void(entity self) SP_func_timer =
 {
 	if (!self->wait)
 		self->wait = 1.0f;
@@ -1708,7 +1708,7 @@ static void(entity self, entity other, entity cactivator) func_conveyor_use =
 		self->count = 0;
 }
 
-__used static void(entity self) SP_func_conveyor =
+API_FUNC static void(entity self) SP_func_conveyor =
 {
 	if (!self->speed)
 		self->speed = 100f;
@@ -1829,7 +1829,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 	door_secret_use(self, attacker, attacker);
 }
 
-__used static void(entity ent) SP_func_door_secret =
+API_FUNC static void(entity ent) SP_func_door_secret =
 {
 	vector	forward, right, up;
 	float	side;
@@ -1901,7 +1901,7 @@ static void(entity self, entity other, entity activator) use_killbox =
 	KillBox(self);
 }
 
-__used static void(entity ent) SP_func_killbox =
+API_FUNC static void(entity ent) SP_func_killbox =
 {
 	gi.setmodel(ent, ent->model);
 	ent->use = use_killbox;

@@ -970,6 +970,9 @@ static mframe_t soldier_frames_death6 [] = {
 };
 static var mmove_t soldier_move_death6 = { FRAME_death601, FRAME_death610, soldier_dead };
 
+// from misc.qc
+void(entity self, string gibname, int damage, gib_type_t type) ThrowHead;
+
 static void(entity self, entity inflictor, entity attacker, int damage, vector point) soldier_die =
 {
 	int	n;
@@ -1090,7 +1093,7 @@ static void(entity self) SP_monster_soldier_x =
 
 /*QUAKED monster_soldier_light (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
 */
-__used static void(entity self) SP_monster_soldier_light =
+API_FUNC static void(entity self) SP_monster_soldier_light =
 {
 	if (deathmatch->intVal) {
 		G_FreeEdict(self);
@@ -1112,7 +1115,7 @@ __used static void(entity self) SP_monster_soldier_light =
 
 /*QUAKED monster_soldier (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
 */
-__used static void(entity self) SP_monster_soldier =
+API_FUNC static void(entity self) SP_monster_soldier =
 {
 	if (deathmatch->intVal) {
 		G_FreeEdict(self);
@@ -1132,7 +1135,7 @@ __used static void(entity self) SP_monster_soldier =
 
 /*QUAKED monster_soldier_ss (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
 */
-__used static void(entity self) SP_monster_soldier_ss =
+API_FUNC static void(entity self) SP_monster_soldier_ss =
 {
 	if (deathmatch->intVal) {
 		G_FreeEdict(self);

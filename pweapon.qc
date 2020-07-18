@@ -84,7 +84,7 @@ void(entity who, vector where, player_noise_t type) PlayerNoise =
 }
 
 
-bool(entity ent, entity other) Pickup_Weapon =
+API_FUNC static bool(entity ent, entity other) Pickup_Weapon =
 {
 	int		index;
 	gitem_id_t	ammo;
@@ -261,7 +261,7 @@ Use_Weapon
 Make the weapon ready if there is ammo
 ================
 */
-void(entity ent, gitem_id_t it) Use_Weapon =
+API_FUNC static void(entity ent, gitem_id_t it) Use_Weapon =
 {
 	int		ammo_index;
 	gitem_id_t	ammo_item;
@@ -329,8 +329,6 @@ A generic function to handle the basics of weapon thinking
 
 static void(entity ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST, int FRAME_IDLE_LAST, int FRAME_DEACTIVATE_LAST, bool(int) is_pause_frame, bool(int) is_fire_frame, void(entity) fire) Weapon_Generic =
 {
-	int     n;
-
 	if (ent->deadflag || ent->s.modelindex != 255) { // VWep animations screw up corpses
 		return;
 	}
@@ -851,7 +849,6 @@ MACHINEGUN / CHAINGUN
 
 static void(entity ent) Machinegun_Fire =
 {
-	int	i;
 	vector	start;
 	vector	forward, right;
 	vector	angles;

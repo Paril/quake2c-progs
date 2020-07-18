@@ -86,7 +86,7 @@ static void(entity self, entity other, entity cactivator) trigger_enable =
 	gi.linkentity(self);
 }
 
-__used static void(entity ent) SP_trigger_multiple =
+API_FUNC static void(entity ent) SP_trigger_multiple =
 {
 	if (ent->sounds == 1)
 		ent->noise_index = gi.soundindex("misc/secret.wav");
@@ -133,7 +133,7 @@ sounds
 "message"   string to be displayed when triggered
 */
 
-__used static void(entity ent) SP_trigger_once =
+API_FUNC static void(entity ent) SP_trigger_once =
 {
 	// make old maps work because I messed up on flag assignments here
 	// triggered was on bit 1 when it should have been on bit 4
@@ -158,7 +158,7 @@ static void(entity self, entity other, entity cactivator) trigger_relay_use =
 	G_UseTargets(self, cactivator);
 }
 
-__used static void(entity self) SP_trigger_relay =
+API_FUNC static void(entity self) SP_trigger_relay =
 {
 	self->use = trigger_relay_use;
 }
@@ -236,7 +236,7 @@ static void(entity self, entity other, entity cactivator) trigger_key_use =
 	self->use = 0;
 }
 
-__used static void(entity self) SP_trigger_key =
+API_FUNC static void(entity self) SP_trigger_key =
 {
 	if (!st.item) {
 		gi.dprintf("no key item for trigger_key at %s\n", vtos(self->s.origin));
@@ -300,7 +300,7 @@ static void(entity self, entity other, entity cactivator) trigger_counter_use =
 	multi_trigger(self);
 }
 
-__used static void(entity self) SP_trigger_counter =
+API_FUNC static void(entity self) SP_trigger_counter =
 {
 	self->wait = -1f;
 	if (!self->count)
@@ -321,7 +321,7 @@ trigger_always
 /*QUAKED trigger_always (.5 .5 .5) (-8 -8 -8) (8 8 8)
 This trigger will always fire.  It is activated by the world.
 */
-__used static void(entity ent) SP_trigger_always
+API_FUNC static void(entity ent) SP_trigger_always
 {
 	// we must have some delay to make sure our use targets are present
 	if (ent->delay < 0.2f)
@@ -367,7 +367,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) trigger_
 Pushes the player
 "speed"     defaults to 1000
 */
-__used static void(entity self) SP_trigger_push =
+API_FUNC static void(entity self) SP_trigger_push =
 {
 	InitTrigger(self);
 	windsound = gi.soundindex("misc/windfly.wav");
@@ -438,7 +438,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) hurt_tou
 	T_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, self->dmg, dflags, MOD_TRIGGER_HURT);
 }
 
-__used static void(entity self) SP_trigger_hurt =
+API_FUNC static void(entity self) SP_trigger_hurt =
 {
 	InitTrigger(self);
 
@@ -479,7 +479,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) trigger_
 	other->gravity = self->gravity;
 }
 
-__used static void(entity self) SP_trigger_gravity =
+API_FUNC static void(entity self) SP_trigger_gravity =
 {
 	if (!st.gravity) {
 		gi.dprintf("trigger_gravity without gravity set at %s\n", vtos(self->s.origin));
@@ -527,7 +527,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) trigger_
 	other->velocity_z = self->movedir_z;
 }
 
-__used static void(entity self) SP_trigger_monsterjump =
+API_FUNC static void(entity self) SP_trigger_monsterjump =
 {
 	if (!self->speed)
 		self->speed = 200f;
