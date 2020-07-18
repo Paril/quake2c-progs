@@ -188,8 +188,8 @@ static var mmove_t supertank_move_pain1 = { FRAME_pain1_1, FRAME_pain1_4, supert
 
 static void supertank_dead(entity self)
 {
-	VectorSet(self->mins, -60, -60, 0);
-	VectorSet(self->maxs, 60, 60, 72);
+	self->mins = '-60 -60 0';
+	self->maxs = '60 60 72';
 	self->movetype = MOVETYPE_TOSS;
 	self->svflags |= SVF_DEADMONSTER;
 	self->nextthink = 0;
@@ -303,7 +303,7 @@ static void supertankRocket(entity self)
 	else // (self->s.frame == FRAME_attak2_14)
 		flash_number = MZ2_SUPERTANK_ROCKET_3;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 	VectorCopy(self->enemy->s.origin, vec);
@@ -360,7 +360,7 @@ void supertankMachineGun(entity self)
 	dir[1] = self->s.angles[1];
 	dir[2] = 0;
 
-	AngleVectors(dir, forward, right, unref_vec);
+	AngleVectors(dir, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 	if (self->enemy) {
@@ -526,8 +526,8 @@ API_FUNC static void SP_monster_supertank(entity self)
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 	self->s.modelindex = gi.modelindex("models/monsters/boss1/tris.md2");
-	VectorSet(self->mins, -64, -64, 0);
-	VectorSet(self->maxs, 64, 64, 112);
+	self->mins = '-64 -64 0';
+	self->maxs = '64 64 112';
 
 	self->health = 1500;
 	self->gib_health = -500;

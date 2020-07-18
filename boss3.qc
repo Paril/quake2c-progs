@@ -37,8 +37,8 @@ API_FUNC static void SP_monster_boss3_stand(entity self)
 
 	gi.soundindex("misc/bigtele.wav");
 
-	VectorSet(self->mins, -32, -32, 0);
-	VectorSet(self->maxs, 32, 32, 90);
+	self->mins = '-32 -32 0';
+	self->maxs = '32 32 90';
 
 	self->use = Use_Boss3;
 	self->think = Think_Boss3Stand;

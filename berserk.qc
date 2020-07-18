@@ -107,7 +107,7 @@ static void(entity self) berserk_run =
 
 static void(entity self) berserk_attack_spike =
 {
-	static vector  aim = {MELEE_DISTANCE, 0, -24};
+	static const vector aim = [ MELEE_DISTANCE, 0, -24 ];
 	fire_hit(self, aim, (15 + (Q_rand() % 6)), 400);    //  Faster attack -- upwards and backwards
 }
 
@@ -130,8 +130,7 @@ static var mmove_t berserk_move_attack_spike = { FRAME_att_c1, FRAME_att_c8, ber
 
 static void(entity self) berserk_attack_club =
 {
-	vector  aim;
-	VectorSet(aim, MELEE_DISTANCE, self->mins_x, -4);
+	const vector  aim = [ MELEE_DISTANCE, self->mins_x, -4 ];
 	fire_hit(self, aim, (5 + (Q_rand() % 6)), 400);     // Slower attack
 }
 
@@ -213,8 +212,8 @@ static void(entity self, entity other, float kick, int damage) berserk_pain =
 
 static void(entity self) berserk_dead =
 {
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, -8);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 -8';
 	self->movetype = MOVETYPE_TOSS;
 	self->svflags |= SVF_DEADMONSTER;
 	self->nextthink = 0;
@@ -312,8 +311,8 @@ API_FUNC static void(entity self) SP_monster_berserk =
 	sound_sight = gi.soundindex("berserk/sight.wav");
 
 	self->s.modelindex = gi.modelindex("models/monsters/berserk/tris.md2");
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, 32);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 32';
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 

@@ -73,7 +73,7 @@ bool(entity self, vector aim, int damage, int kick) fire_hit =
 			tr.ent = self->enemy;
 	}
 
-	AngleVectors(self->s.angles, forward, right, up);
+	AngleVectors(self->s.angles, &forward, &right, &up);
 	VectorMA(self->s.origin, range, forward, point);
 	VectorMA(point, aim_y, right, point);
 	VectorMA(point, aim_z, up, point);
@@ -116,9 +116,9 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 	
 	gi.trace(&tr, self->s.origin, vec3_origin, vec3_origin, start, self, MASK_SHOT);
 	if (!(tr.fraction < 1.0f)) {
-		vectoangles(aimdir, dir);
+		dir = vectoangles(aimdir);
 
-		AngleVectors(dir, forward, right, up);
+		AngleVectors(dir, &forward, &right, &up);
 
 		r = crandom() * hspread;
 		u = crandom() * vspread;
@@ -141,7 +141,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 			water = true;
 			VectorCopy(tr.endpos, water_start);
 
-			if (!VectorCompare(start, tr.endpos)) {
+			if (start != tr.endpos) {
 				if (tr.contents & CONTENTS_WATER) {
 					if (tr.surface->name == "*brwater")
 						color = SPLASH_BROWN_WATER;
@@ -166,8 +166,8 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 
 				// change bullet's course when it enters water
 				VectorSubtract(end, start, dir);
-				vectoangles(dir, dir);
-				AngleVectors(dir, forward, right, up);
+				dir = vectoangles(dir);
+				AngleVectors(dir, &forward, &right, &up);
 				r = crandom() * hspread * 2;
 				u = crandom() * vspread * 2;
 				VectorMA(water_start, 8192, forward, end);
@@ -212,7 +212,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 		else
 			gi.trace(&tr, pos, vec3_origin, vec3_origin, water_start, tr.ent, MASK_WATER);
 
-		VectorAdd(water_start, tr.endpos, pos);
+		pos = water_start + tr.endpos;
 		VectorScale(pos, 0.5f, pos);
 
 		gi.WriteByte(svc_temp_entity);
@@ -309,14 +309,14 @@ void(entity self, vector start, vector dir, int damage, int speed, int effect, b
 	// is very jerky since you are predicted 'against' the shots.
 	VectorCopy(start, bolt->s.origin);
 	VectorCopy(start, bolt->s.old_origin);
-	vectoangles(dir, bolt->s.angles);
+	bolt->s.angles = vectoangles(dir);
 	VectorScale(dir, speed, bolt->velocity);
 	bolt->movetype = MOVETYPE_FLYMISSILE;
 	bolt->clipmask = MASK_SHOT;
 	bolt->solid = SOLID_BBOX;
 	bolt->s.effects |= effect;
-	VectorClear(bolt->mins);
-	VectorClear(bolt->maxs);
+	bolt->mins = vec3_origin;
+	bolt->maxs = vec3_origin;
 	bolt->s.modelindex = gi.modelindex("models/objects/laser/tris.md2");
 	bolt->s.sound = gi.soundindex("misc/lasfly.wav");
 	bolt->owner = self;
@@ -360,7 +360,7 @@ static void(entity ent) Grenade_Explode =
 		vector	v;
 		vector dir;
 
-		VectorAdd(ent->enemy->mins, ent->enemy->maxs, v);
+		v = ent->enemy->mins + ent->enemy->maxs;
 		VectorMA(ent->enemy->s.origin, 0.5f, v, v);
 		VectorSubtract(ent->s.origin, v, v);
 		points = ent->dmg - 0.5f * VectorLength(v);
@@ -432,8 +432,8 @@ void(entity self, vector start, vector aimdir, int damage, int speed, float time
 	vector	forward, right, up;
 	float   scale;
 
-	vectoangles(aimdir, dir);
-	AngleVectors(dir, forward, right, up);
+	dir = vectoangles(aimdir);
+	AngleVectors(dir, &forward, &right, &up);
 
 	grenade = G_Spawn();
 	VectorCopy(start, grenade->s.origin);
@@ -442,13 +442,13 @@ void(entity self, vector start, vector aimdir, int damage, int speed, float time
 	VectorMA(grenade->velocity, scale, up, grenade->velocity);
 	scale = random(-10f, 10f);
 	VectorMA(grenade->velocity, scale, right, grenade->velocity);
-	VectorSet(grenade->avelocity, 300, 300, 300);
+	grenade->avelocity = '300 300 300';
 	grenade->movetype = MOVETYPE_BOUNCE;
 	grenade->clipmask = MASK_SHOT;
 	grenade->solid = SOLID_BBOX;
 	grenade->s.effects |= EF_GRENADE;
-	VectorClear(grenade->mins);
-	VectorClear(grenade->maxs);
+	grenade->mins = vec3_origin;
+	grenade->maxs = vec3_origin;
 	grenade->s.modelindex = gi.modelindex("models/objects/grenade/tris.md2");
 	grenade->owner = self;
 	grenade->touch = Grenade_Touch;
@@ -468,8 +468,8 @@ void(entity self, vector start, vector aimdir, int damage, int speed, float time
 	vector	forward, right, up;
 	float   scale;
 
-	vectoangles(aimdir, dir);
-	AngleVectors(dir, forward, right, up);
+	dir = vectoangles(aimdir);
+	AngleVectors(dir, &forward, &right, &up);
 
 	grenade = G_Spawn();
 	VectorCopy(start, grenade->s.origin);
@@ -478,13 +478,13 @@ void(entity self, vector start, vector aimdir, int damage, int speed, float time
 	VectorMA(grenade->velocity, scale, up, grenade->velocity);
 	scale = random(-10f, 10f);
 	VectorMA(grenade->velocity, scale, right, grenade->velocity);
-	VectorSet(grenade->avelocity, 300, 300, 300);
+	grenade->avelocity = '300 300 300';
 	grenade->movetype = MOVETYPE_BOUNCE;
 	grenade->clipmask = MASK_SHOT;
 	grenade->solid = SOLID_BBOX;
 	grenade->s.effects |= EF_GRENADE;
-	VectorClear(grenade->mins);
-	VectorClear(grenade->maxs);
+	grenade->mins = vec3_origin;
+	grenade->maxs = vec3_origin;
 	grenade->s.modelindex = gi.modelindex("models/objects/grenade2/tris.md2");
 	grenade->owner = self;
 	grenade->touch = Grenade_Touch;
@@ -567,14 +567,14 @@ void(entity self, vector start, vector dir, int damage, int speed, float damage_
 	rocket = G_Spawn();
 	VectorCopy(start, rocket->s.origin);
 	VectorCopy(dir, rocket->movedir);
-	vectoangles(dir, rocket->s.angles);
+	rocket->s.angles = vectoangles(dir);
 	VectorScale(dir, speed, rocket->velocity);
 	rocket->movetype = MOVETYPE_FLYMISSILE;
 	rocket->clipmask = MASK_SHOT;
 	rocket->solid = SOLID_BBOX;
 	rocket->s.effects |= EF_ROCKET;
-	VectorClear(rocket->mins);
-	VectorClear(rocket->maxs);
+	rocket->mins = vec3_origin;
+	rocket->maxs = vec3_origin;
 	rocket->s.modelindex = gi.modelindex("models/objects/rocket/tris.md2");
 	rocket->owner = self;
 	rocket->touch = rocket_touch;
@@ -678,7 +678,7 @@ static void(entity self) bfg_explode =
 			if (!CanDamage(ent, self->owner))
 				continue;
 
-			VectorAdd(ent->mins, ent->maxs, v);
+			v = ent->mins + ent->maxs;
 			VectorMA(ent->s.origin, 0.5f, v, v);
 			VectorSubtract(self->s.origin, v, v);
 			dist = VectorLength(v);
@@ -722,7 +722,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) bfg_touc
 	self->solid = SOLID_NOT;
 	self->touch = 0;
 	VectorMA(self->s.origin, -1 * FRAMETIME, self->velocity, self->s.origin);
-	VectorClear(self->velocity);
+	self->velocity = vec3_origin;
 	self->s.modelindex = gi.modelindex("sprites/s_bfg3.sp2");
 	self->s.frame = 0;
 	self->s.sound = 0;
@@ -820,14 +820,14 @@ void(entity self, vector start, vector dir, int damage, int speed, float damage_
 	bfg = G_Spawn();
 	VectorCopy(start, bfg->s.origin);
 	VectorCopy(dir, bfg->movedir);
-	vectoangles(dir, bfg->s.angles);
+	bfg->s.angles = vectoangles(dir);
 	VectorScale(dir, speed, bfg->velocity);
 	bfg->movetype = MOVETYPE_FLYMISSILE;
 	bfg->clipmask = MASK_SHOT;
 	bfg->solid = SOLID_BBOX;
 	bfg->s.effects |= EF_BFG | EF_ANIM_ALLFAST;
-	VectorClear(bfg->mins);
-	VectorClear(bfg->maxs);
+	bfg->mins = vec3_origin;
+	bfg->maxs = vec3_origin;
 	bfg->s.modelindex = gi.modelindex("sprites/s_bfg1.sp2");
 	bfg->owner = self;
 	bfg->touch = bfg_touch;

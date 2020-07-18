@@ -313,28 +313,6 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 
 //===================================================================
 
-#if 0
-// cursor positioning
-xl <value>
-xr <value>
-yb <value>
-yt <value>
-xv <value>
-yv <value>
-
-// drawing
-statpic <name>
-pic <stat>
-num <fieldwidth> <stat>
-string <stat>
-
-// control
-if <stat>
-ifeq <stat> <value>
-ifbit <stat> <value>
-endif
-#endif
-
 static string single_statusbar =
 "yb -24 "
 

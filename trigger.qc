@@ -1,6 +1,6 @@
 void(entity self) InitTrigger =
 {
-	if (!VectorEmpty(self->s.angles))
+	if (self->s.angles)
 		G_SetMovedir(self->s.angles, self->movedir);
 
 	self->solid = SOLID_TRIGGER;
@@ -56,11 +56,11 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) Touch_Mu
 	} else
 		return;
 
-	if (!VectorEmpty(self->movedir)) {
+	if (self->movedir) {
 		vector	forward;
 
-		AngleVectors(other->s.angles, forward, unref_vec, unref_vec);
-		if (DotProduct(forward, self->movedir) < 0)
+		AngleVectors(other->s.angles, &forward, 0, 0);
+		if (forward * self->movedir < 0)
 			return;
 	}
 
@@ -110,7 +110,7 @@ API_FUNC static void(entity ent) SP_trigger_multiple =
 		ent->use = Use_Multi;
 	}
 
-	if (!VectorEmpty(ent->s.angles))
+	if (ent->s.angles)
 		G_SetMovedir(ent->s.angles, ent->movedir);
 
 	gi.setmodel(ent, ent->model);

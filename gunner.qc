@@ -242,8 +242,8 @@ static void(entity self, entity other, float kick, int damage) gunner_pain =
 
 static void(entity self) gunner_dead =
 {
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, -8);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 -8';
 	self->movetype = MOVETYPE_TOSS;
 	self->svflags |= SVF_DEADMONSTER;
 	self->nextthink = 0;
@@ -363,7 +363,7 @@ static void(entity self) GunnerFire =
 
 	flash_number = MZ2_GUNNER_MACHINEGUN_1 + (self->s.frame - FRAME_attak216);
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 	// project enemy back a bit and target there
@@ -392,7 +392,7 @@ static void(entity self) GunnerGrenade =
 	else // (self->s.frame == FRAME_attak114)
 		flash_number = MZ2_GUNNER_GRENADE_4;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 	//FIXME : do a spread -225 -75 75 225 degrees around forward
@@ -541,8 +541,8 @@ API_FUNC static void(entity self) SP_monster_gunner =
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 	self->s.modelindex = gi.modelindex("models/monsters/gunner/tris.md2");
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, 32);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 32';
 
 	self->health = 175;
 	self->gib_health = -70;

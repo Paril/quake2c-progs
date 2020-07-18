@@ -18,8 +18,8 @@ bool(entity ent) M_CheckBottom =
 	int	x, y;
 	float	mid, bottom;
 
-	VectorAdd(ent->s.origin, ent->mins, cmins);
-	VectorAdd(ent->s.origin, ent->maxs, cmaxs);
+	cmins = ent->s.origin + ent->mins;
+	cmaxs = ent->s.origin + ent->maxs;
 
 // if all of the points under the corners are solid world, don't bother
 // with the tougher checks
@@ -96,13 +96,13 @@ bool(entity ent, vector move, bool relink) SV_movestep =
 
 // try the move
 	VectorCopy(ent->s.origin, oldorg);
-	VectorAdd(ent->s.origin, move, neworg);
+	neworg = ent->s.origin + move;
 
 // flying monsters don't step up
 	if (ent->flags & (FL_SWIM | FL_FLY)) {
 		// try one move with vertical motion, then one without
 		for (i = 0 ; i < 2 ; i++) {
-			VectorAdd(ent->s.origin, move, neworg);
+			neworg = ent->s.origin + move;
 			if (i == 0 && ent->enemy) {
 				if (!ent->goalentity)
 					ent->goalentity = ent->enemy;
@@ -203,7 +203,7 @@ bool(entity ent, vector move, bool relink) SV_movestep =
 	if (trace.fraction == 1) {
 		// if monster had the ground pulled out, go ahead and fall
 		if (ent->flags & FL_PARTIALGROUND) {
-			VectorAdd(ent->s.origin, move, ent->s.origin);
+			ent->s.origin += move;
 			if (relink) {
 				gi.linkentity(ent);
 				G_TouchTriggers(ent);

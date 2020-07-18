@@ -168,7 +168,7 @@ static float(vector angles, vector velocity) SV_CalcRoll =
 	float   side;
 	float   value;
 
-	side = DotProduct(velocity, right);
+	side = velocity * right;
 	sign = side < 0f ? -1f : 1f;
 	side = fabsf(side);
 
@@ -241,7 +241,7 @@ static void(entity ent) P_FallingDamage =
 		damage = (int)((delta - 30) / 2);
 		if (damage < 1)
 			damage = 1;
-		VectorSet(dir, 0, 0, 1);
+		dir = '0 0 1';
 
 		if (!deathmatch.intVal || !(dmflags.intVal & DF_NO_FALLING))
 			T_Damage(ent, world, world, dir, ent->s.origin, vec3_origin, damage, 0, 0, MOD_FALLING);
@@ -338,7 +338,7 @@ static void(entity player) P_DamageFeedback =
 
 	// the color of the blend will vary based on how much was absorbed
 	// by different armors
-	VectorClear(v);
+	v = vec3_origin;
 	if (player.client.damage_parmor)
 		VectorMA(v, (float)player.client.damage_parmor / realcount, power_color, v);
 	if (player.client.damage_armor)
@@ -363,10 +363,10 @@ static void(entity player) P_DamageFeedback =
 		VectorSubtract(player.client.damage_from, player.s.origin, v);
 		VectorNormalize(v);
 
-		side = DotProduct(v, right);
+		side = v * right;
 		player.client.v_dmg_roll = kick * side * 0.3f;
 
-		side = -DotProduct(v, forward);
+		side = -(v * forward);
 		player.client.v_dmg_pitch = kick * side * 0.3f;
 
 		player.client.v_dmg_time = level.time + DAMAGE_TIME;
@@ -408,7 +408,7 @@ static void(entity ent) SV_CalcViewOffset =
 
 	// if dead, fix the angle and don't add any kick
 	if (ent->deadflag) {
-		VectorClear(ent.client.ps.kick_angles);
+		ent.client.ps.kick_angles = vec3_origin;
 
 		ent.client.ps.viewangles[ROLL] = 40f;
 		ent.client.ps.viewangles[PITCH] = -15f;
@@ -438,10 +438,10 @@ static void(entity ent) SV_CalcViewOffset =
 
 		// add angles based on velocity
 
-		delta = DotProduct(ent.velocity, forward);
+		delta = ent.velocity * forward;
 		ent.client.ps.kick_angles[PITCH] += delta * run_pitch.floatVal;
 
-		delta = DotProduct(ent.velocity, right);
+		delta = ent.velocity * right;
 		ent.client.ps.kick_angles[ROLL] += delta * run_roll.floatVal;
 
 		// add angles based on bob
@@ -462,7 +462,7 @@ static void(entity ent) SV_CalcViewOffset =
 
 	// base origin
 
-	VectorClear(v);
+	v = vec3_origin;
 
 	// add view height
 
@@ -484,12 +484,10 @@ static void(entity ent) SV_CalcViewOffset =
 	v_z += bob;
 
 	// add kick offset
-
-	VectorAdd(v, ent.client.kick_origin, v);
+	v += ent.client.kick_origin;
 
 	// absolutely bound offsets
 	// so the view can never be outside the player box
-
 	if (v_x < -14)
 		v_x = -14f;
 	else if (v_x > 14)
@@ -545,7 +543,7 @@ static void(entity ent) SV_CalcGunOffset =
 	FIGURE_GUN_ANGLE(2);
 
 	// gun height
-	VectorClear(ent->client->ps.gunoffset);
+	ent->client->ps.gunoffset = vec3_origin;
 }
 
 /*
@@ -590,7 +588,7 @@ static void(entity ent) SV_CalcBlend =
 	ent->client->ps.blend[0] = ent->client->ps.blend[1] = ent->client->ps.blend[2] = ent->client->ps.blend[3] = 0f;
 
 	// add for contents
-	VectorAdd(ent->s.origin, ent->client->ps.viewoffset, vieworg);
+	vieworg = ent->s.origin + ent->client->ps.viewoffset;
 	contents = gi.pointcontents(vieworg);
 	if (contents & (CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER))
 		ent->client->ps.rdflags |= RDF_UNDERWATER;
@@ -872,7 +870,7 @@ void(entity ent) ClientEndServerFrame =
 		return;
 	}
 
-	AngleVectors(ent.client.v_angle, forward, right, up);
+	AngleVectors(ent.client.v_angle, &forward, &right, &up);
 
 	// burn from lava, etc
 	P_WorldEffects();

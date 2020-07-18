@@ -362,7 +362,7 @@ static void(entity self, int flash_number) soldier_fire =
 	else
 		flash_index = machinegun_flash[flash_number];
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_index], forward, right, start);
 
 	if (flash_number == 5 || flash_number == 6) {
@@ -371,8 +371,8 @@ static void(entity self, int flash_number) soldier_fire =
 		VectorCopy(self->enemy->s.origin, end);
 		end_z += self->enemy->viewheight;
 		VectorSubtract(end, start, aim);
-		vectoangles(aim, dir);
-		AngleVectors(dir, forward, right, up);
+		dir = vectoangles(aim);
+		AngleVectors(dir, &forward, &right, &up);
 
 		r = random(-1000f, 1000f);
 		u = random(-500f, 500f);
@@ -718,8 +718,8 @@ static void(entity self) soldier_fire7 =
 
 static void(entity self) soldier_dead =
 {
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, -8);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 -8';
 	self->movetype = MOVETYPE_TOSS;
 	self->svflags |= SVF_DEADMONSTER;
 	self->nextthink = 0;
@@ -1060,8 +1060,8 @@ static void(entity self) SP_monster_soldier_x =
 
 	self->s.modelindex = gi.modelindex("models/monsters/soldier/tris.md2");
 	self->monsterinfo.scale = MODEL_SCALE;
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, 32);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 32';
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 

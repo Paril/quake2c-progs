@@ -1,4 +1,4 @@
-static void AnglesNormalize(vector vec)
+static void AnglesNormalize(__inout vector vec)
 {
 	while (vec[0] > 360)
 		vec[0] -= 360;
@@ -57,7 +57,7 @@ static void turret_breach_fire(entity self)
 	int     damage;
 	int     speed;
 
-	AngleVectors(self->s.angles, f, r, u);
+	AngleVectors(self->s.angles, &f, &r, &u);
 	VectorMA(self->s.origin, self->move_origin[0], f, start);
 	VectorMA(start, self->move_origin[1], r, start);
 	VectorMA(start, self->move_origin[2], u, start);
@@ -136,7 +136,7 @@ static void turret_breach_think(entity self)
 	// if we have adriver, adjust his velocities
 	if (self->owner) {
 		float   angle;
-		float   target_z;
+		float   target_zf;
 		float   diff;
 		vector  target;
 		vector  dir;
@@ -158,9 +158,9 @@ static void turret_breach_think(entity self)
 
 		// z
 		angle = DEG2RAD(self->s.angles[PITCH]);
-		target_z = SnapToEights(self->s.origin[2] + self->owner->move_origin[0] * tanf(angle) + self->owner->move_origin[2]);
+		target_zf = SnapToEights(self->s.origin[2] + self->owner->move_origin[0] * tanf(angle) + self->owner->move_origin[2]);
 
-		diff = target_z - self->owner->s.origin[2];
+		diff = target_zf - self->owner->s.origin[2];
 		self->owner->velocity[2] = diff * 1.0f / FRAMETIME;
 
 		if (self->spawnflags & 65536) {
@@ -293,7 +293,7 @@ static void turret_driver_think(entity self)
 	VectorCopy(self->enemy->s.origin, target);
 	target[2] += self->enemy->viewheight;
 	VectorSubtract(target, self->target_ent->s.origin, dir);
-	vectoangles(dir, self->target_ent->move_angles);
+	self->target_ent->move_angles = vectoangles(dir);
 
 	// decide if we should shoot
 	if (level.framenum < self->monsterinfo.attack_finished)
@@ -327,7 +327,7 @@ static void turret_driver_link(entity self)
 	self->move_origin[0] = VectorLength(vec);
 
 	VectorSubtract(self->s.origin, self->target_ent->s.origin, vec);
-	vectoangles(vec, vec);
+	vec = vectoangles(vec);
 	AnglesNormalize(vec);
 	self->move_origin[1] = vec[1];
 
@@ -351,8 +351,8 @@ API_FUNC static void SP_turret_driver(entity self)
 	self->movetype = MOVETYPE_PUSH;
 	self->solid = SOLID_BBOX;
 	self->s.modelindex = gi.modelindex("models/monsters/infantry/tris.md2");
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, 32);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 32';
 
 	self->health = 100;
 	self->gib_health = 0;

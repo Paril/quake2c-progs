@@ -13,7 +13,7 @@ bool(entity targ, entity inflictor) CanDamage =
 
 // bmodels need special checking because their origin is 0,0,0
 	if (targ->movetype == MOVETYPE_PUSH) {
-		VectorAdd(targ->absmin, targ->absmax, dest);
+		dest = targ->absmin + targ->absmax;
 		VectorScale(dest, 0.5f, dest);
 		gi.trace(&trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 		if (trace.fraction == 1.0f)
@@ -184,10 +184,10 @@ static int(entity ent, vector point, vector normal, int damage, damage_flags_t d
 		vector	forward;
 
 		// only works if damage point is in front
-		AngleVectors(ent->s.angles, forward, unref_vec, unref_vec);
+		AngleVectors(ent->s.angles, &forward, 0, 0);
 		VectorSubtract(point, ent->s.origin, vec);
 		VectorNormalize(vec);
-		dot = DotProduct(vec, forward);
+		dot = vec * forward;
 		if (dot <= 0.3f)
 			return 0;
 
@@ -397,7 +397,7 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 			else
 				VectorScale(dir, 500.0f * (float)knockback / calc_mass, kvel);
 
-			VectorAdd(targ->velocity, kvel, targ->velocity);
+			targ->velocity += kvel;
 		}
 	}
 
@@ -499,7 +499,7 @@ void(entity inflictor, entity attacker, float damage, entity ignore, float radiu
 		if (!ent->takedamage)
 			continue;
 
-		VectorAdd(ent->mins, ent->maxs, v);
+		v = ent->mins + ent->maxs;
 		VectorMA(ent->s.origin, 0.5f, v, v);
 		VectorSubtract(inflictor->s.origin, v, v);
 		points = damage - 0.5f * VectorLength(v);

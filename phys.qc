@@ -133,7 +133,7 @@ static int(vector in, vector normal, __out vector out, float overbounce) ClipVel
 	if (!normal_z)
 		blocked |= 2;       // step
 
-	backoff = DotProduct(in, normal) * overbounce;
+	backoff = (in * normal) * overbounce;
 
 	change = normal_x * backoff;
 	out_x = in_x - change;
@@ -199,7 +199,7 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 
 		if (trace.allsolid) {
 			// entity is trapped in another solid
-			VectorClear(ent->velocity);
+			ent->velocity = vec3_origin;
 			return 3;
 		}
 
@@ -240,7 +240,7 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 		// cliped to another plane
 		if (numplanes >= MAX_CLIP_PLANES) {
 			// this shouldn't really happen
-			VectorClear(ent->velocity);
+			ent->velocity = vec3_origin;
 			return 3;
 		}
 
@@ -254,8 +254,8 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 			ClipVelocity(original_velocity, planes[i], new_velocity, 1);
 
 			for (j = 0 ; j < numplanes ; j++)
-				if ((j != i) && !VectorCompare(planes[i], planes[j])) {
-					if (DotProduct(new_velocity, planes[j]) < 0)
+				if (j != i && planes[i] != planes[j]) {
+					if (new_velocity * planes[j] < 0)
 						break;  // not ok
 				}
 			if (j == numplanes)
@@ -269,11 +269,11 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 			// go along the crease
 			if (numplanes != 2) {
 //              gi.dprintf ("clip velocity, numplanes == %i\n",numplanes);
-				VectorClear(ent->velocity);
+				ent->velocity = vec3_origin;
 				return 7;
 			}
-			CrossProduct(planes[0], planes[1], dir);
-			d = DotProduct(dir, ent->velocity);
+			dir = CrossProduct(planes[0], planes[1]);
+			d = dir * ent->velocity;
 			VectorScale(dir, d, ent->velocity);
 		}
 
@@ -281,8 +281,8 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 // if original velocity is against the original velocity, stop dead
 // to avoid tiny occilations in sloping corners
 //
-		if (DotProduct(ent->velocity, primal_velocity) <= 0) {
-			VectorClear(ent->velocity);
+		if (ent->velocity * primal_velocity <= 0) {
+			ent->velocity = vec3_origin;
 			return blocked;
 		}
 	}
@@ -324,7 +324,7 @@ static void(entity ent, vector push, __out trace_t trace) SV_PushEntity =
 	int	mask;
 
 	VectorCopy(ent->s.origin, start);
-	VectorAdd(start, push, end);
+	end = start + push;
 
 retry:
 	if (ent->clipmask)
@@ -399,8 +399,8 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 	maxs = pusher.absmax + move;
 
 // we need this for pushing things later
-	VectorNegate(amove, org);
-	AngleVectors(org, forward, right, up);
+	org = -amove;
+	AngleVectors(org, &forward, &right, &up);
 
 // save the pusher's original position
 	pusher.pushed.next = world;
@@ -419,8 +419,8 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 	pushed_head = pusher;
 
 // move the pusher to it's final position
-	VectorAdd(pusher->s.origin, move, pusher->s.origin);
-	VectorAdd(pusher->s.angles, amove, pusher->s.angles);
+	pusher->s.origin += move;
+	pusher->s.angles += amove;
 	gi.linkentity(pusher);
 
 // see if any solid entities are inside the final position
@@ -472,7 +472,7 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 			pushed_head = check;
 
 			// try moving the contacted entity
-			VectorAdd(check->s.origin, move, check->s.origin);
+			check->s.origin += move;
 #if USE_SMOOTH_DELTA_ANGLES
 			if (check->client) {
 				// FIXME: doesn't rotate monsters?
@@ -483,11 +483,11 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 
 			// figure movement due to the pusher's amove
 			VectorSubtract(check->s.origin, pusher->s.origin, org);
-			org2_x = DotProduct(org, forward);
-			org2_y = -DotProduct(org, right);
-			org2_z = DotProduct(org, up);
+			org2_x = org * forward;
+			org2_y = -(org * right);
+			org2_z = org * up;
 			VectorSubtract(org2, org, move2);
-			VectorAdd(check->s.origin, move2, check->s.origin);
+			check->s.origin += move2;
 
 			// may have pushed them off an edge
 			if (check->groundentity != pusher)
@@ -562,10 +562,9 @@ static void(entity ent) SV_Physics_Pusher =
 	// make sure all team slaves can move before commiting
 	// any moves or calling any think functions
 	// if the move is blocked, all moved objects will be backed out
-//retry:
 	pushed_head = world;
 	for (part = ent ; part ; part = part->teamchain) {
-		if (!VectorEmpty(part->velocity) || !VectorEmpty(part->avelocity)) {
+		if (part->velocity || part->avelocity) {
 			// object is moving
 			VectorScale(part->velocity, FRAMETIME, move);
 			VectorScale(part->avelocity, FRAMETIME, amove);
@@ -586,11 +585,6 @@ static void(entity ent) SV_Physics_Pusher =
 		// otherwise, just stay in place until the obstacle is gone
 		if (part->blocked)
 			part->blocked(part, obstacle);
-#if 0
-		// if the pushed entity went away and the pusher is still there
-		if (!obstacle->inuse && part->inuse)
-			goto retry;
-#endif
 	} else {
 		// the move succeeded, so call all think functions
 		for (part = ent ; part ; part = part->teamchain) {
@@ -712,8 +706,8 @@ static void(entity ent) SV_Physics_Toss =
 			if (ent->velocity_z < 60f || ent->movetype != MOVETYPE_BOUNCE) {
 				ent->groundentity = trace.ent;
 				ent->groundentity_linkcount = trace.ent->linkcount;
-				VectorClear(ent->velocity);
-				VectorClear(ent->avelocity);
+				ent->velocity = vec3_origin;
+				ent->avelocity = vec3_origin;
 			}
 		}
 	}
@@ -826,7 +820,7 @@ static void(entity ent) SV_Physics_Step =
 	else
 		wasonground = false;
 
-	if (!VectorEmpty(ent->avelocity))
+	if (ent->avelocity)
 		SV_AddRotationalFriction(ent);
 
 	// add gravity except:

@@ -222,8 +222,8 @@ static var mmove_t makron_move_pain4 = { FRAME_pain401, FRAME_pain404, makron_ru
 
 static void makron_dead(entity self)
 {
-	VectorSet(self->mins, -60, -60, 0);
-	VectorSet(self->maxs, 60, 60, 72);
+	self->mins = '-60 -60 0';
+	self->maxs = '60 60 72';
 	self->movetype = MOVETYPE_TOSS;
 	self->svflags |= SVF_DEADMONSTER;
 	self->nextthink = 0;
@@ -377,7 +377,7 @@ static void makronBFG(entity self)
 	vector  dir;
 	vector  vec;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_MAKRON_BFG], forward, right, start);
 
 	VectorCopy(self->enemy->s.origin, vec);
@@ -412,14 +412,14 @@ static void MakronHyperblaster(entity self)
 
 	flash_number = MZ2_MAKRON_BLASTER_1 + (self->s.frame - FRAME_attak405);
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 	if (self->enemy) {
 		VectorCopy(self->enemy->s.origin, vec);
 		vec[2] += self->enemy->viewheight;
 		VectorSubtract(vec, start, vec);
-		vectoangles(vec, vec);
+		vec = vectoangles(vec);
 		dir[0] = vec[0];
 	} else {
 		dir[0] = 0;
@@ -430,7 +430,7 @@ static void MakronHyperblaster(entity self)
 		dir[1] = self->s.angles[1] + 10 * (self->s.frame - FRAME_attak421);
 	dir[2] = 0;
 
-	AngleVectors(dir, forward, unref_vec, unref_vec);
+	AngleVectors(dir, &forward, 0, 0);
 
 	monster_fire_blaster(self, start, forward, 15, 1000, MZ2_MAKRON_BLASTER_1, EF_BLASTER);
 }
@@ -477,7 +477,7 @@ static void MakronRailgun(entity self)
 	vector  dir;
 	vector  forward, right;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_MAKRON_RAILGUN_1], forward, right, start);
 
 	// calc direction to where we targted
@@ -586,8 +586,8 @@ static void makron_torso(entity ent)
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_NOT;
-	VectorSet(ent->mins, -8, -8, 0);
-	VectorSet(ent->maxs, 8, 8, 8);
+	ent->mins = '-8 -8 0';
+	ent->maxs = '8 8 8';
 	ent->s.frame = 346;
 	ent->s.modelindex = gi.modelindex("models/monsters/boss3/rider/tris.md2");
 	ent->think = makron_torso_think;
@@ -770,8 +770,8 @@ API_FUNC void SP_monster_makron(entity self)
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 	self->s.modelindex = gi.modelindex("models/monsters/boss3/rider/tris.md2");
-	VectorSet(self->mins, -30, -30, 0);
-	VectorSet(self->maxs, 30, 30, 90);
+	self->mins = '-30 -30 0';
+	self->maxs = '30 30 90';
 
 	self->health = 3000;
 	self->gib_health = -2000;

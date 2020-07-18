@@ -790,8 +790,8 @@ entity(entity ent, gitem_id_t itemid) Drop_Item =
 	dropped->spawnflags = DROPPED_ITEM;
 	dropped->s.effects = GetItemKeyByIndex(itemid, world_model_flags);
 	dropped->s.renderfx = RF_GLOW;
-	VectorSet(dropped->mins, -15, -15, -15);
-	VectorSet(dropped->maxs, 15, 15, 15);
+	dropped->mins = '-15 -15 -15';
+	dropped->maxs = '15 15 15';
 	gi.setmodel(dropped, GetItemKeyByIndex(itemid, world_model));
 	dropped->solid = SOLID_TRIGGER;
 	dropped->movetype = MOVETYPE_TOSS;
@@ -801,13 +801,13 @@ entity(entity ent, gitem_id_t itemid) Drop_Item =
 	if (ent->is_client) {
 		trace_t trace;
 
-		AngleVectors(ent->client->v_angle, forward, right, unref_vec);
-		VectorSet(offset, 24, 0, -16);
+		AngleVectors(ent->client->v_angle, &forward, &right, 0);
+		offset = '24 0 -16';
 		G_ProjectSource(ent->s.origin, offset, forward, right, dropped->s.origin);
 		gi.trace(&trace, ent->s.origin, dropped->mins, dropped->maxs, dropped->s.origin, ent, CONTENTS_SOLID);
 		VectorCopy(trace.endpos, dropped->s.origin);
 	} else {
-		AngleVectors(ent->s.angles, forward, right, unref_vec);
+		AngleVectors(ent->s.angles, &forward, &right, 0);
 		VectorCopy(ent->s.origin, dropped->s.origin);
 	}
 
@@ -865,7 +865,7 @@ static void(entity ent) droptofloor =
 	ent->touch = Touch_Item;
 
 	v = '0 0 -128';
-	VectorAdd(ent->s.origin, v, dest);
+	dest = ent->s.origin + v;
 
 	gi.trace(&tr, ent->s.origin, ent->mins, ent->maxs, dest, ent, MASK_SOLID);
 	if (tr.startsolid) {

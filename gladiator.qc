@@ -95,9 +95,7 @@ static void gladiator_run(entity self)
 
 static void GaldiatorMelee(entity self)
 {
-	vector  aim;
-
-	VectorSet(aim, MELEE_DISTANCE, self->mins[0], -4);
+	const vector  aim = [ MELEE_DISTANCE, self->mins_x, -4 ];
 	if (fire_hit(self, aim, (20 + (Q_rand() % 5)), 300))
 		gi.sound(self, CHAN_AUTO, sound_cleaver_hit, 1, ATTN_NORM, 0);
 	else
@@ -136,7 +134,7 @@ static void GladiatorGun(entity self)
 	vector  dir;
 	vector  forward, right;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_GLADIATOR_RAILGUN_1], forward, right, start);
 
 	// calc direction to where we targted
@@ -231,8 +229,8 @@ static void gladiator_pain(entity self, entity other, float kick, int damage)
 
 static void gladiator_dead(entity self)
 {
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, -8);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 -8';
 	self->movetype = MOVETYPE_TOSS;
 	self->svflags |= SVF_DEADMONSTER;
 	self->nextthink = 0;
@@ -328,8 +326,8 @@ API_FUNC static void SP_monster_gladiator(entity self)
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 	self->s.modelindex = gi.modelindex("models/monsters/gladiatr/tris.md2");
-	VectorSet(self->mins, -32, -32, -24);
-	VectorSet(self->maxs, 32, 32, 64);
+	self->mins = '-32 -32 -24';
+	self->maxs = '32 32 64';
 
 	self->health = 400;
 	self->gib_health = -175;

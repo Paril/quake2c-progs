@@ -85,9 +85,9 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) gib_touc
 	if (plane.normal) {
 		gi.sound(self, CHAN_VOICE, gi.soundindex("misc/fhit3.wav"), 1, ATTN_NORM, 0);
 
-		vectoangles(plane->normal, normal_angles);
-		AngleVectors(normal_angles, unref_vec, right, unref_vec);
-		vectoangles(right, self->s.angles);
+		normal_angles = vectoangles(plane->normal);
+		AngleVectors(normal_angles, 0, &right, 0);
+		self->s.angles = vectoangles(right);
 
 		if (self->s.modelindex == sm_meat_index) {
 			self->s.frame++;
@@ -113,7 +113,7 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowGib =
 	gib = G_Spawn();
 
 	VectorScale(self->size, 0.5f, sz);
-	VectorAdd(self->absmin, sz, origin);
+	origin = self->absmin + sz;
 	gib->s.origin = origin + randomv(-sz, sz);
 
 	gi.setmodel(gib, gibname);
@@ -150,8 +150,8 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowHead =
 
 	self->s.skinnum = 0;
 	self->s.frame = 0;
-	VectorClear(self->mins);
-	VectorClear(self->maxs);
+	self->mins = vec3_origin;
+	self->maxs = vec3_origin;
 
 	self->s.modelindex2 = 0;
 	gi.setmodel(self, gibname);
@@ -202,8 +202,8 @@ void(entity self, int damage) ThrowClientHead =
 	self->s.origin[2] += 32;
 	self->s.frame = 0;
 	gi.setmodel(self, gibname);
-	VectorSet(self->mins, -16, -16, 0);
-	VectorSet(self->maxs, 16, 16, 16);
+	self->mins = '-16 -16 0';
+	self->maxs = '16 16 16';
 
 	self->takedamage = DAMAGE_NO;
 	self->solid = SOLID_NOT;
@@ -213,7 +213,7 @@ void(entity self, int damage) ThrowClientHead =
 
 	self->movetype = MOVETYPE_BOUNCE;
 	VelocityForDamage(damage, vd);
-	VectorAdd(self->velocity, vd, self->velocity);
+	self->velocity += vd;
 
 	if (self->is_client) { // bodies in the queue don't have a client anymore
 		self->client->anim_priority = ANIM_DEATH;
@@ -350,8 +350,8 @@ API_FUNC static void(entity self) SP_path_corner =
 
 	self->solid = SOLID_TRIGGER;
 	self->touch = path_corner_touch;
-	VectorSet(self->mins, -8, -8, -8);
-	VectorSet(self->maxs, 8, 8, 8);
+	self->mins = '-8 -8 -8';
+	self->maxs = '8 8 8';
 	self->svflags |= SVF_NOCLIENT;
 	gi.linkentity(self);
 }
@@ -415,8 +415,8 @@ API_FUNC static void(entity self) SP_point_combat =
 	}
 	self->solid = SOLID_TRIGGER;
 	self->touch = point_combat_touch;
-	VectorSet(self->mins, -8, -8, -16);
-	VectorSet(self->maxs, 8, 8, 16);
+	self->mins = '-8 -8 -16';
+	self->maxs = '8 8 16';
 	self->svflags = SVF_NOCLIENT;
 	gi.linkentity(self);
 }
@@ -637,7 +637,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 
 	// bmodel origins are (0 0 0), we need to adjust that here
 	VectorScale(self->size, 0.5f, csize);
-	VectorAdd(self->absmin, csize, origin);
+	origin = self->absmin + csize;
 	VectorCopy(origin, self->s.origin);
 
 	self->takedamage = DAMAGE_NO;
@@ -840,8 +840,8 @@ API_FUNC static void(entity self) SP_misc_explobox =
 
 	self->model = "models/objects/barrels/tris.md2";
 	self->s.modelindex = gi.modelindex(self->model);
-	VectorSet(self->mins, -16, -16, 0);
-	VectorSet(self->maxs, 16, 16, 40);
+	self->mins = '-16 -16 0';
+	self->maxs = '16 16 40';
 
 	if (!self->mass)
 		self->mass = 400;
@@ -894,8 +894,8 @@ API_FUNC static void(entity ent) SP_misc_blackhole =
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_NOT;
-	VectorSet(ent->mins, -64, -64, 0);
-	VectorSet(ent->maxs, 64, 64, 8);
+	ent->mins = '-64 -64 0';
+	ent->maxs = '64 64 8';
 	ent->s.modelindex = gi.modelindex("models/objects/black/tris.md2");
 	ent->s.renderfx = RF_TRANSLUCENT;
 	ent->use = misc_blackhole_use;
@@ -921,8 +921,8 @@ API_FUNC static void(entity ent) SP_misc_eastertank =
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_BBOX;
-	VectorSet(ent->mins, -32, -32, -16);
-	VectorSet(ent->maxs, 32, 32, 32);
+	ent->mins = '-32 -32 -16';
+	ent->maxs = '32 32 32';
 	ent->s.modelindex = gi.modelindex("models/monsters/tank/tris.md2");
 	ent->s.frame = 254;
 	ent->think = misc_eastertank_think;
@@ -946,8 +946,8 @@ API_FUNC static void(entity ent) SP_misc_easterchick =
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_BBOX;
-	VectorSet(ent->mins, -32, -32, 0);
-	VectorSet(ent->maxs, 32, 32, 32);
+	ent->mins = '-32 -32 0';
+	ent->maxs = '32 32 32';
 	ent->s.modelindex = gi.modelindex("models/monsters/bitch/tris.md2");
 	ent->s.frame = 208;
 	ent->think = misc_easterchick_think;
@@ -971,8 +971,8 @@ API_FUNC static void(entity ent) SP_misc_easterchick2 =
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_BBOX;
-	VectorSet(ent->mins, -32, -32, 0);
-	VectorSet(ent->maxs, 32, 32, 32);
+	ent->mins = '-32 -32 0';
+	ent->maxs = '32 32 32';
 	ent->s.modelindex = gi.modelindex("models/monsters/bitch/tris.md2");
 	ent->s.frame = 248;
 	ent->think = misc_easterchick2_think;
@@ -1016,8 +1016,8 @@ API_FUNC static void(entity self) SP_monster_commander_body =
 	self->solid = SOLID_BBOX;
 	self->model = "models/monsters/commandr/tris.md2";
 	self->s.modelindex = gi.modelindex(self->model);
-	VectorSet(self->mins, -32, -32, 0);
-	VectorSet(self->maxs, 32, 32, 48);
+	self->mins = '-32 -32 0';
+	self->maxs = '32 32 48';
 	self->use = commander_body_use;
 	self->takedamage = DAMAGE_YES;
 	self->flags = FL_GODMODE;
@@ -1096,8 +1096,8 @@ API_FUNC static void(entity ent) SP_misc_deadsoldier =
 	else
 		ent->s.frame = 0;
 
-	VectorSet(ent->mins, -16, -16, 0);
-	VectorSet(ent->maxs, 16, 16, 16);
+	ent->mins = '-16 -16 0';
+	ent->maxs = '16 16 16';
 	ent->deadflag = DEAD_DEAD;
 	ent->takedamage = DAMAGE_YES;
 	ent->svflags |= SVF_MONSTER | SVF_DEADMONSTER;
@@ -1140,8 +1140,8 @@ API_FUNC static void(entity ent) SP_misc_viper =
 	ent->movetype = MOVETYPE_PUSH;
 	ent->solid = SOLID_NOT;
 	ent->s.modelindex = gi.modelindex("models/ships/viper/tris.md2");
-	VectorSet(ent->mins, -16, -16, 0);
-	VectorSet(ent->maxs, 16, 16, 32);
+	ent->mins = '-16 -16 0';
+	ent->maxs = '16 16 32';
 
 	ent->think = func_train_find;
 	ent->nextthink = level.framenum + 1;
@@ -1159,8 +1159,8 @@ API_FUNC static void(entity ent) SP_misc_bigviper =
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_BBOX;
-	VectorSet(ent->mins, -176, -120, -24);
-	VectorSet(ent->maxs, 176, 120, 72);
+	ent->mins = '-176 -120 -24';
+	ent->maxs = '176 120 72';
 	ent->s.modelindex = gi.modelindex("models/ships/bigviper/tris.md2");
 	gi.linkentity(ent);
 }
@@ -1193,7 +1193,7 @@ static void(entity self) misc_viper_bomb_prethink =
 	v_z = diff;
 
 	diff = self->s.angles[2];
-	vectoangles(v, self->s.angles);
+	self->s.angles = vectoangles(v);
 	self->s.angles[2] = diff + 10;
 }
 
@@ -1221,8 +1221,8 @@ API_FUNC static void(entity self) SP_misc_viper_bomb =
 {
 	self->movetype = MOVETYPE_NONE;
 	self->solid = SOLID_NOT;
-	VectorSet(self->mins, -8, -8, -8);
-	VectorSet(self->maxs, 8, 8, 8);
+	self->mins = '-8 -8 -8';
+	self->maxs = '8 8 8';
 
 	self->s.modelindex = gi.modelindex("models/objects/bomb/tris.md2");
 
@@ -1264,8 +1264,8 @@ API_FUNC static void(entity ent) SP_misc_strogg_ship =
 	ent->movetype = MOVETYPE_PUSH;
 	ent->solid = SOLID_NOT;
 	ent->s.modelindex = gi.modelindex("models/ships/strogg1/tris.md2");
-	VectorSet(ent->mins, -16, -16, 0);
-	VectorSet(ent->maxs, 16, 16, 32);
+	ent->mins = '-16 -16 0';
+	ent->maxs = '16 16 32';
 
 	ent->think = func_train_find;
 	ent->nextthink = level.framenum + 1;
@@ -1297,8 +1297,8 @@ API_FUNC static void(entity ent) SP_misc_satellite_dish =
 {
 	ent->movetype = MOVETYPE_NONE;
 	ent->solid = SOLID_BBOX;
-	VectorSet(ent->mins, -64, -64, 0);
-	VectorSet(ent->maxs, 64, 64, 128);
+	ent->mins = '-64 -64 0';
+	ent->maxs = '64 64 128';
 	ent->s.modelindex = gi.modelindex("models/objects/satellite/tris.md2");
 	ent->use = misc_satellite_dish_use;
 	gi.linkentity(ent);
@@ -1592,7 +1592,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) teleport
 	other->s.origin[2] += 10;
 
 	// clear the velocity and hold them in place briefly
-	VectorClear(other->velocity);
+	other->velocity = vec3_origin;
 	other->client->ps.pmove.pm_time = 160 >> 3;     // hold time
 	other->client->ps.pmove.pm_flags |= PMF_TIME_TELEPORT;
 
@@ -1605,9 +1605,9 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) teleport
 	other->client->ps.pmove.delta_angles[1] = ANGLE2SHORT(dest->s.angles[1] - other->client->resp.cmd_angles[1]);
 	other->client->ps.pmove.delta_angles[2] = ANGLE2SHORT(dest->s.angles[2] - other->client->resp.cmd_angles[2]);
 
-	VectorClear(other->s.angles);
-	VectorClear(other->client->ps.viewangles);
-	VectorClear(other->client->v_angle);
+	other->s.angles = vec3_origin;
+	other->client->ps.viewangles = vec3_origin;
+	other->client->v_angle = vec3_origin;
 
 	// kill anything at the destination
 	KillBox(other);
@@ -1634,8 +1634,8 @@ API_FUNC static void(entity ent) SP_misc_teleporter =
 	ent->s.sound = gi.soundindex("world/amb10.wav");
 	ent->solid = SOLID_BBOX;
 
-	VectorSet(ent->mins, -32, -32, -24);
-	VectorSet(ent->maxs, 32, 32, -16);
+	ent->mins = '-32 -32 -24';
+	ent->maxs = '32 32 -16';
 	gi.linkentity(ent);
 
 	trig = G_Spawn();
@@ -1644,8 +1644,8 @@ API_FUNC static void(entity ent) SP_misc_teleporter =
 	trig->target = ent->target;
 	trig->owner = ent;
 	VectorCopy(ent->s.origin, trig->s.origin);
-	VectorSet(trig->mins, -8, -8, 8);
-	VectorSet(trig->maxs, 8, 8, 24);
+	trig->mins = '-8 -8 8';
+	trig->maxs = '8 8 24';
 	gi.linkentity(trig);
 
 }
@@ -1658,7 +1658,7 @@ API_FUNC void(entity ent) SP_misc_teleporter_dest =
     gi.setmodel(ent, "models/objects/dmspot/tris.md2");
     ent->s.skinnum = 0;
     ent->solid = SOLID_BBOX;
-    VectorSet(ent->mins, -32, -32, -24);
-    VectorSet(ent->maxs, 32, 32, -16);
+    ent->mins = '-32 -32 -24';
+    ent->maxs = '32 32 -16';
     gi.linkentity(ent);
 }

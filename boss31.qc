@@ -272,7 +272,7 @@ static void jorgBFG(entity self)
 	vector  dir;
 	vector  vec;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_JORG_BFG_1], forward, right, start);
 
 	VectorCopy(self->enemy->s.origin, vec);
@@ -317,7 +317,7 @@ static void jorg_firebullet_right(entity self)
 	vector  forward, right, target;
 	vector  start;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_JORG_MACHINEGUN_R1], forward, right, start);
 
 	VectorMA(self->enemy->s.origin, -0.2f, self->enemy->velocity, target);
@@ -333,7 +333,7 @@ static void jorg_firebullet_left(entity self)
 	vector  forward, right, target;
 	vector  start;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_JORG_MACHINEGUN_L1], forward, right, start);
 
 	VectorMA(self->enemy->s.origin, -0.2f, self->enemy->velocity, target);
@@ -586,8 +586,8 @@ API_FUNC static void SP_monster_jorg(entity self)
 	self->solid = SOLID_BBOX;
 	self->s.modelindex = gi.modelindex("models/monsters/boss3/rider/tris.md2");
 	self->s.modelindex2 = gi.modelindex("models/monsters/boss3/jorg/tris.md2");
-	VectorSet(self->mins, -80, -80, 0);
-	VectorSet(self->maxs, 80, 80, 140);
+	self->mins = '-80 -80 0';
+	self->maxs = '80 80 140';
 
 	self->health = 3000;
 	self->gib_health = -2000;

@@ -19,7 +19,7 @@ static void Boss2Rocket(entity self)
 	vector  dir;
 	vector  vec;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 
 //1
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_BOSS2_ROCKET_1], forward, right, start);
@@ -59,7 +59,7 @@ static void boss2_firebullet_right(entity self)
 	vector  forward, right, target;
 	vector  start;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_BOSS2_MACHINEGUN_R1], forward, right, start);
 
 	VectorMA(self->enemy->s.origin, -0.2f, self->enemy->velocity, target);
@@ -75,7 +75,7 @@ static void boss2_firebullet_left(entity self)
 	vector  forward, right, target;
 	vector  start;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_BOSS2_MACHINEGUN_L1], forward, right, start);
 
 	VectorMA(self->enemy->s.origin, -0.2f, self->enemy->velocity, target);
@@ -308,8 +308,8 @@ static var mmove_t boss2_move_pain_light = { FRAME_pain20, FRAME_pain23 };
 
 static void boss2_dead(entity self)
 {
-	VectorSet(self->mins, -56, -56, 0);
-	VectorSet(self->maxs, 56, 56, 80);
+	self->mins = '-56 -56 0';
+	self->maxs = '56 56 80';
 	self->movetype = MOVETYPE_TOSS;
 	self->svflags |= SVF_DEADMONSTER;
 	self->nextthink = 0;
@@ -554,8 +554,8 @@ API_FUNC static void SP_monster_boss2(entity self)
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 	self->s.modelindex = gi.modelindex("models/monsters/boss2/tris.md2");
-	VectorSet(self->mins, -56, -56, 0);
-	VectorSet(self->maxs, 56, 56, 80);
+	self->mins = '-56 -56 0';
+	self->maxs = '56 56 80';
 
 	self->health = 2000;
 	self->gib_health = -200;

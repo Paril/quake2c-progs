@@ -31,7 +31,7 @@ static void floater_fire_blaster(entity self)
 		effect = EF_HYPERBLASTER;
 	else
 		effect = 0;
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_FLOAT_BLASTER_1], forward, right, start);
 
 	VectorCopy(self->enemy->s.origin, end);
@@ -245,7 +245,7 @@ static var mmove_t floater_move_attack1 = { FRAME_attak101, FRAME_attak114, floa
 
 static void floater_wham(entity self)
 {
-	static vector  aim = {MELEE_DISTANCE, 0, 0};
+	static const vector aim = [ MELEE_DISTANCE, 0, 0 ];
 	gi.sound(self, CHAN_WEAPON, sound_attack3, 1, ATTN_NORM, 0);
 	fire_hit(self, aim, 5 + Q_rand() % 6, -50);
 }
@@ -288,9 +288,9 @@ static void floater_zap(entity self)
 
 	VectorSubtract(self->enemy->s.origin, self->s.origin, dir);
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	//FIXME use a flash and replace these two lines with the commented one
-	VectorSet(offset, 18.5f, -0.9f, 10);
+	offset = '18.5 -0.9 10';
 	G_ProjectSource(self->s.origin, offset, forward, right, origin);
 //  G_ProjectSource (self->s.origin, monster_flash_offset[flash_number], forward, right, origin);
 
@@ -531,8 +531,8 @@ API_FUNC static void SP_monster_floater(entity self)
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 	self->s.modelindex = gi.modelindex("models/monsters/float/tris.md2");
-	VectorSet(self->mins, -24, -24, -24);
-	VectorSet(self->maxs, 24, 24, 32);
+	self->mins = '-24 -24 -24';
+	self->maxs = '24 24 32';
 
 	self->health = 200;
 	self->gib_health = -80;

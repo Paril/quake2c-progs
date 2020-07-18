@@ -387,17 +387,6 @@ speed   default is 1000
 
 static void(entity self, entity other, entity cactivator) use_target_blaster =
 {
-#if 0
-	int effect;
-
-	if (self->spawnflags & 2)
-		effect = 0;
-	else if (self->spawnflags & 1)
-		effect = EF_HYPERBLASTER;
-	else
-		effect = EF_BLASTER;
-#endif
-
 	fire_blaster(self, self->s.origin, self->movedir, self->dmg, self->speed, EF_BLASTER, MOD_TARGET_BLASTER);
 	gi.sound(self, CHAN_VOICE, self->noise_index, 1, ATTN_NORM, 0);
 }
@@ -485,7 +474,7 @@ static void(entity self) target_laser_think =
 		VectorMA(self->enemy->absmin, 0.5f, self->enemy->size, point);
 		VectorSubtract(point, self->s.origin, self->movedir);
 		VectorNormalize(self->movedir);
-		if (!VectorCompare(self->movedir, last_movedir))
+		if (self->movedir != last_movedir)
 			self->spawnflags |= 0x80000000;
 	}
 
@@ -594,8 +583,8 @@ static void(entity self) target_laser_start =
 	if (!self->dmg)
 		self->dmg = 1;
 
-	VectorSet(self->mins, -8, -8, -8);
-	VectorSet(self->maxs, 8, 8, 8);
+	self->mins = '-8 -8 -8';
+	self->maxs = '8 8 8';
 	gi.linkentity(self);
 
 	if (self->spawnflags & 1)

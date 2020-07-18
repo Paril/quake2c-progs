@@ -305,7 +305,7 @@ static void medic_fire_blaster(entity self)
 	else
 		effect = 0;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_MEDIC_BLASTER_1], forward, right, start);
 
 	VectorCopy(self->enemy->s.origin, end);
@@ -318,8 +318,8 @@ static void medic_fire_blaster(entity self)
 
 static void medic_dead(entity self)
 {
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, -8);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 -8';
 	self->movetype = MOVETYPE_TOSS;
 	self->svflags |= SVF_DEADMONSTER;
 	self->nextthink = 0;
@@ -524,7 +524,7 @@ static void medic_cable_attack(entity self)
 	if (!self->enemy->inuse)
 		return;
 
-	AngleVectors(self->s.angles, f, r, unref_vec);
+	AngleVectors(self->s.angles, &f, &r, 0);
 	VectorCopy(medic_cable_offsets[self->s.frame - FRAME_attack42], offset);
 	G_ProjectSource(self->s.origin, offset, f, r, start);
 
@@ -535,7 +535,7 @@ static void medic_cable_attack(entity self)
 		return;
 
 	// check for min/max pitch
-	vectoangles(dir, angles);
+	angles = vectoangles(dir);
 	if (angles[0] < -180)
 		angles[0] += 360;
 	if (fabsf(angles[0]) > 45)
@@ -683,8 +683,8 @@ API_FUNC static void SP_monster_medic(entity self)
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 	self->s.modelindex = gi.modelindex("models/monsters/medic/tris.md2");
-	VectorSet(self->mins, -24, -24, -24);
-	VectorSet(self->maxs, 24, 24, 32);
+	self->mins = '-24 -24 -24';
+	self->maxs = '24 24 32';
 
 	self->health = 300;
 	self->gib_health = -130;

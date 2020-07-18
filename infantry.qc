@@ -224,7 +224,7 @@ static void(entity self) InfantryMachineGun =
 	if (self->s.frame == FRAME_attak111) {
 		flash_number = MZ2_INFANTRY_MACHINEGUN_1;
 		
-		AngleVectors(self->s.angles, forward, right, unref_vec);
+		AngleVectors(self->s.angles, &forward, &right, 0);
 		G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_INFANTRY_MACHINEGUN_1], forward, right, start);
 
 		if (self->enemy) {
@@ -233,16 +233,16 @@ static void(entity self) InfantryMachineGun =
 			VectorSubtract(target, start, forward);
 			VectorNormalize(forward);
 		} else {
-			AngleVectors(self->s.angles, forward, right, unref_vec);
+			AngleVectors(self->s.angles, &forward, &right, 0);
 		}
 	} else {
 		flash_number = MZ2_INFANTRY_MACHINEGUN_2 + (self->s.frame - FRAME_death211);
 
-		AngleVectors(self->s.angles, forward, right, unref_vec);
+		AngleVectors(self->s.angles, &forward, &right, 0);
 		G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 		VectorSubtract(self->s.angles, aimangles[(flash_number - MZ2_INFANTRY_MACHINEGUN_2)], vec);
-		AngleVectors(vec, forward, unref_vec, unref_vec);
+		AngleVectors(vec, &forward, 0, 0);
 	}
 
 	monster_fire_bullet(self, start, forward, 3, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_number);
@@ -255,8 +255,8 @@ static void(entity self, entity other) infantry_sight =
 
 static void(entity self) infantry_dead =
 {
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, -8);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 -8';
 	self->movetype = MOVETYPE_TOSS;
 	self->svflags |= SVF_DEADMONSTER;
 	gi.linkentity(self);
@@ -462,9 +462,7 @@ static void(entity self) infantry_swing =
 
 static void(entity self) infantry_smack =
 {
-	vector	aim;
-
-	VectorSet(aim, MELEE_DISTANCE, 0, 0);
+	static const vector aim = [ MELEE_DISTANCE, 0, 0 ];
 	if (fire_hit(self, aim, (5 + (Q_rand() % 5)), 50))
 		gi.sound(self, CHAN_WEAPON, sound_punch_hit, 1, ATTN_NORM, 0);
 }
@@ -533,8 +531,8 @@ API_FUNC static void(entity self) SP_monster_infantry =
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 	self->s.modelindex = gi.modelindex("models/monsters/infantry/tris.md2");
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, 32);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 32';
 
 	self->health = 100;
 	self->gib_health = -40;

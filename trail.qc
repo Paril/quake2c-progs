@@ -21,7 +21,6 @@ static var bool	trail_active = false;
 #define NEXT(n)     (((n) + 1) & (TRAIL_LENGTH - 1))
 #define PREV(n)     (((n) - 1) & (TRAIL_LENGTH - 1))
 
-
 void() PlayerTrail_Init =
 {
 	int     n;

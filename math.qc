@@ -3,8 +3,6 @@ float(float) sqrtf = #0:sqrtf;
 float(float) sinf = #0:sinf;
 float(float) cosf = #0:cosf;
 float(float, float) atan2f = #0:atan2f;
-float(float) RAD2DEG = #0:RAD2DEG;
-float(float) DEG2RAD = #0:DEG2RAD;
 float(float) floorf = #0:floorf;
 float(float) ceilf = #0:ceilf;
 float(float) roundf = #0:roundf;
@@ -62,31 +60,19 @@ inline float(int x) SHORT2COORD =
 	return x * (1.0f / 8);
 }
 
-enum int { PITCH, YAW, ROLL };
+inline float(float a) DEG2RAD =
+{
+	return a * (M_PI / 180);
+}
+
+inline float(float a) RAD2DEG =
+{
+	return a * (180 / M_PI);
+}
 
 const int INT_MAX = 2147483647;
 
-float(vector vec) vectoyaw =
-{
-	float   yaw;
-
-	if (/*vec[YAW] == 0 &&*/ vec_x == 0) {
-		yaw = 0;
-		if (vec_y > 0)
-			yaw = 90f;
-		else if (vec_y < 0)
-			yaw = -90f;
-	} else {
-		yaw = (float)(int)RAD2DEG(atan2f(vec_y, vec_x));
-		if (yaw < 0)
-			yaw += 360f;
-	}
-
-	return yaw;
-}
-
 inline float(float a) anglemod =
 {
-    a = (360.0f / 65536) * ((int)(a * (65536 / 360.0f)) & 65535);
-    return a;
+    return (360.0f / 65536) * ((int)(a * (65536 / 360.0f)) & 65535);
 }

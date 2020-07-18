@@ -215,22 +215,22 @@ void(entity ent, entity cactivator) G_UseTargets =
 	}
 }
 
-const vector VEC_UP		= {0, -1, 0};
-const vector MOVEDIR_UP		= {0, 0, 1};
-const vector VEC_DOWN		= {0, -2, 0};
-const vector MOVEDIR_DOWN	= {0, 0, -1};
+const vector VEC_UP		= [ 0, -1, 0 ];
+const vector MOVEDIR_UP		= [ 0, 0, 1 ];
+const vector VEC_DOWN		= [ 0, -2, 0 ];
+const vector MOVEDIR_DOWN	= [ 0, 0, -1 ];
 
 void(__inout vector angles, __out vector movedir) G_SetMovedir =
 {
-	if (VectorCompare(angles, VEC_UP)) {
+	if (angles == VEC_UP) {
 		VectorCopy(MOVEDIR_UP, movedir);
-	} else if (VectorCompare(angles, VEC_DOWN)) {
+	} else if (angles == VEC_DOWN) {
 		VectorCopy(MOVEDIR_DOWN, movedir);
 	} else {
-		AngleVectors(angles, movedir, unref_vec, unref_vec);
+		AngleVectors(angles, &movedir, 0, 0);
 	}
 
-	VectorClear(angles);
+	angles = vec3_origin;
 }
 
 

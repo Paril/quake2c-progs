@@ -286,9 +286,7 @@ static void brain_swing_right(entity self) {
 }
 
 static void brain_hit_right(entity self) {
-	vector  aim;
-
-	VectorSet(aim, MELEE_DISTANCE, self->maxs[0], 8);
+	const vector  aim = [MELEE_DISTANCE, self->maxs_x, 8 ];
 	if (fire_hit(self, aim, (15 + (Q_rand() % 5)), 40))
 		gi.sound(self, CHAN_WEAPON, sound_melee3, 1, ATTN_NORM, 0);
 }
@@ -298,9 +296,7 @@ static void brain_swing_left(entity self) {
 }
 
 static void brain_hit_left(entity self) {
-	vector  aim;
-
-	VectorSet(aim, MELEE_DISTANCE, self->mins[0], 8);
+	const vector  aim = [ MELEE_DISTANCE, self->mins_x, 8 ];
 	if (fire_hit(self, aim, (15 + (Q_rand() % 5)), 40))
 		gi.sound(self, CHAN_WEAPON, sound_melee3, 1, ATTN_NORM, 0);
 }
@@ -335,9 +331,7 @@ static void brain_chest_open(entity self) {
 }
 
 static void brain_tentacle_attack(entity self) {
-	vector  aim;
-
-	VectorSet(aim, MELEE_DISTANCE, 0, 8);
+	static const vector aim = [ MELEE_DISTANCE, 0, 8 ];
 	if (fire_hit(self, aim, (10 + (Q_rand() % 5)), -600) && skill->intVal > 0)
 		self->spawnflags |= 65536;
 	gi.sound(self, CHAN_WEAPON, sound_tentacles_retract, 1, ATTN_NORM, 0);
@@ -436,8 +430,8 @@ static void brain_pain(entity self, entity other, float kick, int damage) {
 }
 
 static void brain_dead(entity self) {
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, -8);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 -8';
 	self->movetype = MOVETYPE_TOSS;
 	self->svflags |= SVF_DEADMONSTER;
 	self->nextthink = 0;
@@ -527,8 +521,8 @@ API_FUNC static void SP_monster_brain(entity self) {
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 	self->s.modelindex = gi.modelindex("models/monsters/brain/tris.md2");
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, 32);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 32';
 
 	self->health = 300;
 	self->gib_health = -150;

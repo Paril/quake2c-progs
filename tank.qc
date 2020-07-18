@@ -287,7 +287,7 @@ static void TankBlaster(entity self)
 	else // (self->s.frame == FRAME_attak116)
 		flash_number = MZ2_TANK_BLASTER_3;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 	VectorCopy(self->enemy->s.origin, end);
@@ -317,7 +317,7 @@ static void TankRocket(entity self)
 	else // (self->s.frame == FRAME_attak330)
 		flash_number = MZ2_TANK_ROCKET_3;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 	VectorCopy(self->enemy->s.origin, vec);
@@ -338,14 +338,14 @@ static void TankMachineGun(entity self)
 
 	flash_number = MZ2_TANK_MACHINEGUN_1 + (self->s.frame - FRAME_attak406);
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 	if (self->enemy) {
 		VectorCopy(self->enemy->s.origin, vec);
 		vec_z += self->enemy->viewheight;
 		VectorSubtract(vec, start, vec);
-		vectoangles(vec, vec);
+		vec = vectoangles(vec);
 		dir_x = vec_x;
 	} else {
 		dir_x = 0;
@@ -356,7 +356,7 @@ static void TankMachineGun(entity self)
 		dir_y = self->s.angles[1] + 8 * (self->s.frame - FRAME_attak419);
 	dir_z = 0;
 
-	AngleVectors(dir, forward, unref_vec, unref_vec);
+	AngleVectors(dir, &forward, 0, 0);
 
 	monster_fire_bullet(self, start, forward, 20, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_number);
 }
@@ -627,8 +627,8 @@ static void tank_attack(entity self)
 
 static void tank_dead(entity self)
 {
-	VectorSet(self->mins, -16, -16, -16);
-	VectorSet(self->maxs, 16, 16, -0);
+	self->mins = '-16 -16 -16';
+	self->maxs = '16 16 -0';
 	self->movetype = MOVETYPE_TOSS;
 	self->svflags |= SVF_DEADMONSTER;
 	self->nextthink = 0;
@@ -746,8 +746,8 @@ API_FUNC static void SP_monster_tank(entity self)
 	}
 
 	self->s.modelindex = gi.modelindex("models/monsters/tank/tris.md2");
-	VectorSet(self->mins, -32, -32, -16);
-	VectorSet(self->maxs, 32, 32, 72);
+	self->mins = '-32 -32 -16';
+	self->maxs = '32 32 72';
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 

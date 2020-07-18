@@ -251,7 +251,7 @@ static bool parasite_drain_attack_ok(vector start, vector end)
 		return false;
 
 	// check for min/max pitch
-	vectoangles(dir, angles);
+	angles = vectoangles(dir);
 	if (angles_x < -180)
 		angles_x += 360;
 	if (fabsf(angles_x) > 30)
@@ -266,8 +266,8 @@ static void parasite_drain_attack(entity self)
 	trace_t tr;
 	int damage;
 
-	AngleVectors(self->s.angles, f, r, unref_vec);
-	VectorSet(offset, 24, 0, 6);
+	AngleVectors(self->s.angles, &f, &r, 0);
+	offset = '24 0 6';
 	G_ProjectSource(self->s.origin, offset, f, r, start);
 
 	VectorCopy(self->enemy->s.origin, end);
@@ -342,8 +342,8 @@ Death Stuff Starts
 
 static void parasite_dead(entity self)
 {
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, -8);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 -8';
 	self->movetype = MOVETYPE_TOSS;
 	self->svflags |= SVF_DEADMONSTER;
 	self->nextthink = 0;
@@ -450,8 +450,8 @@ API_FUNC static void SP_monster_parasite(entity self)
 	sound_search = gi.soundindex("parasite/parsrch1.wav");
 
 	self->s.modelindex = gi.modelindex("models/monsters/parasite/tris.md2");
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, 24);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 24';
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 

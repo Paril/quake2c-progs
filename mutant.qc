@@ -217,9 +217,7 @@ static void mutant_run(entity self)
 
 static void mutant_hit_left(entity self)
 {
-	vector  aim;
-
-	VectorSet(aim, MELEE_DISTANCE, self->mins[0], 8);
+	const vector  aim = [MELEE_DISTANCE, self->mins_x, 8 ];
 	if (fire_hit(self, aim, (10 + (Q_rand() % 5)), 100))
 		gi.sound(self, CHAN_WEAPON, sound_hit, 1, ATTN_NORM, 0);
 	else
@@ -228,9 +226,7 @@ static void mutant_hit_left(entity self)
 
 static void mutant_hit_right(entity self)
 {
-	vector  aim;
-
-	VectorSet(aim, MELEE_DISTANCE, self->maxs[0], 8);
+	const vector  aim = [ MELEE_DISTANCE, self->maxs_x, 8 ];
 	if (fire_hit(self, aim, (10 + (Q_rand() % 5)), 100))
 		gi.sound(self, CHAN_WEAPON, sound_hit2, 1, ATTN_NORM, 0);
 	else
@@ -304,7 +300,7 @@ void mutant_jump_takeoff(entity self)
 	vector  forward;
 
 	gi.sound(self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
-	AngleVectors(self->s.angles, forward, unref_vec, unref_vec);
+	AngleVectors(self->s.angles, &forward, 0, 0);
 	self->s.origin[2] += 1;
 	VectorScale(forward, 600, self->velocity);
 	self->velocity[2] = 250f;
@@ -477,8 +473,8 @@ static void mutant_pain(entity self, entity other, float kick, int damage)
 
 static void mutant_dead(entity self)
 {
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, -8);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 -8';
 	self->movetype = MOVETYPE_TOSS;
 	self->svflags |= SVF_DEADMONSTER;
 	gi.linkentity(self);
@@ -589,8 +585,8 @@ API_FUNC static void SP_monster_mutant(entity self)
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 	self->s.modelindex = gi.modelindex("models/monsters/mutant/tris.md2");
-	VectorSet(self->mins, -32, -32, -24);
-	VectorSet(self->maxs, 32, 32, 48);
+	self->mins = '-32 -32 -24';
+	self->maxs = '32 32 48';
 
 	self->health = 300;
 	self->gib_health = -120;

@@ -248,7 +248,7 @@ static void hover_fire_blaster(entity self)
 	else
 		effect = 0;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_HOVER_BLASTER_1], forward, right, start);
 
 	VectorCopy(self->enemy->s.origin, end);
@@ -337,8 +337,8 @@ static void hover_deadthink(entity self)
 
 static void hover_dead(entity self)
 {
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, -8);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 -8';
 	self->movetype = MOVETYPE_TOSS;
 	self->think = hover_deadthink;
 	self->nextthink = level.framenum + 1;
@@ -419,8 +419,8 @@ API_FUNC static void SP_monster_hover(entity self)
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 	self->s.modelindex = gi.modelindex("models/monsters/hover/tris.md2");
-	VectorSet(self->mins, -24, -24, -24);
-	VectorSet(self->maxs, 24, 24, 32);
+	self->mins = '-24 -24 -24';
+	self->maxs = '24 24 32';
 
 	self->health = 240;
 	self->gib_health = -100;

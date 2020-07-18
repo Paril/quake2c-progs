@@ -454,9 +454,7 @@ player_die
 */
 void(entity self, entity inflictor, entity attacker, int damage, vector point) player_die =
 {
-	int     n;
-
-	VectorClear(self->avelocity);
+	self->avelocity = vec3_origin;
 
 	self->takedamage = DAMAGE_YES;
 	self->movetype = MOVETYPE_TOSS;
@@ -501,7 +499,7 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 	if (self->health < -40) {
 		// gib
 		gi.sound(self, CHAN_BODY, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
-		for (n = 0; n < 4; n++)
+		for (int n = 0; n < 4; n++)
 			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
 		ThrowClientHead(self, damage);
 

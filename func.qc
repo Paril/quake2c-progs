@@ -49,7 +49,7 @@ const int DOOR_Y_AXIS		= 128;
 
 static void(entity ent) Move_Done =
 {
-	VectorClear(ent->velocity);
+	ent->velocity = vec3_origin;
 	ent->moveinfo.endfunc(ent);
 }
 
@@ -86,7 +86,7 @@ static void(entity ent) Think_AccelMove;
 
 static void(entity ent, vector dest, void(entity) func) Move_Calc =
 {
-	VectorClear(ent->velocity);
+	ent->velocity = vec3_origin;
 	VectorSubtract(dest, ent->s.origin, ent->moveinfo.dir);
 	ent->moveinfo.remaining_distance = VectorNormalize(ent->moveinfo.dir);
 	ent->moveinfo.endfunc = func;
@@ -113,7 +113,7 @@ static void(entity ent, vector dest, void(entity) func) Move_Calc =
 
 static void(entity ent) AngleMove_Done =
 {
-	VectorClear(ent->avelocity);
+	ent->avelocity = vec3_origin;
 	ent->moveinfo.endfunc(ent);
 }
 
@@ -126,7 +126,7 @@ static void(entity ent) AngleMove_Final =
 	else
 		VectorSubtract(ent->moveinfo.start_angles, ent->s.angles, move);
 
-	if (VectorEmpty(move)) {
+	if (!move) {
 		AngleMove_Done(ent);
 		return;
 	}
@@ -173,7 +173,7 @@ static void(entity ent) AngleMove_Begin =
 
 static void(entity ent, void(entity) func) AngleMove_Calc =
 {
-	VectorClear(ent->avelocity);
+	ent->avelocity = vec3_origin;
 	ent->moveinfo.endfunc = func;
 	if (level.current_entity == ((ent->flags & FL_TEAMSLAVE) ? ent->teammaster : ent)) {
 		AngleMove_Begin(ent);
@@ -459,7 +459,7 @@ Set "sounds" to one of the following:
 */
 API_FUNC static void(entity ent) SP_func_plat =
 {
-	VectorClear(ent->s.angles);
+	ent->s.angles = vec3_origin;
 	ent->solid = SOLID_BSP;
 	ent->movetype = MOVETYPE_PUSH;
 
@@ -543,15 +543,15 @@ static void(entity self, entity other) rotating_blocked =
 
 static void(entity self, entity other, cplane_t plane, csurface_t surf) rotating_touch =
 {
-	if (!VectorEmpty(self->avelocity))
+	if (self->avelocity)
 		T_Damage(other, self, self, vec3_origin, other->s.origin, vec3_origin, self->dmg, 1, 0, MOD_CRUSH);
 }
 
 static void(entity self, entity other, entity cactivator) rotating_use =
 {
-	if (!VectorEmpty(self->avelocity)) {
+	if (self->avelocity) {
 		self->s.sound = 0;
-		VectorClear(self->avelocity);
+		self->avelocity = vec3_origin;
 		self->touch = 0;
 	} else {
 		self->s.sound = self->moveinfo.sound_middle;
@@ -570,7 +570,7 @@ API_FUNC static void(entity ent) SP_func_rotating =
 		ent->movetype = MOVETYPE_PUSH;
 
 	// set the axis of rotation
-	VectorClear(ent->movedir);
+	ent->movedir = vec3_origin;
 	if (ent->spawnflags & 4)
 		ent->movedir_z = 1.0f;
 	else if (ent->spawnflags & 8)
@@ -580,7 +580,7 @@ API_FUNC static void(entity ent) SP_func_rotating =
 
 	// check for reverse rotation
 	if (ent->spawnflags & 2)
-		VectorNegate(ent->movedir, ent->movedir);
+		ent->movedir = -ent->movedir;
 
 	if (!ent->speed)
 		ent->speed = 100f;
@@ -1172,10 +1172,10 @@ REVERSE will cause the door to rotate in the opposite direction.
 
 API_FUNC static void(entity ent) SP_func_door_rotating =
 {
-	VectorClear(ent->s.angles);
+	ent->s.angles = vec3_origin;
 
 	// set the axis of rotation
-	VectorClear(ent->movedir);
+	ent->movedir = vec3_origin;
 	if (ent->spawnflags & DOOR_X_AXIS)
 		ent->movedir_z = 1.0f;
 	else if (ent->spawnflags & DOOR_Y_AXIS)
@@ -1185,7 +1185,7 @@ API_FUNC static void(entity ent) SP_func_door_rotating =
 
 	// check for reverse rotation
 	if (ent->spawnflags & DOOR_REVERSE)
-		VectorNegate(ent->movedir, ent->movedir);
+		ent->movedir = -ent->movedir;
 
 	if (!st.distance) {
 		gi.dprintf("%s at %s with no distance set\n", ent->classname, vtos(ent->s.origin));
@@ -1226,7 +1226,7 @@ API_FUNC static void(entity ent) SP_func_door_rotating =
 		VectorCopy(ent->pos2, ent->s.angles);
 		VectorCopy(ent->pos1, ent->pos2);
 		VectorCopy(ent->s.angles, ent->pos1);
-		VectorNegate(ent->movedir, ent->movedir);
+		ent->movedir = -ent->movedir;
 	}
 
 	if (ent->health) {
@@ -1407,7 +1407,7 @@ static void(entity self) train_wait =
 		} else if (self->spawnflags & TRAIN_TOGGLE) { // && wait < 0
 			train_next(self);
 			self->spawnflags &= ~TRAIN_START_ON;
-			VectorClear(self->velocity);
+			self->velocity = vec3_origin;
 			self->nextthink = 0;
 		}
 
@@ -1526,7 +1526,7 @@ void(entity self, entity other, entity cactivator) train_use =
 		if (!(self->spawnflags & TRAIN_TOGGLE))
 			return;
 		self->spawnflags &= ~TRAIN_START_ON;
-		VectorClear(self->velocity);
+		self->velocity = vec3_origin;
 		self->nextthink = 0;
 	} else {
 		if (self->target_ent)
@@ -1540,7 +1540,7 @@ API_FUNC static void(entity self) SP_func_train =
 {
 	self->movetype = MOVETYPE_PUSH;
 
-	VectorClear(self->s.angles);
+	self->s.angles = vec3_origin;
 	self->blocked = train_blocked;
 	if (self->spawnflags & TRAIN_BLOCK_STOPS)
 		self->dmg = 0;
@@ -1754,7 +1754,7 @@ static void(entity self) door_secret_done;
 static void(entity self, entity other, entity cactivator) door_secret_use =
 {
 	// make sure we're not already moving
-	if (!VectorEmpty(self->s.origin))
+	if (self->s.origin)
 		return;
 
 	Move_Calc(self, self->pos1, door_secret_move1);
@@ -1864,14 +1864,14 @@ API_FUNC static void(entity ent) SP_func_door_secret =
 			ent->moveinfo.speed = 50f;
 
 	// calculate positions
-	AngleVectors(ent->s.angles, forward, right, up);
-	VectorClear(ent->s.angles);
+	AngleVectors(ent->s.angles, &forward, &right, &up);
+	ent->s.angles = vec3_origin;
 	side = 1.0f - (ent->spawnflags & SECRET_1ST_LEFT);
 	if (ent->spawnflags & SECRET_1ST_DOWN)
-		width = fabsf(DotProduct(up, ent->size));
+		width = fabsf(up * ent->size);
 	else
-		width = fabsf(DotProduct(right, ent->size));
-	length = fabsf(DotProduct(forward, ent->size));
+		width = fabsf(right * ent->size);
+	length = fabsf(forward * ent->size);
 	if (ent->spawnflags & SECRET_1ST_DOWN)
 		VectorMA(ent->s.origin, -1 * width, up, ent->pos1);
 	else

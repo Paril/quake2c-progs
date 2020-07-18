@@ -29,7 +29,7 @@ void(entity ent) UpdateChaseCam =
 	VectorCopy(targ->client->v_angle, angles);
 	if (angles[PITCH] > 56)
 		angles[PITCH] = 56f;
-	AngleVectors(angles, forward, right, unref_vec);
+	AngleVectors(angles, &forward, &right, 0);
 	VectorNormalize(forward);
 	VectorMA(ownerv, -30, forward, o);
 

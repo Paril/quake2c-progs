@@ -290,10 +290,10 @@ bool(entity self, entity other) infront =
 	float	dot;
 	vector	forward;
 
-	AngleVectors(self->s.angles, forward, unref_vec, unref_vec);
+	AngleVectors(self->s.angles, &forward, 0, 0);
 	VectorSubtract(other->s.origin, self->s.origin, vec);
 	VectorNormalize(vec);
-	dot = DotProduct(vec, forward);
+	dot = vec * forward;
 
 	if (dot > 0.3f)
 		return true;
@@ -946,14 +946,14 @@ void(entity self, float dist) ai_run =
 			center = tr.fraction;
 			d2 = d1 * ((center + 1) / 2);
 			self->s.angles[YAW] = self->ideal_yaw = vectoyaw(v);
-			AngleVectors(self->s.angles, v_forward, v_right, unref_vec);
+			AngleVectors(self->s.angles, &v_forward, &v_right, 0);
 
-			VectorSet(v, d2, -16, 0);
+			v = [ d2, -16, 0 ];
 			G_ProjectSource(self->s.origin, v, v_forward, v_right, left_target);
 			gi.trace(&tr, self->s.origin, self->mins, self->maxs, left_target, self, MASK_PLAYERSOLID);
 			left = tr.fraction;
 
-			VectorSet(v, d2, 16, 0);
+			v = [ d2, 16, 0 ];
 			G_ProjectSource(self->s.origin, v, v_forward, v_right, right_target);
 			gi.trace(&tr, self->s.origin, self->mins, self->maxs, right_target, self, MASK_PLAYERSOLID);
 			right = tr.fraction;
@@ -961,7 +961,7 @@ void(entity self, float dist) ai_run =
 			center = (d1 * center) / d2;
 			if (left >= center && left > right) {
 				if (left < 1) {
-					VectorSet(v, d2 * left * 0.5f, -16, 0);
+					v = [ d2 * left * 0.5f, -16, 0 ];
 					G_ProjectSource(self->s.origin, v, v_forward, v_right, left_target);
 //                  gi.dprintf("incomplete path, go part way and adjust again\n");
 				}
@@ -975,7 +975,7 @@ void(entity self, float dist) ai_run =
 //              debug_drawline(self.origin, self.last_sighting, 152);
 			} else if (right >= center && right > left) {
 				if (right < 1) {
-					VectorSet(v, d2 * right * 0.5f, 16, 0);
+					v = [ d2 * right * 0.5f, 16, 0 ];
 					G_ProjectSource(self->s.origin, v, v_forward, v_right, right_target);
 //                  gi.dprintf("incomplete path, go part way and adjust again\n");
 				}

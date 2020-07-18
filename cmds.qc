@@ -847,7 +847,7 @@ static void(entity ent) Cmd_Spawn_f =
 	e.classname = gi.argv(1);
 	
 	vector forward;
-	AngleVectors(ent.client.v_angle, forward, unref_vec, unref_vec);
+	AngleVectors(ent.client.v_angle, &forward, 0, 0);
 	
 	e.s.origin = ent.s.origin + (forward * 128);
 	

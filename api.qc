@@ -609,7 +609,7 @@ struct cplane_t
 	int	extra; // FIXME?
 };
 
-const cplane_t null_plane = { };
+const cplane_t null_plane;
 
 accessor csurface_t : int;
 

@@ -244,8 +244,8 @@ static void chick_pain(entity self, entity other, float kick, int damage)
 
 static void chick_dead(entity self)
 {
-	VectorSet(self->mins, -16, -16, 0);
-	VectorSet(self->maxs, 16, 16, 16);
+	self->mins = '-16 -16 0';
+	self->maxs = '16 16 16';
 	self->movetype = MOVETYPE_TOSS;
 	self->svflags |= SVF_DEADMONSTER;
 	self->nextthink = 0;
@@ -380,9 +380,7 @@ static void chick_dodge(entity self, entity attacker, float eta)
 
 static void ChickSlash(entity self)
 {
-	vector  aim;
-
-	VectorSet(aim, MELEE_DISTANCE, self->mins[0], 10);
+	const vector  aim = [ MELEE_DISTANCE, self->mins_x, 10 ];
 	gi.sound(self, CHAN_WEAPON, sound_melee_swing, 1, ATTN_NORM, 0);
 	fire_hit(self, aim, (10 + (Q_rand() % 6)), 100);
 }
@@ -395,7 +393,7 @@ static void ChickRocket(entity self)
 	vector  dir;
 	vector  vec;
 
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_CHICK_ROCKET_1], forward, right, start);
 
 	VectorCopy(self->enemy->s.origin, vec);
@@ -601,8 +599,8 @@ API_FUNC static void SP_monster_chick(entity self)
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 	self->s.modelindex = gi.modelindex("models/monsters/bitch/tris.md2");
-	VectorSet(self->mins, -16, -16, 0);
-	VectorSet(self->maxs, 16, 16, 56);
+	self->mins = '-16 -16 0';
+	self->maxs = '16 16 56';
 
 	self->health = 175;
 	self->gib_health = -70;

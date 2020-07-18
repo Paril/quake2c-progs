@@ -139,9 +139,7 @@ static var mmove_t flipper_move_pain1 = { FRAME_flppn201, FRAME_flppn205, flippe
 
 static void flipper_bite(entity self)
 {
-	vector  aim;
-
-	VectorSet(aim, MELEE_DISTANCE, 0, 0);
+	static const vector  aim = [ MELEE_DISTANCE, 0, 0 ];
 	fire_hit(self, aim, 5, 0);
 }
 
@@ -206,8 +204,8 @@ static void flipper_pain(entity self, entity other, float kick, int damage)
 
 static void flipper_dead(entity self)
 {
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, -8);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 -8';
 	self->movetype = MOVETYPE_TOSS;
 	self->svflags |= SVF_DEADMONSTER;
 	self->nextthink = 0;
@@ -344,8 +342,8 @@ API_FUNC static void SP_monster_flipper(entity self)
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 	self->s.modelindex = gi.modelindex("models/monsters/flipper/tris.md2");
-	VectorSet(self->mins, -16, -16, 0);
-	VectorSet(self->maxs, 16, 16, 32);
+	self->mins = '-16 -16 0';
+	self->maxs = '16 16 32';
 
 	self->health = 50;
 	self->gib_health = -30;

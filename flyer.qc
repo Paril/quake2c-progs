@@ -229,7 +229,7 @@ static void(entity self, int flash_number) flyer_fire =
 		effect = EF_HYPERBLASTER;
 	else
 		effect = 0;
-	AngleVectors(self->s.angles, forward, right, unref_vec);
+	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 	VectorCopy(self->enemy->s.origin, end);
@@ -272,18 +272,14 @@ static var mmove_t flyer_move_attack2 = { FRAME_attak201, FRAME_attak217, flyer_
 
 static void(entity self) flyer_slash_left =
 {
-	vector  aim;
-
-	VectorSet(aim, MELEE_DISTANCE, self->mins_x, 0);
+	const vector  aim = [ MELEE_DISTANCE, self->mins_x, 0 ];
 	fire_hit(self, aim, 5, 0);
 	gi.sound(self, CHAN_WEAPON, sound_slash, 1, ATTN_NORM, 0);
 }
 
 static void(entity self) flyer_slash_right =
 {
-	vector  aim;
-
-	VectorSet(aim, MELEE_DISTANCE, self->maxs_x, 0);
+	const vector  aim = [ MELEE_DISTANCE, self->maxs_x, 0 ];
 	fire_hit(self, aim, 5, 0);
 	gi.sound(self, CHAN_WEAPON, sound_slash, 1, ATTN_NORM, 0);
 }
@@ -430,8 +426,8 @@ API_FUNC static void(entity self) SP_monster_flyer =
 	gi.soundindex("flyer/flyatck3.wav");
 
 	self->s.modelindex = gi.modelindex("models/monsters/flyer/tris.md2");
-	VectorSet(self->mins, -16, -16, -24);
-	VectorSet(self->maxs, 16, 16, 32);
+	self->mins = '-16 -16 -24';
+	self->maxs = '16 16 32';
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
 
