@@ -838,6 +838,26 @@ static void(entity ent) Cmd_PlayerList_f =
 // from hud.qc
 void(entity ent) Cmd_Score_f;
 
+// spawn.qc
+bool(entity ent) ED_CallSpawn;
+
+static void(entity ent) Cmd_Spawn_f =
+{
+	entity e = G_Spawn();
+	e.classname = gi.argv(1);
+	
+	vector forward;
+	AngleVectors(ent.client.v_angle, forward, unref_vec, unref_vec);
+	
+	e.s.origin = ent.s.origin + (forward * 128);
+	
+	e.s.angles[YAW] = ent.s.angles[YAW];
+	
+	ED_CallSpawn(e);
+	
+	gi.linkentity(e);
+};
+
 /*
 =================
 ClientCommand
@@ -881,7 +901,9 @@ void(entity ent) ClientCommand =
 	if (level.intermission_framenum)
 		return;
 
-	if (stricmp (cmd, "use") == 0)
+	if (stricmp (cmd, "spawn") == 0)
+		Cmd_Spawn_f (ent);
+	else if (stricmp (cmd, "use") == 0)
 		Cmd_Use_f (ent);
 	else if (stricmp (cmd, "drop") == 0)
 		Cmd_Drop_f (ent);

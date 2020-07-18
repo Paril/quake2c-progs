@@ -17,6 +17,27 @@ int(int) Q_rand_uniform = #0:Q_rand_uniform;
 float() frand = #0:frand;
 float() crand = #0:crand;
 
+inline float() frand_intrinsic =
+{
+	float x;
+	asm RAND0 x;
+	return x;
+};
+
+inline float(float y) frand_max_intrinsic =
+{
+	float x;
+	asm RAND1 y, x;
+	return x;
+};
+
+inline float(float min, float max) frand_minmax_intrinsic =
+{
+	float x;
+	asm RAND2 min, max, x;
+	return x;
+};
+
 // not strictly math, but...
 typedef enum int
 {

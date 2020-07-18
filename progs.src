@@ -38,6 +38,17 @@ parasite.qc
 tank.qc
 insane.qc
 flipper.qc
+medic.qc
+supertank.qc
+mutant.qc
+brain.qc
+chick.qc
+gladiator.qc
+hover.qc
+boss2.qc
+boss3.qc
+boss32.qc
+boss31.qc
 pweapon.qc
 misc.qc
 trigger.qc

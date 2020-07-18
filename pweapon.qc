@@ -1281,13 +1281,6 @@ static void(entity ent) weapon_bfg_fire =
 
 	AngleVectors(ent->client->v_angle, forward, right, unref_vec);
 
-	VectorScale(forward, -2, ent->client->kick_origin);
-
-	// make a big pitch kick with an inverse fall
-	ent->client->v_dmg_pitch = -40f;
-	ent->client->v_dmg_roll = crand() * 8f;
-	ent->client->v_dmg_time = level.time + DAMAGE_TIME;
-
 	VectorSet(offset, 8, 8, ent->viewheight - 8);
 	P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
 
@@ -1310,6 +1303,13 @@ static void(entity ent) weapon_bfg_fire =
 		ent->client->ps.gunframe++;
 		return;
 	}
+
+	VectorScale(forward, -2, ent->client->kick_origin);
+
+	// make a big pitch kick with an inverse fall
+	ent->client->v_dmg_pitch = -40f;
+	ent->client->v_dmg_roll = crand() * 8f;
+	ent->client->v_dmg_time = level.time + DAMAGE_TIME;
 
 	if (is_quad)
 		damage *= 4;

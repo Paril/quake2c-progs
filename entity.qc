@@ -228,7 +228,7 @@ const int MAX_ENT_CLUSTERS = 16;
 
 .float	wait;
 .float	delay;
-.float	random;
+.float	rand;
 
 .int	last_sound_framenum;
 

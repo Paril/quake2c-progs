@@ -257,6 +257,8 @@ static void turret_driver_die(entity self, entity inflictor, entity attacker, in
 	self->target_ent->teammaster->owner = world;
 
 	infantry_die(self, inflictor, attacker, damage, point);
+	
+	self->s.renderfx |= RF_FRAMELERP;
 }
 
 static void turret_driver_think(entity self)
