@@ -102,7 +102,9 @@ static void() ShutdownGame =
 };
 
 // from spawn.qc
+void() PreSpawnEntities;
 void(string mapname, string entities, string spawnpoint) SpawnEntities;
+void() PostSpawnEntities;
 /*
 =================
 ClientEndServerFrames
@@ -424,7 +426,9 @@ struct game_export_t {
 	void()		InitGame;
 	void()		ShutdownGame;
 	
+	void()								PreSpawnEntities;
 	void(string mapname, string entities, string spawnpoint)	SpawnEntities;
+	void()								PostSpawnEntities;
 	
 	bool(entity ent, __inout string userinfo)	ClientConnect;
 	void(entity ent)				ClientBegin;
@@ -460,7 +464,9 @@ API_FUNC void(__out game_export_t exports) GetGameAPI =
 	exports.InitGame = InitGame;
 	exports.ShutdownGame = ShutdownGame;
 
+	exports.PreSpawnEntities = PreSpawnEntities;
 	exports.SpawnEntities = SpawnEntities;
+	exports.PostSpawnEntities = PostSpawnEntities;
 
 	exports.ClientConnect = ClientConnect;
 	exports.ClientBegin = ClientBegin;

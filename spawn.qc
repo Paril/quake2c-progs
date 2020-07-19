@@ -222,6 +222,11 @@ Creates a server's entity / program execution context by
 parsing textual entity definitions out of an ent file.
 ==============
 */
+void PreSpawnEntities()
+{
+	SaveClientData();
+}
+
 void(string mapname, string entities, string spawnpoint) SpawnEntities =
 {
 	int entities_offset = 0;
@@ -233,8 +238,6 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 		skill_level = 3;
 	if (skill.intVal != skill_level)
 		gi.cvar_forceset("skill", itos(skill_level));
-
-	SaveClientData();
 
 	memclear(&level, sizeof(level));
 	level.mapname = mapname;
@@ -309,6 +312,10 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 	G_FindTeams();
 
 	PlayerTrail_Init();
+};
+
+void() PostSpawnEntities =
+{
 };
 
 //===================================================================

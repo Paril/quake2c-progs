@@ -13,3 +13,5 @@ __variant(string) func_get = #0:func_get;
 
 // function is visible to func_get and to the game code
 #define API_FUNC __used
+
+//__used static int force_32bit[65536] = { 0 };
