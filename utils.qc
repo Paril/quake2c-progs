@@ -223,9 +223,9 @@ const vector MOVEDIR_DOWN	= [ 0, 0, -1 ];
 void(__inout vector angles, __out vector movedir) G_SetMovedir =
 {
 	if (angles == VEC_UP) {
-		VectorCopy(MOVEDIR_UP, movedir);
+		movedir = MOVEDIR_UP;
 	} else if (angles == VEC_DOWN) {
-		VectorCopy(MOVEDIR_DOWN, movedir);
+		movedir = MOVEDIR_DOWN;
 	} else {
 		AngleVectors(angles, &movedir, 0, 0);
 	}

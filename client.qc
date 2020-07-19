@@ -28,7 +28,7 @@ static void(entity self) SP_FixCoopSpots =
 			return;
 		if (!spot->targetname)
 			continue;
-		VectorSubtract(self->s.origin, spot->s.origin, d);
+		d = self->s.origin - spot->s.origin;
 		if (VectorLength(d) < 384) {
 			if ((!self->targetname) || stricmp(self->targetname, spot->targetname) != 0) {
 				self->targetname = spot->targetname;
@@ -419,9 +419,9 @@ void(entity self, entity inflictor, entity attacker) LookAtKiller =
 	vector	dir;
 
 	if (attacker && attacker != world && attacker != self) {
-		VectorSubtract(attacker->s.origin, self->s.origin, dir);
+		dir = attacker->s.origin - self->s.origin;
 	} else if (inflictor && inflictor != world && inflictor != self) {
-		VectorSubtract(inflictor->s.origin, self->s.origin, dir);
+		dir = inflictor->s.origin - self->s.origin;
 	} else {
 		self->client->killer_yaw = self->s.angles[YAW];
 		return;
@@ -648,7 +648,7 @@ static float(entity spot) PlayersRangeFromSpot =
 		if (player->health <= 0)
 			continue;
 
-		VectorSubtract(spot->s.origin, player->s.origin, v);
+		v = spot->s.origin - player->s.origin;
 		playerdistance = VectorLength(v);
 
 		if (playerdistance < bestplayerdistance)
@@ -835,9 +835,9 @@ static void(entity ent, __out vector origin, __out vector angles) SelectSpawnPoi
 		}
 	}
 
-	VectorCopy(spot->s.origin, origin);
+	origin = spot->s.origin;
 	origin[2] += 9f;
-	VectorCopy(spot->s.angles, angles);
+	angles = spot->s.angles;
 }
 
 void InitBodyQue(void)
@@ -888,13 +888,13 @@ static void(entity ent) CopyToBodyQue =
 	body->s.event = EV_OTHER_TELEPORT;
 	
 	body->svflags = ent->svflags;
-	VectorCopy(ent->mins, body->mins);
-	VectorCopy(ent->maxs, body->maxs);
-	VectorCopy(ent->absmin, body->absmin);
-	VectorCopy(ent->absmax, body->absmax);
-	VectorCopy(ent->size, body->size);
-	VectorCopy(ent->velocity, body->velocity);
-	VectorCopy(ent->avelocity, body->avelocity);
+	body->mins = ent->mins;
+	body->maxs = ent->maxs;
+	body->absmin = ent->absmin;
+	body->absmax = ent->absmax;
+	body->size = ent->size;
+	body->velocity = ent->velocity;
+	body->avelocity = ent->avelocity;
 	body->solid = ent->solid;
 	body->clipmask = ent->clipmask;
 	body->owner = ent->owner;
@@ -1551,8 +1551,8 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 		ent->s.origin[2] = SHORT2COORD(pm.s.origin[2]);
 		ent->velocity[2] = SHORT2COORD(pm.s.velocity[2]);
 
-		VectorCopy(pm.mins, ent->mins);
-		VectorCopy(pm.maxs, ent->maxs);
+		ent->mins = pm.mins;
+		ent->maxs = pm.maxs;
 
 		ent.client->resp.cmd_angles[0] = SHORT2ANGLE(ucmd->angles[0]);
 		ent.client->resp.cmd_angles[1] = SHORT2ANGLE(ucmd->angles[1]);
@@ -1575,8 +1575,8 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 			ent.client->ps.viewangles[PITCH] = -15f;
 			ent.client->ps.viewangles[YAW] = ent.client->killer_yaw;
 		} else {
-			VectorCopy(pm.viewangles, ent.client->v_angle);
-			VectorCopy(pm.viewangles, ent.client->ps.viewangles);
+			ent.client->v_angle = pm.viewangles;
+			ent.client->ps.viewangles = pm.viewangles;
 		}
 
 		gi.linkentity(ent);

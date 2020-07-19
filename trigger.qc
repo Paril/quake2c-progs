@@ -140,7 +140,7 @@ API_FUNC static void(entity ent) SP_trigger_once =
 	if (ent->spawnflags & 1) {
 		vector	v;
 
-		VectorMA(ent->mins, 0.5f, ent->size, v);
+		v = ent->mins + (0.5f * ent->size);
 		ent->spawnflags &= ~1;
 		ent->spawnflags |= 4;
 		gi.dprintf("fixed TRIGGERED flag on %s at %s\n", ent->classname, vtos(v));
@@ -345,13 +345,13 @@ static int windsound;
 static void(entity self, entity other, cplane_t plane, csurface_t surf) trigger_push_touch =
 {
 	if (other->classname == "grenade") {
-		VectorScale(self->movedir, self->speed * 10, other->velocity);
+		other->velocity = self->movedir * (self->speed * 10);
 	} else if (other->health > 0) {
-		VectorScale(self->movedir, self->speed * 10, other->velocity);
+		other->velocity = self->movedir * (self->speed * 10);
 
 		if (other->is_client) {
 			// don't take falling damage immediately from this
-			VectorCopy(other->velocity, other->client->oldvelocity);
+			other->client->oldvelocity = other->velocity;
 			if (other->fly_sound_debounce_framenum < level.framenum) {
 				other->fly_sound_debounce_framenum = level.framenum + (int)(1.5f * BASE_FRAMERATE);
 				gi.sound(other, CHAN_AUTO, windsound, 1, ATTN_NORM, 0);

@@ -22,16 +22,16 @@ void(entity ent) UpdateChaseCam =
 
 	targ = ent->client->chase_target;
 
-	VectorCopy(targ->s.origin, ownerv);
+	ownerv = targ->s.origin;
 
 	ownerv_z += targ->viewheight;
 
-	VectorCopy(targ->client->v_angle, angles);
+	angles = targ->client->v_angle;
 	if (angles[PITCH] > 56)
 		angles[PITCH] = 56f;
 	AngleVectors(angles, &forward, &right, 0);
 	VectorNormalize(forward);
-	VectorMA(ownerv, -30, forward, o);
+	o = ownerv + (-30 * forward);
 
 	if (o_z < targ->s.origin[2] + 20f)
 		o_z = targ->s.origin[2] + 20f;
@@ -42,24 +42,24 @@ void(entity ent) UpdateChaseCam =
 
 	gi.trace(&trace, ownerv, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
 
-	VectorCopy(trace.endpos, goal);
+	goal = trace.endpos;
 
-	VectorMA(goal, 2, forward, goal);
+	goal = goal + (2 * forward);
 
 	// pad for floors and ceilings
-	VectorCopy(goal, o);
+	o = goal;
 	o_z += 6;
 	gi.trace(&trace, goal, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
 	if (trace.fraction < 1) {
-		VectorCopy(trace.endpos, goal);
+		goal = trace.endpos;
 		goal_z -= 6;
 	}
 
-	VectorCopy(goal, o);
+	o = goal;
 	o_z -= 6;
 	gi.trace(&trace, goal, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
 	if (trace.fraction < 1) {
-		VectorCopy(trace.endpos, goal);
+		goal = trace.endpos;
 		goal_z += 6;
 	}
 
@@ -68,7 +68,7 @@ void(entity ent) UpdateChaseCam =
 	else
 		ent->client->ps.pmove.pm_type = PM_FREEZE;
 
-	VectorCopy(goal, ent->s.origin);
+	ent->s.origin = goal;
 	ent->client->ps.pmove.delta_angles[0] = ANGLE2SHORT(targ->client->v_angle[0] - ent->client->resp.cmd_angles[0]);
 	ent->client->ps.pmove.delta_angles[1] = ANGLE2SHORT(targ->client->v_angle[1] - ent->client->resp.cmd_angles[1]);
 	ent->client->ps.pmove.delta_angles[2] = ANGLE2SHORT(targ->client->v_angle[2] - ent->client->resp.cmd_angles[2]);
@@ -78,8 +78,8 @@ void(entity ent) UpdateChaseCam =
 		ent->client->ps.viewangles[PITCH] = -15f;
 		ent->client->ps.viewangles[YAW] = targ->client->killer_yaw;
 	} else {
-		VectorCopy(targ->client->v_angle, ent->client->ps.viewangles);
-		VectorCopy(targ->client->v_angle, ent->client->v_angle);
+		ent->client->ps.viewangles = targ->client->v_angle;
+		ent->client->v_angle = targ->client->v_angle;
 	}
 
 	ent->viewheight = 0;

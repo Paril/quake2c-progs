@@ -380,9 +380,9 @@ static void makronBFG(entity self)
 	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_MAKRON_BFG], forward, right, start);
 
-	VectorCopy(self->enemy->s.origin, vec);
+	vec = self->enemy->s.origin;
 	vec[2] += self->enemy->viewheight;
-	VectorSubtract(vec, start, dir);
+	dir = vec - start;
 	VectorNormalize(dir);
 	gi.sound(self, CHAN_VOICE, sound_attack_bfg, 1, ATTN_NORM, 0);
 	monster_fire_bfg(self, start, dir, 50, 300, 100, 300, MZ2_MAKRON_BFG);
@@ -416,9 +416,9 @@ static void MakronHyperblaster(entity self)
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 	if (self->enemy) {
-		VectorCopy(self->enemy->s.origin, vec);
+		vec = self->enemy->s.origin;
 		vec[2] += self->enemy->viewheight;
-		VectorSubtract(vec, start, vec);
+		vec -= start;
 		vec = vectoangles(vec);
 		dir[0] = vec[0];
 	} else {
@@ -467,7 +467,7 @@ static var mmove_t makron_move_attack4 = { FRAME_attak401, FRAME_attak426, makro
 
 static void MakronSaveloc(entity self)
 {
-	VectorCopy(self->enemy->s.origin, self->pos1);  //save for aiming the shot
+	self->pos1 = self->enemy->s.origin;  //save for aiming the shot
 	self->pos1[2] += self->enemy->viewheight;
 }
 
@@ -481,7 +481,7 @@ static void MakronRailgun(entity self)
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_MAKRON_RAILGUN_1], forward, right, start);
 
 	// calc direction to where we targted
-	VectorSubtract(self->pos1, start, dir);
+	dir = self->pos1 - start;
 	VectorNormalize(dir);
 
 	monster_fire_railgun(self, start, dir, 50, 100, MZ2_MAKRON_RAILGUN_1);
@@ -630,8 +630,8 @@ static void makron_die(entity self, entity inflictor, entity attacker, int damag
 	self->takedamage = DAMAGE_YES;
 
 	tempent = G_Spawn();
-	VectorCopy(self->s.origin, tempent->s.origin);
-	VectorCopy(self->s.angles, tempent->s.angles);
+	tempent->s.origin = self->s.origin;
+	tempent->s.angles = self->s.angles;
 	tempent->s.origin[1] -= 84;
 	makron_torso(tempent);
 
@@ -650,9 +650,9 @@ static bool Makron_CheckAttack(entity self)
 
 	if (self->enemy->health > 0) {
 		// see if any entities are in the way of the shot
-		VectorCopy(self->s.origin, spot1);
+		spot1 = self->s.origin;
 		spot1[2] += self->viewheight;
-		VectorCopy(self->enemy->s.origin, spot2);
+		spot2 = self->enemy->s.origin;
 		spot2[2] += self->enemy->viewheight;
 
 		gi.trace(&tr, spot1, vec3_origin, vec3_origin, spot2, self, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_SLIME | CONTENTS_LAVA);
@@ -663,7 +663,7 @@ static bool Makron_CheckAttack(entity self)
 	}
 
 	enemy_range = range(self, self->enemy);
-	VectorSubtract(self->enemy->s.origin, self->s.origin, temp);
+	temp = self->enemy->s.origin - self->s.origin;
 	enemy_yaw = vectoyaw(temp);
 
 	self->ideal_yaw = enemy_yaw;
@@ -815,10 +815,10 @@ void MakronSpawn(entity self)
 	if (!player)
 		return;
 
-	VectorSubtract(player->s.origin, self->s.origin, vec);
+	vec = player->s.origin - self->s.origin;
 	self->s.angles[YAW] = vectoyaw(vec);
 	VectorNormalize(vec);
-	VectorScale(vec, 400, self->velocity);
+	self->velocity = vec * 400;
 	self->velocity[2] = 200f;
 	self->groundentity = null_entity;
 }
@@ -838,5 +838,5 @@ void MakronToss(entity self)
 	ent->nextthink = level.framenum + (int)(0.8f * BASE_FRAMERATE);
 	ent->think = MakronSpawn;
 	ent->target = self->target;
-	VectorCopy(self->s.origin, ent->s.origin);
+	ent->s.origin = self->s.origin;
 }

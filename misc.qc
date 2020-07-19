@@ -35,9 +35,9 @@ static void(int damage, __out vector v) VelocityForDamage =
 	v = randomv('-100 -100 200', '100 100 300');
 
 	if (damage < 50)
-		VectorScale(v, 0.7f, v);
+		v *= 0.7f;
 	else
-		VectorScale(v, 1.2f, v);
+		v *= 1.2f;
 }
 
 static void(entity ent) ClipGibVelocity =
@@ -112,7 +112,7 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowGib =
 
 	gib = G_Spawn();
 
-	VectorScale(self->size, 0.5f, sz);
+	sz = self->size * 0.5f;
 	origin = self->absmin + sz;
 	gib->s.origin = origin + randomv(-sz, sz);
 
@@ -133,7 +133,7 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowGib =
 	}
 
 	VelocityForDamage(damage, vd);
-	VectorMA(self->velocity, vscale, vd, gib->velocity);
+	gib->velocity = self->velocity + (vscale * vd);
 	ClipGibVelocity(gib);
 	gib->avelocity = randomv('600 600 600');
 
@@ -174,7 +174,7 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowHead =
 	}
 
 	VelocityForDamage(damage, vd);
-	VectorMA(self->velocity, vscale, vd, self->velocity);
+	self->velocity += (vscale * vd);
 	ClipGibVelocity(self);
 
 	self->avelocity[YAW] = random(-600f, 600f);
@@ -242,12 +242,12 @@ void(entity self, string modelname, float speed, vector origin) ThrowDebris =
 	vector v;
 
 	chunk = G_Spawn();
-	VectorCopy(origin, chunk->s.origin);
+	chunk->s.origin = origin;
 	gi.setmodel(chunk, modelname);
 	v_x = random(-100f, 100f);
 	v_y = random(-100f, 100f);
 	v_z = random(0f, 200f);
-	VectorMA(self->velocity, speed, v, chunk->velocity);
+	chunk->velocity = self->velocity + (speed * v);
 	chunk->movetype = MOVETYPE_BOUNCE;
 	chunk->solid = SOLID_NOT;
 	chunk->avelocity = randomv('600 600 600');
@@ -315,10 +315,10 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) path_cor
 		next = world;
 
 	if (next && (next->spawnflags & 1)) {
-		VectorCopy(next->s.origin, v);
+		v = next->s.origin;
 		v_z += next->mins_z;
 		v_z -= other->mins_z;
-		VectorCopy(v, other->s.origin);
+		other->s.origin = v;
 		next = G_PickTarget(next->target);
 		other->s.event = EV_OTHER_TELEPORT;
 	}
@@ -335,7 +335,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) path_cor
 		other->monsterinfo.pause_framenum = INT_MAX;
 		other->monsterinfo.stand(other);
 	} else {
-		VectorSubtract(other->goalentity->s.origin, other->s.origin, v);
+		v = other->goalentity->s.origin - other->s.origin;
 		other->ideal_yaw = vectoyaw(v);
 	}
 }
@@ -434,8 +434,8 @@ Used as a positional target for lightning.
 */
 API_FUNC void(entity self) SP_info_notnull =
 {
-	VectorCopy(self->s.origin, self->absmin);
-	VectorCopy(self->s.origin, self->absmax);
+	self->absmin = self->s.origin;
+	self->absmax = self->s.origin;
 }
 
 /*QUAKED light (0 1 0) (-8 -8 -8) (8 8 8) START_OFF
@@ -636,21 +636,21 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 	int	cmass;
 
 	// bmodel origins are (0 0 0), we need to adjust that here
-	VectorScale(self->size, 0.5f, csize);
+	csize = self->size * 0.5f;
 	origin = self->absmin + csize;
-	VectorCopy(origin, self->s.origin);
+	self->s.origin = origin;
 
 	self->takedamage = DAMAGE_NO;
 
 	if (self->dmg)
 		T_RadiusDamage(self, attacker, self->dmg, 0, self->dmg + 40, MOD_EXPLOSIVE);
 
-	VectorSubtract(self->s.origin, inflictor->s.origin, self->velocity);
+	self->velocity = self->s.origin - inflictor->s.origin;
 	VectorNormalize(self->velocity);
-	VectorScale(self->velocity, 150, self->velocity);
+	self->velocity *= 150;
 
 	// start chunks towards the center
-	VectorScale(csize, 0.5f, csize);
+	csize *= 0.5f;
 
 	cmass = self->mass;
 	if (!cmass)
@@ -752,7 +752,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) barrel_t
 		return;
 
 	ratio = (float)other->mass / (float)self->mass;
-	VectorSubtract(self->s.origin, other->s.origin, v);
+	v = self->s.origin - other->s.origin;
 	M_walkmove(self, vectoyaw(v), 20 * ratio * FRAMETIME);
 }
 
@@ -764,8 +764,8 @@ static void(entity self) barrel_explode =
 
 	T_RadiusDamage(self, self->activator, self->dmg, 0, self->dmg + 40, MOD_BARREL);
 
-	VectorCopy(self->s.origin, save);
-	VectorMA(self->absmin, 0.5f, self->size, self->s.origin);
+	save = self->s.origin;
+	self->s.origin = self->absmin + (0.5f * self->size);
 
 	// a few big chunks
 	spd = 1.5f * (float)self->dmg / 200.0f;
@@ -776,15 +776,15 @@ static void(entity self) barrel_explode =
 
 	// bottom corners
 	spd = 1.75f * (float)self->dmg / 200.0f;
-	VectorCopy(self->absmin, org);
+	org = self->absmin;
 	ThrowDebris(self, "models/objects/debris3/tris.md2", spd, org);
-	VectorCopy(self->absmin, org);
+	org = self->absmin;
 	org_x += self->size_x;
 	ThrowDebris(self, "models/objects/debris3/tris.md2", spd, org);
-	VectorCopy(self->absmin, org);
+	org = self->absmin;
 	org_y += self->size_y;
 	ThrowDebris(self, "models/objects/debris3/tris.md2", spd, org);
-	VectorCopy(self->absmin, org);
+	org = self->absmin;
 	org_x += self->size_x;
 	org_y += self->size_y;
 	ThrowDebris(self, "models/objects/debris3/tris.md2", spd, org);
@@ -808,7 +808,7 @@ static void(entity self) barrel_explode =
 	org = self->s.origin + randomv(-self->size, self->size);
 	ThrowDebris(self, "models/objects/debris2/tris.md2", spd, org);
 
-	VectorCopy(save, self->s.origin);
+	self->s.origin = save;
 	if (self->groundentity != null_entity)
 		BecomeExplosion2(self);
 	else
@@ -1189,7 +1189,7 @@ static void(entity self) misc_viper_bomb_prethink =
 	if (diff < -1.0f)
 		diff = -1.0f;
 
-	VectorScale(self->moveinfo.dir, 1.0f + diff, v);
+	v = self->moveinfo.dir * (1.0f + diff);
 	v_z = diff;
 
 	diff = self->s.angles[2];
@@ -1211,10 +1211,10 @@ static void(entity self, entity other, entity cactivator) misc_viper_bomb_use =
 	self->activator = cactivator;
 
 	viper = G_Find(null_entity, classname, "misc_viper");
-	VectorScale(viper->moveinfo.dir, viper->moveinfo.speed, self->velocity);
+	self->velocity = viper->moveinfo.dir * viper->moveinfo.speed;
 
 	self->timestamp = level.framenum;
-	VectorCopy(viper->moveinfo.dir, self->moveinfo.dir);
+	self->moveinfo.dir = viper->moveinfo.dir;
 }
 
 API_FUNC static void(entity self) SP_misc_viper_bomb =
@@ -1587,8 +1587,8 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) teleport
 	// unlink to make sure it can't possibly interfere with KillBox
 	gi.unlinkentity(other);
 
-	VectorCopy(dest->s.origin, other->s.origin);
-	VectorCopy(dest->s.origin, other->s.old_origin);
+	other->s.origin = dest->s.origin;
+	other->s.old_origin = dest->s.origin;
 	other->s.origin[2] += 10;
 
 	// clear the velocity and hold them in place briefly
@@ -1643,7 +1643,7 @@ API_FUNC static void(entity ent) SP_misc_teleporter =
 	trig->solid = SOLID_TRIGGER;
 	trig->target = ent->target;
 	trig->owner = ent;
-	VectorCopy(ent->s.origin, trig->s.origin);
+	trig->s.origin = ent->s.origin;
 	trig->mins = '-8 -8 8';
 	trig->maxs = '8 8 24';
 	gi.linkentity(trig);

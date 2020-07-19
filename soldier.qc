@@ -366,21 +366,21 @@ static void(entity self, int flash_number) soldier_fire =
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_index], forward, right, start);
 
 	if (flash_number == 5 || flash_number == 6) {
-		VectorCopy(forward, aim);
+		aim = forward;
 	} else {
-		VectorCopy(self->enemy->s.origin, end);
+		end = self->enemy->s.origin;
 		end_z += self->enemy->viewheight;
-		VectorSubtract(end, start, aim);
+		aim = end - start;
 		dir = vectoangles(aim);
 		AngleVectors(dir, &forward, &right, &up);
 
 		r = random(-1000f, 1000f);
 		u = random(-500f, 500f);
-		VectorMA(start, 8192, forward, end);
-		VectorMA(end, r, right, end);
-		VectorMA(end, u, up, end);
+		end = start + (8192 * forward);
+		end += (r * right);
+		end += (u * up);
 
-		VectorSubtract(end, start, aim);
+		aim = end - start;
 		VectorNormalize(aim);
 	}
 

@@ -185,8 +185,8 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 	numbumps = 4;
 
 	blocked = 0;
-	VectorCopy(ent->velocity, original_velocity);
-	VectorCopy(ent->velocity, primal_velocity);
+	original_velocity = ent->velocity;
+	primal_velocity = ent->velocity;
 	numplanes = 0;
 
 	time_left = time;
@@ -205,8 +205,8 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 
 		if (trace.fraction > 0) {
 			// actually covered some distance
-			VectorCopy(trace.endpos, ent->s.origin);
-			VectorCopy(ent->velocity, original_velocity);
+			ent->s.origin = trace.endpos;
+			original_velocity = ent->velocity;
 			numplanes = 0;
 		}
 
@@ -244,7 +244,7 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 			return 3;
 		}
 
-		VectorCopy(trace.plane.normal, planes[numplanes]);
+		planes[numplanes] = trace.plane.normal;
 		numplanes++;
 
 //
@@ -264,7 +264,7 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 
 		if (i != numplanes) {
 			// go along this plane
-			VectorCopy(new_velocity, ent->velocity);
+			ent->velocity = new_velocity;
 		} else {
 			// go along the crease
 			if (numplanes != 2) {
@@ -274,7 +274,7 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 			}
 			dir = CrossProduct(planes[0], planes[1]);
 			d = dir * ent->velocity;
-			VectorScale(dir, d, ent->velocity);
+			ent->velocity = dir * d;
 		}
 
 //
@@ -323,7 +323,7 @@ static void(entity ent, vector push, __out trace_t trace) SV_PushEntity =
 	vector	end;
 	int	mask;
 
-	VectorCopy(ent->s.origin, start);
+	start = ent->s.origin;
 	end = start + push;
 
 retry:
@@ -334,7 +334,7 @@ retry:
 
 	gi.trace(&trace, start, ent->mins, ent->maxs, end, ent, mask);
 
-	VectorCopy(trace.endpos, ent->s.origin);
+	ent->s.origin = trace.endpos;
 	gi.linkentity(ent);
 
 	if (trace.fraction != 1.0f)
@@ -344,7 +344,7 @@ retry:
 		// if the pushed entity went away and the pusher is still there
 		if (!trace.ent->inuse && ent->inuse) {
 			// move the pusher back and try again
-			VectorCopy(start, ent->s.origin);
+			ent->s.origin = start;
 			gi.linkentity(ent);
 			goto retry;
 		}
@@ -409,8 +409,8 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 	if (pushed_head)
 		pushed_head.pushed.next = pusher;
 
-	VectorCopy(pusher->s.origin, pusher.pushed.origin);
-	VectorCopy(pusher->s.angles, pusher.pushed.angles);
+	pusher.pushed.origin = pusher->s.origin;
+	pusher.pushed.angles = pusher->s.angles;
 #if USE_SMOOTH_DELTA_ANGLES
 	if (pusher->client)
 		pusher.pushed.deltayaw = pusher->client->ps.pmove.delta_angles[YAW];
@@ -457,8 +457,8 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 
 		if ((pusher->movetype == MOVETYPE_PUSH) || (check->groundentity == pusher)) {
 			// move this entity
-			VectorCopy(check->s.origin, check.pushed.origin);
-			VectorCopy(check->s.angles, check.pushed.angles);
+			check.pushed.origin = check->s.origin;
+			check.pushed.angles = check->s.angles;
 #if USE_SMOOTH_DELTA_ANGLES
 			if (check->client)
 				check.pushed.deltayaw = check->client->ps.pmove.delta_angles[YAW];
@@ -482,11 +482,11 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 #endif
 
 			// figure movement due to the pusher's amove
-			VectorSubtract(check->s.origin, pusher->s.origin, org);
+			org = check->s.origin - pusher->s.origin;
 			org2_x = org * forward;
 			org2_y = -(org * right);
 			org2_z = org * up;
-			VectorSubtract(org2, org, move2);
+			move2 = org2 - org;
 			check->s.origin += move2;
 
 			// may have pushed them off an edge
@@ -504,7 +504,7 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 			// if it is ok to leave in the old position, do it
 			// this is only relevent for riding entities, not pushed
 			// FIXME: this doesn't acount for rotation
-			VectorSubtract(check->s.origin, move, check->s.origin);
+			check->s.origin = check->s.origin - move;
 			block = SV_TestEntityPosition(check);
 			if (!block) {
 				pushed_head = pushed_head.pushed.prev;
@@ -522,8 +522,8 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 		// go backwards, so if the same entity was pushed
 		// twice, it goes back to the original position
 		for (entity p = pushed_head; p; p = p.pushed.prev) {
-			VectorCopy(p.pushed.origin, p->s.origin);
-			VectorCopy(p.pushed.angles, p->s.angles);
+			p->s.origin = p.pushed.origin;
+			p->s.angles = p.pushed.angles;
 #if USE_SMOOTH_DELTA_ANGLES
 			if (p->client) {
 				p->client->ps.pmove.delta_angles[YAW] = p.pushed->deltayaw;
@@ -566,8 +566,8 @@ static void(entity ent) SV_Physics_Pusher =
 	for (part = ent ; part ; part = part->teamchain) {
 		if (part->velocity || part->avelocity) {
 			// object is moving
-			VectorScale(part->velocity, FRAMETIME, move);
-			VectorScale(part->avelocity, FRAMETIME, amove);
+			move = part->velocity * FRAMETIME;
+			amove = part->avelocity * FRAMETIME;
 
 			if (!SV_Push(part, move, amove))
 				break;  // move was blocked
@@ -623,8 +623,8 @@ static void(entity ent) SV_Physics_Noclip =
 	if (!ent->inuse)
 		return;
 
-	VectorMA(ent->s.angles, FRAMETIME, ent->avelocity, ent->s.angles);
-	VectorMA(ent->s.origin, FRAMETIME, ent->velocity, ent->s.origin);
+	ent->s.angles += (FRAMETIME * ent->avelocity);
+	ent->s.origin += (FRAMETIME * ent->velocity);
 
 	gi.linkentity(ent);
 }
@@ -675,7 +675,7 @@ static void(entity ent) SV_Physics_Toss =
 	if (ent->groundentity != null_entity)
 		return;
 
-	VectorCopy(ent->s.origin, old_origin);
+	old_origin = ent->s.origin;
 
 	SV_CheckVelocity(ent);
 
@@ -685,10 +685,10 @@ static void(entity ent) SV_Physics_Toss =
 		SV_AddGravity(ent);
 
 // move angles
-	VectorMA(ent->s.angles, FRAMETIME, ent->avelocity, ent->s.angles);
+	ent->s.angles += (FRAMETIME * ent->avelocity);
 
 // move origin
-	VectorScale(ent->velocity, FRAMETIME, move);
+	move = ent->velocity * FRAMETIME;
 	SV_PushEntity(ent, move, trace);
 	if (!ent->inuse)
 		return;
@@ -729,7 +729,7 @@ static void(entity ent) SV_Physics_Toss =
 
 // move teamslaves
 	for (slave = ent->teamchain; slave; slave = slave->teamchain) {
-		VectorCopy(ent->s.origin, slave->s.origin);
+		slave->s.origin = ent->s.origin;
 		gi.linkentity(slave);
 	}
 }
@@ -764,7 +764,7 @@ static void(entity ent) SV_AddRotationalFriction =
 {
 	float	adjustment;
 
-	VectorMA(ent->s.angles, FRAMETIME, ent->avelocity, ent->s.angles);
+	ent->s.angles += (FRAMETIME * ent->avelocity);
 	adjustment = FRAMETIME * sv_stopspeed * sv_friction;
 
 	if (ent->avelocity_x > 0) {

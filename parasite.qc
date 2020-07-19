@@ -246,7 +246,7 @@ static bool parasite_drain_attack_ok(vector start, vector end)
 	vector  dir, angles;
 
 	// check for max distance
-	VectorSubtract(start, end, dir);
+	dir = start - end;
 	if (VectorLength(dir) > 256)
 		return false;
 
@@ -270,7 +270,7 @@ static void parasite_drain_attack(entity self)
 	offset = '24 0 6';
 	G_ProjectSource(self->s.origin, offset, f, r, start);
 
-	VectorCopy(self->enemy->s.origin, end);
+	end = self->enemy->s.origin;
 	if (!parasite_drain_attack_ok(start, end)) {
 		end_z = self->enemy->s.origin[2] + self->enemy->maxs_z - 8;
 		if (!parasite_drain_attack_ok(start, end)) {
@@ -279,7 +279,7 @@ static void parasite_drain_attack(entity self)
 				return;
 		}
 	}
-	VectorCopy(self->enemy->s.origin, end);
+	end = self->enemy->s.origin;
 
 	gi.trace(&tr, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
 	if (tr.ent != self->enemy)
@@ -301,7 +301,7 @@ static void parasite_drain_attack(entity self)
 	gi.WritePosition(end);
 	gi.multicast(self->s.origin, MULTICAST_PVS);
 
-	VectorSubtract(start, end, dir);
+	dir = start - end;
 	T_Damage(self->enemy, self, self, dir, self->enemy->s.origin, vec3_origin, damage, 0, DAMAGE_NO_KNOCKBACK, MOD_UNKNOWN);
 }
 

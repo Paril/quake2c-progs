@@ -340,12 +340,12 @@ static void(entity player) P_DamageFeedback =
 	// by different armors
 	v = vec3_origin;
 	if (player.client.damage_parmor)
-		VectorMA(v, (float)player.client.damage_parmor / realcount, power_color, v);
+		v += ((float)player.client.damage_parmor / realcount * power_color);
 	if (player.client.damage_armor)
-		VectorMA(v, (float)player.client.damage_armor / realcount,  acolor, v);
+		v += ((float)player.client.damage_armor / realcount *  acolor);
 	if (player.client.damage_blood)
-		VectorMA(v, (float)player.client.damage_blood / realcount,  bcolor, v);
-	VectorCopy(v, player.client.damage_blend);
+		v += ((float)player.client.damage_blood / realcount *  bcolor);
+	player.client.damage_blend = v;
 
 
 	//
@@ -360,7 +360,7 @@ static void(entity player) P_DamageFeedback =
 		if (kick > 50)
 			kick = 50f;
 
-		VectorSubtract(player.client.damage_from, player.s.origin, v);
+		v = player.client.damage_from - player.s.origin;
 		VectorNormalize(v);
 
 		side = v * right;
@@ -416,7 +416,7 @@ static void(entity ent) SV_CalcViewOffset =
 	} else {
 		// add angles based on weapon kick
 
-		VectorCopy(ent.client.kick_angles, ent.client.ps.kick_angles);
+		ent.client.ps.kick_angles = ent.client.kick_angles;
 
 		// add angles based on damage kick
 
@@ -501,7 +501,7 @@ static void(entity ent) SV_CalcViewOffset =
 	else if (v_z > 30)
 		v_z = 30f;
 
-	VectorCopy(v, ent.client.ps.viewoffset);
+	ent.client.ps.viewoffset = v;
 }
 
 /*

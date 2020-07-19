@@ -205,7 +205,7 @@ void BossExplode(entity self)
 	int     n;
 
 	self->think = BossExplode;
-	VectorCopy(self->s.origin, org);
+	org = self->s.origin;
 	org[2] += 24 + (Q_rand() & 15);
 	switch (self->count++) {
 	case 0:
@@ -306,9 +306,9 @@ static void supertankRocket(entity self)
 	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
-	VectorCopy(self->enemy->s.origin, vec);
+	vec = self->enemy->s.origin;
 	vec[2] += self->enemy->viewheight;
-	VectorSubtract(vec, start, dir);
+	dir = vec - start;
 	VectorNormalize(dir);
 
 	monster_fire_rocket(self, start, dir, 50, 500, flash_number);
@@ -364,10 +364,9 @@ void supertankMachineGun(entity self)
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 	if (self->enemy) {
-		VectorCopy(self->enemy->s.origin, vec);
-		VectorMA(vec, 0, self->enemy->velocity, vec);
+		vec = self->enemy->s.origin;
 		vec[2] += self->enemy->viewheight;
-		VectorSubtract(vec, start, forward);
+		forward = vec - start;
 		VectorNormalize(forward);
 	}
 
@@ -456,7 +455,7 @@ static void supertank_attack(entity self)
 	float   range;
 	//float r;
 
-	VectorSubtract(self->enemy->s.origin, self->s.origin, vec);
+	vec = self->enemy->s.origin - self->s.origin;
 	range = VectorLength(vec);
 
 	//r = random();

@@ -356,14 +356,14 @@ static void(entity self, entity other, entity cactivator) use_target_spawner =
 
 	ent = G_Spawn();
 	ent->classname = self->target;
-	VectorCopy(self->s.origin, ent->s.origin);
-	VectorCopy(self->s.angles, ent->s.angles);
+	ent->s.origin = self->s.origin;
+	ent->s.angles = self->s.angles;
 	ED_CallSpawn(ent);
 	gi.unlinkentity(ent);
 	KillBox(ent);
 	gi.linkentity(ent);
 	if (self->speed)
-		VectorCopy(self->movedir, ent->velocity);
+		ent->velocity = self->movedir;
 }
 
 API_FUNC static void(entity self) SP_target_spawner =
@@ -372,7 +372,7 @@ API_FUNC static void(entity self) SP_target_spawner =
 	self->svflags = SVF_NOCLIENT;
 	if (self->speed) {
 		G_SetMovedir(self->s.angles, self->movedir);
-		VectorScale(self->movedir, self->speed, self->movedir);
+		self->movedir *= self->speed;
 	}
 }
 
@@ -470,17 +470,17 @@ static void(entity self) target_laser_think =
 		count = 4;
 
 	if (self->enemy) {
-		VectorCopy(self->movedir, last_movedir);
-		VectorMA(self->enemy->absmin, 0.5f, self->enemy->size, point);
-		VectorSubtract(point, self->s.origin, self->movedir);
+		last_movedir = self->movedir;
+		point = self->enemy->absmin + (0.5f * self->enemy->size);
+		self->movedir = point - self->s.origin;
 		VectorNormalize(self->movedir);
 		if (self->movedir != last_movedir)
 			self->spawnflags |= 0x80000000;
 	}
 
 	ignore = self;
-	VectorCopy(self->s.origin, start);
-	VectorMA(start, 2048, self->movedir, end);
+	start = self->s.origin;
+	end = start + (2048 * self->movedir);
 	while (1) {
 		gi.trace(&tr, start, vec3_origin, vec3_origin, end, ignore, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_DEADMONSTER);
 
@@ -507,10 +507,10 @@ static void(entity self) target_laser_think =
 		}
 
 		ignore = tr.ent;
-		VectorCopy(tr.endpos, start);
+		start = tr.endpos;
 	}
 
-	VectorCopy(tr.endpos, self->s.old_origin);
+	self->s.old_origin = tr.endpos;
 
 	self->nextthink = level.framenum + 1;
 }

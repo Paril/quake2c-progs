@@ -60,7 +60,7 @@ static void(entity ent) Move_Final =
 		return;
 	}
 
-	VectorScale(ent->moveinfo.dir, ent->moveinfo.remaining_distance / FRAMETIME, ent->velocity);
+	ent->velocity = ent->moveinfo.dir * (ent->moveinfo.remaining_distance / FRAMETIME);
 
 	ent->think = Move_Done;
 	ent->nextthink = level.framenum + 1;
@@ -74,7 +74,7 @@ static void(entity ent) Move_Begin =
 		Move_Final(ent);
 		return;
 	}
-	VectorScale(ent->moveinfo.dir, ent->moveinfo.speed, ent->velocity);
+	ent->velocity = ent->moveinfo.dir * ent->moveinfo.speed;
 	frames = floorf((ent->moveinfo.remaining_distance / ent->moveinfo.speed) / FRAMETIME);
 	ent->moveinfo.remaining_distance -= frames * ent->moveinfo.speed * FRAMETIME;
 	ent->nextthink = level.framenum + (int)frames;
@@ -87,7 +87,7 @@ static void(entity ent) Think_AccelMove;
 static void(entity ent, vector dest, void(entity) func) Move_Calc =
 {
 	ent->velocity = vec3_origin;
-	VectorSubtract(dest, ent->s.origin, ent->moveinfo.dir);
+	ent->moveinfo.dir = dest - ent->s.origin;
 	ent->moveinfo.remaining_distance = VectorNormalize(ent->moveinfo.dir);
 	ent->moveinfo.endfunc = func;
 
@@ -122,16 +122,16 @@ static void(entity ent) AngleMove_Final =
 	vector	move;
 
 	if (ent->moveinfo.state == STATE_UP)
-		VectorSubtract(ent->moveinfo.end_angles, ent->s.angles, move);
+		move = ent->moveinfo.end_angles - ent->s.angles;
 	else
-		VectorSubtract(ent->moveinfo.start_angles, ent->s.angles, move);
+		move = ent->moveinfo.start_angles - ent->s.angles;
 
 	if (!move) {
 		AngleMove_Done(ent);
 		return;
 	}
 
-	VectorScale(move, 1.0f / FRAMETIME, ent->avelocity);
+	ent->avelocity = move * (1.0f / FRAMETIME);
 
 	ent->think = AngleMove_Done;
 	ent->nextthink = level.framenum + 1;
@@ -146,9 +146,9 @@ static void(entity ent) AngleMove_Begin =
 
 	// set destdelta to the vector needed to move
 	if (ent->moveinfo.state == STATE_UP)
-		VectorSubtract(ent->moveinfo.end_angles, ent->s.angles, destdelta);
+		destdelta = ent->moveinfo.end_angles - ent->s.angles;
 	else
-		VectorSubtract(ent->moveinfo.start_angles, ent->s.angles, destdelta);
+		destdelta = ent->moveinfo.start_angles - ent->s.angles;
 
 	// calculate length of vector
 	len = VectorLength(destdelta);
@@ -164,7 +164,7 @@ static void(entity ent) AngleMove_Begin =
 	frames = floorf(traveltime / FRAMETIME);
 
 	// scale the destdelta vector by the time spent traveling to get velocity
-	VectorScale(destdelta, 1.0f / traveltime, ent->avelocity);
+	ent->avelocity = destdelta * (1.0f / traveltime);
 
 	// set nextthink to trigger a think when dest is reached
 	ent->nextthink = level.framenum + (int)frames;
@@ -301,7 +301,7 @@ static void(entity ent) Think_AccelMove =
 		return;
 	}
 
-	VectorScale(ent->moveinfo.dir, ent->moveinfo.current_speed * 10, ent->velocity);
+	ent->velocity = ent->moveinfo.dir * (ent->moveinfo.current_speed * 10);
 	ent->nextthink = level.framenum + 1;
 	ent->think = Think_AccelMove;
 }
@@ -433,8 +433,8 @@ static void(entity ent) plat_spawn_inside_trigger =
 		tmax_y = tmin_y + 1;
 	}
 
-	VectorCopy(tmin, trigger->mins);
-	VectorCopy(tmax, trigger->maxs);
+	trigger->mins = tmin;
+	trigger->maxs = tmax;
 
 	gi.linkentity(trigger);
 }
@@ -489,8 +489,8 @@ API_FUNC static void(entity ent) SP_func_plat =
 		st.lip = 8;
 
 	// pos1 is the top position, pos2 is the bottom
-	VectorCopy(ent->s.origin, ent->pos1);
-	VectorCopy(ent->s.origin, ent->pos2);
+	ent->pos1 = ent->s.origin;
+	ent->pos2 = ent->s.origin;
 	if (st.height)
 		ent->pos2_z -= st.height;
 	else
@@ -503,7 +503,7 @@ API_FUNC static void(entity ent) SP_func_plat =
 	if (ent->targetname) {
 		ent->moveinfo.state = STATE_UP;
 	} else {
-		VectorCopy(ent->pos2, ent->s.origin);
+		ent->s.origin = ent->pos2;
 		gi.linkentity(ent);
 		ent->moveinfo.state = STATE_BOTTOM;
 	}
@@ -512,10 +512,10 @@ API_FUNC static void(entity ent) SP_func_plat =
 	ent->moveinfo.accel = ent->accel;
 	ent->moveinfo.decel = ent->decel;
 	ent->moveinfo.wait = ent->wait;
-	VectorCopy(ent->pos1, ent->moveinfo.start_origin);
-	VectorCopy(ent->s.angles, ent->moveinfo.start_angles);
-	VectorCopy(ent->pos2, ent->moveinfo.end_origin);
-	VectorCopy(ent->s.angles, ent->moveinfo.end_angles);
+	ent->moveinfo.start_origin = ent->pos1;
+	ent->moveinfo.start_angles = ent->s.angles;
+	ent->moveinfo.end_origin = ent->pos2;
+	ent->moveinfo.end_angles = ent->s.angles;
 
 	ent->moveinfo.sound_start = gi.soundindex("plats/pt1_strt.wav");
 	ent->moveinfo.sound_middle = gi.soundindex("plats/pt1_mid.wav");
@@ -555,7 +555,7 @@ static void(entity self, entity other, entity cactivator) rotating_use =
 		self->touch = 0;
 	} else {
 		self->s.sound = self->moveinfo.sound_middle;
-		VectorScale(self->movedir, self->speed, self->avelocity);
+		self->avelocity = self->movedir * self->speed;
 		if (self->spawnflags & 16)
 			self->touch = rotating_touch;
 	}
@@ -725,12 +725,12 @@ API_FUNC static void(entity ent) SP_func_button =
 	if (!st.lip)
 		st.lip = 4;
 
-	VectorCopy(ent->s.origin, ent->pos1);
+	ent->pos1 = ent->s.origin;
 	abs_movedir_x = fabsf(ent->movedir_x);
 	abs_movedir_y = fabsf(ent->movedir_y);
 	abs_movedir_z = fabsf(ent->movedir_z);
 	dist = abs_movedir_x * ent->size_x + abs_movedir_y * ent->size_y + abs_movedir_z * ent->size_z - st.lip;
-	VectorMA(ent->pos1, dist, ent->movedir, ent->pos2);
+	ent->pos2 = ent->pos1 + (dist * ent->movedir);
 
 	ent->use = button_use;
 	ent->s.effects |= EF_ANIM01;
@@ -748,10 +748,10 @@ API_FUNC static void(entity ent) SP_func_button =
 	ent->moveinfo.accel = ent->accel;
 	ent->moveinfo.decel = ent->decel;
 	ent->moveinfo.wait = ent->wait;
-	VectorCopy(ent->pos1, ent->moveinfo.start_origin);
-	VectorCopy(ent->s.angles, ent->moveinfo.start_angles);
-	VectorCopy(ent->pos2, ent->moveinfo.end_origin);
-	VectorCopy(ent->s.angles, ent->moveinfo.end_angles);
+	ent->moveinfo.start_origin = ent->pos1;
+	ent->moveinfo.start_angles = ent->s.angles;
+	ent->moveinfo.end_origin = ent->pos2;
+	ent->moveinfo.end_angles = ent->s.angles;
 
 	gi.linkentity(ent);
 }
@@ -967,8 +967,8 @@ static void(entity ent) Think_SpawnDoorTrigger =
 	if (ent->flags & FL_TEAMSLAVE)
 		return;     // only the team leader spawns a trigger
 
-	VectorCopy(ent->absmin, cmins);
-	VectorCopy(ent->absmax, cmaxs);
+	cmins = ent->absmin;
+	cmaxs = ent->absmax;
 
 	for (other = ent->teamchain ; other ; other = other->teamchain) {
 		AddPointToBounds(other->absmin, cmins, cmaxs);
@@ -982,8 +982,8 @@ static void(entity ent) Think_SpawnDoorTrigger =
 	cmaxs_y += 60;
 
 	other = G_Spawn();
-	VectorCopy(cmins, other->mins);
-	VectorCopy(cmaxs, other->maxs);
+	other->mins = cmins;
+	other->maxs = cmaxs;
 	other->owner = ent;
 	other->solid = SOLID_TRIGGER;
 	other->movetype = MOVETYPE_NONE;
@@ -1088,18 +1088,18 @@ API_FUNC static void(entity ent) SP_func_door =
 		ent->dmg = 2;
 
 	// calculate second position
-	VectorCopy(ent->s.origin, ent->pos1);
+	ent->pos1 = ent->s.origin;
 	abs_movedir_x = fabsf(ent->movedir_x);
 	abs_movedir_y = fabsf(ent->movedir_y);
 	abs_movedir_z = fabsf(ent->movedir_z);
 	ent->moveinfo.distance = abs_movedir_x * ent->size_x + abs_movedir_y * ent->size_y + abs_movedir_z * ent->size_z - st.lip;
-	VectorMA(ent->pos1, ent->moveinfo.distance, ent->movedir, ent->pos2);
+	ent->pos2 = ent->pos1 + (ent->moveinfo.distance * ent->movedir);
 
 	// if it starts open, switch the positions
 	if (ent->spawnflags & DOOR_START_OPEN) {
-		VectorCopy(ent->pos2, ent->s.origin);
-		VectorCopy(ent->pos1, ent->pos2);
-		VectorCopy(ent->s.origin, ent->pos1);
+		ent->s.origin = ent->pos2;
+		ent->pos2 = ent->pos1;
+		ent->pos1 = ent->s.origin;
 	}
 
 	ent->moveinfo.state = STATE_BOTTOM;
@@ -1117,10 +1117,10 @@ API_FUNC static void(entity ent) SP_func_door =
 	ent->moveinfo.accel = ent->accel;
 	ent->moveinfo.decel = ent->decel;
 	ent->moveinfo.wait = ent->wait;
-	VectorCopy(ent->pos1, ent->moveinfo.start_origin);
-	VectorCopy(ent->s.angles, ent->moveinfo.start_angles);
-	VectorCopy(ent->pos2, ent->moveinfo.end_origin);
-	VectorCopy(ent->s.angles, ent->moveinfo.end_angles);
+	ent->moveinfo.start_origin = ent->pos1;
+	ent->moveinfo.start_angles = ent->s.angles;
+	ent->moveinfo.end_origin = ent->pos2;
+	ent->moveinfo.end_angles = ent->s.angles;
 
 	if (ent->spawnflags & 16)
 		ent->s.effects |= EF_ANIM_ALL;
@@ -1192,8 +1192,8 @@ API_FUNC static void(entity ent) SP_func_door_rotating =
 		st.distance = 90;
 	}
 
-	VectorCopy(ent->s.angles, ent->pos1);
-	VectorMA(ent->s.angles, st.distance, ent->movedir, ent->pos2);
+	ent->pos1 = ent->s.angles;
+	ent->pos2 = ent->s.angles + (st.distance * ent->movedir);
 	ent->moveinfo.distance = (float)st.distance;
 
 	ent->movetype = MOVETYPE_PUSH;
@@ -1223,9 +1223,9 @@ API_FUNC static void(entity ent) SP_func_door_rotating =
 
 	// if it starts open, switch the positions
 	if (ent->spawnflags & DOOR_START_OPEN) {
-		VectorCopy(ent->pos2, ent->s.angles);
-		VectorCopy(ent->pos1, ent->pos2);
-		VectorCopy(ent->s.angles, ent->pos1);
+		ent->s.angles = ent->pos2;
+		ent->pos2 = ent->pos1;
+		ent->pos1 = ent->s.angles;
 		ent->movedir = -ent->movedir;
 	}
 
@@ -1245,10 +1245,10 @@ API_FUNC static void(entity ent) SP_func_door_rotating =
 	ent->moveinfo.accel = ent->accel;
 	ent->moveinfo.decel = ent->decel;
 	ent->moveinfo.wait = ent->wait;
-	VectorCopy(ent->s.origin, ent->moveinfo.start_origin);
-	VectorCopy(ent->pos1, ent->moveinfo.start_angles);
-	VectorCopy(ent->s.origin, ent->moveinfo.end_origin);
-	VectorCopy(ent->pos2, ent->moveinfo.end_angles);
+	ent->moveinfo.start_origin = ent->s.origin;
+	ent->moveinfo.start_angles = ent->pos1;
+	ent->moveinfo.end_origin = ent->s.origin;
+	ent->moveinfo.end_angles = ent->pos2;
 
 	if (ent->spawnflags & 16)
 		ent->s.effects |= EF_ANIM_ALL;
@@ -1307,24 +1307,24 @@ API_FUNC static void(entity self) SP_func_water =
 	}
 
 	// calculate second position
-	VectorCopy(self->s.origin, self->pos1);
+	self->pos1 = self->s.origin;
 	abs_movedir_x = fabsf(self->movedir_x);
 	abs_movedir_y = fabsf(self->movedir_y);
 	abs_movedir_z = fabsf(self->movedir_z);
 	self->moveinfo.distance = abs_movedir_x * self->size_x + abs_movedir_y * self->size_y + abs_movedir_z * self->size_z - st.lip;
-	VectorMA(self->pos1, self->moveinfo.distance, self->movedir, self->pos2);
+	self->pos2 = self->pos1 + (self->moveinfo.distance * self->movedir);
 
 	// if it starts open, switch the positions
 	if (self->spawnflags & DOOR_START_OPEN) {
-		VectorCopy(self->pos2, self->s.origin);
-		VectorCopy(self->pos1, self->pos2);
-		VectorCopy(self->s.origin, self->pos1);
+		self->s.origin = self->pos2;
+		self->pos2 = self->pos1;
+		self->pos1 = self->s.origin;
 	}
 
-	VectorCopy(self->pos1, self->moveinfo.start_origin);
-	VectorCopy(self->s.angles, self->moveinfo.start_angles);
-	VectorCopy(self->pos2, self->moveinfo.end_origin);
-	VectorCopy(self->s.angles, self->moveinfo.end_angles);
+	self->moveinfo.start_origin = self->pos1;
+	self->moveinfo.start_angles = self->s.angles;
+	self->moveinfo.end_origin = self->pos2;
+	self->moveinfo.end_angles = self->s.angles;
 
 	self->moveinfo.state = STATE_BOTTOM;
 
@@ -1450,8 +1450,8 @@ again:
 			return;
 		}
 		first = false;
-		VectorSubtract(ent->s.origin, self->mins, self->s.origin);
-		VectorCopy(self->s.origin, self->s.old_origin);
+		self->s.origin = ent->s.origin - self->mins;
+		self->s.old_origin = self->s.origin;
 		self->s.event = EV_OTHER_TELEPORT;
 		gi.linkentity(self);
 		goto again;
@@ -1466,10 +1466,10 @@ again:
 		self->s.sound = self->moveinfo.sound_middle;
 	}
 
-	VectorSubtract(ent->s.origin, self->mins, dest);
+	dest = ent->s.origin - self->mins;
 	self->moveinfo.state = STATE_TOP;
-	VectorCopy(self->s.origin, self->moveinfo.start_origin);
-	VectorCopy(dest, self->moveinfo.end_origin);
+	self->moveinfo.start_origin = self->s.origin;
+	self->moveinfo.end_origin = dest;
 	Move_Calc(self, dest, train_wait);
 	self->spawnflags |= TRAIN_START_ON;
 }
@@ -1481,10 +1481,10 @@ static void(entity self) train_resume =
 
 	ent = self->target_ent;
 
-	VectorSubtract(ent->s.origin, self->mins, dest);
+	dest = ent->s.origin - self->mins;
 	self->moveinfo.state = STATE_TOP;
-	VectorCopy(self->s.origin, self->moveinfo.start_origin);
-	VectorCopy(dest, self->moveinfo.end_origin);
+	self->moveinfo.start_origin = self->s.origin;
+	self->moveinfo.end_origin = dest;
 	Move_Calc(self, dest, train_wait);
 	self->spawnflags |= TRAIN_START_ON;
 }
@@ -1504,7 +1504,7 @@ void(entity self) func_train_find =
 	}
 	self->target = ent->target;
 
-	VectorSubtract(ent->s.origin, self->mins, self->s.origin);
+	self->s.origin = ent->s.origin - self->mins;
 	gi.linkentity(self);
 
 	// if not triggered, start immediately
@@ -1873,10 +1873,10 @@ API_FUNC static void(entity ent) SP_func_door_secret =
 		width = fabsf(right * ent->size);
 	length = fabsf(forward * ent->size);
 	if (ent->spawnflags & SECRET_1ST_DOWN)
-		VectorMA(ent->s.origin, -1 * width, up, ent->pos1);
+		ent->pos1 = ent->s.origin + ((-1 * width) * up);
 	else
-		VectorMA(ent->s.origin, side * width, right, ent->pos1);
-	VectorMA(ent->pos1, length, forward, ent->pos2);
+		ent->pos1 = ent->s.origin + ((side * width) * right);
+	ent->pos2 = ent->pos1 + (length * forward);
 
 	if (ent->health) {
 		ent->takedamage = DAMAGE_YES;

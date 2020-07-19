@@ -367,11 +367,11 @@ static void(entity self) GunnerFire =
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 	// project enemy back a bit and target there
-	VectorCopy(self->enemy->s.origin, target);
-	VectorMA(target, -0.2f, self->enemy->velocity, target);
+	target = self->enemy->s.origin;
+	target += (-0.2f * self->enemy->velocity);
 	target_z += self->enemy->viewheight;
 
-	VectorSubtract(target, start, aim);
+	aim = target - start;
 	VectorNormalize(aim);
 	monster_fire_bullet(self, start, aim, 3, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_number);
 }
@@ -396,7 +396,7 @@ static void(entity self) GunnerGrenade =
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 	//FIXME : do a spread -225 -75 75 225 degrees around forward
-	VectorCopy(forward, aim);
+	aim = forward;
 
 	monster_fire_grenade(self, start, aim, 50, 600, flash_number);
 }

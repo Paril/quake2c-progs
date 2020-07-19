@@ -396,9 +396,9 @@ static void ChickRocket(entity self)
 	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_CHICK_ROCKET_1], forward, right, start);
 
-	VectorCopy(self->enemy->s.origin, vec);
+	vec = self->enemy->s.origin;
 	vec[2] += self->enemy->viewheight;
-	VectorSubtract(vec, start, dir);
+	dir = vec - start;
 	VectorNormalize(dir);
 
 	monster_fire_rocket(self, start, dir, 50, 500, MZ2_CHICK_ROCKET_1);

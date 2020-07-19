@@ -13,11 +13,11 @@ void(entity ent) MoveClientToIntermission =
 {
 	if (deathmatch->intVal || coop->intVal)
 		ent->client->showscores = true;
-	VectorCopy(level.intermission_origin, ent->s.origin);
+	ent->s.origin = level.intermission_origin;
 	ent->client->ps.pmove.origin[0] = COORD2SHORT(level.intermission_origin[0]);
 	ent->client->ps.pmove.origin[1] = COORD2SHORT(level.intermission_origin[1]);
 	ent->client->ps.pmove.origin[2] = COORD2SHORT(level.intermission_origin[2]);
-	VectorCopy(level.intermission_angle, ent->client->ps.viewangles);
+	ent->client->ps.viewangles = level.intermission_angle;
 	ent->client->ps.pmove.pm_type = PM_FREEZE;
 	ent->client->ps.gunindex = 0;
 	ent->client->ps.blend[3] = 0;
@@ -110,8 +110,8 @@ void(entity targ) BeginIntermission =
 		}
 	}
 
-	VectorCopy(ent->s.origin, level.intermission_origin);
-	VectorCopy(ent->s.angles, level.intermission_angle);
+	level.intermission_origin = ent->s.origin;
+	level.intermission_angle = ent->s.angles;
 
 	// move all clients to the intermission point
 	for (i = 0 ; i < game.maxclients ; i++) {

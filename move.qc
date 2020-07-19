@@ -95,7 +95,7 @@ bool(entity ent, vector move, bool relink) SV_movestep =
 	int	contents;
 
 // try the move
-	VectorCopy(ent->s.origin, oldorg);
+	oldorg = ent->s.origin;
 	neworg = ent->s.origin + move;
 
 // flying monsters don't step up
@@ -151,7 +151,7 @@ bool(entity ent, vector move, bool relink) SV_movestep =
 			}
 
 			if (trace.fraction == 1) {
-				VectorCopy(trace.endpos, ent->s.origin);
+				ent->s.origin = trace.endpos;
 				if (relink) {
 					gi.linkentity(ent);
 					G_TouchTriggers(ent);
@@ -173,7 +173,7 @@ bool(entity ent, vector move, bool relink) SV_movestep =
 		stepsize = 1f;
 
 	neworg_z += stepsize;
-	VectorCopy(neworg, end);
+	end = neworg;
 	end_z -= stepsize * 2;
 
 	gi.trace(&trace, neworg, ent->mins, ent->maxs, end, ent, MASK_MONSTERSOLID);
@@ -216,7 +216,7 @@ bool(entity ent, vector move, bool relink) SV_movestep =
 	}
 
 // check point traces down for dangling corners
-	VectorCopy(trace.endpos, ent->s.origin);
+	ent->s.origin = trace.endpos;
 
 	if (!M_CheckBottom(ent)) {
 		if (ent->flags & FL_PARTIALGROUND) {
@@ -228,7 +228,7 @@ bool(entity ent, vector move, bool relink) SV_movestep =
 			}
 			return true;
 		}
-		VectorCopy(oldorg, ent->s.origin);
+		ent->s.origin = oldorg;
 		return false;
 	}
 
@@ -311,12 +311,12 @@ static bool(entity ent, float yaw, float dist) SV_StepDirection =
 	move_y = sinf(yaw) * dist;
 	move_z = 0;
 
-	VectorCopy(ent->s.origin, oldorigin);
+	oldorigin = ent->s.origin;
 	if (SV_movestep(ent, move, false)) {
 		delta = ent->s.angles[YAW] - ent->ideal_yaw;
 		if (delta > 45 && delta < 315) {
 			// not turned far enough, so don't take the step
-			VectorCopy(oldorigin, ent->s.origin);
+			ent->s.origin = oldorigin;
 		}
 		gi.linkentity(ent);
 		G_TouchTriggers(ent);

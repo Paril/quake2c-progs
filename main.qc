@@ -331,7 +331,7 @@ static void() RunFrame =
 		
 		level.current_entity = ent;
 		
-		VectorCopy(ent->s.origin, ent->s.old_origin);
+		ent->s.old_origin = ent->s.origin;
 		
 		// if the ground entity moved, make sure we are still on it
 		if ((ent->groundentity != null_entity) && (ent->groundentity->linkcount != ent->groundentity_linkcount)) {

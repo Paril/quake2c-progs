@@ -136,9 +136,3 @@ void AddPointToBounds(vector v, __inout vector mins, __inout vector maxs)
 	mins[2] = min(mins[2], v[2]);
 	maxs[2] = max(maxs[2], v[2]);
 }
-
-// Definitions, to make Q2->QC easier
-#define VectorMA(a, s, b, c) (c) = (a) + ((b) * (s))
-#define VectorCopy(a, b) (b) = (a)
-#define VectorSubtract(a, b, c) (c) = (a) - (b)
-#define VectorScale(a, b, c) (c) = (a) * (b)

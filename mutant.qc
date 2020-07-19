@@ -276,9 +276,9 @@ static void mutant_jump_touch(entity self, entity other, cplane_t plane, csurfac
 			vector  normal;
 			int     damage;
 
-			VectorCopy(self->velocity, normal);
+			normal = self->velocity;
 			VectorNormalize(normal);
-			VectorMA(self->s.origin, self->maxs[0], normal, point);
+			point = self->s.origin + (self->maxs[0] * normal);
 			damage = (int)random(40f, 50f);
 			T_Damage(other, self, self, self->velocity, point, normal, damage, damage, 0, MOD_UNKNOWN);
 		}
@@ -302,7 +302,7 @@ void mutant_jump_takeoff(entity self)
 	gi.sound(self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
 	AngleVectors(self->s.angles, &forward, 0, 0);
 	self->s.origin[2] += 1;
-	VectorScale(forward, 600, self->velocity);
+	self->velocity = forward * 600;
 	self->velocity[2] = 250f;
 	self->groundentity = null_entity;
 	self->monsterinfo.aiflags |= AI_DUCKED;

@@ -19,10 +19,10 @@ static void(entity self, vector start, vector dir, int speed) check_dodge =
 		if (random() > 0.25f)
 			return;
 	}
-	VectorMA(start, 8192, dir, end);
+	end = start + (8192 * dir);
 	gi.trace(&tr, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
 	if ((tr.ent) && (tr.ent->svflags & SVF_MONSTER) && (tr.ent->health > 0) && (tr.ent->monsterinfo.dodge) && infront(tr.ent, self)) {
-		VectorSubtract(tr.endpos, start, v);
+		v = tr.endpos - start;
 		eta = (VectorLength(v) - tr.ent->maxs_x) / speed;
 		tr.ent->monsterinfo.dodge(tr.ent, self, eta);
 	}
@@ -46,7 +46,7 @@ bool(entity self, vector aim, int damage, int kick) fire_hit =
 	vector	dir;
 
 	//see if enemy is in range
-	VectorSubtract(self->enemy->s.origin, self->s.origin, dir);
+	dir = self->enemy->s.origin - self->s.origin;
 	range = VectorLength(dir);
 	if (range > aim_x)
 		return false;
@@ -62,7 +62,7 @@ bool(entity self, vector aim, int damage, int kick) fire_hit =
 			aim_y = self->enemy->maxs_x;
 	}
 
-	VectorMA(self->s.origin, range, dir, point);
+	point = self->s.origin + (range * dir);
 
 	gi.trace(&tr, self->s.origin, vec3_origin, vec3_origin, point, self, MASK_SHOT);
 	if (tr.fraction < 1) {
@@ -74,10 +74,10 @@ bool(entity self, vector aim, int damage, int kick) fire_hit =
 	}
 
 	AngleVectors(self->s.angles, &forward, &right, &up);
-	VectorMA(self->s.origin, range, forward, point);
-	VectorMA(point, aim_y, right, point);
-	VectorMA(point, aim_z, up, point);
-	VectorSubtract(point, self->enemy->s.origin, dir);
+	point = self->s.origin + (range * forward);
+	point = point + (aim_y * right);
+	point = point + (aim_z * up);
+	dir = point - self->enemy->s.origin;
 
 	// do the damage
 	T_Damage(tr.ent, self, self, dir, point, vec3_origin, damage, kick / 2, DAMAGE_NO_KNOCKBACK, MOD_HIT);
@@ -86,10 +86,10 @@ bool(entity self, vector aim, int damage, int kick) fire_hit =
 		return false;
 
 	// do our special form of knockback here
-	VectorMA(self->enemy->absmin, 0.5f, self->enemy->size, v);
-	VectorSubtract(v, point, v);
+	v = self->enemy->absmin + (0.5f * self->enemy->size);
+	v -= point;
 	VectorNormalize(v);
-	VectorMA(self->enemy->velocity, kick, v, self->enemy->velocity);
+	self->enemy->velocity += (kick * v);
 	if (self->enemy->velocity_z > 0)
 		self->enemy->groundentity = null_entity;
 	return true;
@@ -122,13 +122,13 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 
 		r = crandom() * hspread;
 		u = crandom() * vspread;
-		VectorMA(start, 8192, forward, end);
-		VectorMA(end, r, right, end);
-		VectorMA(end, u, up, end);
+		end = start + (8192 * forward);
+		end += (r * right);
+		end += (u * up);
 
 		if (gi.pointcontents(start) & MASK_WATER) {
 			water = true;
-			VectorCopy(start, water_start);
+			water_start = start;
 			content_mask &= ~MASK_WATER;
 		}
 
@@ -139,7 +139,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 			int     color;
 
 			water = true;
-			VectorCopy(tr.endpos, water_start);
+			water_start = tr.endpos;
 
 			if (start != tr.endpos) {
 				if (tr.contents & CONTENTS_WATER) {
@@ -165,14 +165,14 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 				}
 
 				// change bullet's course when it enters water
-				VectorSubtract(end, start, dir);
+				dir = end - start;
 				dir = vectoangles(dir);
 				AngleVectors(dir, &forward, &right, &up);
 				r = crandom() * hspread * 2;
 				u = crandom() * vspread * 2;
-				VectorMA(water_start, 8192, forward, end);
-				VectorMA(end, r, right, end);
-				VectorMA(end, u, up, end);
+				end = water_start + (8192 * forward);
+				end += (r * right);
+				end += (u * up);
 			}
 
 			// re-trace ignoring water this time
@@ -204,16 +204,16 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 	if (water) {
 		vector	pos;
 
-		VectorSubtract(tr.endpos, water_start, dir);
+		dir = tr.endpos - water_start;
 		VectorNormalize(dir);
-		VectorMA(tr.endpos, -2, dir, pos);
+		pos = tr.endpos + (-2 * dir);
 		if (gi.pointcontents(pos) & MASK_WATER)
-			VectorCopy(pos, tr.endpos);
+			tr.endpos = pos;
 		else
 			gi.trace(&tr, pos, vec3_origin, vec3_origin, water_start, tr.ent, MASK_WATER);
 
 		pos = water_start + tr.endpos;
-		VectorScale(pos, 0.5f, pos);
+		pos *= 0.5f;
 
 		gi.WriteByte(svc_temp_entity);
 		gi.WriteByte(TE_BUBBLETRAIL);
@@ -307,10 +307,10 @@ void(entity self, vector start, vector dir, int damage, int speed, int effect, b
 	// (blaster/hyperblaster shots), the player won't be solid clipped against
 	// the object.  Right now trying to run into a firing hyperblaster
 	// is very jerky since you are predicted 'against' the shots.
-	VectorCopy(start, bolt->s.origin);
-	VectorCopy(start, bolt->s.old_origin);
+	bolt->s.origin = start;
+	bolt->s.old_origin = start;
 	bolt->s.angles = vectoangles(dir);
-	VectorScale(dir, speed, bolt->velocity);
+	bolt->velocity = dir * speed;
 	bolt->movetype = MOVETYPE_FLYMISSILE;
 	bolt->clipmask = MASK_SHOT;
 	bolt->solid = SOLID_BBOX;
@@ -335,7 +335,7 @@ void(entity self, vector start, vector dir, int damage, int speed, int effect, b
 	gi.trace(&tr, self->s.origin, vec3_origin, vec3_origin, bolt->s.origin, bolt, MASK_SHOT);
 	
 	if (tr.fraction < 1.0f) {
-		VectorMA(bolt->s.origin, -10, dir, bolt->s.origin);
+		bolt->s.origin += (-10 * dir);
 		bolt->touch(bolt, tr.ent, null_plane, null_surface);
 	}
 }
@@ -361,10 +361,10 @@ static void(entity ent) Grenade_Explode =
 		vector dir;
 
 		v = ent->enemy->mins + ent->enemy->maxs;
-		VectorMA(ent->enemy->s.origin, 0.5f, v, v);
-		VectorSubtract(ent->s.origin, v, v);
+		v = ent->enemy->s.origin + (0.5f * v);
+		v = ent->s.origin - v;
 		points = ent->dmg - 0.5f * VectorLength(v);
-		VectorSubtract(ent->enemy->s.origin, ent->s.origin, dir);
+		dir = ent->enemy->s.origin - ent->s.origin;
 		if (ent->spawnflags & 1)
 			mod = MOD_HANDGRENADE;
 		else
@@ -380,7 +380,7 @@ static void(entity ent) Grenade_Explode =
 		mod = MOD_G_SPLASH;
 	T_RadiusDamage(ent, ent->owner, ent->dmg, ent->enemy, ent->dmg_radius, mod);
 
-	VectorMA(ent->s.origin, -0.02f, ent->velocity, origin);
+	origin = ent->s.origin + (-0.02f * ent->velocity);
 	gi.WriteByte(svc_temp_entity);
 	if (ent->waterlevel) {
 		if (ent->groundentity != null_entity)
@@ -436,12 +436,12 @@ void(entity self, vector start, vector aimdir, int damage, int speed, float time
 	AngleVectors(dir, &forward, &right, &up);
 
 	grenade = G_Spawn();
-	VectorCopy(start, grenade->s.origin);
-	VectorScale(aimdir, speed, grenade->velocity);
+	grenade->s.origin = start;
+	grenade->velocity = aimdir * speed;
 	scale = random(190f, 210f);
-	VectorMA(grenade->velocity, scale, up, grenade->velocity);
+	grenade->velocity += (scale * up);
 	scale = random(-10f, 10f);
-	VectorMA(grenade->velocity, scale, right, grenade->velocity);
+	grenade->velocity += (scale * right);
 	grenade->avelocity = '300 300 300';
 	grenade->movetype = MOVETYPE_BOUNCE;
 	grenade->clipmask = MASK_SHOT;
@@ -472,12 +472,12 @@ void(entity self, vector start, vector aimdir, int damage, int speed, float time
 	AngleVectors(dir, &forward, &right, &up);
 
 	grenade = G_Spawn();
-	VectorCopy(start, grenade->s.origin);
-	VectorScale(aimdir, speed, grenade->velocity);
-	scale = random(-190f, 210f);
-	VectorMA(grenade->velocity, scale, up, grenade->velocity);
+	grenade->s.origin = start;
+	grenade->velocity = aimdir * speed;
+	scale = random(190f, 210f);
+	grenade->velocity += (scale * up);
 	scale = random(-10f, 10f);
-	VectorMA(grenade->velocity, scale, right, grenade->velocity);
+	grenade->velocity += (scale * right);
 	grenade->avelocity = '300 300 300';
 	grenade->movetype = MOVETYPE_BOUNCE;
 	grenade->clipmask = MASK_SHOT;
@@ -532,7 +532,7 @@ static void(entity ent, entity other, cplane_t plane, csurface_t surf) rocket_to
 		PlayerNoise(ent->owner, ent->s.origin, PNOISE_IMPACT);
 
 	// calculate position for the explosion entity
-	VectorMA(ent->s.origin, -0.02f, ent->velocity, origin);
+	origin = ent->s.origin + (-0.02f * ent->velocity);
 
 	if (other->takedamage) {
 		T_Damage(other, ent, ent->owner, ent->velocity, ent->s.origin, plane->normal, ent->dmg, 0, 0, MOD_ROCKET);
@@ -565,10 +565,10 @@ void(entity self, vector start, vector dir, int damage, int speed, float damage_
 	entity	rocket;
 
 	rocket = G_Spawn();
-	VectorCopy(start, rocket->s.origin);
-	VectorCopy(dir, rocket->movedir);
+	rocket->s.origin = start;
+	rocket->movedir = dir;
 	rocket->s.angles = vectoangles(dir);
-	VectorScale(dir, speed, rocket->velocity);
+	rocket->velocity = dir * speed;
 	rocket->movetype = MOVETYPE_FLYMISSILE;
 	rocket->clipmask = MASK_SHOT;
 	rocket->solid = SOLID_BBOX;
@@ -607,8 +607,8 @@ void(entity self, vector start, vector aimdir, int damage, int kick) fire_rail =
 	int	mask;
 	bool	water;
 
-	VectorMA(start, 8192, aimdir, end);
-	VectorCopy(start, from);
+	end = start + (8192 * aimdir);
+	from = start;
 	ignore = self;
 	water = false;
 	mask = MASK_SHOT | CONTENTS_SLIME | CONTENTS_LAVA;
@@ -630,7 +630,7 @@ void(entity self, vector start, vector aimdir, int damage, int kick) fire_rail =
 				T_Damage(tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal, damage, kick, 0, MOD_RAILGUN);
 		}
 
-		VectorCopy(tr.endpos, from);
+		from = tr.endpos;
 	}
 
 	// send gun puff / flash
@@ -679,12 +679,12 @@ static void(entity self) bfg_explode =
 				continue;
 
 			v = ent->mins + ent->maxs;
-			VectorMA(ent->s.origin, 0.5f, v, v);
-			VectorSubtract(self->s.origin, v, v);
+			v = ent->s.origin + (0.5f * v);
+			v = self->s.origin - v;
 			dist = VectorLength(v);
 			points = self->radius_dmg * (1.0f - sqrtf(dist / self->dmg_radius));
 			if (ent == self->owner)
-				points = points * 0.5f;
+				points *= 0.5f;
 
 			gi.WriteByte(svc_temp_entity);
 			gi.WriteByte(TE_BFG_EXPLOSION);
@@ -721,7 +721,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) bfg_touc
 	gi.sound(self, CHAN_VOICE, gi.soundindex("weapons/bfg__x1b.wav"), 1, ATTN_NORM, 0);
 	self->solid = SOLID_NOT;
 	self->touch = 0;
-	VectorMA(self->s.origin, -1 * FRAMETIME, self->velocity, self->s.origin);
+	self->s.origin += ((-1 * FRAMETIME) * self->velocity);
 	self->velocity = vec3_origin;
 	self->s.modelindex = gi.modelindex("sprites/s_bfg3.sp2");
 	self->s.frame = 0;
@@ -768,14 +768,14 @@ static void(entity self) bfg_think =
 		if (!(ent->svflags & SVF_MONSTER) && (!ent->is_client) && ent->classname != "misc_explobox")
 			continue;
 
-		VectorMA(ent->absmin, 0.5f, ent->size, point);
+		point = ent->absmin + (0.5f * ent->size);
 
-		VectorSubtract(point, self->s.origin, dir);
+		dir = point - self->s.origin;
 		VectorNormalize(dir);
 
 		ignore = self;
-		VectorCopy(self->s.origin, start);
-		VectorMA(start, 2048, dir, end);
+		start = self->s.origin;
+		end = start + (2048 * dir);
 		while (1) {
 			gi.trace(&tr, start, vec3_origin, vec3_origin, end, ignore, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_DEADMONSTER);
 
@@ -799,7 +799,7 @@ static void(entity self) bfg_think =
 			}
 
 			ignore = tr.ent;
-			VectorCopy(tr.endpos, start);
+			start = tr.endpos;
 		}
 
 		gi.WriteByte(svc_temp_entity);
@@ -818,10 +818,10 @@ void(entity self, vector start, vector dir, int damage, int speed, float damage_
 	entity	bfg;
 
 	bfg = G_Spawn();
-	VectorCopy(start, bfg->s.origin);
-	VectorCopy(dir, bfg->movedir);
+	bfg->s.origin = start;
+	bfg->movedir = dir;
 	bfg->s.angles = vectoangles(dir);
-	VectorScale(dir, speed, bfg->velocity);
+	bfg->velocity = dir * speed;
 	bfg->movetype = MOVETYPE_FLYMISSILE;
 	bfg->clipmask = MASK_SHOT;
 	bfg->solid = SOLID_BBOX;

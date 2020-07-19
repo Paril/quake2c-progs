@@ -251,9 +251,9 @@ static void hover_fire_blaster(entity self)
 	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_HOVER_BLASTER_1], forward, right, start);
 
-	VectorCopy(self->enemy->s.origin, end);
+	end = self->enemy->s.origin;
 	end[2] += self->enemy->viewheight;
-	VectorSubtract(end, start, dir);
+	dir = end - start;
 
 	monster_fire_blaster(self, start, dir, 1, 1000, MZ2_HOVER_BLASTER_1, effect);
 }

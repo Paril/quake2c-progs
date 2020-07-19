@@ -275,9 +275,9 @@ static void jorgBFG(entity self)
 	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_JORG_BFG_1], forward, right, start);
 
-	VectorCopy(self->enemy->s.origin, vec);
+	vec = self->enemy->s.origin;
 	vec[2] += self->enemy->viewheight;
-	VectorSubtract(vec, start, dir);
+	dir = vec - start;
 	VectorNormalize(dir);
 	gi.sound(self, CHAN_VOICE, sound_attack2, 1, ATTN_NORM, 0);
 	monster_fire_bfg(self, start, dir, 50, 300, 100, 200, MZ2_JORG_BFG_1);
@@ -320,9 +320,9 @@ static void jorg_firebullet_right(entity self)
 	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_JORG_MACHINEGUN_R1], forward, right, start);
 
-	VectorMA(self->enemy->s.origin, -0.2f, self->enemy->velocity, target);
+	target = self->enemy->s.origin + (-0.2f * self->enemy->velocity);
 	target[2] += self->enemy->viewheight;
-	VectorSubtract(target, start, forward);
+	forward = target - start;
 	VectorNormalize(forward);
 
 	monster_fire_bullet(self, start, forward, 6, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MZ2_JORG_MACHINEGUN_R1);
@@ -336,9 +336,9 @@ static void jorg_firebullet_left(entity self)
 	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_JORG_MACHINEGUN_L1], forward, right, start);
 
-	VectorMA(self->enemy->s.origin, -0.2f, self->enemy->velocity, target);
+	target = self->enemy->s.origin + (-0.2f * self->enemy->velocity);
 	target[2] += self->enemy->viewheight;
-	VectorSubtract(target, start, forward);
+	forward = target - start;
 	VectorNormalize(forward);
 
 	monster_fire_bullet(self, start, forward, 6, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MZ2_JORG_MACHINEGUN_L1);
@@ -473,9 +473,9 @@ static bool Jorg_CheckAttack(entity self)
 
 	if (self->enemy->health > 0) {
 		// see if any entities are in the way of the shot
-		VectorCopy(self->s.origin, spot1);
+		spot1 = self->s.origin;
 		spot1[2] += self->viewheight;
-		VectorCopy(self->enemy->s.origin, spot2);
+		spot2 = self->enemy->s.origin;
 		spot2[2] += self->enemy->viewheight;
 
 		gi.trace(&tr, spot1, vec3_origin, vec3_origin, spot2, self, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_SLIME | CONTENTS_LAVA);
@@ -486,7 +486,7 @@ static bool Jorg_CheckAttack(entity self)
 	}
 
 	enemy_range = range(self, self->enemy);
-	VectorSubtract(self->enemy->s.origin, self->s.origin, temp);
+	temp = self->enemy->s.origin - self->s.origin;
 	enemy_yaw = vectoyaw(temp);
 
 	self->ideal_yaw = enemy_yaw;

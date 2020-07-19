@@ -138,7 +138,7 @@ static void GladiatorGun(entity self)
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_GLADIATOR_RAILGUN_1], forward, right, start);
 
 	// calc direction to where we targted
-	VectorSubtract(self->pos1, start, dir);
+	dir = self->pos1 - start;
 	VectorNormalize(dir);
 
 	monster_fire_railgun(self, start, dir, 50, 100, MZ2_GLADIATOR_RAILGUN_1);
@@ -163,14 +163,14 @@ static void gladiator_attack(entity self)
 	vector  v;
 
 	// a small safe zone
-	VectorSubtract(self->s.origin, self->enemy->s.origin, v);
+	v = self->s.origin - self->enemy->s.origin;
 	range = VectorLength(v);
 	if (range <= (MELEE_DISTANCE + 32))
 		return;
 
 	// charge up the railgun
 	gi.sound(self, CHAN_WEAPON, sound_gun, 1, ATTN_NORM, 0);
-	VectorCopy(self->enemy->s.origin, self->pos1);  //save for aiming the shot
+	self->pos1 = self->enemy->s.origin;  //save for aiming the shot
 	self->pos1[2] += self->enemy->viewheight;
 	self->monsterinfo.currentmove = &gladiator_move_attack_gun;
 }

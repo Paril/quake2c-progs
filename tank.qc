@@ -290,9 +290,9 @@ static void TankBlaster(entity self)
 	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
-	VectorCopy(self->enemy->s.origin, end);
+	end = self->enemy->s.origin;
 	end_z += self->enemy->viewheight;
-	VectorSubtract(end, start, dir);
+	dir = end - start;
 
 	monster_fire_blaster(self, start, dir, 30, 800, flash_number, EF_BLASTER);
 }
@@ -320,9 +320,9 @@ static void TankRocket(entity self)
 	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
-	VectorCopy(self->enemy->s.origin, vec);
+	vec = self->enemy->s.origin;
 	vec_z += self->enemy->viewheight;
-	VectorSubtract(vec, start, dir);
+	dir = vec - start;
 	VectorNormalize(dir);
 
 	monster_fire_rocket(self, start, dir, 50, 550, flash_number);
@@ -342,9 +342,9 @@ static void TankMachineGun(entity self)
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
 	if (self->enemy) {
-		VectorCopy(self->enemy->s.origin, vec);
+		vec = self->enemy->s.origin;
 		vec_z += self->enemy->viewheight;
-		VectorSubtract(vec, start, vec);
+		vec = vec - start;
 		vec = vectoangles(vec);
 		dir_x = vec_x;
 	} else {
@@ -594,7 +594,7 @@ static void tank_attack(entity self)
 		return;
 	}
 
-	VectorSubtract(self->enemy->s.origin, self->s.origin, vec);
+	vec = self->enemy->s.origin - self->s.origin;
 	range = VectorLength(vec);
 
 	r = random();

@@ -23,33 +23,33 @@ static void Boss2Rocket(entity self)
 
 //1
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_BOSS2_ROCKET_1], forward, right, start);
-	VectorCopy(self->enemy->s.origin, vec);
+	vec = self->enemy->s.origin;
 	vec[2] += self->enemy->viewheight;
-	VectorSubtract(vec, start, dir);
+	dir = vec - start;
 	VectorNormalize(dir);
 	monster_fire_rocket(self, start, dir, 50, 500, MZ2_BOSS2_ROCKET_1);
 
 //2
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_BOSS2_ROCKET_2], forward, right, start);
-	VectorCopy(self->enemy->s.origin, vec);
+	vec = self->enemy->s.origin;
 	vec[2] += self->enemy->viewheight;
-	VectorSubtract(vec, start, dir);
+	dir = vec - start;
 	VectorNormalize(dir);
 	monster_fire_rocket(self, start, dir, 50, 500, MZ2_BOSS2_ROCKET_2);
 
 //3
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_BOSS2_ROCKET_3], forward, right, start);
-	VectorCopy(self->enemy->s.origin, vec);
+	vec = self->enemy->s.origin;
 	vec[2] += self->enemy->viewheight;
-	VectorSubtract(vec, start, dir);
+	dir = vec - start;
 	VectorNormalize(dir);
 	monster_fire_rocket(self, start, dir, 50, 500, MZ2_BOSS2_ROCKET_3);
 
 //4
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_BOSS2_ROCKET_4], forward, right, start);
-	VectorCopy(self->enemy->s.origin, vec);
+	vec = self->enemy->s.origin;
 	vec[2] += self->enemy->viewheight;
-	VectorSubtract(vec, start, dir);
+	dir = vec - start;
 	VectorNormalize(dir);
 	monster_fire_rocket(self, start, dir, 50, 500, MZ2_BOSS2_ROCKET_4);
 }
@@ -62,9 +62,9 @@ static void boss2_firebullet_right(entity self)
 	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_BOSS2_MACHINEGUN_R1], forward, right, start);
 
-	VectorMA(self->enemy->s.origin, -0.2f, self->enemy->velocity, target);
+	target = self->enemy->s.origin + (-0.2f * self->enemy->velocity);
 	target[2] += self->enemy->viewheight;
-	VectorSubtract(target, start, forward);
+	forward = target - start;
 	VectorNormalize(forward);
 
 	monster_fire_bullet(self, start, forward, 6, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MZ2_BOSS2_MACHINEGUN_R1);
@@ -78,10 +78,10 @@ static void boss2_firebullet_left(entity self)
 	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_BOSS2_MACHINEGUN_L1], forward, right, start);
 
-	VectorMA(self->enemy->s.origin, -0.2f, self->enemy->velocity, target);
+	target = self->enemy->s.origin + (-0.2f * self->enemy->velocity);
 
 	target[2] += self->enemy->viewheight;
-	VectorSubtract(target, start, forward);
+	forward = target - start;
 	VectorNormalize(forward);
 
 	monster_fire_bullet(self, start, forward, 6, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MZ2_BOSS2_MACHINEGUN_L1);
@@ -392,7 +392,7 @@ static void boss2_attack(entity self)
 	vector  vec;
 	float   range;
 
-	VectorSubtract(self->enemy->s.origin, self->s.origin, vec);
+	vec = self->enemy->s.origin - self->s.origin;
 	range = VectorLength(vec);
 
 	if (range <= 125) {
@@ -447,9 +447,9 @@ static bool Boss2_CheckAttack(entity self)
 
 	if (self->enemy->health > 0) {
 		// see if any entities are in the way of the shot
-		VectorCopy(self->s.origin, spot1);
+		spot1 = self->s.origin;
 		spot1[2] += self->viewheight;
-		VectorCopy(self->enemy->s.origin, spot2);
+		spot2 = self->enemy->s.origin;
 		spot2[2] += self->enemy->viewheight;
 
 		gi.trace(&tr, spot1, vec3_origin, vec3_origin, spot2, self, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_SLIME | CONTENTS_LAVA);
@@ -460,7 +460,7 @@ static bool Boss2_CheckAttack(entity self)
 	}
 
 	enemy_range = range(self, self->enemy);
-	VectorSubtract(self->enemy->s.origin, self->s.origin, temp);
+	temp = self->enemy->s.origin - self->s.origin;
 	enemy_yaw = vectoyaw(temp);
 
 	self->ideal_yaw = enemy_yaw;

@@ -232,9 +232,9 @@ static void(entity self, int flash_number) flyer_fire =
 	AngleVectors(self->s.angles, &forward, &right, 0);
 	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
-	VectorCopy(self->enemy->s.origin, end);
+	end = self->enemy->s.origin;
 	end_z += self->enemy->viewheight;
-	VectorSubtract(end, start, dir);
+	dir = end - start;
 
 	monster_fire_blaster(self, start, dir, 1, 1000, flash_number, effect);
 }

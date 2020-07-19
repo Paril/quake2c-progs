@@ -9,7 +9,7 @@ static void(entity ent, vector point, vector distance, vector forward, vector ri
 {
 	vector _distance;
 
-	VectorCopy(distance, _distance);
+	_distance = distance;
 	if (ent.client->pers.hand == LEFT_HANDED)
 		_distance_y *= -1f;
 	else if (ent.client->pers.hand == CENTER_HANDED)
@@ -76,7 +76,7 @@ void(entity who, vector where, player_noise_t type) PlayerNoise =
 		level.sound2_entity_framenum = level.framenum;
 	}
 
-	VectorCopy(where, noise->s.origin);
+	noise->s.origin = where;
 	noise->absmin = where + noise->maxs;
 	noise->absmax = where + noise->maxs;
 	noise->last_sound_framenum = level.framenum;
@@ -606,7 +606,7 @@ static void(entity ent) weapon_grenadelauncher_fire =
 	AngleVectors(ent->client->v_angle, &forward, &right, 0);
 	P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
 
-	VectorScale(forward, -2, ent->client->kick_origin);
+	ent->client->kick_origin = forward * -2;
 	ent->client->kick_angles[0] = -1f;
 
 	fire_grenade(ent, start, forward, damage, 600, 2.5f, radius);
@@ -665,7 +665,7 @@ static void(entity ent) Weapon_RocketLauncher_Fire =
 
 	AngleVectors(ent->client->v_angle, &forward, &right, 0);
 
-	VectorScale(forward, -2, ent->client->kick_origin);
+	ent->client->kick_origin = forward * -2;
 	ent->client->kick_angles[0] = -1f;
 
 	offset = [ 8, 8, ent->viewheight - 8 ];
@@ -723,7 +723,7 @@ static void(entity ent, vector g_offset, int damage, bool hyper, int effect) Bla
 	offset += g_offset;
 	P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
 
-	VectorScale(forward, -2, ent->client->kick_origin);
+	ent->client->kick_origin = forward * -2;
 	ent->client->kick_angles[0] = -1f;
 
 	fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
@@ -1080,7 +1080,7 @@ static void(entity ent) weapon_shotgun_fire =
 
 	AngleVectors(ent->client->v_angle, &forward, &right, 0);
 
-	VectorScale(forward, -2, ent->client->kick_origin);
+	ent->client->kick_origin = forward * -2;
 	ent->client->kick_angles[0] = -2f;
 
 	offset = [ 0, 8,  ent->viewheight - 8 ];
@@ -1136,7 +1136,7 @@ static void(entity ent) weapon_supershotgun_fire =
 
 	AngleVectors(ent->client->v_angle, &forward, &right, 0);
 
-	VectorScale(forward, -2, ent->client->kick_origin);
+	ent->client->kick_origin = forward * -2;
 	ent->client->kick_angles[0] = -2f;
 
 	offset = [ 0, 8,  ent->viewheight - 8 ];
@@ -1218,7 +1218,7 @@ static void(entity ent) weapon_railgun_fire =
 
 	AngleVectors(ent->client->v_angle, &forward, &right, 0);
 
-	VectorScale(forward, -3, ent->client->kick_origin);
+	ent->client->kick_origin = forward * -3;
 	ent->client->kick_angles[0] = -3f;
 
 	offset = [ 0, 7,  ent->viewheight - 8 ];
@@ -1300,7 +1300,7 @@ static void(entity ent) weapon_bfg_fire =
 		return;
 	}
 
-	VectorScale(forward, -2, ent->client->kick_origin);
+	ent->client->kick_origin = forward * -2;
 
 	// make a big pitch kick with an inverse fall
 	ent->client->v_dmg_pitch = -40f;

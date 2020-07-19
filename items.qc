@@ -805,13 +805,13 @@ entity(entity ent, gitem_id_t itemid) Drop_Item =
 		offset = '24 0 -16';
 		G_ProjectSource(ent->s.origin, offset, forward, right, dropped->s.origin);
 		gi.trace(&trace, ent->s.origin, dropped->mins, dropped->maxs, dropped->s.origin, ent, CONTENTS_SOLID);
-		VectorCopy(trace.endpos, dropped->s.origin);
+		dropped->s.origin = trace.endpos;
 	} else {
 		AngleVectors(ent->s.angles, &forward, &right, 0);
-		VectorCopy(ent->s.origin, dropped->s.origin);
+		dropped->s.origin = ent->s.origin;
 	}
 
-	VectorScale(forward, 100, dropped->velocity);
+	dropped->velocity = forward * 100;
 	dropped->velocity_z = 300f;
 
 	dropped->think = drop_make_touchable;
@@ -852,9 +852,9 @@ static void(entity ent) droptofloor =
 	vector	v;
 
 	v = '-15 -15 -15';
-	VectorCopy(v, ent->mins);
+	ent->mins = v;
 	v = '15 15 15';
-	VectorCopy(v, ent->maxs);
+	ent->maxs = v;
 
 	if (ent->model)
 		gi.setmodel(ent, ent->model);
@@ -874,7 +874,7 @@ static void(entity ent) droptofloor =
 		return;
 	}
 
-	VectorCopy(tr.endpos, ent->s.origin);
+	ent->s.origin = tr.endpos;
 
 	if (ent->team) {
 		ent->flags &= ~FL_TEAMSLAVE;

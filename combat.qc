@@ -14,7 +14,7 @@ bool(entity targ, entity inflictor) CanDamage =
 // bmodels need special checking because their origin is 0,0,0
 	if (targ->movetype == MOVETYPE_PUSH) {
 		dest = targ->absmin + targ->absmax;
-		VectorScale(dest, 0.5f, dest);
+		dest *= 0.5f;
 		gi.trace(&trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 		if (trace.fraction == 1.0f)
 			return true;
@@ -27,28 +27,28 @@ bool(entity targ, entity inflictor) CanDamage =
 	if (trace.fraction == 1.0f)
 		return true;
 
-	VectorCopy(targ->s.origin, dest);
+	dest = targ->s.origin;
 	dest_x += 15.0f;
 	dest_y += 15.0f;
 	gi.trace(&trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
-	VectorCopy(targ->s.origin, dest);
+	dest = targ->s.origin;
 	dest_x += 15.0f;
 	dest_y -= 15.0f;
 	gi.trace(&trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
-	VectorCopy(targ->s.origin, dest);
+	dest = targ->s.origin;
 	dest_x -= 15.0f;
 	dest_y += 15.0f;
 	gi.trace(&trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
-	VectorCopy(targ->s.origin, dest);
+	dest = targ->s.origin;
 	dest_x -= 15.0f;
 	dest_y -= 15.0f;
 	gi.trace(&trace, inflictor->s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
@@ -185,7 +185,7 @@ static int(entity ent, vector point, vector normal, int damage, damage_flags_t d
 
 		// only works if damage point is in front
 		AngleVectors(ent->s.angles, &forward, 0, 0);
-		VectorSubtract(point, ent->s.origin, vec);
+		vec = point - ent->s.origin;
 		VectorNormalize(vec);
 		dot = vec * forward;
 		if (dot <= 0.3f)
@@ -393,9 +393,9 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 				calc_mass = (float)targ->mass;
 
 			if (targ->is_client && attacker == targ)
-				VectorScale(dir, 1600.0f * (float)knockback / calc_mass, kvel);  // the rocket jump hack...
+				kvel = dir * (1600.0f * (float)knockback / calc_mass);  // the rocket jump hack...
 			else
-				VectorScale(dir, 500.0f * (float)knockback / calc_mass, kvel);
+				kvel = dir * (500.0f * (float)knockback / calc_mass);
 
 			targ->velocity += kvel;
 		}
@@ -476,7 +476,7 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 		targ.client->damage_armor += asave;
 		targ.client->damage_blood += take;
 		targ.client->damage_knockback += knockback;
-		VectorCopy(point, targ.client->damage_from);
+		targ.client->damage_from = point;
 	}
 }
 
@@ -500,14 +500,14 @@ void(entity inflictor, entity attacker, float damage, entity ignore, float radiu
 			continue;
 
 		v = ent->mins + ent->maxs;
-		VectorMA(ent->s.origin, 0.5f, v, v);
-		VectorSubtract(inflictor->s.origin, v, v);
+		v = ent->s.origin + (0.5f * v);
+		v = inflictor->s.origin - v;
 		points = damage - 0.5f * VectorLength(v);
 		if (ent == attacker)
 			points = points * 0.5f;
 		if (points > 0) {
 			if (CanDamage(ent, inflictor)) {
-				VectorSubtract(ent->s.origin, inflictor->s.origin, dir);
+				dir = ent->s.origin - inflictor->s.origin;
 				T_Damage(ent, inflictor, attacker, dir, inflictor->s.origin, vec3_origin, (int)points, (int)points, DAMAGE_RADIUS, mod);
 			}
 		}

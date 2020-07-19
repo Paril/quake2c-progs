@@ -228,9 +228,9 @@ static void(entity self) InfantryMachineGun =
 		G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_INFANTRY_MACHINEGUN_1], forward, right, start);
 
 		if (self->enemy) {
-			VectorMA(self->enemy->s.origin, -0.2f, self->enemy->velocity, target);
+			target = self->enemy->s.origin + (-0.2f * self->enemy->velocity);
 			target_z += self->enemy->viewheight;
-			VectorSubtract(target, start, forward);
+			forward = target - start;
 			VectorNormalize(forward);
 		} else {
 			AngleVectors(self->s.angles, &forward, &right, 0);
@@ -241,7 +241,7 @@ static void(entity self) InfantryMachineGun =
 		AngleVectors(self->s.angles, &forward, &right, 0);
 		G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
 
-		VectorSubtract(self->s.angles, aimangles[(flash_number - MZ2_INFANTRY_MACHINEGUN_2)], vec);
+		vec = self->s.angles - aimangles[(flash_number - MZ2_INFANTRY_MACHINEGUN_2)];
 		AngleVectors(vec, &forward, 0, 0);
 	}
 

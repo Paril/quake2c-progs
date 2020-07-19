@@ -58,9 +58,9 @@ static void turret_breach_fire(entity self)
 	int     speed;
 
 	AngleVectors(self->s.angles, &f, &r, &u);
-	VectorMA(self->s.origin, self->move_origin[0], f, start);
-	VectorMA(start, self->move_origin[1], r, start);
-	VectorMA(start, self->move_origin[2], u, start);
+	start = self->s.origin + (self->move_origin[0] * f);
+	start += (self->move_origin[1] * r);
+	start += (self->move_origin[2] * u);
 
 	damage = (int)random(100f, 150f);
 	speed = 550 + 50 * skill->intVal;
@@ -74,7 +74,7 @@ static void turret_breach_think(entity self)
 	vector  current_angles;
 	vector  delta;
 
-	VectorCopy(self->s.angles, current_angles);
+	current_angles = self->s.angles;
 	AnglesNormalize(current_angles);
 
 	AnglesNormalize(self->move_angles);
@@ -106,7 +106,7 @@ static void turret_breach_think(entity self)
 			self->move_angles[YAW] = self->pos2[YAW];
 	}
 
-	VectorSubtract(self->move_angles, current_angles, delta);
+	delta = self->move_angles - current_angles;
 	if (delta[0] < -180)
 		delta[0] += 360;
 	else if (delta[0] > 180)
@@ -126,8 +126,7 @@ static void turret_breach_think(entity self)
 	if (delta[1] < -1 * self->speed * FRAMETIME)
 		delta[1] = -1 * self->speed * FRAMETIME;
 
-	VectorScale(delta, 1.0f / FRAMETIME, self->avelocity);
-
+	self->avelocity = delta * (1.0f / FRAMETIME);
 	self->nextthink = level.framenum + 1;
 
 	for (ent = self->teammaster; ent; ent = ent->teamchain)
@@ -152,7 +151,7 @@ static void turret_breach_think(entity self)
 		target[1] = SnapToEights(self->s.origin[1] + sinf(angle) * self->owner->move_origin[0]);
 		target[2] = self->owner->s.origin[2];
 
-		VectorSubtract(target, self->owner->s.origin, dir);
+		dir = target - self->owner->s.origin;
 		self->owner->velocity[0] = dir[0] * 1.0f / FRAMETIME;
 		self->owner->velocity[1] = dir[1] * 1.0f / FRAMETIME;
 
@@ -177,7 +176,7 @@ static void turret_breach_finish_init(entity self)
 		gi.dprintf("%s at %s needs a target\n", self->classname, vtos(self->s.origin));
 	} else {
 		self->target_ent = G_PickTarget(self->target);
-		VectorSubtract(self->target_ent->s.origin, self->s.origin, self->move_origin);
+		self->move_origin = self->target_ent->s.origin - self->s.origin;
 		G_FreeEdict(self->target_ent);
 	}
 
@@ -290,9 +289,9 @@ static void turret_driver_think(entity self)
 	}
 
 	// let the turret know where we want it to aim
-	VectorCopy(self->enemy->s.origin, target);
+	target = self->enemy->s.origin;
 	target[2] += self->enemy->viewheight;
-	VectorSubtract(target, self->target_ent->s.origin, dir);
+	dir = target - self->target_ent->s.origin;
 	self->target_ent->move_angles = vectoangles(dir);
 
 	// decide if we should shoot
@@ -319,14 +318,14 @@ static void turret_driver_link(entity self)
 	self->target_ent = G_PickTarget(self->target);
 	self->target_ent->owner = self;
 	self->target_ent->teammaster->owner = self;
-	VectorCopy(self->target_ent->s.angles, self->s.angles);
+	self->s.angles = self->target_ent->s.angles;
 
 	vec[0] = self->target_ent->s.origin[0] - self->s.origin[0];
 	vec[1] = self->target_ent->s.origin[1] - self->s.origin[1];
 	vec[2] = 0;
 	self->move_origin[0] = VectorLength(vec);
 
-	VectorSubtract(self->s.origin, self->target_ent->s.origin, vec);
+	vec = self->s.origin - self->target_ent->s.origin;
 	vec = vectoangles(vec);
 	AnglesNormalize(vec);
 	self->move_origin[1] = vec[1];
@@ -370,7 +369,7 @@ API_FUNC static void SP_turret_driver(entity self)
 	self->takedamage = DAMAGE_AIM;
 	self->use = monster_use;
 	self->clipmask = MASK_MONSTERSOLID;
-	VectorCopy(self->s.origin, self->s.old_origin);
+	self->s.old_origin = self->s.origin;
 	self->monsterinfo.aiflags |= AI_STAND_GROUND | AI_DUCKED;
 
 	if (st.item) {
