@@ -221,7 +221,11 @@ static void(entity self) InfantryMachineGun =
 	vector	vec;
 	int     flash_number;
 
+#if defined(THE_RECKONING) || defined(GROUND_ZERO)
+	if (self->s.frame == FRAME_attak103) {
+#else
 	if (self->s.frame == FRAME_attak111) {
+#endif
 		flash_number = MZ2_INFANTRY_MACHINEGUN_1;
 		
 		AngleVectors(self->s.angles, &forward, &right, 0);
@@ -415,7 +419,20 @@ static void(entity self, entity attacker, float eta) infantry_dodge =
 	self->monsterinfo.currentmove = &infantry_move_duck;
 }
 
+#if defined(THE_RECKONING) || defined(GROUND_ZERO)
+static void(entity self) infantry_set_firetime =
+{
+	int		n;
 
+	n = (Q_rand() & 15) + 5;
+	self->monsterinfo.pause_framenum = level.framenum + n;
+}
+
+static void(entity self) infantry_cock_gun =
+{
+	gi.sound (self, CHAN_WEAPON, sound_weapon_cock, 1, ATTN_NORM, 0);
+}
+#else
 static void(entity self) infantry_cock_gun =
 {
 	int     n;
@@ -424,6 +441,7 @@ static void(entity self) infantry_cock_gun =
 	n = (Q_rand() & 15) + 3 + 7;
 	self->monsterinfo.pause_framenum = level.framenum + n;
 }
+#endif
 
 static void(entity self) infantry_fire =
 {
@@ -435,7 +453,25 @@ static void(entity self) infantry_fire =
 		self->monsterinfo.aiflags |= AI_HOLD_FRAME;
 }
 
+
 static mframe_t infantry_frames_attack1 [] = {
+#if defined(THE_RECKONING) || defined(GROUND_ZERO)
+	{ ai_charge, 10, infantry_set_firetime },
+	{ ai_charge,  6 },
+	{ ai_charge,  0, infantry_fire },
+	{ ai_charge,  0 },
+	{ ai_charge,  1 },
+	{ ai_charge, -7 },
+	{ ai_charge, -6 },
+	{ ai_charge, -1 },
+	{ ai_charge,  0, infantry_cock_gun },
+	{ ai_charge },
+	{ ai_charge },
+	{ ai_charge },
+	{ ai_charge },
+	{ ai_charge, -1 },
+	{ ai_charge, -1 }
+#else
 	{ ai_charge, 4 },
 	{ ai_charge, -1 },
 	{ ai_charge, -1 },
@@ -451,6 +487,7 @@ static mframe_t infantry_frames_attack1 [] = {
 	{ ai_charge, -1 },
 	{ ai_charge, -2 },
 	{ ai_charge, -3 }
+#endif
 };
 static var mmove_t infantry_move_attack1 = { FRAME_attak101, FRAME_attak115, infantry_run };
 

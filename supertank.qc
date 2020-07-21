@@ -524,7 +524,6 @@ API_FUNC static void SP_monster_supertank(entity self)
 
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
-	self->s.modelindex = gi.modelindex("models/monsters/boss1/tris.md2");
 	self->mins = '-64 -64 0';
 	self->maxs = '64 64 112';
 
@@ -548,5 +547,25 @@ API_FUNC static void SP_monster_supertank(entity self)
 	self->monsterinfo.currentmove = &supertank_move_stand;
 	self->monsterinfo.scale = MODEL_SCALE;
 
+#ifdef THE_RECKONING
+	if (self->spawnflags & 8)
+	{
+		self->monsterinfo.power_armor_type = POWER_ARMOR_SHIELD;
+		self->monsterinfo.power_armor_power = 400;
+		self->s.modelindex = gi.modelindex("models/monsters/boss5/tris.md2");
+	}
+	else
+#endif
+		self->s.modelindex = gi.modelindex("models/monsters/boss1/tris.md2");
+
 	walkmonster_start(self);
 }
+
+
+#ifdef THE_RECKONING
+API_FUNC static void(entity self) SP_monster_boss5 =
+{
+	self.spawnflags |= 8;
+	SP_monster_supertank(self);
+};
+#endif

@@ -12,6 +12,9 @@ PROGS_LOCAL_STATIC int  sound_death;
 PROGS_LOCAL_STATIC int  sound_death_ss;
 PROGS_LOCAL_STATIC int  sound_cock;
 
+#ifdef THE_RECKONING
+PROGS_LOCAL_STATIC int	soldierh_modelindex;
+#endif
 
 static void(entity self) soldier_idle =
 {
@@ -341,6 +344,51 @@ static void(entity self, entity other, float kick, int damage) soldier_pain =
 // ATTACK
 //
 
+#ifdef THE_RECKONING
+PROGS_LOCAL_STATIC void(entity self, int flash_index) soldierh_laserbeam =
+{
+	vector	forward, right, up;
+	vector	tempang, start;
+	vector	dir, angles, end;
+	vector	tempvec;
+	entity	ent;
+
+	// RAFAEL
+	// this sound can't be called this frequent
+	if (random() > 0.8)
+		gi.sound(self, CHAN_AUTO, gi.soundindex("misc/lasfly.wav"), 1, ATTN_STATIC, 0);
+
+	start = self->s.origin;
+	end = self->enemy->s.origin;
+	dir = end - start;
+	angles = vectoangles (dir);
+	tempvec = monster_flash_offset[flash_index];
+	
+	ent = G_Spawn ();
+	ent->s.origin = self->s.origin;
+	tempang = angles;
+	AngleVectors (tempang, &forward, &right, &up);
+	ent->s.angles = tempang;
+	start = ent->s.origin;
+
+	if (flash_index == 85)
+		start += right * (tempvec[0] - 14);
+	else 
+		start += right * (tempvec[0] + 2);
+
+	start += up * (tempvec[2] + 8);
+	start += forward * tempvec[1];
+			
+	ent->s.origin = start;
+	ent->enemy = self->enemy;
+	ent->owner = self;
+	
+	ent->dmg = 1;
+
+	monster_dabeam (ent);
+}
+#endif
+
 static int blaster_flash [] = {MZ2_SOLDIER_BLASTER_1, MZ2_SOLDIER_BLASTER_2, MZ2_SOLDIER_BLASTER_3, MZ2_SOLDIER_BLASTER_4, MZ2_SOLDIER_BLASTER_5, MZ2_SOLDIER_BLASTER_6, MZ2_SOLDIER_BLASTER_7, MZ2_SOLDIER_BLASTER_8};
 static int shotgun_flash [] = {MZ2_SOLDIER_SHOTGUN_1, MZ2_SOLDIER_SHOTGUN_2, MZ2_SOLDIER_SHOTGUN_3, MZ2_SOLDIER_SHOTGUN_4, MZ2_SOLDIER_SHOTGUN_5, MZ2_SOLDIER_SHOTGUN_6, MZ2_SOLDIER_SHOTGUN_7, MZ2_SOLDIER_SHOTGUN_8};
 static int machinegun_flash [] = {MZ2_SOLDIER_MACHINEGUN_1, MZ2_SOLDIER_MACHINEGUN_2, MZ2_SOLDIER_MACHINEGUN_3, MZ2_SOLDIER_MACHINEGUN_4, MZ2_SOLDIER_MACHINEGUN_5, MZ2_SOLDIER_MACHINEGUN_6, MZ2_SOLDIER_MACHINEGUN_7, MZ2_SOLDIER_MACHINEGUN_8};
@@ -358,7 +406,11 @@ static void(entity self, int flash_number) soldier_fire =
 	if (self->s.skinnum < 2)
 		flash_index = blaster_flash[flash_number];
 	else if (self->s.skinnum < 4)
+#ifdef THE_RECKONING
+		flash_index = (self.s.modelindex == soldierh_modelindex) ? blaster_flash[flash_number] : shotgun_flash[flash_number];
+#else
 		flash_index = shotgun_flash[flash_number];
+#endif
 	else
 		flash_index = machinegun_flash[flash_number];
 
@@ -374,8 +426,20 @@ static void(entity self, int flash_number) soldier_fire =
 		dir = vectoangles(aim);
 		AngleVectors(dir, &forward, &right, &up);
 
-		r = random(-1000f, 1000f);
-		u = random(-500f, 500f);
+#ifdef THE_RECKONING
+		if (self.s.modelindex == soldierh_modelindex)
+		{
+			r = random(-100f, 100f);
+			u = random(-50f, 50f);
+		}
+		else
+		{
+#endif
+			r = random(-1000f, 1000f);
+			u = random(-500f, 500f);
+#ifdef THE_RECKONING
+		}
+#endif
 		end = start + (8192 * forward);
 		end += (r * right);
 		end += (u * up);
@@ -385,14 +449,29 @@ static void(entity self, int flash_number) soldier_fire =
 	}
 
 	if (self->s.skinnum <= 1) {
-		monster_fire_blaster(self, start, aim, 5, 600, flash_index, EF_BLASTER);
+#ifdef THE_RECKONING
+		if (self.s.modelindex == soldierh_modelindex)
+			monster_fire_ionripper (self, start, aim, 5, 600, flash_index, EF_IONRIPPER);
+		else
+#endif
+			monster_fire_blaster(self, start, aim, 5, 600, flash_index, EF_BLASTER);
 	} else if (self->s.skinnum <= 3) {
-		monster_fire_shotgun(self, start, aim, 2, 1, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SHOTGUN_COUNT, flash_index);
+#ifdef THE_RECKONING
+		if (self.s.modelindex == soldierh_modelindex)
+			monster_fire_blueblaster (self, start, aim, 1, 600, MZ_BLUEHYPERBLASTER, EF_BLUEHYPERBLASTER);
+		else
+#endif
+			monster_fire_shotgun(self, start, aim, 2, 1, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SHOTGUN_COUNT, flash_index);
 	} else {
 		if (!(self->monsterinfo.aiflags & AI_HOLD_FRAME))
 			self->monsterinfo.pause_framenum = level.framenum + (3 + Q_rand() % 8);
 
-		monster_fire_bullet(self, start, aim, 2, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_index);
+#ifdef THE_RECKONING
+		if (self.s.modelindex == soldierh_modelindex)
+			soldierh_laserbeam (self, flash_index);
+		else
+#endif
+			monster_fire_bullet(self, start, aim, 2, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_index);
 
 		if (level.framenum >= self->monsterinfo.pause_framenum)
 			self->monsterinfo.aiflags &= ~AI_HOLD_FRAME;
@@ -402,6 +481,32 @@ static void(entity self, int flash_number) soldier_fire =
 }
 
 // ATTACK1 (blaster/shotgun)
+
+#ifdef THE_RECKONING
+static void(entity self) soldierh_hyper_refire1 =
+{
+	if (self.s.modelindex != soldierh_modelindex || self->s.skinnum < 2)
+		return;
+	else if (self->s.skinnum < 4)
+	{
+		if (random() < 0.7)
+			self->s.frame = FRAME_attak103;
+		else
+			gi.sound(self, CHAN_AUTO, gi.soundindex("weapons/hyprbd1a.wav"), 1, ATTN_NORM, 0);
+	}
+}
+
+static void(entity self) soldierh_ripper1 =
+{
+	if (self.s.modelindex != soldierh_modelindex)
+		return;
+
+	if (self->s.skinnum < 2)
+		soldier_fire (self, 0);
+	else if (self->s.skinnum < 4)
+		soldier_fire (self, 0);
+}
+#endif
 
 static void(entity self) soldier_fire1 =
 {
@@ -434,14 +539,33 @@ static void(entity self) soldier_attack1_refire2 =
 		self->monsterinfo.nextframe = FRAME_attak102;
 }
 
+#ifdef THE_RECKONING
+static void(entity self) soldierh_hyper_sound =
+{
+	if (self.s.modelindex != soldierh_modelindex || self->s.skinnum < 2)
+		return;
+	else if (self->s.skinnum < 4)
+		gi.sound(self, CHAN_AUTO, gi.soundindex("weapons/hyprbl1a.wav"), 1, ATTN_NORM, 0);
+}
+#endif
+
 static mframe_t soldier_frames_attack1 [] = {
 	{ ai_charge },
+#ifdef THE_RECKONING
+	{ ai_charge, 0,  soldierh_hyper_sound },
+	{ ai_charge, 0,  soldier_fire1 },
+	{ ai_charge, 0,  soldierh_ripper1 },
+	{ ai_charge, 0,  soldierh_ripper1 },
+	{ ai_charge, 0,  soldier_attack1_refire1 },
+	{ ai_charge, 0,  soldierh_hyper_refire1 },
+#else
 	{ ai_charge },
 	{ ai_charge, 0,  soldier_fire1 },
 	{ ai_charge },
 	{ ai_charge },
 	{ ai_charge, 0,  soldier_attack1_refire1 },
 	{ ai_charge },
+#endif
 	{ ai_charge, 0,  soldier_cock },
 	{ ai_charge, 0,  soldier_attack1_refire2 },
 	{ ai_charge },
@@ -451,6 +575,32 @@ static mframe_t soldier_frames_attack1 [] = {
 static var mmove_t soldier_move_attack1 = { FRAME_attak101, FRAME_attak112, soldier_run };
 
 // ATTACK2 (blaster/shotgun)
+
+#ifdef THE_RECKONING
+static void(entity self) soldierh_hyper_refire2 =
+{
+	if (self.s.modelindex != soldierh_modelindex || self->s.skinnum < 2)
+		return;
+	else if (self->s.skinnum < 4)
+	{
+		if (random() < 0.7)
+			self->s.frame = FRAME_attak205;
+		else
+			gi.sound(self, CHAN_AUTO, gi.soundindex("weapons/hyprbd1a.wav"), 1, ATTN_NORM, 0);
+	}
+}
+
+static void(entity self) soldierh_ripper2 =
+{
+	if (self.s.modelindex != soldierh_modelindex)
+		return;
+
+	if (self->s.skinnum < 2)
+		soldier_fire (self, 1);
+	else if (self->s.skinnum < 4)
+		soldier_fire (self, 1);
+}
+#endif
 
 static void(entity self) soldier_fire2 =
 {
@@ -487,12 +637,21 @@ static mframe_t soldier_frames_attack2 [] = {
 	{ ai_charge },
 	{ ai_charge },
 	{ ai_charge },
+#ifdef THE_RECKONING
+	{ ai_charge, 0, soldierh_hyper_sound },
+	{ ai_charge, 0, soldier_fire2 },
+	{ ai_charge, 0, soldierh_ripper2 },
+	{ ai_charge, 0, soldierh_ripper2 },
+	{ ai_charge, 0, soldier_attack2_refire1 },
+	{ ai_charge, 0, soldierh_hyper_refire2 },
+#else
 	{ ai_charge },
 	{ ai_charge, 0, soldier_fire2 },
 	{ ai_charge },
 	{ ai_charge },
 	{ ai_charge, 0, soldier_attack2_refire1 },
 	{ ai_charge },
+#endif
 	{ ai_charge },
 	{ ai_charge },
 	{ ai_charge },
@@ -638,7 +797,16 @@ static void(entity self, entity other) soldier_sight =
 
 	if ((skill->intVal > 0) && (range(self, self->enemy) >= RANGE_MID)) {
 		if (random() > 0.5f)
+#ifdef THE_RECKONING
+		{
+			if (self->s.skinnum < 4)	
+				self->monsterinfo.currentmove = &soldier_move_attack6;
+			else
+				self->monsterinfo.currentmove = &soldier_move_attack4;
+		}
+#else
 			self->monsterinfo.currentmove = &soldier_move_attack6;
+#endif
 	}
 }
 
@@ -708,12 +876,20 @@ static void(entity self, entity attacker, float eta) soldier_dodge =
 
 static void(entity self) soldier_fire6 =
 {
-	soldier_fire(self, 5);
+#ifdef THE_RECKONING
+	// no fire laser
+	if (self.s.modelindex != soldierh_modelindex || self.s.skinnum < 4)
+#endif
+		soldier_fire(self, 5);
 }
 
 static void(entity self) soldier_fire7 =
 {
-	soldier_fire(self, 6);
+#ifdef THE_RECKONING
+	// no fire laser
+	if (self.s.modelindex != soldierh_modelindex || self.s.skinnum < 4)
+#endif
+		soldier_fire(self, 6);
 }
 
 static void(entity self) soldier_dead =
@@ -1027,7 +1203,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 // SPAWN
 //
 
-static void(entity self) SP_monster_soldier_x =
+PROGS_LOCAL_STATIC void(entity self, string model) SP_monster_soldier_x =
 {
 	if (!soldier_move_stand1.frame)
 	{
@@ -1058,7 +1234,7 @@ static void(entity self) SP_monster_soldier_x =
 		soldier_move_death6.frame = &soldier_frames_death6;
 	}
 
-	self->s.modelindex = gi.modelindex("models/monsters/soldier/tris.md2");
+	self->s.modelindex = gi.modelindex(model);
 	self->monsterinfo.scale = MODEL_SCALE;
 	self->mins = '-16 -16 -24';
 	self->maxs = '16 16 32';
@@ -1100,7 +1276,7 @@ API_FUNC static void(entity self) SP_monster_soldier_light =
 		return;
 	}
 
-	SP_monster_soldier_x(self);
+	SP_monster_soldier_x(self, "models/monsters/soldier/tris.md2");
 
 	sound_pain_light = gi.soundindex("soldier/solpain2.wav");
 	sound_death_light = gi.soundindex("soldier/soldeth2.wav");
@@ -1122,7 +1298,7 @@ API_FUNC static void(entity self) SP_monster_soldier =
 		return;
 	}
 
-	SP_monster_soldier_x(self);
+	SP_monster_soldier_x(self, "models/monsters/soldier/tris.md2");
 
 	sound_pain = gi.soundindex("soldier/solpain1.wav");
 	sound_death = gi.soundindex("soldier/soldeth1.wav");
@@ -1142,7 +1318,7 @@ API_FUNC static void(entity self) SP_monster_soldier_ss =
 		return;
 	}
 
-	SP_monster_soldier_x(self);
+	SP_monster_soldier_x(self, "models/monsters/soldier/tris.md2");
 
 	sound_pain_ss = gi.soundindex("soldier/solpain3.wav");
 	sound_death_ss = gi.soundindex("soldier/soldeth3.wav");
@@ -1152,3 +1328,84 @@ API_FUNC static void(entity self) SP_monster_soldier_ss =
 	self->health = 40;
 	self->gib_health = -30;
 }
+
+#ifdef THE_RECKONING
+//
+// SPAWN
+//
+
+PROGS_LOCAL_STATIC void(entity self) SP_monster_soldier_h =
+{
+	SP_monster_soldier_x(self, "models/monsters/soldierh/tris.md2");
+	soldierh_modelindex = self->s.modelindex;
+}
+
+
+/*QUAKED monster_soldier_ripper (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
+*/
+API_FUNC static void(entity self) SP_monster_soldier_ripper =
+{
+	if (deathmatch->intVal)
+	{
+		G_FreeEdict (self);
+		return;
+	}
+
+	SP_monster_soldier_h (self);
+
+	sound_pain_light = gi.soundindex ("soldier/solpain2.wav");
+	sound_death_light = gi.soundindex ("soldier/soldeth2.wav");
+	
+	gi.modelindex ("models/objects/boomrang/tris.md2");
+	gi.soundindex ("misc/lasfly.wav");
+	gi.soundindex ("soldier/solatck2.wav");
+
+	self->s.skinnum = 0;
+	self->health = 50;
+	self->gib_health = -30;
+}
+
+/*QUAKED monster_soldier_hypergun (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
+*/
+API_FUNC static void(entity self) SP_monster_soldier_hypergun =
+{
+	if (deathmatch->intVal)
+	{
+		G_FreeEdict (self);
+		return;
+	}
+
+	SP_monster_soldier_h (self);
+
+	gi.modelindex ("models/objects/blaser/tris.md2");
+	sound_pain = gi.soundindex ("soldier/solpain1.wav");
+	sound_death = gi.soundindex ("soldier/soldeth1.wav");
+	gi.soundindex ("soldier/solatck1.wav");
+
+	self->s.skinnum = 2;
+	self->health = 60;
+	self->gib_health = -30;
+}
+
+/*QUAKED monster_soldier_lasergun (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
+*/
+API_FUNC static void(entity self) SP_monster_soldier_lasergun =
+{
+	if (deathmatch->intVal)
+	{
+		G_FreeEdict (self);
+		return;
+	}
+
+	SP_monster_soldier_h (self);
+
+	sound_pain_ss = gi.soundindex ("soldier/solpain3.wav");
+	sound_death_ss = gi.soundindex ("soldier/soldeth3.wav");
+	gi.soundindex ("soldier/solatck3.wav");
+
+	self->s.skinnum = 4;
+	self->health = 70;
+	self->gib_health = -30;
+		
+}
+#endif

@@ -1,7 +1,6 @@
 const int MAX_TOKEN_CHARS	= 1024;	// max length of an individual token
 const int MAX_QPATH		= 64;	// max length of a quake game pathname
 
-//int(string, int) strat = #0:strat;
 inline int(string str, int offset) strat =
 {
 	return (int)(__variant)str[(float)(__variant)offset];
@@ -32,7 +31,7 @@ inline string(float v) ftos =
 
 inline string(vector v) vtos =
 {
-	return va("%f %f %f", v_x, v_y, v_z);
+	return va("%f %f %f", v[0], v[1], v[2]);
 };
 
 // FIXME: time.qc?

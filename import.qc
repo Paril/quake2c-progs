@@ -1,5 +1,5 @@
 accessor cvar_t : int;
-accessor box_edicts_t : int;
+accessor entity_list_t : int;
 
 PROGS_LOCAL var struct {
 	void(print_level_t, string fmt, ...) bprintf;
@@ -29,8 +29,7 @@ PROGS_LOCAL var struct {
 	
 	void(entity) linkentity;
 	void(entity) unlinkentity;
-	box_edicts_t(vector mins, vector maxs, int maxcount, box_edicts_area_t areatype, __out int count) BoxEdicts;
-	void(box_edicts_t) FreeBoxEdicts;
+	entity_list_t(vector mins, vector maxs, int maxcount, box_edicts_area_t areatype) BoxEdicts;
 	void(pmove_t *) Pmove;
 	
 	void(vector, multicast_t) multicast;
@@ -89,7 +88,6 @@ PROGS_LOCAL var struct {
 	#0:linkentity,
 	#0:unlinkentity,
 	#0:BoxEdicts,
-	#0:FreeBoxEdicts,
 	#0:Pmove,
 	
 	#0:multicast,

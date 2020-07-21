@@ -572,7 +572,11 @@ const vector water_blend = '0.5 0.3 0.2';
 const vector quad_blend = '0 0 1';
 const vector invul_blend = '1 1 0';
 const vector enviro_blend = '0 1 0';
-const vector breather_blend = '0.4f 1 0.4f';
+const vector breather_blend = '0.4 1 0.4';
+
+#ifdef THE_RECKONING
+const vector quadfire_blend = '1 0.2 0.5';
+#endif
 
 /*
 =============
@@ -609,6 +613,17 @@ static void(entity ent) SV_CalcBlend =
 			gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage2.wav"), 1, ATTN_NORM, 0);
 		if (remaining > 30 || (remaining & 4))
 			SV_AddBlend(quad_blend, 0.08f, &ent->client->ps.blend[0]);
+#ifdef THE_RECKONING
+	// RAFAEL
+	else if (ent->client->quadfire_framenum > level.framenum)
+	{
+		remaining = ent->client->quadfire_framenum - level.framenum;
+		if (remaining == 30)	// beginning to fade
+			gi.sound(ent, CHAN_ITEM, gi.soundindex("items/quadfire2.wav"), 1, ATTN_NORM, 0);
+		if (remaining > 30 || (remaining & 4) )
+			SV_AddBlend (quadfire_blend, 0.08f, &ent->client->ps.blend[0]);
+	}
+#endif
 	} else if (ent->client->invincible_framenum > level.framenum) {
 		remaining = ent->client->invincible_framenum - level.framenum;
 		if (remaining == 30)    // beginning to fade
@@ -695,6 +710,16 @@ static void(entity ent) G_SetClientEffects =
 			ent->s.effects |= EF_QUAD;
 	}
 
+#ifdef THE_RECKONING
+	// RAFAEL
+	if (ent->client->quadfire_framenum > level.framenum)
+	{
+		remaining = ent->client->quadfire_framenum - level.framenum;
+		if (remaining > 30 || (remaining & 4) )
+			ent->s.effects |= EF_QUAD;
+	}
+#endif
+
 	if (ent->client->invincible_framenum > level.framenum) {
 		remaining = ent->client->invincible_framenum - level.framenum;
 		if (remaining > 30 || (remaining & 4))
@@ -739,6 +764,11 @@ static void(entity ent) G_SetClientSound =
 		ent->s.sound = gi.soundindex("weapons/rg_hum.wav");
 	else if (weap == "weapon_bfg")
 		ent->s.sound = gi.soundindex("weapons/bfg_hum.wav");
+#ifdef THE_RECKONING
+	// RAFAEL
+	else if (weap == "weapon_phalanx")
+		ent->s.sound = gi.soundindex("weapons/phaloop.wav");
+#endif
 	else if (ent->client->weapon_sound)
 		ent->s.sound = ent->client->weapon_sound;
 	else

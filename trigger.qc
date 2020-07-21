@@ -362,6 +362,61 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) trigger_
 		G_FreeEdict(self);
 }
 
+#ifdef THE_RECKONING
+static void(entity self) trigger_effect =
+{
+	vector	origin;
+	int	i;
+
+	origin = self->absmin + (self->size * 0.5);
+	
+	for (i=0; i<10; i++)
+	{
+		origin[2] += (self->speed * 0.01f) * (i + random());
+		gi.WriteByte (svc_temp_entity);
+		gi.WriteByte (TE_TUNNEL_SPARKS);
+		gi.WriteByte (1);
+		gi.WritePosition (origin);
+		gi.WriteDir (vec3_origin);
+		gi.WriteByte (0x74 + (Q_rand()&7));
+		gi.multicast (self->s.origin, MULTICAST_PVS);
+	}
+
+}
+
+static void(entity self) trigger_push_active;
+
+static void(entity self) trigger_push_inactive =
+{
+	if (self->delay > level.time)
+	{
+		self->nextthink = level.framenum + 1;
+	}
+	else
+	{
+		self->touch = trigger_push_touch;
+		self->think = trigger_push_active;
+		self->nextthink = level.framenum + 1;
+		self->delay = self->nextthink + self->wait;  
+	}
+}
+
+static void(entity self) trigger_push_active =
+{
+	if (self->delay > level.time)
+	{
+		self->nextthink = level.framenum + 1;
+		trigger_effect (self);
+	}
+	else
+	{
+		self->touch = 0;
+		self->think = trigger_push_inactive;
+		self->nextthink = level.framenum + 1;
+		self->delay = self->nextthink + self->wait;  
+	}
+}
+#endif
 
 /*QUAKED trigger_push (.5 .5 .5) ? PUSH_ONCE
 Pushes the player
@@ -372,6 +427,19 @@ API_FUNC static void(entity self) SP_trigger_push =
 	InitTrigger(self);
 	windsound = gi.soundindex("misc/windfly.wav");
 	self->touch = trigger_push_touch;
+	
+#ifdef THE_RECKONING
+	if (self->spawnflags & 2)
+	{
+		if (!self->wait)
+			self->wait = 10f;
+  
+		self->think = trigger_push_active;
+		self->nextthink = level.framenum + 1;
+		self->delay = self->nextthink + self->wait;
+	}
+#endif
+	
 	if (!self->speed)
 		self->speed = 1000f;
 	gi.linkentity(self);

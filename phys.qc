@@ -97,14 +97,14 @@ SV_Impact
 Two entities have touched, so run their touch functions
 ==================
 */
-static void(entity e1, trace_t trace) SV_Impact =
+static void(entity e1, trace_t *trace) SV_Impact =
 {
 	entity	e2;
 
 	e2 = trace->ent;
 
 	if (e1->touch && e1->solid != SOLID_NOT)
-		e1->touch(e1, e2, trace->plane, trace->surface);
+		e1->touch(e1, e2, (*trace)->plane, (*trace)->surface);
 
 	if (e2->touch && e2->solid != SOLID_NOT)
 		e2->touch(e2, e1, null_plane, null_surface);
@@ -182,7 +182,7 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 	float	time_left;
 	int	blocked;
 
-	numbumps = 4;
+	numbumps = MAX_CLIP_PLANES - 1;
 
 	blocked = 0;
 	original_velocity = ent->velocity;
@@ -229,11 +229,10 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 //
 // run the impact function
 //
-		SV_Impact(ent, trace);
+		SV_Impact(ent, &trace);
 
 		if (!ent->inuse)
 			break;      // removed by the impact function
-
 
 		time_left -= time_left * trace.fraction;
 
@@ -317,7 +316,7 @@ SV_PushEntity
 Does not change the entities velocity at all
 ============
 */
-static void(entity ent, vector push, __out trace_t trace) SV_PushEntity =
+static void(entity ent, vector push, trace_t *trace) SV_PushEntity =
 {
 	vector	start;
 	vector	end;
@@ -332,9 +331,9 @@ retry:
 	else
 		mask = MASK_SOLID;
 
-	gi.trace(&trace, start, ent->mins, ent->maxs, end, ent, mask);
-
-	ent->s.origin = trace.endpos;
+	gi.trace(trace, start, ent->mins, ent->maxs, end, ent, mask);
+	
+	ent->s.origin = (*trace).endpos;
 	gi.linkentity(ent);
 
 	if (trace.fraction != 1.0f)
@@ -342,20 +341,20 @@ retry:
 		SV_Impact(ent, trace);
 
 		// if the pushed entity went away and the pusher is still there
-		if (!trace.ent->inuse && ent->inuse) {
+		if (!(*trace).ent->inuse && ent->inuse) {
 			// move the pusher back and try again
 			ent->s.origin = start;
 			gi.linkentity(ent);
 			goto retry;
 		}
 	}
-
+	
 	if (ent->inuse)
 		G_TouchTriggers(ent);
 }
 
-PROGS_LOCAL_STATIC entity	pushed_head;
-PROGS_LOCAL_STATIC entity	obstacle;
+PROGS_LOCAL_STATIC entity		obstacle;
+PROGS_LOCAL_STATIC entity_list_t	pushed_list;
 
 /*
 ============
@@ -403,20 +402,14 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 	AngleVectors(org, &forward, &right, &up);
 
 // save the pusher's original position
-	pusher.pushed.next = world;
-	pusher.pushed.prev = pushed_head;
-
-	if (pushed_head)
-		pushed_head.pushed.next = pusher;
+	entity_list_add(pushed_list, pusher);
 
 	pusher.pushed.origin = pusher->s.origin;
 	pusher.pushed.angles = pusher->s.angles;
 #if USE_SMOOTH_DELTA_ANGLES
-	if (pusher->client)
+	if (pusher->is_client)
 		pusher.pushed.deltayaw = pusher->client->ps.pmove.delta_angles[YAW];
 #endif
-
-	pushed_head = pusher;
 
 // move the pusher to it's final position
 	pusher->s.origin += move;
@@ -460,21 +453,16 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 			check.pushed.origin = check->s.origin;
 			check.pushed.angles = check->s.angles;
 #if USE_SMOOTH_DELTA_ANGLES
-			if (check->client)
+			if (check->is_client)
 				check.pushed.deltayaw = check->client->ps.pmove.delta_angles[YAW];
 #endif
-			check.pushed.next = world;
-			check.pushed.prev = pushed_head;
-			
-			if (pushed_head)
-				pushed_head.pushed.next = check;
-			
-			pushed_head = check;
+
+			entity_list_add(pushed_list, check);
 
 			// try moving the contacted entity
 			check->s.origin += move;
 #if USE_SMOOTH_DELTA_ANGLES
-			if (check->client) {
+			if (check->is_client) {
 				// FIXME: doesn't rotate monsters?
 				// FIXME: skuller: needs client side interpolation
 				check->client->ps.pmove.delta_angles[YAW] += ANGLE2SHORT(amove[YAW]);
@@ -507,10 +495,7 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 			check->s.origin = check->s.origin - move;
 			block = SV_TestEntityPosition(check);
 			if (!block) {
-				pushed_head = pushed_head.pushed.prev;
-				
-				if (pushed_head)
-					pushed_head.pushed.next = world;
+				entity_list_remove(pushed_list, pushed_list.length - 1);
 				continue;
 			}
 		}
@@ -521,11 +506,13 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 		// move back any entities we already moved
 		// go backwards, so if the same entity was pushed
 		// twice, it goes back to the original position
-		for (entity p = pushed_head; p; p = p.pushed.prev) {
+		for (int pi = pushed_list.length - 1; pi >= 0; pi--)
+		{
+			entity p = pushed_list[pi];
 			p->s.origin = p.pushed.origin;
 			p->s.angles = p.pushed.angles;
 #if USE_SMOOTH_DELTA_ANGLES
-			if (p->client) {
+			if (p->is_client) {
 				p->client->ps.pmove.delta_angles[YAW] = p.pushed->deltayaw;
 			}
 #endif
@@ -536,8 +523,11 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 
 //FIXME: is there a better way to handle this?
 	// see if anything we moved has touched a trigger
-	for (entity p = pushed_head; p; p = p.pushed.prev)
+	for (int pi = pushed_list.length - 1; pi >= 0; pi--)
+	{
+		entity p = pushed_list[pi];
 		G_TouchTriggers(p);
+	}
 
 	return true;
 }
@@ -562,7 +552,11 @@ static void(entity ent) SV_Physics_Pusher =
 	// make sure all team slaves can move before commiting
 	// any moves or calling any think functions
 	// if the move is blocked, all moved objects will be backed out
-	pushed_head = world;
+	if (!pushed_list)
+		pushed_list = entity_list_alloc(16);
+	else
+		entity_list_clear(pushed_list);
+
 	for (part = ent ; part ; part = part->teamchain) {
 		if (part->velocity || part->avelocity) {
 			// object is moving
@@ -681,7 +675,13 @@ static void(entity ent) SV_Physics_Toss =
 
 // add gravity
 	if (ent->movetype != MOVETYPE_FLY
-		&& ent->movetype != MOVETYPE_FLYMISSILE)
+		&& ent->movetype != MOVETYPE_FLYMISSILE
+#ifdef THE_RECKONING
+		// RAFAEL
+		// move type for rippergun projectile
+		&& ent->movetype != MOVETYPE_WALLBOUNCE
+#endif
+		)
 		SV_AddGravity(ent);
 
 // move angles
@@ -689,11 +689,17 @@ static void(entity ent) SV_Physics_Toss =
 
 // move origin
 	move = ent->velocity * FRAMETIME;
-	SV_PushEntity(ent, move, trace);
+	SV_PushEntity(ent, move, &trace);
 	if (!ent->inuse)
 		return;
 
 	if (trace.fraction < 1) {
+#ifdef THE_RECKONING
+		// RAFAEL
+		if (ent->movetype == MOVETYPE_WALLBOUNCE)
+			backoff = 2.0;	
+		else
+#endif
 		if (ent->movetype == MOVETYPE_BOUNCE)
 			backoff = 1.5f;
 		else
@@ -701,8 +707,18 @@ static void(entity ent) SV_Physics_Toss =
 
 		ClipVelocity(ent->velocity, trace.plane.normal, ent->velocity, backoff);
 
+#ifdef THE_RECKONING
+		// RAFAEL
+		if (ent->movetype == MOVETYPE_WALLBOUNCE)
+			ent->s.angles = vectoangles (ent->velocity);
+#endif
+
 		// stop if on ground
-		if (trace.plane.normal[2] > 0.7f) {
+		if (trace.plane.normal[2] > 0.7f
+#ifdef THE_RECKONING
+			 && ent->movetype != MOVETYPE_WALLBOUNCE
+#endif
+			) {
 			if (ent->velocity_z < 60f || ent->movetype != MOVETYPE_BOUNCE) {
 				ent->groundentity = trace.ent;
 				ent->groundentity_linkcount = trace.ent->linkcount;
@@ -930,6 +946,10 @@ void(entity ent) G_RunEntity =
 	case MOVETYPE_BOUNCE:
 	case MOVETYPE_FLY:
 	case MOVETYPE_FLYMISSILE:
+#ifdef THE_RECKONING
+	// RAFAEL
+	case MOVETYPE_WALLBOUNCE:
+#endif
 		SV_Physics_Toss(ent);
 		break;
 	default:

@@ -24,16 +24,26 @@ typedef enum int
 	WEAP_HYPERBLASTER,
 	WEAP_RAILGUN,
 	WEAP_BFG
+	
+#ifdef THE_RECKONING
+	, WEAP_PHALANX,
+	WEAP_BOOMER
+#endif
 } weap_model_t;
 
 typedef enum int
 {
-    AMMO_BULLETS,
-    AMMO_SHELLS,
-    AMMO_ROCKETS,
-    AMMO_GRENADES,
-    AMMO_CELLS,
-    AMMO_SLUGS
+	AMMO_BULLETS,
+	AMMO_SHELLS,
+	AMMO_ROCKETS,
+	AMMO_GRENADES,
+	AMMO_CELLS,
+	AMMO_SLUGS
+
+#ifdef THE_RECKONING
+	, AMMO_MAGSLUG,
+	AMMO_TRAP
+#endif
 } ammo_t;
 
 typedef enum int
@@ -1088,4 +1098,149 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,
 		/* precache */ "items/s_health.wav items/n_health.wav items/l_health.wav items/m_health.wav"
 	}
+	
+#ifdef THE_RECKONING
+
+/*QUAKED ammo_trap (.3 .3 1) (-16 -16 -16) (16 16 16)
+*/
+	, {
+		"ammo_trap",
+		"Pickup_Ammo",
+		"Use_Weapon",
+		"Drop_Ammo",
+		"Weapon_Trap",
+		"misc/am_pkup.wav",
+		"models/weapons/g_trap/tris.md2", EF_ROTATE,
+		"models/weapons/v_trap/tris.md2",
+/* icon */		"a_trap",
+/* pickup */	"Trap",
+/* width */		3,
+		1,
+		"trap",
+		IT_AMMO|IT_WEAPON,
+		0,
+		0,
+		AMMO_TRAP,
+/* precache */ "weapons/trapcock.wav weapons/traploop.wav weapons/trapsuck.wav weapons/trapdown.wav"
+	},
+	
+/*QUAKED weapon_boomer (.3 .3 1) (-16 -16 -16) (16 16 16)
+*/
+
+	{
+		"weapon_boomer",
+		"Pickup_Weapon",
+		"Use_Weapon",
+		"Drop_Weapon",
+		"Weapon_Ionripper",
+		"misc/w_pkup.wav",
+		"models/weapons/g_boom/tris.md2", EF_ROTATE,
+		"models/weapons/v_boomer/tris.md2",
+/* icon */	"w_ripper",
+/* pickup */ "Ionripper",
+		0,
+		2,
+		"Cells",
+		IT_WEAPON,
+		WEAP_BOOMER,
+		0,
+		0,
+/* precache */ "weapons/rg_hum.wav weapons/rippfire.wav"
+	},
+	
+/*QUAKED weapon_phalanx (.3 .3 1) (-16 -16 -16) (16 16 16)
+*/
+
+	{
+		"weapon_phalanx",
+		"Pickup_Weapon",
+		"Use_Weapon",
+		"Drop_Weapon",
+		"Weapon_Phalanx",
+		"misc/w_pkup.wav",
+		"models/weapons/g_shotx/tris.md2", EF_ROTATE,
+		"models/weapons/v_shotx/tris.md2",
+/* icon */	"w_phallanx",
+/* pickup */ "Phalanx",
+		0,
+		1,
+		"Mag Slug",
+		IT_WEAPON,
+		WEAP_PHALANX,
+		0,
+		0,
+/* precache */ "weapons/plasshot.wav"
+	},
+	
+/*QUAKED ammo_magslug (.3 .3 1) (-16 -16 -16) (16 16 16)
+*/
+	{
+		"ammo_magslug",
+		"Pickup_Ammo",
+		0,
+		"Drop_Ammo",
+		0,
+		"misc/am_pkup.wav",
+		"models/objects/ammo/tris.md2", 0,
+		0,
+/* icon */		"a_mslugs",
+/* pickup */	"Mag Slug",
+/* width */		3,
+		10,
+		0,
+		IT_AMMO,
+		0,
+		0,
+		AMMO_MAGSLUG,
+/* precache */ ""
+	},
+
+/*QUAKED item_quadfire (.3 .3 1) (-16 -16 -16) (16 16 16)
+*/
+	{
+		"item_quadfire", 
+		"Pickup_Powerup",
+		"Use_QuadFire",
+		"Drop_General",
+		0,
+		"items/pkup.wav",
+		"models/items/quadfire/tris.md2", EF_ROTATE,
+		0,
+/* icon */		"p_quadfire",
+
+/* pickup */	"DualFire Damage",
+/* width */		2,
+		60,
+		0,
+		IT_POWERUP,
+		0,
+		0,
+		0,
+/* precache */ "items/quadfire1.wav items/quadfire2.wav items/quadfire3.wav"
+	},
+	
+/*QUAKED key_green_key (0 .5 .8) (-16 -16 -16) (16 16 16)
+normal door key - blue
+*/
+	{
+		"key_green_key",
+		"Pickup_Key",
+		0,
+		"Drop_General",
+		0,
+		"items/pkup.wav",
+		"models/items/keys/green_key/tris.md2", EF_ROTATE,
+		0,
+		"k_green",
+		"Green Key",
+		2,
+		0,
+		0,
+		IT_STAY_COOP|IT_KEY,
+		0,
+		0,
+		0,
+/* precache */ ""
+	}
+#endif
 };

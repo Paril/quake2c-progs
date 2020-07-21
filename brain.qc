@@ -374,6 +374,230 @@ static void brain_melee(entity self) {
 		self->monsterinfo.currentmove = &brain_move_attack2;
 }
 
+#ifdef THE_RECKONING
+static bool(vector start, vector end) brain_tounge_attack_ok =
+{
+	vector	dir, angles;
+
+	// check for max distance
+	dir = start - end;
+	if (VectorLength(dir) > 512)
+		return false;
+
+	// check for min/max pitch
+	angles = vectoangles (dir);
+	if (angles[0] < -180)
+		angles[0] += 360;
+	if (fabsf(angles[0]) > 30)
+		return false;
+
+	return true;
+}
+
+static void(entity self) brain_tounge_attack =
+{
+	vector offset, start, f, r, end, dir;
+	trace_t	tr;
+	int damage;
+
+	AngleVectors (self->s.angles, &f, &r, 0);
+	offset = [ 24, 0, 16 ];
+	G_ProjectSource (self->s.origin, offset, f, r, start);
+
+	end = self->enemy->s.origin;
+	if (!brain_tounge_attack_ok(start, end))
+	{
+		end[2] = self->enemy->s.origin[2] + self->enemy->maxs[2] - 8;
+		if (!brain_tounge_attack_ok(start, end))
+		{
+			end[2] = self->enemy->s.origin[2] + self->enemy->mins[2] + 8;
+			if (!brain_tounge_attack_ok(start, end))
+				return;
+		}
+	}
+	end = self->enemy->s.origin;
+
+	gi.trace (&tr, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+	if (tr.ent != self->enemy)
+		return;
+
+	damage = 5;
+	gi.sound (self, CHAN_WEAPON, sound_tentacles_retract, 1, ATTN_NORM, 0);
+
+	gi.WriteByte (svc_temp_entity);
+	gi.WriteByte (TE_PARASITE_ATTACK);
+	gi.WriteShort (self.s.number);
+	gi.WritePosition (start);
+	gi.WritePosition (end);
+	gi.multicast (self->s.origin, MULTICAST_PVS);
+
+	dir = start - end;
+	T_Damage (self->enemy, self, self, dir, self->enemy->s.origin, vec3_origin, damage, 0, DAMAGE_NO_KNOCKBACK, MOD_BRAINTENTACLE);
+
+	// pull the enemy in
+	{
+		vector forward;
+		self->s.origin[2] += 1;
+		AngleVectors (self->s.angles, &forward, 0, 0);
+		self->enemy->velocity = forward * -1200;
+	}
+	
+}
+
+// Brian right eye center
+PROGS_LOCAL_STATIC const vector brain_reye [11] = {
+	[ 0.746700, 0.238370, 34.167690 ],
+	[ -1.076390, 0.238370, 33.386372 ],
+	[ -1.335500, 5.334300, 32.177170 ],
+	[ -0.175360, 8.846370, 30.635479 ],
+	[ -2.757590, 7.804610, 30.150860 ],
+	[ -5.575090, 5.152840, 30.056160 ],
+	[ -7.017550, 3.262470, 30.552521 ],
+	[ -7.915740, 0.638800, 33.176189 ],
+	[ -3.915390, 8.285730, 33.976349 ],
+	[ -0.913540, 10.933030, 34.141811 ],
+	[ -0.369900, 8.923900, 34.189079 ]
+};
+
+// Brain left eye center
+PROGS_LOCAL_STATIC const vector brain_leye [11] = {
+	[ -3.364710, 0.327750, 33.938381 ],
+	[ -5.140450, 0.493480, 32.659851 ],
+	[ -5.341980, 5.646980, 31.277901 ],
+	[ -4.134480, 9.277440, 29.925621 ],
+	[ -6.598340, 6.815090, 29.322620 ],
+	[ -8.610840, 2.529650, 29.251591 ],
+	[ -9.231360, 0.093280, 29.747959 ],
+	[ -11.004110, 1.936930, 32.395260 ],
+	[ -7.878310, 7.648190, 33.148151 ],
+	[ -4.947370, 11.430050, 33.313610 ],
+	[ -4.332820, 9.444570, 33.526340 ]
+};
+
+// note to self
+// need to get an x,y,z offset for
+// each frame of the run cycle
+static void(entity self) brain_laserbeam =
+{
+	vector	forward, right, up;
+	vector	tempang, start;
+	vector	dir, angles, end;
+	entity	ent;
+
+	// RAFAEL
+	// cant call sound this frequent
+	if (random() > 0.8)
+		gi.sound(self, CHAN_AUTO, gi.soundindex("misc/lasfly.wav"), 1, ATTN_STATIC, 0);
+
+	// check for max distance
+	
+	start = self->s.origin;
+	end = self->enemy->s.origin;
+	dir = end - start;
+	angles = vectoangles(dir);
+	
+	// dis is my right eye
+	ent = G_Spawn ();
+	ent->s.origin = self->s.origin;
+	tempang = angles;
+	AngleVectors (tempang, &forward, &right, &up);
+	ent->s.angles = tempang;
+	start = ent->s.origin;
+	start += brain_reye[self->s.frame - FRAME_walk101][0] * right;
+	start += brain_reye[self->s.frame - FRAME_walk101][1] * forward;
+	start += brain_reye[self->s.frame - FRAME_walk101][2] * up;
+	ent->s.origin = start;
+	ent->enemy = self->enemy;
+	ent->owner = self;
+	ent->dmg = 1;
+	monster_dabeam (ent);
+   
+	// dis is me left eye
+	ent = G_Spawn ();  
+	ent->s.origin = self->s.origin;
+	tempang = angles;
+	AngleVectors (tempang, &forward, &right, &up);
+	ent->s.angles = tempang;
+	start = ent->s.origin;
+	start += brain_leye[self->s.frame - FRAME_walk101][0] * right;
+	start += brain_leye[self->s.frame - FRAME_walk101][1] * forward;
+	start += brain_leye[self->s.frame - FRAME_walk101][2] * up;
+	ent->s.origin = start;
+	ent->enemy = self->enemy;
+	ent->owner = self;
+	ent->dmg = 1;
+	monster_dabeam (ent);
+	
+}
+
+static void(entity self) brain_laserbeam_reattack =
+{
+	if (random() < 0.5)
+		if (visible (self, self->enemy))
+			if (self->enemy->health > 0)
+				self->s.frame = FRAME_walk101;
+}
+
+
+static mframe_t brain_frames_attack3 [] =
+{
+	{ ai_charge,	5 },
+	{ ai_charge,	-4 },
+	{ ai_charge,	-4 },
+	{ ai_charge,	-3 },
+	{ ai_charge,	0,	brain_chest_open },
+	{ ai_charge,	0,	brain_tounge_attack },
+	{ ai_charge,	13 },
+	{ ai_charge,	0,	brain_tentacle_attack },
+	{ ai_charge,	2 },
+	{ ai_charge,	0,	brain_tounge_attack },
+	{ ai_charge,	-9,	brain_chest_closed },
+	{ ai_charge },
+	{ ai_charge,	4 },
+	{ ai_charge,	3 },
+	{ ai_charge,	2 },
+	{ ai_charge,	-3 },
+	{ ai_charge,	-6 }
+};
+static var mmove_t brain_move_attack3 = { FRAME_attak201, FRAME_attak217 };
+
+static mframe_t brain_frames_attack4 [] =
+{
+	{ ai_charge,	9,	brain_laserbeam },
+	{ ai_charge,	2,	brain_laserbeam },
+	{ ai_charge,	3,	brain_laserbeam },
+	{ ai_charge,	3,	brain_laserbeam },
+	{ ai_charge,	1,	brain_laserbeam },
+	{ ai_charge,	0,	brain_laserbeam },
+	{ ai_charge,	0,	brain_laserbeam },
+	{ ai_charge,	10,	brain_laserbeam },
+	{ ai_charge,	-4,	brain_laserbeam },
+	{ ai_charge,	-1,	brain_laserbeam },
+	{ ai_charge,	2,	brain_laserbeam_reattack }
+};
+static var mmove_t brain_move_attack4 = { FRAME_walk101, FRAME_walk111 };
+
+// RAFAEL
+static void(entity self) brain_attack =
+{
+	int r;
+	
+	if (random() < 0.8)
+	{
+		r = range (self, self->enemy);
+		if (r == RANGE_NEAR)
+		{
+			if (random() < 0.5)
+				self->monsterinfo.currentmove = &brain_move_attack3;
+			else 
+				self->monsterinfo.currentmove = &brain_move_attack4;
+		}
+		else if (r > RANGE_NEAR)
+			self->monsterinfo.currentmove = &brain_move_attack4;
+	}
+	
+}
+#endif
 
 //
 // RUN
@@ -501,6 +725,13 @@ API_FUNC static void SP_monster_brain(entity self) {
 		brain_move_attack2.frame = &brain_frames_attack2;
 		brain_move_attack2.endfunc = brain_run;
 		brain_move_run.frame = &brain_frames_run;
+
+#ifdef THE_RECKONING
+		brain_move_attack3.frame = &brain_frames_attack3;
+		brain_move_attack3.endfunc = brain_run;
+		brain_move_attack4.frame = &brain_frames_attack4;
+		brain_move_attack4.endfunc = brain_run;
+#endif
 	}
 
 	sound_chest_open = gi.soundindex("brain/brnatck1.wav");
@@ -535,7 +766,9 @@ API_FUNC static void SP_monster_brain(entity self) {
 	self->monsterinfo.walk = brain_walk;
 	self->monsterinfo.run = brain_run;
 	self->monsterinfo.dodge = brain_dodge;
-//  self->monsterinfo.attack = brain_attack;
+#ifdef THE_RECKONING
+	self->monsterinfo.attack = brain_attack;
+#endif
 	self->monsterinfo.melee = brain_melee;
 	self->monsterinfo.sight = brain_sight;
 	self->monsterinfo.search = brain_search;

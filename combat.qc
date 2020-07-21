@@ -437,7 +437,12 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 // do the damage
 	if (take) {
 		if ((targ->svflags & SVF_MONSTER) || (targ.is_client))
-			SpawnDamage(TE_BLOOD, point, normal, take);
+#ifdef THE_RECKONING
+			if (targ->classname == "monster_gekk")
+				SpawnDamage (TE_GREENBLOOD, point, normal, take);
+			else
+#endif
+				SpawnDamage(TE_BLOOD, point, normal, take);
 		else
 			SpawnDamage(te_sparks, point, normal, take);
 

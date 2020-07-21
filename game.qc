@@ -123,6 +123,15 @@ typedef enum int
 	MOD_HIT,
 	MOD_TARGET_BLASTER,
 	
+#ifdef THE_RECKONING
+	MOD_RIPPER,
+	MOD_PHALANX,
+	MOD_BRAINTENTACLE,
+	MOD_BLASTOFF,
+	MOD_GEKK,
+	MOD_TRAP,
+#endif
+	
 	// bitflag
 	MOD_FRIENDLY_FIRE	= 0x8000000
 } means_of_death_t;

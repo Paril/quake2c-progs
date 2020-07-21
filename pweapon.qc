@@ -1,11 +1,17 @@
 #include "m_player.h"
 
-static bool	is_quad;
-static int	is_silenced;
+PROGS_LOCAL bool	is_quad;
+PROGS_LOCAL int	is_silenced;
+
+#ifdef THE_RECKONING
+// RAFAEL
+PROGS_LOCAL_STATIC bool	is_quadfire;
+PROGS_LOCAL void(entity, bool) weapon_trap_fire;
+#endif
 
 PROGS_LOCAL void(entity, bool) weapon_grenade_fire;
 
-PROGS_LOCAL_STATIC void(entity ent, vector point, vector distance, vector forward, vector right, __out vector result) P_ProjectSource =
+PROGS_LOCAL void(entity ent, vector point, vector distance, vector forward, vector right, __out vector result) P_ProjectSource =
 {
 	vector _distance;
 
@@ -102,10 +108,9 @@ API_FUNC static bool(entity ent, entity other) Pickup_Weapon =
 	if (!(ent->spawnflags & DROPPED_ITEM)) {
 		// give them some ammo with it
 		ammo = FindItem(GetItemKeyByIndex(ent->item, ammo));
-		if (dmflags->intVal & DF_INFINITE_AMMO)
-			Add_Ammo(other, ammo, 1000);
-		else
-			Add_Ammo(other, ammo, GetItemKeyByIndex(ammo, quantity));
+		
+		// Paril: the ammo we get with a weapon with infinite ammo enabled is irrelevant.
+		Add_Ammo(other, ammo, GetItemKeyByIndex(ammo, quantity));
 
 		if (!(ent->spawnflags & DROPPED_PLAYER_ITEM)) {
 			if (deathmatch->intVal) {
@@ -140,12 +145,23 @@ void(entity ent) ChangeWeapon =
 {
 	int i;
 
-	if (ent->client->grenade_framenum) {
+	if (ent->client->grenade_framenum)
+	{
 		ent->client->grenade_framenum = level.framenum;
 		ent->client->weapon_sound = 0;
 		weapon_grenade_fire(ent, false);
 		ent->client->grenade_framenum = 0;
 	}
+	
+#ifdef THE_RECKONING
+	if (ent->client->trap_framenum)
+	{
+		ent->client->trap_framenum = level.framenum;
+		ent->client->weapon_sound = 0;
+		weapon_trap_fire(ent, false);
+		ent->client->trap_framenum = 0;
+	}
+#endif
 
 	ent->client->pers.lastweapon = ent->client->pers.weapon;
 	ent->client->pers.weapon = ent->client->newweapon;
@@ -192,35 +208,51 @@ void(entity ent) ChangeWeapon =
 NoAmmoWeaponChange
 =================
 */
-PROGS_LOCAL_STATIC void(entity ent) NoAmmoWeaponChange =
+PROGS_LOCAL void(entity ent) NoAmmoWeaponChange =
 {
 	if (ent->client->pers.inventory[ITEM_INDEX(FindItem("slugs"))]
-		&&  ent->client->pers.inventory[ITEM_INDEX(FindItem("railgun"))]) {
+		&& ent->client->pers.inventory[ITEM_INDEX(FindItem("railgun"))]) {
 		ent->client->newweapon = FindItem("railgun");
 		return;
 	}
+	
+#ifdef THE_RECKONING
+	// RAFAEL
+	if (ent->client->pers.inventory[ITEM_INDEX(FindItem("mag slug"))]
+		&& ent->client->pers.inventory[ITEM_INDEX(FindItem("phalanx"))])
+	{
+		ent->client->newweapon = FindItem("phalanx");	
+	}
+	// RAFAEL
+	if ( ent->client->pers.inventory[ITEM_INDEX(FindItem("cells"))]
+		&& ent->client->pers.inventory[ITEM_INDEX(FindItem("ionripper"))])
+	{
+		ent->client->newweapon = FindItem("ionripper");	
+	}
+#endif
+	
 	if (ent->client->pers.inventory[ITEM_INDEX(FindItem("cells"))]
-		&&  ent->client->pers.inventory[ITEM_INDEX(FindItem("hyperblaster"))]) {
+		&& ent->client->pers.inventory[ITEM_INDEX(FindItem("hyperblaster"))]) {
 		ent->client->newweapon = FindItem("hyperblaster");
 		return;
 	}
 	if (ent->client->pers.inventory[ITEM_INDEX(FindItem("bullets"))]
-		&&  ent->client->pers.inventory[ITEM_INDEX(FindItem("chaingun"))]) {
+		&& ent->client->pers.inventory[ITEM_INDEX(FindItem("chaingun"))]) {
 		ent->client->newweapon = FindItem("chaingun");
 		return;
 	}
 	if (ent->client->pers.inventory[ITEM_INDEX(FindItem("bullets"))]
-		&&  ent->client->pers.inventory[ITEM_INDEX(FindItem("machinegun"))]) {
+		&& ent->client->pers.inventory[ITEM_INDEX(FindItem("machinegun"))]) {
 		ent->client->newweapon = FindItem("machinegun");
 		return;
 	}
 	if (ent->client->pers.inventory[ITEM_INDEX(FindItem("shells"))] > 1
-		&&  ent->client->pers.inventory[ITEM_INDEX(FindItem("super shotgun"))]) {
+		&& ent->client->pers.inventory[ITEM_INDEX(FindItem("super shotgun"))]) {
 		ent->client->newweapon = FindItem("super shotgun");
 		return;
 	}
 	if (ent->client->pers.inventory[ITEM_INDEX(FindItem("shells"))]
-		&&  ent->client->pers.inventory[ITEM_INDEX(FindItem("shotgun"))]) {
+		&& ent->client->pers.inventory[ITEM_INDEX(FindItem("shotgun"))]) {
 		ent->client->newweapon = FindItem("shotgun");
 		return;
 	}
@@ -245,6 +277,10 @@ void(entity ent) Think_Weapon =
 	// call active weapon think routine
 	if (ent->client->pers.weapon && GetItemKeyByIndex(ent->client->pers.weapon, weaponthink)) {
 		is_quad = (bool)(ent->client->quad_framenum > level.framenum);
+#ifdef THE_RECKONING
+		// RAFAEL
+		is_quadfire = (ent->client->quadfire_framenum > level.framenum);
+#endif
 		if (ent->client->silencer_shots)
 			is_silenced = MZ_SILENCED;
 		else
@@ -261,6 +297,7 @@ Use_Weapon
 Make the weapon ready if there is ammo
 ================
 */
+// TODO: reckoning/gz
 API_FUNC static void(entity ent, gitem_id_t it) Use_Weapon =
 {
 	int		ammo_index;
@@ -327,7 +364,13 @@ A generic function to handle the basics of weapon thinking
 #define FRAME_IDLE_FIRST        (FRAME_FIRE_LAST + 1)
 #define FRAME_DEACTIVATE_FIRST  (FRAME_IDLE_LAST + 1)
 
-PROGS_LOCAL_STATIC void(entity ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST, int FRAME_IDLE_LAST, int FRAME_DEACTIVATE_LAST, bool(int) is_pause_frame, bool(int) is_fire_frame, void(entity) fire) Weapon_Generic =
+typedef void(entity ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST, int FRAME_IDLE_LAST, int FRAME_DEACTIVATE_LAST, bool(int) is_pause_frame, bool(int) is_fire_frame, void(entity) fire) Weapon_Generic_Func;
+
+#ifdef THE_RECKONING
+PROGS_LOCAL_STATIC Weapon_Generic_Func Weapon_Generic_ =
+#else
+PROGS_LOCAL Weapon_Generic_Func Weapon_Generic =
+#endif
 {
 	if (ent->deadflag || ent->s.modelindex != 255) { // VWep animations screw up corpses
 		return;
@@ -437,6 +480,16 @@ PROGS_LOCAL_STATIC void(entity ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST
 	}
 }
 
+#ifdef THE_RECKONING
+PROGS_LOCAL Weapon_Generic_Func Weapon_Generic =
+{
+	Weapon_Generic_(ent, FRAME_ACTIVATE_LAST, FRAME_FIRE_LAST, FRAME_IDLE_LAST, FRAME_DEACTIVATE_LAST, is_pause_frame, is_fire_frame, fire);
+
+	// RAFAEL
+	if (is_quadfire)
+		Weapon_Generic_(ent, FRAME_ACTIVATE_LAST, FRAME_FIRE_LAST, FRAME_IDLE_LAST, FRAME_DEACTIVATE_LAST, is_pause_frame, is_fire_frame, fire);
+};
+#endif
 
 /*
 ======================================================================

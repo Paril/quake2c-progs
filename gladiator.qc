@@ -11,6 +11,9 @@ static int  sound_idle;
 static int  sound_search;
 static int  sound_sight;
 
+#ifdef THE_RECKONING
+static int  sound_plasgun;
+#endif
 
 static void gladiator_idle(entity self)
 {
@@ -130,6 +133,9 @@ static void gladiator_melee(entity self)
 
 static void GladiatorGun(entity self)
 {
+	if (self.classname == "monster_gladb")
+		return;
+
 	vector  start;
 	vector  dir;
 	vector  forward, right;
@@ -144,16 +150,57 @@ static void GladiatorGun(entity self)
 	monster_fire_railgun(self, start, dir, 50, 100, MZ2_GLADIATOR_RAILGUN_1);
 }
 
+#ifdef THE_RECKONING
+static void(entity self) gladbGun =
+{
+	if (self.classname != "monster_gladb")
+		return;
+
+	vector	start;
+	vector	dir;
+	vector	forward, right;
+
+	AngleVectors (self->s.angles, &forward, &right, 0);
+	G_ProjectSource (self->s.origin, monster_flash_offset[MZ2_GLADIATOR_RAILGUN_1], forward, right, start);
+
+	// calc direction to where we targted
+	dir = self->pos1 - start;
+	VectorNormalize(dir);
+
+	fire_plasma (self, start, dir, 100, 725, 60, 60);
+}
+
+static void(entity self) gladbGun_check =
+{
+	if (skill->intVal == 3)
+		gladbGun (self);
+}
+#endif
+
 static mframe_t gladiator_frames_attack_gun [] = {
 	{ ai_charge },
 	{ ai_charge },
+#ifdef THE_RECKONING
+	{ ai_charge, 0, gladbGun },
+#else
 	{ ai_charge },
+#endif
 	{ ai_charge, 0, GladiatorGun },
 	{ ai_charge },
+
+#ifdef THE_RECKONING
+	{ ai_charge, 0, gladbGun },
+#else
+	{ ai_charge },
+#endif
 	{ ai_charge },
 	{ ai_charge },
-	{ ai_charge },
+
+#ifdef THE_RECKONING
+	{ ai_charge, 0, gladbGun_check },
+#else
 	{ ai_charge }
+#endif
 };
 static var mmove_t gladiator_move_attack_gun = { FRAME_attack1, FRAME_attack9, gladiator_run };
 
@@ -169,7 +216,12 @@ static void gladiator_attack(entity self)
 		return;
 
 	// charge up the railgun
-	gi.sound(self, CHAN_WEAPON, sound_gun, 1, ATTN_NORM, 0);
+#ifdef THE_RECKONING
+	if (self.classname == "monster_gladb")
+		gi.sound(self, CHAN_WEAPON, sound_plasgun, 1, ATTN_NORM, 0);
+	else
+#endif
+		gi.sound(self, CHAN_WEAPON, sound_gun, 1, ATTN_NORM, 0);
 	self->pos1 = self->enemy->s.origin;  //save for aiming the shot
 	self->pos1[2] += self->enemy->viewheight;
 	self->monsterinfo.currentmove = &gladiator_move_attack_gun;
@@ -290,7 +342,6 @@ static void gladiator_die(entity self, entity inflictor, entity attacker, int da
 	self->monsterinfo.currentmove = &gladiator_move_death;
 }
 
-
 /*QUAKED monster_gladiator (1 .5 0) (-32 -32 -24) (32 32 64) Ambush Trigger_Spawn Sight
 */
 API_FUNC static void SP_monster_gladiator(entity self)
@@ -315,23 +366,50 @@ API_FUNC static void SP_monster_gladiator(entity self)
 	sound_pain1 = gi.soundindex("gladiator/pain.wav");
 	sound_pain2 = gi.soundindex("gladiator/gldpain2.wav");
 	sound_die = gi.soundindex("gladiator/glddeth2.wav");
-	sound_gun = gi.soundindex("gladiator/railgun.wav");
 	sound_cleaver_swing = gi.soundindex("gladiator/melee1.wav");
 	sound_cleaver_hit = gi.soundindex("gladiator/melee2.wav");
 	sound_cleaver_miss = gi.soundindex("gladiator/melee3.wav");
 	sound_idle = gi.soundindex("gladiator/gldidle1.wav");
 	sound_search = gi.soundindex("gladiator/gldsrch1.wav");
 	sound_sight = gi.soundindex("gladiator/sight.wav");
+	
+#ifdef THE_RECKONING
+	if (self.classname == "monster_gladb")
+		sound_plasgun = gi.soundindex ("weapons/plasshot.wav");
+	else
+		sound_gun = gi.soundindex("gladiator/railgun.wav");
+#endif
 
 	self->movetype = MOVETYPE_STEP;
 	self->solid = SOLID_BBOX;
-	self->s.modelindex = gi.modelindex("models/monsters/gladiatr/tris.md2");
+#ifdef THE_RECKONING
+	if (self.classname == "monster_gladb")
+		self->s.modelindex = gi.modelindex ("models/monsters/gladb/tris.md2");
+	else
+#endif
+		self->s.modelindex = gi.modelindex("models/monsters/gladiatr/tris.md2");
 	self->mins = '-32 -32 -24';
 	self->maxs = '32 32 64';
 
-	self->health = 400;
-	self->gib_health = -175;
-	self->mass = 400;
+#ifdef THE_RECKONING
+	if (self.classname == "monster_gladb")
+	{
+		self->health = 800;
+		self->gib_health = -175;
+		self->mass = 350;
+
+		self->monsterinfo.power_armor_type = POWER_ARMOR_SHIELD;
+		self->monsterinfo.power_armor_power = 400;
+	}
+	else
+	{
+#endif
+		self->health = 400;
+		self->gib_health = -175;
+		self->mass = 400;
+#ifdef THE_RECKONING
+	}
+#endif
 
 	self->pain = gladiator_pain;
 	self->die = gladiator_die;
@@ -351,4 +429,11 @@ API_FUNC static void SP_monster_gladiator(entity self)
 	self->monsterinfo.scale = MODEL_SCALE;
 
 	walkmonster_start(self);
+}
+
+/*QUAKED monster_gladb (1 .5 0) (-32 -32 -24) (32 32 64) Ambush Trigger_Spawn Sight
+*/
+API_FUNC static void SP_monster_gladb(entity self)
+{
+	SP_monster_gladiator(self);
 }

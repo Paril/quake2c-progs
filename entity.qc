@@ -100,17 +100,21 @@ const int MAX_ENT_CLUSTERS = 16;
 // game fields below; feel free to modify!
 .enum
 {
-    MOVETYPE_NONE,          // never moves
-    MOVETYPE_NOCLIP,        // origin and angles change with no interaction
-    MOVETYPE_PUSH,          // no clip to world, push on box contact
-    MOVETYPE_STOP,          // no clip to world, stops on box contact
+	MOVETYPE_NONE,          // never moves
+	MOVETYPE_NOCLIP,        // origin and angles change with no interaction
+	MOVETYPE_PUSH,          // no clip to world, push on box contact
+	MOVETYPE_STOP,          // no clip to world, stops on box contact
 
-    MOVETYPE_WALK,          // gravity
-    MOVETYPE_STEP,          // gravity, special edge handling
-    MOVETYPE_FLY,
-    MOVETYPE_TOSS,          // gravity
-    MOVETYPE_FLYMISSILE,    // extra size to monsters
-    MOVETYPE_BOUNCE
+	MOVETYPE_WALK,          // gravity
+	MOVETYPE_STEP,          // gravity, special edge handling
+	MOVETYPE_FLY,
+	MOVETYPE_TOSS,          // gravity
+	MOVETYPE_FLYMISSILE,    // extra size to monsters
+	MOVETYPE_BOUNCE
+
+#ifdef THE_RECKONING
+	, MOVETYPE_WALLBOUNCE
+#endif
 } 		movetype;
 
 // edict->flags
@@ -369,6 +373,10 @@ struct monsterinfo_t
 .monsterinfo_t	monsterinfo;
 .moveinfo_t	moveinfo;
 
+#ifdef THE_RECKONING
+.int	orders;
+#endif
+	
 // player_state_t->refdef flags
 typedef enumflags int
 {
@@ -464,6 +472,10 @@ struct client_persistant_t
 	int	max_grenades;
 	int	max_cells;
 	int	max_slugs;
+#ifdef THE_RECKONING
+	int	max_magslug;
+	int	max_trap;
+#endif
 	
 	int	weapon;
 	int	lastweapon;
@@ -579,6 +591,11 @@ struct gclient_t
 	int	grenade_framenum;
 	int	silencer_shots;
 	int	weapon_sound;
+#ifdef THE_RECKONING
+	int	quadfire_framenum;
+	int	trap_framenum;
+	bool	trap_blew_up;
+#endif
 	
 	int	pickup_msg_framenum;
 	
@@ -596,7 +613,6 @@ struct gclient_t
 
 .struct
 {
-	entity	next, prev;
 	vector	origin, angles;
 #if USE_SMOOTH_DELTA_ANGLES
 	int	deltayaw;

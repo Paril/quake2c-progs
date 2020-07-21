@@ -420,6 +420,18 @@ static void(entity self) monster_triggered_spawn =
 
 	monster_start_go(self);
 
+#ifdef THE_RECKONING
+	// RAFAEL
+	if (self->classname == "monster_fixbot")
+	{
+		if ((self->spawnflags & 16) || (self->spawnflags & 8) || (self->spawnflags & 4))
+		{
+			self->enemy = world;
+			return;
+		}
+	}
+#endif
+
 	if (self->enemy && !(self->spawnflags & 1) && !(self->enemy->flags & FL_NOTARGET)) {
 		FoundTarget(self);
 	} else {

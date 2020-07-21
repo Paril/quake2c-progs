@@ -114,14 +114,47 @@ bool(entity ent, vector move, bool relink) SV_movestep =
 						if (dz < 30)
 							neworg_z += 8;
 				} else {
-					if (dz > 8)
-						neworg_z -= 8;
-					else if (dz > 0)
-						neworg_z -= dz;
-					else if (dz < -8)
-						neworg_z += 8;
+#ifdef THE_RECKONING
+					// RAFAEL
+					if (ent->classname == "monster_fixbot")
+					{
+						if (ent->s.frame >= 105 && ent->s.frame <= 120)
+						{
+							if (dz > 12)
+								neworg_z--;
+							else if (dz < -12)
+								neworg_z++;
+						}
+						else if (ent->s.frame >= 31 && ent->s.frame <= 88)
+						{
+							if (dz > 12)
+								neworg_z -= 12;
+							else if (dz < -12)
+								neworg_z += 12;
+						}
+						else
+						{
+							if (dz > 12)
+								neworg_z -= 8;
+							else if (dz < -12)
+								neworg_z += 8;
+						}
+					}
+					// RAFAEL ( else )
 					else
-						neworg_z += dz;
+					{
+#endif
+						if (dz > 8)
+							neworg_z -= 8;
+						else if (dz > 0)
+							neworg_z -= dz;
+						else if (dz < -8)
+							neworg_z += 8;
+						else
+							neworg_z += dz;
+#ifdef THE_RECKONING
+					}
+#endif
 				}
 			}
 			gi.trace(&trace, ent->s.origin, ent->mins, ent->maxs, neworg, ent, MASK_MONSTERSOLID);

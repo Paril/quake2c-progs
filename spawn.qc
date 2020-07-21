@@ -562,7 +562,7 @@ API_FUNC static void(entity ent) SP_worldspawn =
 
 	// sexed models
 	// THIS ORDER MUST MATCH THE DEFINES IN g_local.h
-	// you can add more, max 15
+	// you can add more, max 19 (pete change)
 	gi.modelindex("#w_blaster.md2");
 	gi.modelindex("#w_shotgun.md2");
 	gi.modelindex("#w_sshotgun.md2");
@@ -574,6 +574,11 @@ API_FUNC static void(entity ent) SP_worldspawn =
 	gi.modelindex("#w_hyperblaster.md2");
 	gi.modelindex("#w_railgun.md2");
 	gi.modelindex("#w_bfg.md2");
+
+#ifdef THE_RECKONING
+	gi.modelindex ("#w_phalanx.md2");
+	gi.modelindex ("#w_ripper.md2");
+#endif
 
 	//-------------------
 

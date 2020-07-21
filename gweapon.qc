@@ -7,7 +7,7 @@ a non-instant attack weapon.  It checks to see if a
 monster's dodge function should be called.
 =================
 */
-static void(entity self, vector start, vector dir, int speed) check_dodge =
+void(entity self, vector start, vector dir, int speed) check_dodge =
 {
 	vector	end;
 	vector	v;
@@ -284,7 +284,13 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) blaster_
 		T_Damage(other, self, self->owner, self->velocity, self->s.origin, plane->normal, self->dmg, 1, DAMAGE_ENERGY, mod);
 	} else {
 		gi.WriteByte(svc_temp_entity);
-		gi.WriteByte(TE_BLASTER);
+#ifdef THE_RECKONING
+		// RAFAEL
+		if (self->s.effects & EF_BLUEHYPERBLASTER)	// Knightmare- this was checking bit TE_BLUEHYPERBLASTER
+			gi.WriteByte (TE_FLECHETTE);			// Knightmare- TE_BLUEHYPERBLASTER is broken (parse error) in most Q2 engines
+		else
+#endif
+			gi.WriteByte(TE_BLASTER);
 		gi.WritePosition(self->s.origin);
 		gi.WriteDir(plane->normal);
 		gi.multicast(self->s.origin, MULTICAST_PVS);
@@ -317,7 +323,12 @@ void(entity self, vector start, vector dir, int damage, int speed, int effect, b
 	bolt->s.effects |= effect;
 	bolt->mins = vec3_origin;
 	bolt->maxs = vec3_origin;
-	bolt->s.modelindex = gi.modelindex("models/objects/laser/tris.md2");
+#ifdef THE_RECKONING
+	if (effect & EF_BLUEHYPERBLASTER)
+		bolt->s.modelindex = gi.modelindex("models/objects/blaser/tris.md2");
+	else
+#endif
+		bolt->s.modelindex = gi.modelindex("models/objects/laser/tris.md2");
 	bolt->s.sound = gi.soundindex("misc/lasfly.wav");
 	bolt->owner = self;
 	bolt->touch = blaster_touch;
@@ -346,7 +357,7 @@ void(entity self, vector start, vector dir, int damage, int speed, int effect, b
 fire_grenade
 =================
 */
-static void(entity ent) Grenade_Explode =
+void(entity ent) Grenade_Explode =
 {
 	vector	origin;
 	int	mod;
@@ -560,7 +571,7 @@ static void(entity ent, entity other, cplane_t plane, csurface_t surf) rocket_to
 	G_FreeEdict(ent);
 }
 
-void(entity self, vector start, vector dir, int damage, int speed, float damage_radius, int radius_damage) fire_rocket =
+entity(entity self, vector start, vector dir, int damage, int speed, float damage_radius, int radius_damage) fire_rocket =
 {
 	entity	rocket;
 
@@ -590,6 +601,7 @@ void(entity self, vector start, vector dir, int damage, int speed, float damage_
 		check_dodge(self, rocket->s.origin, dir, speed);
 
 	gi.linkentity(rocket);
+	return rocket;
 }
 
 

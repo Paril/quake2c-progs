@@ -356,6 +356,9 @@ static void(entity self, entity other, entity cactivator) use_target_spawner =
 
 	ent = G_Spawn();
 	ent->classname = self->target;
+#ifdef THE_RECKONING
+	ent->flags = self->flags;
+#endif
 	ent->s.origin = self->s.origin;
 	ent->s.angles = self->s.angles;
 	ED_CallSpawn(ent);
@@ -454,7 +457,7 @@ When triggered, fires a laser.  You can either set a target
 or a direction.
 */
 
-static void(entity self) target_laser_think =
+void(entity self) target_laser_think =
 {
 	entity ignore;
 	vector start;

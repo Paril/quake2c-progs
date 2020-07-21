@@ -37,7 +37,12 @@ enum int
 	HEALTH_TIMED		= 2
 };
 
-PROGS_LOCAL static int quad_drop_timeout_hack;
+PROGS_LOCAL_STATIC int quad_drop_timeout_hack;
+
+#ifdef THE_RECKONING
+// RAFAEL
+PROGS_LOCAL int	quad_fire_drop_timeout_hack;
+#endif
 
 //======================================================================
 
@@ -134,6 +139,10 @@ void(entity ent, int delay) SetRespawn =
 // from items.qc
 API_FUNC static void(entity ent, gitem_id_t item) Use_Quad;
 
+#ifdef THE_RECKONING
+API_FUNC void(entity ent, gitem_id_t it) Use_QuadFire;
+#endif
+
 API_FUNC static bool(entity ent, entity other) Pickup_Powerup =
 {
 	int     quantity;
@@ -150,10 +159,18 @@ API_FUNC static bool(entity ent, entity other) Pickup_Powerup =
 	if (deathmatch->intVal) {
 		if (!(ent->spawnflags & DROPPED_ITEM))
 			SetRespawn(ent, GetItemKeyByIndex(ent->item, quantity));
-		if ((dmflags->intVal & DF_INSTANT_ITEMS) || ((GetItemKeyByIndex(ent->item, use) == Use_Quad) && (ent->spawnflags & DROPPED_PLAYER_ITEM)))
+		if ((dmflags->intVal & DF_INSTANT_ITEMS) || ((GetItemKeyByIndex(ent->item, use) == Use_Quad
+#ifdef THE_RECKONING
+			|| GetItemKeyByIndex(ent->item, use) == Use_QuadFire
+#endif
+			) && (ent->spawnflags & DROPPED_PLAYER_ITEM)))
 		{
 			if ((GetItemKeyByIndex(ent->item, use) == Use_Quad) && (ent->spawnflags & DROPPED_PLAYER_ITEM))
 				quad_drop_timeout_hack = ent->nextthink - level.framenum;
+#ifdef THE_RECKONING
+			else if ((GetItemKeyByIndex(ent->item, use) == Use_QuadFire) && (ent->spawnflags & DROPPED_PLAYER_ITEM))
+				quad_drop_timeout_hack = ent->nextthink - level.framenum;
+#endif
 			GetItemKeyByIndex(ent->item, use)(other, ent->item);
 		}
 	}
@@ -214,6 +231,11 @@ API_FUNC static bool(entity ent, entity other) Pickup_Bandolier =
 		other->client->pers.max_cells = 250;
 	if (other->client->pers.max_slugs < 75)
 		other->client->pers.max_slugs = 75;
+#ifdef THE_RECKONING
+	// RAFAEL
+	if (other->client->pers.max_magslug < 75)
+		other->client->pers.max_magslug = 75;
+#endif
 
 	itemid = FindItem("Bullets");
 	if (itemid) {
@@ -254,6 +276,11 @@ API_FUNC static bool(entity ent, entity other) Pickup_Pack =
 		other->client->pers.max_cells = 300;
 	if (other->client->pers.max_slugs < 100)
 		other->client->pers.max_slugs = 100;
+#ifdef THE_RECKONING
+	// RAFAEL
+	if (other->client->pers.max_magslug < 100)
+		other->client->pers.max_magslug = 100;
+#endif
 
 	itemid = FindItem("Bullets");
 	if (itemid) {
@@ -302,6 +329,18 @@ API_FUNC static bool(entity ent, entity other) Pickup_Pack =
 		if (other->client->pers.inventory[index] > other->client->pers.max_slugs)
 			other->client->pers.inventory[index] = other->client->pers.max_slugs;
 	}
+	
+#ifdef THE_RECKONING
+	// RAFAEL
+	itemid = FindItem ("Mag Slug");
+	if (itemid)
+	{
+		index = ITEM_INDEX(itemid);
+		other->client->pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
+		if (other->client->pers.inventory[index] > other->client->pers.max_magslug)
+			other->client->pers.inventory[index] = other->client->pers.max_magslug;
+	}
+#endif
 
 	if (!(ent->spawnflags & DROPPED_ITEM) && (deathmatch->intVal))
 		SetRespawn(ent, GetItemKeyByIndex(ent->item, quantity));
@@ -428,6 +467,14 @@ bool(entity ent, gitem_id_t itemid, int count) Add_Ammo =
 		max = ent->client->pers.max_cells;
 	else if (tag == AMMO_SLUGS)
 		max = ent->client->pers.max_slugs;
+#ifdef THE_RECKONING
+	// RAFAEL
+	else if (tag == AMMO_MAGSLUG)
+		max = ent->client->pers.max_magslug;
+	// RAFAEL
+	else if (tag == AMMO_TRAP)
+		max = ent->client->pers.max_trap;
+#endif
 	else
 		return false;
 
@@ -869,9 +916,22 @@ static void(entity ent) droptofloor =
 
 	gi.trace(&tr, ent->s.origin, ent->mins, ent->maxs, dest, ent, MASK_SOLID);
 	if (tr.startsolid) {
-		gi.dprintf("droptofloor: %s startsolid at %s\n", ent->classname, vtos(ent->s.origin));
-		G_FreeEdict(ent);
-		return;
+#ifdef THE_RECKONING
+		// RAFAEL
+		if (ent->classname == "foodcube")
+		{
+			tr.endpos = ent->s.origin;
+			ent->velocity[2] = 0;
+		}
+		else
+		{
+#endif
+			gi.dprintf("droptofloor: %s startsolid at %s\n", ent->classname, vtos(ent->s.origin));
+			G_FreeEdict(ent);
+			return;
+#ifdef THE_RECKONING
+		}
+#endif
 	}
 
 	ent->s.origin = tr.endpos;

@@ -216,7 +216,15 @@ static void chick_pain(entity self, entity other, float kick, int damage)
 	float   r;
 
 	if (self->health < (self->max_health / 2))
-		self->s.skinnum = 1;
+	{
+#ifdef THE_RECKONING
+		// Knightmare- show right pain skin for beta class
+		if (self->classname == "monster_chick_heat")
+			self->s.skinnum = 2;
+		else
+#endif
+			self->s.skinnum = 1;
+	}
 
 	if (level.framenum < self->pain_debounce_framenum)
 		return;
@@ -401,7 +409,12 @@ static void ChickRocket(entity self)
 	dir = vec - start;
 	VectorNormalize(dir);
 
-	monster_fire_rocket(self, start, dir, 50, 500, MZ2_CHICK_ROCKET_1);
+#ifdef THE_RECKONING
+	if (self->s.skinnum > 1)
+		monster_fire_heat (self, start, dir, 50, 500, MZ2_CHICK_ROCKET_1);
+	else
+#endif
+		monster_fire_rocket(self, start, dir, 50, 500, MZ2_CHICK_ROCKET_1);
 }
 
 static void Chick_PreAttack1(entity self)
@@ -624,3 +637,13 @@ API_FUNC static void SP_monster_chick(entity self)
 
 	walkmonster_start(self);
 }
+
+#ifdef THE_RECKONING
+/*QUAKED monster_chick_heat (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight 
+*/
+API_FUNC static void(entity self) SP_monster_chick_heat =
+{
+	SP_monster_chick (self);
+	self->s.skinnum = 3;
+}
+#endif

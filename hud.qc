@@ -31,6 +31,15 @@ void(entity ent) MoveClientToIntermission =
 	ent->client->grenade_blew_up = false;
 	ent->client->grenade_framenum = 0;
 
+#ifdef THE_RECKONING
+	// RAFAEL
+	ent->client->quadfire_framenum = 0;
+	
+	// RAFAEL
+	ent->client->trap_blew_up = false;
+	ent->client->trap_framenum = 0;
+#endif
+
 	ent->viewheight = 0;
 	ent->s.modelindex = 0;
 	ent->s.modelindex2 = 0;
@@ -40,6 +49,7 @@ void(entity ent) MoveClientToIntermission =
 	ent->s.sound = 0;
 	ent->solid = SOLID_NOT;
 
+	gi.linkentity(ent);
 	// add the layout
 
 	if (deathmatch->intVal || coop->intVal) {
@@ -370,7 +380,11 @@ void(entity ent) G_SetStats =
 	index = ArmorIndex(ent);
 	if (power_armor_type && (!index || (level.framenum & 8))) {
 		// flash between power armor and other armor icon
-		ent->client->ps.stats[STAT_ARMOR_ICON] = gi.imageindex("i_powershield");
+		// Knightmare- use correct icon for power screen
+		if (power_armor_type == POWER_ARMOR_SHIELD)
+			ent->client->ps.stats[STAT_ARMOR_ICON] = gi.imageindex ("i_powershield");
+		else	// POWER_ARMOR_SCREEN
+			ent->client->ps.stats[STAT_ARMOR_ICON] = gi.imageindex ("i_powerscreen");
 		ent->client->ps.stats[STAT_ARMOR] = cells;
 	} else if (index) {
 		it = GetItemByIndex(index);
@@ -392,19 +406,36 @@ void(entity ent) G_SetStats =
 	//
 	// timers
 	//
-	if (ent->client->quad_framenum > level.framenum) {
+	if (ent->client->quad_framenum > level.framenum)
+	{
 		ent->client->ps.stats[STAT_TIMER_ICON] = gi.imageindex("p_quad");
 		ent->client->ps.stats[STAT_TIMER] = (ent->client->quad_framenum - level.framenum) / 10;
-	} else if (ent->client->invincible_framenum > level.framenum) {
+	}
+#ifdef THE_RECKONING
+	// RAFAEL
+	else if (ent->client->quadfire_framenum > level.framenum)
+	{
+		ent->client->ps.stats[STAT_TIMER_ICON] = gi.imageindex ("p_quadfire");
+		ent->client->ps.stats[STAT_TIMER] = (ent->client->quadfire_framenum - level.framenum)/10;
+	}
+#endif
+	else if (ent->client->invincible_framenum > level.framenum)
+	{
 		ent->client->ps.stats[STAT_TIMER_ICON] = gi.imageindex("p_invulnerability");
 		ent->client->ps.stats[STAT_TIMER] = (ent->client->invincible_framenum - level.framenum) / 10;
-	} else if (ent->client->enviro_framenum > level.framenum) {
+	}
+	else if (ent->client->enviro_framenum > level.framenum)
+	{
 		ent->client->ps.stats[STAT_TIMER_ICON] = gi.imageindex("p_envirosuit");
 		ent->client->ps.stats[STAT_TIMER] = (ent->client->enviro_framenum - level.framenum) / 10;
-	} else if (ent->client->breather_framenum > level.framenum) {
+	}
+	else if (ent->client->breather_framenum > level.framenum)
+	{
 		ent->client->ps.stats[STAT_TIMER_ICON] = gi.imageindex("p_rebreather");
 		ent->client->ps.stats[STAT_TIMER] = (ent->client->breather_framenum - level.framenum) / 10;
-	} else {
+	}
+	else
+	{
 		ent->client->ps.stats[STAT_TIMER_ICON] = 0;
 		ent->client->ps.stats[STAT_TIMER] = 0;
 	}

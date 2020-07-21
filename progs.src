@@ -16,6 +16,7 @@ itemlist.qc
 entity.qc
 utils.qc
 items.qc
+xatrix/items.qc
 chase.qc
 client.qc
 cmds.qc
@@ -26,7 +27,9 @@ move.qc
 view.qc
 trail.qc
 gweapon.qc
+xatrix/gweapon.qc
 monster.qc
+xatrix/monster.qc
 flash.qc
 soldier.qc
 infantry.qc
@@ -50,11 +53,17 @@ boss2.qc
 boss3.qc
 boss32.qc
 boss31.qc
+xatrix/fixbot.qc
+xatrix/gekk.qc
 pweapon.qc
+xatrix/pweapon.qc
 misc.qc
+xatrix/misc.qc
 trigger.qc
 target.qc
+xatrix/target.qc
 func.qc
+xatrix/func.qc
 phys.qc
 
 main.qc

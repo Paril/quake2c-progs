@@ -316,14 +316,15 @@ G_TouchTriggers
 */
 void(entity ent) G_TouchTriggers =
 {
-	int	i, num;
+	int	i;
 	entity	hit;
 
 	// dead things don't activate triggers!
 	if ((ent->is_client || (ent->svflags & SVF_MONSTER)) && (ent->health <= 0))
 		return;
 
-	box_edicts_t touches = gi.BoxEdicts(ent->absmin, ent->absmax, MAX_EDICTS, AREA_TRIGGERS, num);
+	entity_list_t touches = gi.BoxEdicts(ent->absmin, ent->absmax, MAX_EDICTS, AREA_TRIGGERS);
+	int num = touches.length;
 
 	// be careful, it is possible to have an entity in this
 	// list removed before we get to it (killtriggered)
@@ -336,7 +337,7 @@ void(entity ent) G_TouchTriggers =
 		hit->touch(hit, ent, null_plane, null_surface);
 	}
 	
-	gi.FreeBoxEdicts(touches);
+	entity_list_free(touches);
 }
 
 /*

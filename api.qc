@@ -593,13 +593,22 @@ typedef enum int
 	AREA_TRIGGERS	= 2
 } box_edicts_area_t;
 
-accessor box_edicts_t : int;
+accessor entity_list_t : int;
 
-static entity(box_edicts_t, int)	box_edicts_get = #0:box_edicts_get;
+static entity(entity_list_t, int)		entity_list_get = #0:entity_list_get;
+static void(entity_list_t, int, entity)		entity_list_set = #0:entity_list_set;
+static int(entity_list_t)			entity_list_length = #0:entity_list_length;
+void(entity_list_t, entity)		entity_list_add = #0:entity_list_add;
+void(entity_list_t, int)		entity_list_remove = #0:entity_list_remove;
+void(entity_list_t)			entity_list_clear = #0:entity_list_clear;
+void(entity_list_t)			entity_list_free = #0:entity_list_free;
+entity_list_t(optional int reserve)	entity_list_alloc = #0:entity_list_alloc;
 
-accessor box_edicts_t : int
+accessor entity_list_t : int
 {
-	get entity[int] = box_edicts_get;
+	get entity[int] = entity_list_get;
+	set entity[int] = entity_list_set;
+	get int length = entity_list_length;
 };
 
 struct cplane_t
@@ -705,11 +714,9 @@ struct pmove_t
 	usercmd_t	cmd;
 	bool		snapinitial;
 	
-	.entity		ent_touch_next;
-	.entity		ent_touch_prev;
-	
 	// out
-	entity	touch_head;
+	// DO NOT FREE THIS LIST!!!
+	entity_list_t	touchents;
 	
 	vector	viewangles;
 	float	viewheight;

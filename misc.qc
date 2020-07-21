@@ -30,7 +30,7 @@ API_FUNC static void(entity ent) SP_func_areaportal =
 Misc functions
 =================
 */
-static void(int damage, __out vector v) VelocityForDamage =
+PROGS_LOCAL void(int damage, __out vector v) VelocityForDamage =
 {
 	v = randomv('-100 -100 200', '100 100 300');
 
@@ -40,7 +40,7 @@ static void(int damage, __out vector v) VelocityForDamage =
 		v *= 1.2f;
 }
 
-static void(entity ent) ClipGibVelocity =
+PROGS_LOCAL void(entity ent) ClipGibVelocity =
 {
 	if (ent->velocity_x < -300)
 		ent->velocity_x = -300f;
@@ -1119,7 +1119,7 @@ There must be a path for it to follow once it is activated.
 void(entity self, entity other, entity cactivator) train_use;
 void(entity self) func_train_find;
 
-static void(entity self, entity other, entity cactivator) misc_viper_use =
+void(entity self, entity other, entity cactivator) misc_viper_use =
 {
 	self->svflags &= ~SVF_NOCLIENT;
 	self->use = train_use;
@@ -1243,7 +1243,7 @@ There must be a path for it to follow once it is activated.
 
 "speed"     How fast it should fly
 */
-static void(entity self, entity other, entity cactivator) misc_strogg_ship_use =
+void(entity self, entity other, entity cactivator) misc_strogg_ship_use =
 {
 	self->svflags &= ~SVF_NOCLIENT;
 	self->use = train_use;
