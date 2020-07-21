@@ -6,6 +6,7 @@ debug.qc
 mem.qc
 vector.qc
 string.qc
+info.qc
 api.qc
 game.qc
 globals.qc

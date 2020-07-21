@@ -13,7 +13,7 @@ typedef enumflags int
 
 const server_flags_t SFL_CROSS_TRIGGER_MASK	= 0x000000ff;
 
-struct game_locals_t
+API_FUNC struct game_locals_t
 {
 	string		helpmessage1;
 	string		helpmessage2;
@@ -32,9 +32,7 @@ struct game_locals_t
 	server_flags_t	serverflags;
 	
 	bool	autosaved;
-};
-
-game_locals_t game;
+} game;
 
 entity(int) itoe = #0:itoe;
 int(entity) etoi = #0:etoi;

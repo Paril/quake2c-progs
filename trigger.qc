@@ -340,7 +340,7 @@ trigger_push
 
 #define PUSH_ONCE       1
 
-static int windsound;
+PROGS_LOCAL_STATIC int windsound;
 
 static void(entity self, entity other, cplane_t plane, csurface_t surf) trigger_push_touch =
 {

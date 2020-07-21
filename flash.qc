@@ -1,7 +1,7 @@
 // this file is included in both the game dll and quake2,
 // the game needs it to source shot locations the client
 // needs it to position muzzle flashes
-const vector monster_flash_offset [] =
+PROGS_LOCAL const vector monster_flash_offset [] =
 {
 // flash 0 is not used
 	'0.0 0.0 0.0',

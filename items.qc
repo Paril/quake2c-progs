@@ -24,11 +24,11 @@ const int DROPPED_ITEM		= 0x00010000;
 const int DROPPED_PLAYER_ITEM	= 0x00020000;
 const int ITEM_TARGETS_USED	= 0x00040000;
 
-static int  jacket_armor_index;
-static int  combat_armor_index;
-static int  body_armor_index;
-static int  power_screen_index;
-static int  power_shield_index;
+PROGS_LOCAL static int jacket_armor_index;
+PROGS_LOCAL static int combat_armor_index;
+PROGS_LOCAL static int body_armor_index;
+PROGS_LOCAL static int power_screen_index;
+PROGS_LOCAL static int power_shield_index;
 
 // special values for health styles
 enum int
@@ -37,7 +37,7 @@ enum int
 	HEALTH_TIMED		= 2
 };
 
-static int  quad_drop_timeout_hack;
+PROGS_LOCAL static int quad_drop_timeout_hack;
 
 //======================================================================
 

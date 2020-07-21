@@ -3,9 +3,9 @@
 static bool	is_quad;
 static int	is_silenced;
 
-static void(entity, bool) weapon_grenade_fire;
+PROGS_LOCAL void(entity, bool) weapon_grenade_fire;
 
-static void(entity ent, vector point, vector distance, vector forward, vector right, __out vector result) P_ProjectSource =
+PROGS_LOCAL_STATIC void(entity ent, vector point, vector distance, vector forward, vector right, __out vector result) P_ProjectSource =
 {
 	vector _distance;
 
@@ -192,7 +192,7 @@ void(entity ent) ChangeWeapon =
 NoAmmoWeaponChange
 =================
 */
-static void(entity ent) NoAmmoWeaponChange =
+PROGS_LOCAL_STATIC void(entity ent) NoAmmoWeaponChange =
 {
 	if (ent->client->pers.inventory[ITEM_INDEX(FindItem("slugs"))]
 		&&  ent->client->pers.inventory[ITEM_INDEX(FindItem("railgun"))]) {
@@ -327,7 +327,7 @@ A generic function to handle the basics of weapon thinking
 #define FRAME_IDLE_FIRST        (FRAME_FIRE_LAST + 1)
 #define FRAME_DEACTIVATE_FIRST  (FRAME_IDLE_LAST + 1)
 
-static void(entity ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST, int FRAME_IDLE_LAST, int FRAME_DEACTIVATE_LAST, bool(int) is_pause_frame, bool(int) is_fire_frame, void(entity) fire) Weapon_Generic =
+PROGS_LOCAL_STATIC void(entity ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST, int FRAME_IDLE_LAST, int FRAME_DEACTIVATE_LAST, bool(int) is_pause_frame, bool(int) is_fire_frame, void(entity) fire) Weapon_Generic =
 {
 	if (ent->deadflag || ent->s.modelindex != 255) { // VWep animations screw up corpses
 		return;
@@ -450,7 +450,7 @@ const float GRENADE_TIMER	= 3.0f;
 const int GRENADE_MINSPEED	= 400;
 const int GRENADE_MAXSPEED	= 800;
 
-void(entity ent, bool held) weapon_grenade_fire =
+PROGS_LOCAL void(entity ent, bool held) weapon_grenade_fire =
 {
 	vector	offset;
 	vector	forward, right;
@@ -590,7 +590,7 @@ GRENADE LAUNCHER
 ======================================================================
 */
 
-static void(entity ent) weapon_grenadelauncher_fire =
+PROGS_LOCAL_STATIC void(entity ent) weapon_grenadelauncher_fire =
 {
 	vector	offset;
 	vector	forward, right;
@@ -626,12 +626,12 @@ static void(entity ent) weapon_grenadelauncher_fire =
 
 void(entity ent) Weapon_GrenadeLauncher =
 {
-	static int(int frame) is_pause_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_pause_frame =
 	{
 		return frame == 34 || frame == 51 || frame == 59;
 	};
 
-	static int(int frame) is_fire_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_fire_frame =
 	{
 		return frame == 6;
 	};
@@ -647,7 +647,7 @@ ROCKET
 ======================================================================
 */
 
-static void(entity ent) Weapon_RocketLauncher_Fire =
+PROGS_LOCAL_STATIC void(entity ent) Weapon_RocketLauncher_Fire =
 {
 	vector	offset, start;
 	vector	forward, right;
@@ -688,12 +688,12 @@ static void(entity ent) Weapon_RocketLauncher_Fire =
 
 void(entity ent) Weapon_RocketLauncher =
 {
-	static int(int frame) is_pause_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_pause_frame =
 	{
 		return frame == 25 || frame == 33 || frame == 42 || frame == 50;
 	};
 
-	static int(int frame) is_fire_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_fire_frame =
 	{
 		return frame == 5;
 	};
@@ -710,7 +710,7 @@ BLASTER / HYPERBLASTER
 ======================================================================
 */
 
-static void(entity ent, vector g_offset, int damage, bool hyper, int effect) Blaster_Fire =
+PROGS_LOCAL_STATIC void(entity ent, vector g_offset, int damage, bool hyper, int effect) Blaster_Fire =
 {
 	vector	forward, right;
 	vector	start;
@@ -741,7 +741,7 @@ static void(entity ent, vector g_offset, int damage, bool hyper, int effect) Bla
 }
 
 
-static void(entity ent) Weapon_Blaster_Fire =
+PROGS_LOCAL_STATIC void(entity ent) Weapon_Blaster_Fire =
 {
 	int     damage;
 
@@ -755,12 +755,12 @@ static void(entity ent) Weapon_Blaster_Fire =
 
 void(entity ent) Weapon_Blaster =
 {
-	static int(int frame) is_pause_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_pause_frame =
 	{
 		return frame == 19 || frame == 32;
 	};
 
-	static int(int frame) is_fire_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_fire_frame =
 	{
 		return frame == 5;
 	};
@@ -769,7 +769,7 @@ void(entity ent) Weapon_Blaster =
 }
 
 
-static void(entity ent) Weapon_HyperBlaster_Fire =
+PROGS_LOCAL_STATIC void(entity ent) Weapon_HyperBlaster_Fire =
 {
 	float	rotation;
 	vector	offset;
@@ -831,7 +831,7 @@ static void(entity ent) Weapon_HyperBlaster_Fire =
 
 void(entity ent) Weapon_HyperBlaster = 
 {
-	static int(int frame) is_fire_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_fire_frame =
 	{
 		return frame >= 6 && frame <= 11;
 	};
@@ -847,7 +847,7 @@ MACHINEGUN / CHAINGUN
 ======================================================================
 */
 
-static void(entity ent) Machinegun_Fire =
+PROGS_LOCAL_STATIC void(entity ent) Machinegun_Fire =
 {
 	vector	start;
 	vector	forward, right;
@@ -927,12 +927,12 @@ static void(entity ent) Machinegun_Fire =
 
 void(entity ent) Weapon_Machinegun =
 {
-	static int(int frame) is_pause_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_pause_frame =
 	{
 		return frame == 23 || frame == 45;
 	};
 	
-	static int(int frame) is_fire_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_fire_frame =
 	{
 		return frame == 4 || frame == 5;
 	};
@@ -940,7 +940,7 @@ void(entity ent) Weapon_Machinegun =
 	Weapon_Generic(ent, 3, 5, 45, 49, is_pause_frame, is_fire_frame, Machinegun_Fire);
 }
 
-static void(entity ent) Chaingun_Fire =
+PROGS_LOCAL_STATIC void(entity ent) Chaingun_Fire =
 {
 	int	i;
 	int	shots;
@@ -1043,12 +1043,12 @@ static void(entity ent) Chaingun_Fire =
 
 void(entity ent) Weapon_Chaingun =
 {
-	static int(int frame) is_pause_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_pause_frame =
 	{
 		return frame == 38 || frame == 43 || frame == 51 || frame == 61;
 	};
 	
-	static int(int frame) is_fire_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_fire_frame =
 	{
 		return frame >= 5 && frame <= 21;
 	};
@@ -1065,7 +1065,7 @@ SHOTGUN / SUPERSHOTGUN
 ======================================================================
 */
 
-static void(entity ent) weapon_shotgun_fire =
+PROGS_LOCAL_STATIC void(entity ent) weapon_shotgun_fire =
 {
 	vector	start;
 	vector	forward, right;
@@ -1111,12 +1111,12 @@ static void(entity ent) weapon_shotgun_fire =
 
 void(entity ent) Weapon_Shotgun =
 {
-	static int(int frame) is_pause_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_pause_frame =
 	{
 		return frame == 22 || frame == 28 || frame == 34 || frame == 0;
 	}
 
-	static int(int frame) is_fire_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_fire_frame =
 	{
 		return frame == 8 || frame == 9;
 	}
@@ -1124,8 +1124,7 @@ void(entity ent) Weapon_Shotgun =
 	Weapon_Generic(ent, 7, 18, 36, 39, is_pause_frame, is_fire_frame, weapon_shotgun_fire);
 }
 
-
-static void(entity ent) weapon_supershotgun_fire =
+PROGS_LOCAL_STATIC void(entity ent) weapon_supershotgun_fire =
 {
 	vector	start;
 	vector	forward, right;
@@ -1171,12 +1170,12 @@ static void(entity ent) weapon_supershotgun_fire =
 
 void(entity ent) Weapon_SuperShotgun =
 {
-	static int(int frame) is_pause_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_pause_frame =
 	{
 		return frame == 29 || frame == 42 || frame == 57;
 	}
 	
-	static int(int frame) is_fire_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_fire_frame =
 	{
 		return frame == 7;
 	}
@@ -1194,7 +1193,7 @@ RAILGUN
 ======================================================================
 */
 
-static void(entity ent) weapon_railgun_fire =
+PROGS_LOCAL_STATIC void(entity ent) weapon_railgun_fire =
 {
 	vector	start;
 	vector	forward, right;
@@ -1241,12 +1240,12 @@ static void(entity ent) weapon_railgun_fire =
 
 void(entity ent) Weapon_Railgun =
 {
-	static int(int frame) is_pause_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_pause_frame =
 	{
 		return frame == 56;
 	}
 	
-	static int(int frame) is_fire_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_fire_frame =
 	{
 		return frame == 4;
 	}
@@ -1263,7 +1262,7 @@ BFG10K
 ======================================================================
 */
 
-static void(entity ent) weapon_bfg_fire =
+PROGS_LOCAL_STATIC void(entity ent) weapon_bfg_fire =
 {
 	vector	offset, start;
 	vector	forward, right;
@@ -1321,12 +1320,12 @@ static void(entity ent) weapon_bfg_fire =
 
 void(entity ent) Weapon_BFG =
 {
-	static int(int frame) is_pause_frame =
+	PROGS_LOCAL_STATIC int(int frame) is_pause_frame =
 	{
 		return frame == 39 || frame == 45 || frame == 50 || frame == 55;
 	}
 	
-	static int(int frame) is_fire_frame = 
+	PROGS_LOCAL_STATIC int(int frame) is_fire_frame = 
 	{
 		return frame == 9 || frame == 17;
 	}

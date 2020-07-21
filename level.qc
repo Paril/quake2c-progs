@@ -2,7 +2,7 @@
 // this structure is cleared as each map is entered
 // it is read/written to the level.sav file for savegames
 //
-struct level_locals_t
+API_FUNC struct
 {
 	int	framenum;
 	float	time;
@@ -42,6 +42,4 @@ struct level_locals_t
 	int	body_que;           // dead bodies
 
 	int	power_cubes;        // ugly necessity for coop
-};
-
-level_locals_t level;
+} level;

@@ -2,22 +2,22 @@
 
 void SP_monster_makron(entity self);
 
-static int  sound_pain1;
-static int  sound_pain2;
-static int  sound_pain3;
-static int  sound_idle;
-static int  sound_death;
-static int  sound_search1;
-static int  sound_search2;
-static int  sound_search3;
-static int  sound_attack1;
-static int  sound_attack2;
-static int  sound_firegun;
-static int  sound_step_left;
-static int  sound_step_right;
-static int  sound_death_hit;
+PROGS_LOCAL_STATIC int  sound_pain1;
+PROGS_LOCAL_STATIC int  sound_pain2;
+PROGS_LOCAL_STATIC int  sound_pain3;
+PROGS_LOCAL_STATIC int  sound_idle;
+PROGS_LOCAL_STATIC int  sound_death;
+PROGS_LOCAL_STATIC int  sound_search1;
+PROGS_LOCAL_STATIC int  sound_search2;
+PROGS_LOCAL_STATIC int  sound_search3;
+PROGS_LOCAL_STATIC int  sound_attack1;
+PROGS_LOCAL_STATIC int  sound_attack2;
+PROGS_LOCAL_STATIC int  sound_firegun;
+PROGS_LOCAL_STATIC int  sound_step_left;
+PROGS_LOCAL_STATIC int  sound_step_right;
+PROGS_LOCAL_STATIC int  sound_death_hit;
 
-static void jorg_search(entity self)
+PROGS_LOCAL_STATIC void jorg_search(entity self)
 {
 	float r;
 
@@ -50,7 +50,7 @@ static void jorg_idle(entity self)
 	gi.sound(self, CHAN_VOICE, sound_idle, 1, ATTN_NORM, 0);
 }
 
-static mframe_t jorg_frames_stand [] = {
+PROGS_LOCAL_STATIC mframe_t jorg_frames_stand [] = {
 	{ ai_stand, 0, jorg_idle },
 	{ ai_stand },
 	{ ai_stand },
@@ -115,7 +115,7 @@ static void jorg_stand(entity self)
 	self->monsterinfo.currentmove = &jorg_move_stand;
 }
 
-static mframe_t jorg_frames_run [] = {
+PROGS_LOCAL_STATIC mframe_t jorg_frames_run [] = {
 	{ ai_run, 17, jorg_step_left },
 	{ ai_run },
 	{ ai_run },
@@ -137,7 +137,7 @@ static var mmove_t jorg_move_run = { FRAME_walk06, FRAME_walk19 };
 // walk
 //
 
-static mframe_t jorg_frames_walk [] = {
+PROGS_LOCAL_STATIC mframe_t jorg_frames_walk [] = {
 	{ ai_walk, 17 },
 	{ ai_walk },
 	{ ai_walk },
@@ -168,7 +168,7 @@ static void jorg_run(entity self)
 		self->monsterinfo.currentmove = &jorg_move_run;
 }
 
-static mframe_t jorg_frames_pain3 [] = {
+PROGS_LOCAL_STATIC mframe_t jorg_frames_pain3 [] = {
 	{ ai_move,    -28 },
 	{ ai_move,    -6 },
 	{ ai_move,    -3, jorg_step_left },
@@ -197,21 +197,21 @@ static mframe_t jorg_frames_pain3 [] = {
 };
 static var mmove_t jorg_move_pain3 = { FRAME_pain301, FRAME_pain325, jorg_run };
 
-static mframe_t jorg_frames_pain2 [] = {
+PROGS_LOCAL_STATIC mframe_t jorg_frames_pain2 [] = {
 	{ ai_move },
 	{ ai_move },
 	{ ai_move }
 };
 static var mmove_t jorg_move_pain2 = { FRAME_pain201, FRAME_pain203, jorg_run };
 
-static mframe_t jorg_frames_pain1 [] = {
+PROGS_LOCAL_STATIC mframe_t jorg_frames_pain1 [] = {
 	{ ai_move },
 	{ ai_move },
 	{ ai_move }
 };
 static var mmove_t jorg_move_pain1 = { FRAME_pain101, FRAME_pain103, jorg_run };
 
-static mframe_t jorg_frames_death1 [] = {
+PROGS_LOCAL_STATIC mframe_t jorg_frames_death1 [] = {
 	{ ai_move },
 	{ ai_move },
 	{ ai_move },
@@ -283,7 +283,7 @@ static void jorgBFG(entity self)
 	monster_fire_bfg(self, start, dir, 50, 300, 100, 200, MZ2_JORG_BFG_1);
 }
 
-static mframe_t jorg_frames_attack2 [] = {
+PROGS_LOCAL_STATIC mframe_t jorg_frames_attack2 [] = {
 	{ ai_charge },
 	{ ai_charge },
 	{ ai_charge },
@@ -300,7 +300,7 @@ static mframe_t jorg_frames_attack2 [] = {
 };
 static var mmove_t jorg_move_attack2 = { FRAME_attak201, FRAME_attak213, jorg_run };
 
-static mframe_t jorg_frames_start_attack1 [] = {
+PROGS_LOCAL_STATIC mframe_t jorg_frames_start_attack1 [] = {
 	{ ai_charge },
 	{ ai_charge },
 	{ ai_charge },
@@ -350,7 +350,7 @@ static void jorg_firebullet(entity self)
 	jorg_firebullet_right(self);
 }
 
-static mframe_t jorg_frames_attack1[] = {
+PROGS_LOCAL_STATIC mframe_t jorg_frames_attack1[] = {
 	{ ai_charge,  0,  jorg_firebullet },
 	{ ai_charge,  0,  jorg_firebullet },
 	{ ai_charge,  0,  jorg_firebullet },
@@ -360,7 +360,7 @@ static mframe_t jorg_frames_attack1[] = {
 };
 static var mmove_t jorg_move_attack1 = { FRAME_attak109, FRAME_attak114 };
 
-static mframe_t jorg_frames_end_attack1[] = {
+PROGS_LOCAL_STATIC mframe_t jorg_frames_end_attack1[] = {
 	{ ai_move },
 	{ ai_move },
 	{ ai_move },

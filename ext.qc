@@ -4,8 +4,7 @@
 #pragma warning disable F322
 #pragma warning disable Q207
 #pragma warning disable F306
-#pragma target fte
-//_9999
+#pragma target fte_9999
 
 int(int, int) ModInt = #0:ModInt;
 
@@ -14,4 +13,6 @@ __variant(string) func_get = #0:func_get;
 // function is visible to func_get and to the game code
 #define API_FUNC __used
 
-//__used static int force_32bit[65536] = { 0 };
+#define PROGS_LOCAL nosave
+
+#define PROGS_LOCAL_STATIC static PROGS_LOCAL

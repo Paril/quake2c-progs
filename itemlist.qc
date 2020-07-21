@@ -91,15 +91,13 @@ struct gitem_t
 	weaponthink_func	weaponthink;
 };
 
-struct gitem_armor_t
+PROGS_LOCAL const struct
 {
 	int	base_count;
 	int	max_count;
 	float	normal_protection;
 	float	energy_protection;
-};
-
-gitem_armor_t armor_infos[] =
+} armor_infos[] =
 {
 	{ },
 	{ 25,  50, .30, .00 },
@@ -107,12 +105,12 @@ gitem_armor_t armor_infos[] =
 	{100, 200, .80, .60 },
 	{ }
 };
-
+ 
 #define GetArmorInfoKeyByIndex(index, key) armor_infos[index].key
 
 //======================================================================
 
-var gitem_t itemlist[] =
+PROGS_LOCAL var gitem_t itemlist[] =
 {
 	// leave index 0 alone
 	{ },

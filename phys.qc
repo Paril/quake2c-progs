@@ -354,8 +354,8 @@ retry:
 		G_TouchTriggers(ent);
 }
 
-static entity	pushed_head;
-static entity	obstacle;
+PROGS_LOCAL_STATIC entity	pushed_head;
+PROGS_LOCAL_STATIC entity	obstacle;
 
 /*
 ============

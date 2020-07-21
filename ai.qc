@@ -11,9 +11,9 @@ typedef enum int
 	RANGE_FAR
 } range_t;
 
-bool	enemy_vis;
-range_t	enemy_range;
-float	enemy_yaw;
+PROGS_LOCAL bool	enemy_vis;
+PROGS_LOCAL range_t	enemy_range;
+PROGS_LOCAL float	enemy_yaw;
 
 //============================================================================
 

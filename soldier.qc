@@ -1,16 +1,16 @@
 #include "m_soldier.h"
 
 
-static int  sound_idle;
-static int  sound_sight1;
-static int  sound_sight2;
-static int  sound_pain_light;
-static int  sound_pain;
-static int  sound_pain_ss;
-static int  sound_death_light;
-static int  sound_death;
-static int  sound_death_ss;
-static int  sound_cock;
+PROGS_LOCAL_STATIC int  sound_idle;
+PROGS_LOCAL_STATIC int  sound_sight1;
+PROGS_LOCAL_STATIC int  sound_sight2;
+PROGS_LOCAL_STATIC int  sound_pain_light;
+PROGS_LOCAL_STATIC int  sound_pain;
+PROGS_LOCAL_STATIC int  sound_pain_ss;
+PROGS_LOCAL_STATIC int  sound_death_light;
+PROGS_LOCAL_STATIC int  sound_death;
+PROGS_LOCAL_STATIC int  sound_death_ss;
+PROGS_LOCAL_STATIC int  sound_cock;
 
 
 static void(entity self) soldier_idle =

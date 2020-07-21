@@ -1,7 +1,7 @@
 accessor cvar_t : int;
 accessor box_edicts_t : int;
 
-var struct {
+PROGS_LOCAL var struct {
 	void(print_level_t, string fmt, ...) bprintf;
 	void(string fmt, ...) dprintf;
 	void(entity, print_level_t, string fmt, ...) cprintf;

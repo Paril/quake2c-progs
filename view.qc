@@ -4,10 +4,10 @@
 const float DAMAGE_TIME	= 0.5f;
 const float FALL_TIME	= 0.3f;
 
-static entity current_player;
-static vector forward, right, up;
-static float xyspeed, bobmove, bobfracsin;
-static int bobcycle;
+PROGS_LOCAL static entity current_player;
+PROGS_LOCAL static vector forward, right, up;
+PROGS_LOCAL static float xyspeed, bobmove, bobfracsin;
+PROGS_LOCAL static int bobcycle;
 
 /*
 =============

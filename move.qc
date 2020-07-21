@@ -9,7 +9,7 @@ is not a staircase.
 
 =============
 */
-static int c_yes, c_no;
+PROGS_LOCAL static int c_yes, c_no;
 
 bool(entity ent) M_CheckBottom =
 {

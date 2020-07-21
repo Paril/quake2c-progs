@@ -1,8 +1,5 @@
 #include "m_player.h"
 
-string(string, string) Info_ValueForKey = #0:Info_ValueForKey;
-bool(string, string, string) Info_SetValueForKey = #0:Info_SetValueForKey
-
 //
 // Gross, ugly, disgustuing hack section
 //
@@ -174,7 +171,7 @@ static bool(entity ent) IsNeutral =
     return false;
 }
 
-means_of_death_t meansOfDeath;
+PROGS_LOCAL means_of_death_t meansOfDeath;
 
 static void(entity self, entity inflictor, entity attacker) ClientObituary =
 {
@@ -941,7 +938,7 @@ void(entity self) respawn =
  */
 static void(entity ent) spectator_respawn =
 {
-int i, numspec;
+	int i, numspec;
 
 	// if the user wants to become a spectator, make sure he doesn't
 	// exceed max_spectators
@@ -1280,9 +1277,9 @@ The game can override any of the settings in place
 void(entity ent, string userinfo) ClientUserinfoChanged =
 {
 	// check for malformed or illegal info strings
-	/*if (!Info_Validate(userinfo)) {
-		strcpy(userinfo, "\\name\\badinfo\\skin\\male/grunt");
-	}*/
+	if (!Info_Validate(userinfo)) {
+		userinfo = "\\name\\badinfo\\skin\\male/grunt";
+	}
 	
 	// set name
 	string str = Info_ValueForKey(userinfo, "name");
@@ -1451,7 +1448,7 @@ void(entity ent) ClientDisconnect =
 	ent->client->pers.connected = false;
 }
 
-static entity pm_passent;
+PROGS_LOCAL static entity pm_passent;
 
 // pmove doesn't need to know about passent and contentmask
 static void(trace_t *tr, vector start, vector mins, vector maxs, vector end) PM_trace =

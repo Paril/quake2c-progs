@@ -14,9 +14,9 @@ the player has been recently.  It is used by monsters for pursuit.
 */
 const int TRAIL_LENGTH	= 8;
 
-static entity	trail[TRAIL_LENGTH];
-static int	trail_head;
-static var bool	trail_active = false;
+PROGS_LOCAL static entity	trail[TRAIL_LENGTH];
+PROGS_LOCAL static int		trail_head;
+PROGS_LOCAL static var bool	trail_active = false;
 
 #define NEXT(n)     (((n) + 1) & (TRAIL_LENGTH - 1))
 #define PREV(n)     (((n) - 1) & (TRAIL_LENGTH - 1))

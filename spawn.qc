@@ -320,7 +320,7 @@ void() PostSpawnEntities =
 
 //===================================================================
 
-static string single_statusbar =
+PROGS_LOCAL_STATIC const string single_statusbar =
 "yb -24 "
 
 // health
@@ -378,7 +378,7 @@ static string single_statusbar =
 "endif "
 ;
 
-static string dm_statusbar =
+PROGS_LOCAL_STATIC const string dm_statusbar =
 "yb -24 "
 
 // health

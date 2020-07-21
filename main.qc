@@ -457,7 +457,7 @@ struct game_export_t {
 // Main entry point; if you need to do any global stuff, this is where
 // ya do it.
 API_FUNC void(__out game_export_t exports) GetGameAPI =
-{
+{	
 	exports.apiversion = GAMEC_API_VERSION;
 	exports.clientsize = sizeof(gclient_t);
 
