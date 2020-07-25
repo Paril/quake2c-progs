@@ -65,7 +65,7 @@ static bool(string key, string value) ED_ParseSpawnTemp =
 	return struct_key_parse("st", key, value);
 };
 
-static inline void() ClearSpawnTemp =
+static /*inline*/ void() ClearSpawnTemp =
 {
 	memclear(&st, sizeof(st));
 }
@@ -128,14 +128,25 @@ Finds the spawn function for the entity and calls it
 */
 bool(entity ent) ED_CallSpawn =
 {
-	if (!ent->classname) {
+	if (!ent.classname) {
 		gi.dprintf("ED_CallSpawn: NULL classname\n");
 		G_FreeEdict(ent);
 		return false;
 	}
 	
+#ifdef GROUND_ZERO
+	ent.gravityVector = '0 0 -1';
+
+	if (ent.classname == "weapon_nailgun")
+		ent.classname = GetItemKeyByIndex(FindItem("ETF Rifle"), classname);
+	if (ent.classname == "ammo_nails")
+		ent.classname = GetItemKeyByIndex(FindItem("Flechettes"), classname);
+	if (ent.classname == "weapon_heatbeam")
+		ent.classname = GetItemKeyByIndex(FindItem("Plasma Beam"), classname);
+#endif
+	
 	// check item spawn functions
-	gitem_id_t itemid = FindItemByClassname(ent->classname);
+	gitem_id_t itemid = FindItemByClassname(ent.classname);
 	
 	if (itemid)
 	{
@@ -152,7 +163,7 @@ bool(entity ent) ED_CallSpawn =
 	}
 
 
-	gi.dprintf("%s doesn't have a spawn function\n", ent->classname);
+	gi.dprintf("%s doesn't have a spawn function\n", ent.classname);
 	G_FreeEdict(ent);
 	return false;
 }
@@ -168,6 +179,61 @@ All but the first will have the FL_TEAMSLAVE flag set.
 All but the last will have the teamchain field set to the next one
 ================
 */
+#ifdef GROUND_ZERO
+static void() G_FixTeams =
+{
+	entity	e, e2, chain;
+	int	i, j;
+	int	c, c2;
+
+	c = 0;
+	c2 = 0;
+	for (i=1; i < globals.num_edicts; i++)
+	{
+		e = itoe(i);
+		if (!e.inuse)
+			continue;
+		if (!e.team)
+			continue;
+		if (e.classname == "func_train")
+		{
+			if(e.flags & FL_TEAMSLAVE)
+			{
+				chain = e;
+				e.teammaster = e;
+				e.teamchain = 0;
+				e.flags &= ~FL_TEAMSLAVE;
+				c++;
+				c2++;
+				for (j=1; j < globals.num_edicts; j++)
+				{
+					e2 = itoe(j);
+					if (e2 == e)
+						continue;
+					if (!e2.inuse)
+						continue;
+					if (!e2.team)
+						continue;
+					if (e.team == e2.team)
+					{
+						c2++;
+						chain.teamchain = e2;
+						e2.teammaster = e;
+						e2.teamchain = 0;
+						chain = e2;
+						e2.flags |= FL_TEAMSLAVE;
+						e2.movetype = MOVETYPE_PUSH;
+						e2.speed = e.speed;
+					}
+				}
+			}
+		}
+	}
+
+	gi.dprintf ("%i teams repaired\n", c);
+}
+#endif
+
 static void() G_FindTeams =
 {
 	entity	e, e2, chain;
@@ -180,37 +246,41 @@ static void() G_FindTeams =
 	{
 		e = itoe(i);
 		 
-		if (!e->inuse)
+		if (!e.inuse)
 			continue;
-		if (!e->team)
+		if (!e.team)
 			continue;
-		if (e->flags & FL_TEAMSLAVE)
+		if (e.flags & FL_TEAMSLAVE)
 			continue;
 		chain = e;
-		e->teammaster = e;
+		e.teammaster = e;
 		c++;
 		c2++;
 		for (j = i + 1; j < globals.num_edicts ; j++)
 		{
 			e2 = itoe(j);
 
-			if (!e2->inuse)
+			if (!e2.inuse)
 				continue;
-			if (!e2->team)
+			if (!e2.team)
 				continue;
-			if (e2->flags & FL_TEAMSLAVE)
+			if (e2.flags & FL_TEAMSLAVE)
 				continue;
-			if (e->team == e2->team) {
+			if (e.team == e2.team) {
 				c2++;
-				chain->teamchain = e2;
-				e2->teammaster = e;
+				chain.teamchain = e2;
+				e2.teammaster = e;
 				chain = e2;
-				e2->flags |= FL_TEAMSLAVE;
+				e2.flags |= FL_TEAMSLAVE;
 			}
 		}
 	}
 
 	gi.dprintf("%i teams with %i entities\n", c, c2);
+
+#ifdef GROUND_ZERO
+	G_FixTeams();
+#endif
 }
 
 
@@ -269,14 +339,14 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 
 		// yet another map hack
 		if (!stricmp(level.mapname, "command") && !stricmp(ent.classname, "trigger_once") && !stricmp(ent.model, "*27"))
-			ent->spawnflags &= ~SPAWNFLAG_NOT_HARD;
+			ent.spawnflags &= ~SPAWNFLAG_NOT_HARD;
 			
 		// remove things (except the world) from different skill levels or deathmatch
 		if (ent != world)
 		{
 			if (deathmatch.intVal)
 			{
-				if (ent->spawnflags & SPAWNFLAG_NOT_DEATHMATCH)
+				if (ent.spawnflags & SPAWNFLAG_NOT_DEATHMATCH)
 				{
 					G_FreeEdict(ent);
 					inhibit++;
@@ -285,10 +355,21 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 			}
 			else
 			{
-				if ( /* ((coop->value) && (ent->spawnflags & SPAWNFLAG_NOT_COOP)) || */
-					((skill_level == 0) && (ent->spawnflags & SPAWNFLAG_NOT_EASY)) ||
-					((skill_level == 1) && (ent->spawnflags & SPAWNFLAG_NOT_MEDIUM)) ||
-					(((skill_level == 2) || (skill_level == 3)) && (ent->spawnflags & SPAWNFLAG_NOT_HARD)))
+#ifdef GROUND_ZERO
+				if (ent.spawnflags & SPAWNFLAG_NOT_COOP)
+				{
+					G_FreeEdict (ent);	
+					inhibit++;
+					continue;
+				}
+				
+				// TODO: there was a block here about (EASY | MED | HARD) meaning that it's coop-only.
+				// is this true in only rogue maps?
+#endif
+
+				if (	((skill_level == 0) && (ent.spawnflags & SPAWNFLAG_NOT_EASY)) ||
+					((skill_level == 1) && (ent.spawnflags & SPAWNFLAG_NOT_MEDIUM)) ||
+					(((skill_level == 2) || (skill_level == 3)) && (ent.spawnflags & SPAWNFLAG_NOT_HARD)))
 				{
 					G_FreeEdict(ent);
 					inhibit++;
@@ -296,11 +377,15 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 				}
 			}
 
-			ent->spawnflags &= ~(SPAWNFLAG_NOT_EASY | SPAWNFLAG_NOT_MEDIUM | SPAWNFLAG_NOT_HARD | SPAWNFLAG_NOT_COOP | SPAWNFLAG_NOT_DEATHMATCH);
+			ent.spawnflags &= ~(SPAWNFLAG_NOT_EASY | SPAWNFLAG_NOT_MEDIUM | SPAWNFLAG_NOT_HARD | SPAWNFLAG_NOT_COOP | SPAWNFLAG_NOT_DEATHMATCH);
 		}
 
 		if (!ED_CallSpawn(ent))
 			inhibit++;
+#ifdef GROUND_ZERO
+		else
+			ent.s.renderfx |= RF_IR_VISIBLE;
+#endif
 	
 		ClearSpawnTemp();
 	}
@@ -312,6 +397,11 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 	G_FindTeams();
 
 	PlayerTrail_Init();
+
+#ifdef GROUND_ZERO
+	if (!deathmatch.intVal)
+		InitHintPaths();
+#endif
 };
 
 void() PostSpawnEntities =
@@ -469,10 +559,10 @@ Only used for the world.
 */
 API_FUNC static void(entity ent) SP_worldspawn =
 {
-	ent->movetype = MOVETYPE_PUSH;
-	ent->solid = SOLID_BSP;
-	ent->inuse = true;          // since the world doesn't use G_Spawn()
-	ent->s.modelindex = 1;      // world model is always index 1
+	ent.movetype = MOVETYPE_PUSH;
+	ent.solid = SOLID_BSP;
+	ent.inuse = true;          // since the world doesn't use G_Spawn()
+	ent.s.modelindex = 1;      // world model is always index 1
 
 	//---------------
 
@@ -487,9 +577,9 @@ API_FUNC static void(entity ent) SP_worldspawn =
 
 	// make some data visible to the server
 
-	if (ent->message) {
-		gi.configstring(CS_NAME, ent->message);
-		level.level_name = ent->message;
+	if (ent.message) {
+		gi.configstring(CS_NAME, ent.message);
+		level.level_name = ent.message;
 	} else
 		level.level_name = level.mapname;
 
@@ -502,7 +592,7 @@ API_FUNC static void(entity ent) SP_worldspawn =
 
 	gi.configstring(CS_SKYAXIS, va("%f %f %f", st.skyaxis[0], st.skyaxis[1], st.skyaxis[2]));
 
-	gi.configstring(CS_CDTRACK, va("%i", ent->sounds));
+	gi.configstring(CS_CDTRACK, va("%i", ent.sounds));
 
 	gi.configstring(CS_MAXCLIENTS, va("%i", game.maxclients));
 
@@ -580,6 +670,14 @@ API_FUNC static void(entity ent) SP_worldspawn =
 	gi.modelindex ("#w_ripper.md2");
 #endif
 
+#ifdef GROUND_ZERO
+	gi.modelindex ("#w_disrupt.md2");
+	gi.modelindex ("#w_etfrifle.md2");
+	gi.modelindex ("#w_plasma.md2");
+	gi.modelindex ("#w_plauncher.md2");
+	gi.modelindex ("#w_chainfist.md2");
+#endif
+
 	//-------------------
 
 	gi.soundindex("player/gasp1.wav");      // gasping for air
@@ -598,6 +696,9 @@ API_FUNC static void(entity ent) SP_worldspawn =
 	gi.soundindex("misc/h2ohit1.wav");      // landing splash
 
 	gi.soundindex("items/damage.wav");
+#ifdef GROUND_ZERO
+	gi.soundindex ("misc/ddamage1.wav");
+#endif
 	gi.soundindex("items/protect.wav");
 	gi.soundindex("items/protect4.wav");
 	gi.soundindex("weapons/noammo.wav");

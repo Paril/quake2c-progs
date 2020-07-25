@@ -42,4 +42,9 @@ API_FUNC struct
 	int	body_que;           // dead bodies
 
 	int	power_cubes;        // ugly necessity for coop
+
+#ifdef GROUND_ZERO
+	entity	disguise_violator;
+	int	disguise_violation_framenum;
+#endif
 } level;

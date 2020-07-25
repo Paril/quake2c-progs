@@ -44,13 +44,13 @@ void(entity self) dabeam_hit =
 	static const vector lmins = '-4 -4 -4';
 	static const vector lmaxs = '4 4 4';
 
-	if (self->spawnflags & 0x80000000)
+	if (self.spawnflags & 0x80000000)
 		count = 8;
 	else
 		count = 4;
 
 	ignore = self;
-	start = self->s.origin;
+	start = self.s.origin;
 	end = start + (self.movedir * 2048);
 	
 	while(1)
@@ -60,30 +60,30 @@ void(entity self) dabeam_hit =
 			break;
 
 		// hurt it if we can
-		if ((tr.ent->takedamage) && !(tr.ent->flags & FL_IMMUNE_LASER) && (tr.ent != self->owner))
-			T_Damage (tr.ent, self, self->owner, self->movedir, tr.endpos, vec3_origin, self->dmg, skill->intVal, DAMAGE_ENERGY, MOD_TARGET_LASER);
+		if ((tr.ent.takedamage) && !(tr.ent.flags & FL_IMMUNE_LASER) && (tr.ent != self.owner))
+			T_Damage (tr.ent, self, self.owner, self.movedir, tr.endpos, vec3_origin, self.dmg, skill.intVal, DAMAGE_ENERGY, MOD_TARGET_LASER);
 
-		if (self->dmg < 0) // healer ray
+		if (self.dmg < 0) // healer ray
 		{
 			// when player is at 100 health
 			// just undo health fix
 			// keeping fx
-			if (tr.ent->is_client && tr.ent->health > 100)
-				tr.ent->health += self->dmg; 
+			if (tr.ent.is_client && tr.ent.health > 100)
+				tr.ent.health += self.dmg; 
 		}
 		
 		// if we hit something that's not a monster or player or is immune to lasers, we're done
-		if (!(tr.ent->svflags & SVF_MONSTER) && (!tr.ent->is_client))
+		if (!(tr.ent.svflags & SVF_MONSTER) && (!tr.ent.is_client))
 		{
-			if (self->spawnflags & 0x80000000)
+			if (self.spawnflags & 0x80000000)
 			{
-				self->spawnflags &= ~0x80000000;
+				self.spawnflags &= ~0x80000000;
 				gi.WriteByte (svc_temp_entity);
 				gi.WriteByte (TE_LASER_SPARKS);
 				gi.WriteByte (10);
 				gi.WritePosition (tr.endpos);
 				gi.WriteDir (tr.plane.normal);
-				gi.WriteByte (self->s.skinnum);
+				gi.WriteByte (self.s.skinnum);
 				gi.multicast (tr.endpos, MULTICAST_PVS);
 			}
 			break;
@@ -94,9 +94,9 @@ void(entity self) dabeam_hit =
 	}
 
 
-	self->s.old_origin = tr.endpos;
-	self->nextthink = level.framenum + 1;
-	self->think = G_FreeEdict;
+	self.s.old_origin = tr.endpos;
+	self.nextthink = level.framenum + 1;
+	self.think = G_FreeEdict;
   
 }
 
@@ -106,40 +106,40 @@ void(entity self) monster_dabeam =
 	vector	last_movedir;
 	vector	point;
 	
-	self->movetype = MOVETYPE_NONE;
-	self->solid = SOLID_NOT;
-	self->s.renderfx |= RF_BEAM|RF_TRANSLUCENT;
-	self->s.modelindex = 1;
+	self.movetype = MOVETYPE_NONE;
+	self.solid = SOLID_NOT;
+	self.s.renderfx |= RF_BEAM|RF_TRANSLUCENT;
+	self.s.modelindex = 1;
 		
-	self->s.frame = 2;
+	self.s.frame = 2;
 	
-	if (self->owner->monsterinfo.aiflags & AI_MEDIC)
-		self->s.skinnum = 0xf3f3f1f1;
+	if (self.owner.monsterinfo.aiflags & AI_MEDIC)
+		self.s.skinnum = 0xf3f3f1f1;
 	else
-		self->s.skinnum = 0xf2f2f0f0;
+		self.s.skinnum = 0xf2f2f0f0;
 
-	if (self->enemy)
+	if (self.enemy)
 	{
-		last_movedir = self->movedir;
-		point = self->enemy->absmin + (self->enemy->size * 0.5);
-		if (self->owner->monsterinfo.aiflags & AI_MEDIC)
+		last_movedir = self.movedir;
+		point = self.enemy.absmin + (self.enemy.size * 0.5);
+		if (self.owner.monsterinfo.aiflags & AI_MEDIC)
 			point[0] += sinf (level.time) * 8;
-		self->movedir = point - self->s.origin;
-		VectorNormalize (self->movedir);
-		if (self->movedir != last_movedir)
-			self->spawnflags |= 0x80000000;
+		self.movedir = point - self.s.origin;
+		VectorNormalize (self.movedir);
+		if (self.movedir != last_movedir)
+			self.spawnflags |= 0x80000000;
 	}
 	else
-		G_SetMovedir (self->s.angles, self->movedir);
+		G_SetMovedir (self.s.angles, self.movedir);
 
-	self->think = dabeam_hit;
-	self->nextthink = level.framenum + 1;
-	self->mins = '-8 -8 -8';
-	self->maxs = '8 8 8';
+	self.think = dabeam_hit;
+	self.nextthink = level.framenum + 1;
+	self.mins = '-8 -8 -8';
+	self.maxs = '8 8 8';
 	gi.linkentity (self);
  
-	self->spawnflags |= 0x80000001;
-	self->svflags &= ~SVF_NOCLIENT;
+	self.spawnflags |= 0x80000001;
+	self.svflags &= ~SVF_NOCLIENT;
 }
 
 #endif

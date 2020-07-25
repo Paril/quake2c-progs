@@ -98,7 +98,7 @@ static var mmove_t makron_move_stand = { FRAME_stand201, FRAME_stand260 };
 
 static void makron_stand(entity self)
 {
-	self->monsterinfo.currentmove = &makron_move_stand;
+	self.monsterinfo.currentmove = &makron_move_stand;
 }
 
 static void makron_step_left(entity self)
@@ -162,15 +162,15 @@ static var mmove_t makron_move_walk = { FRAME_walk204, FRAME_walk213 };
 
 static void makron_walk(entity self)
 {
-	self->monsterinfo.currentmove = &makron_move_walk;
+	self.monsterinfo.currentmove = &makron_move_walk;
 }
 
 static void makron_run(entity self)
 {
-	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
-		self->monsterinfo.currentmove = &makron_move_stand;
+	if (self.monsterinfo.aiflags & AI_STAND_GROUND)
+		self.monsterinfo.currentmove = &makron_move_stand;
 	else
-		self->monsterinfo.currentmove = &makron_move_run;
+		self.monsterinfo.currentmove = &makron_move_run;
 }
 
 static mframe_t makron_frames_pain6 [] = {
@@ -222,11 +222,11 @@ static var mmove_t makron_move_pain4 = { FRAME_pain401, FRAME_pain404, makron_ru
 
 static void makron_dead(entity self)
 {
-	self->mins = '-60 -60 0';
-	self->maxs = '60 60 72';
-	self->movetype = MOVETYPE_TOSS;
-	self->svflags |= SVF_DEADMONSTER;
-	self->nextthink = 0;
+	self.mins = '-60 -60 0';
+	self.maxs = '60 60 72';
+	self.movetype = MOVETYPE_TOSS;
+	self.svflags |= SVF_DEADMONSTER;
+	self.nextthink = 0;
 	gi.linkentity(self);
 }
 
@@ -377,11 +377,11 @@ static void makronBFG(entity self)
 	vector  dir;
 	vector  vec;
 
-	AngleVectors(self->s.angles, &forward, &right, 0);
-	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_MAKRON_BFG], forward, right, start);
+	AngleVectors(self.s.angles, &forward, &right, 0);
+	start = G_ProjectSource(self.s.origin, monster_flash_offset[MZ2_MAKRON_BFG], forward, right);
 
-	vec = self->enemy->s.origin;
-	vec[2] += self->enemy->viewheight;
+	vec = self.enemy.s.origin;
+	vec[2] += self.enemy.viewheight;
 	dir = vec - start;
 	VectorNormalize(dir);
 	gi.sound(self, CHAN_VOICE, sound_attack_bfg, 1, ATTN_NORM, 0);
@@ -410,24 +410,24 @@ static void MakronHyperblaster(entity self)
 	vector  forward, right;
 	int     flash_number;
 
-	flash_number = MZ2_MAKRON_BLASTER_1 + (self->s.frame - FRAME_attak405);
+	flash_number = MZ2_MAKRON_BLASTER_1 + (self.s.frame - FRAME_attak405);
 
-	AngleVectors(self->s.angles, &forward, &right, 0);
-	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
+	AngleVectors(self.s.angles, &forward, &right, 0);
+	start = G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right);
 
-	if (self->enemy) {
-		vec = self->enemy->s.origin;
-		vec[2] += self->enemy->viewheight;
+	if (self.enemy) {
+		vec = self.enemy.s.origin;
+		vec[2] += self.enemy.viewheight;
 		vec -= start;
 		vec = vectoangles(vec);
 		dir[0] = vec[0];
 	} else {
 		dir[0] = 0;
 	}
-	if (self->s.frame <= FRAME_attak413)
-		dir[1] = self->s.angles[1] - 10 * (self->s.frame - FRAME_attak413);
+	if (self.s.frame <= FRAME_attak413)
+		dir[1] = self.s.angles[1] - 10 * (self.s.frame - FRAME_attak413);
 	else
-		dir[1] = self->s.angles[1] + 10 * (self->s.frame - FRAME_attak421);
+		dir[1] = self.s.angles[1] + 10 * (self.s.frame - FRAME_attak421);
 	dir[2] = 0;
 
 	AngleVectors(dir, &forward, 0, 0);
@@ -467,8 +467,8 @@ static var mmove_t makron_move_attack4 = { FRAME_attak401, FRAME_attak426, makro
 
 static void MakronSaveloc(entity self)
 {
-	self->pos1 = self->enemy->s.origin;  //save for aiming the shot
-	self->pos1[2] += self->enemy->viewheight;
+	self.pos1 = self.enemy.s.origin;  //save for aiming the shot
+	self.pos1[2] += self.enemy.viewheight;
 }
 
 static void MakronRailgun(entity self)
@@ -477,11 +477,11 @@ static void MakronRailgun(entity self)
 	vector  dir;
 	vector  forward, right;
 
-	AngleVectors(self->s.angles, &forward, &right, 0);
-	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_MAKRON_RAILGUN_1], forward, right, start);
+	AngleVectors(self.s.angles, &forward, &right, 0);
+	start = G_ProjectSource(self.s.origin, monster_flash_offset[MZ2_MAKRON_RAILGUN_1], forward, right);
 
 	// calc direction to where we targted
-	dir = self->pos1 - start;
+	dir = self.pos1 - start;
 	VectorNormalize(dir);
 
 	monster_fire_railgun(self, start, dir, 50, 100, MZ2_MAKRON_RAILGUN_1);
@@ -510,10 +510,10 @@ static var mmove_t makron_move_attack5 = { FRAME_attak501, FRAME_attak516, makro
 static void makron_pain(entity self, entity other, float kick, int damage)
 {
 
-	if (self->health < (self->max_health / 2))
-		self->s.skinnum = 1;
+	if (self.health < (self.max_health / 2))
+		self.s.skinnum = 1;
 
-	if (level.framenum < self->pain_debounce_framenum)
+	if (level.framenum < self.pain_debounce_framenum)
 		return;
 
 	// Lessen the chance of him going into his pain frames
@@ -521,27 +521,27 @@ static void makron_pain(entity self, entity other, float kick, int damage)
 		if (random() < 0.2f)
 			return;
 
-	self->pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
-	if (skill->intVal == 3)
+	self.pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
+	if (skill.intVal == 3)
 		return;     // no pain anims in nightmare
 
 
 	if (damage <= 40) {
 		gi.sound(self, CHAN_VOICE, sound_pain4, 1, ATTN_NONE, 0);
-		self->monsterinfo.currentmove = &makron_move_pain4;
+		self.monsterinfo.currentmove = &makron_move_pain4;
 	} else if (damage <= 110) {
 		gi.sound(self, CHAN_VOICE, sound_pain5, 1, ATTN_NONE, 0);
-		self->monsterinfo.currentmove = &makron_move_pain5;
+		self.monsterinfo.currentmove = &makron_move_pain5;
 	} else {
 		if (damage <= 150) {
 			if (random() <= 0.45f) {
 				gi.sound(self, CHAN_VOICE, sound_pain6, 1, ATTN_NONE, 0);
-				self->monsterinfo.currentmove = &makron_move_pain6;
+				self.monsterinfo.currentmove = &makron_move_pain6;
 			}
 		} else {
 			if (random() <= 0.35f) {
 				gi.sound(self, CHAN_VOICE, sound_pain6, 1, ATTN_NONE, 0);
-				self->monsterinfo.currentmove = &makron_move_pain6;
+				self.monsterinfo.currentmove = &makron_move_pain6;
 			}
 		}
 	}
@@ -549,7 +549,7 @@ static void makron_pain(entity self, entity other, float kick, int damage)
 
 static void makron_sight(entity self, entity other)
 {
-	self->monsterinfo.currentmove = &makron_move_sight;
+	self.monsterinfo.currentmove = &makron_move_sight;
 }
 
 static void makron_attack(entity self)
@@ -559,11 +559,11 @@ static void makron_attack(entity self)
 	r = random();
 
 	if (r <= 0.3f)
-		self->monsterinfo.currentmove = &makron_move_attack3;
+		self.monsterinfo.currentmove = &makron_move_attack3;
 	else if (r <= 0.6f)
-		self->monsterinfo.currentmove = &makron_move_attack4;
+		self.monsterinfo.currentmove = &makron_move_attack4;
 	else
-		self->monsterinfo.currentmove = &makron_move_attack5;
+		self.monsterinfo.currentmove = &makron_move_attack5;
 }
 
 /*
@@ -574,25 +574,25 @@ Makron Torso. This needs to be spawned in
 
 static void makron_torso_think(entity self)
 {
-	if (++self->s.frame < 365)
-		self->nextthink = level.framenum + 1;
+	if (++self.s.frame < 365)
+		self.nextthink = level.framenum + 1;
 	else {
-		self->s.frame = 346;
-		self->nextthink = level.framenum + 1;
+		self.s.frame = 346;
+		self.nextthink = level.framenum + 1;
 	}
 }
 
 static void makron_torso(entity ent)
 {
-	ent->movetype = MOVETYPE_NONE;
-	ent->solid = SOLID_NOT;
-	ent->mins = '-8 -8 0';
-	ent->maxs = '8 8 8';
-	ent->s.frame = 346;
-	ent->s.modelindex = gi.modelindex("models/monsters/boss3/rider/tris.md2");
-	ent->think = makron_torso_think;
-	ent->nextthink = level.framenum + 2;
-	ent->s.sound = gi.soundindex("makron/spine.wav");
+	ent.movetype = MOVETYPE_NONE;
+	ent.solid = SOLID_NOT;
+	ent.mins = '-8 -8 0';
+	ent.maxs = '8 8 8';
+	ent.s.frame = 346;
+	ent.s.modelindex = gi.modelindex("models/monsters/boss3/rider/tris.md2");
+	ent.think = makron_torso_think;
+	ent.nextthink = level.framenum + 2;
+	ent.s.sound = gi.soundindex("makron/spine.wav");
 	gi.linkentity(ent);
 }
 
@@ -608,34 +608,34 @@ static void makron_die(entity self, entity inflictor, entity attacker, int damag
 
 	int     n;
 
-	self->s.sound = 0;
+	self.s.sound = 0;
 	// check for gib
-	if (self->health <= self->gib_health) {
+	if (self.health <= self.gib_health) {
 		gi.sound(self, CHAN_VOICE, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
 		for (n = 0; n < 1 /*4*/; n++)
 			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
 		for (n = 0; n < 4; n++)
 			ThrowGib(self, "models/objects/gibs/sm_metal/tris.md2", damage, GIB_METALLIC);
 		ThrowHead(self, "models/objects/gibs/gear/tris.md2", damage, GIB_METALLIC);
-		self->deadflag = DEAD_DEAD;
+		self.deadflag = DEAD_DEAD;
 		return;
 	}
 
-	if (self->deadflag == DEAD_DEAD)
+	if (self.deadflag == DEAD_DEAD)
 		return;
 
 // regular death
 	gi.sound(self, CHAN_VOICE, sound_death, 1, ATTN_NONE, 0);
-	self->deadflag = DEAD_DEAD;
-	self->takedamage = DAMAGE_YES;
+	self.deadflag = DEAD_DEAD;
+	self.takedamage = DAMAGE_YES;
 
 	tempent = G_Spawn();
-	tempent->s.origin = self->s.origin;
-	tempent->s.angles = self->s.angles;
-	tempent->s.origin[1] -= 84;
+	tempent.s.origin = self.s.origin;
+	tempent.s.angles = self.s.angles;
+	tempent.s.origin[1] -= 84;
 	makron_torso(tempent);
 
-	self->monsterinfo.currentmove = &makron_move_death2;
+	self.monsterinfo.currentmove = &makron_move_death2;
 
 }
 
@@ -648,46 +648,46 @@ static bool Makron_CheckAttack(entity self)
 	int         enemy_range;
 	float       enemy_yaw;
 
-	if (self->enemy->health > 0) {
+	if (self.enemy.health > 0) {
 		// see if any entities are in the way of the shot
-		spot1 = self->s.origin;
-		spot1[2] += self->viewheight;
-		spot2 = self->enemy->s.origin;
-		spot2[2] += self->enemy->viewheight;
+		spot1 = self.s.origin;
+		spot1[2] += self.viewheight;
+		spot2 = self.enemy.s.origin;
+		spot2[2] += self.enemy.viewheight;
 
 		gi.trace(&tr, spot1, vec3_origin, vec3_origin, spot2, self, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_SLIME | CONTENTS_LAVA);
 
 		// do we have a clear shot?
-		if (tr.ent != self->enemy)
+		if (tr.ent != self.enemy)
 			return false;
 	}
 
-	enemy_range = range(self, self->enemy);
-	temp = self->enemy->s.origin - self->s.origin;
+	enemy_range = range(self, self.enemy);
+	temp = self.enemy.s.origin - self.s.origin;
 	enemy_yaw = vectoyaw(temp);
 
-	self->ideal_yaw = enemy_yaw;
+	self.ideal_yaw = enemy_yaw;
 
 	// melee attack
 	if (enemy_range == RANGE_MELEE) {
-		if (self->monsterinfo.melee)
-			self->monsterinfo.attack_state = AS_MELEE;
+		if (self.monsterinfo.melee)
+			self.monsterinfo.attack_state = AS_MELEE;
 		else
-			self->monsterinfo.attack_state = AS_MISSILE;
+			self.monsterinfo.attack_state = AS_MISSILE;
 		return true;
 	}
 
 // missile attack
-	if (!self->monsterinfo.attack)
+	if (!self.monsterinfo.attack)
 		return false;
 
-	if (level.framenum < self->monsterinfo.attack_finished)
+	if (level.framenum < self.monsterinfo.attack_finished)
 		return false;
 
 	if (enemy_range == RANGE_FAR)
 		return false;
 
-	if (self->monsterinfo.aiflags & AI_STAND_GROUND) {
+	if (self.monsterinfo.aiflags & AI_STAND_GROUND) {
 		chance = 0.4f;
 	} else if (enemy_range == RANGE_MELEE) {
 		chance = 0.8f;
@@ -700,16 +700,16 @@ static bool Makron_CheckAttack(entity self)
 	}
 
 	if (random() < chance) {
-		self->monsterinfo.attack_state = AS_MISSILE;
-		self->monsterinfo.attack_finished = level.framenum + (int)random(2f * BASE_FRAMERATE);
+		self.monsterinfo.attack_state = AS_MISSILE;
+		self.monsterinfo.attack_finished = level.framenum + (int)random(2f * BASE_FRAMERATE);
 		return true;
 	}
 
-	if (self->flags & FL_FLY) {
+	if (self.flags & FL_FLY) {
 		if (random() < 0.3f)
-			self->monsterinfo.attack_state = AS_SLIDING;
+			self.monsterinfo.attack_state = AS_SLIDING;
 		else
-			self->monsterinfo.attack_state = AS_STRAIGHT;
+			self.monsterinfo.attack_state = AS_STRAIGHT;
 	}
 
 	return false;
@@ -744,7 +744,7 @@ void MakronPrecache(void)
 */
 API_FUNC void SP_monster_makron(entity self)
 {
-	if (deathmatch->intVal) {
+	if (deathmatch.intVal) {
 		G_FreeEdict(self);
 		return;
 	}
@@ -767,33 +767,37 @@ API_FUNC void SP_monster_makron(entity self)
 
 	MakronPrecache();
 
-	self->movetype = MOVETYPE_STEP;
-	self->solid = SOLID_BBOX;
-	self->s.modelindex = gi.modelindex("models/monsters/boss3/rider/tris.md2");
-	self->mins = '-30 -30 0';
-	self->maxs = '30 30 90';
+	self.movetype = MOVETYPE_STEP;
+	self.solid = SOLID_BBOX;
+	self.s.modelindex = gi.modelindex("models/monsters/boss3/rider/tris.md2");
+	self.mins = '-30 -30 0';
+	self.maxs = '30 30 90';
 
-	self->health = 3000;
-	self->gib_health = -2000;
-	self->mass = 500;
+	self.health = 3000;
+	self.gib_health = -2000;
+	self.mass = 500;
 
-	self->pain = makron_pain;
-	self->die = makron_die;
-	self->monsterinfo.stand = makron_stand;
-	self->monsterinfo.walk = makron_walk;
-	self->monsterinfo.run = makron_run;
-	self->monsterinfo.dodge = 0;
-	self->monsterinfo.attack = makron_attack;
-	self->monsterinfo.melee = 0;
-	self->monsterinfo.sight = makron_sight;
-	self->monsterinfo.checkattack = Makron_CheckAttack;
+	self.pain = makron_pain;
+	self.die = makron_die;
+	self.monsterinfo.stand = makron_stand;
+	self.monsterinfo.walk = makron_walk;
+	self.monsterinfo.run = makron_run;
+	self.monsterinfo.dodge = 0;
+	self.monsterinfo.attack = makron_attack;
+	self.monsterinfo.melee = 0;
+	self.monsterinfo.sight = makron_sight;
+	self.monsterinfo.checkattack = Makron_CheckAttack;
 
 	gi.linkentity(self);
 
-	self->monsterinfo.currentmove = &makron_move_sight;
-	self->monsterinfo.scale = MODEL_SCALE;
+	self.monsterinfo.currentmove = &makron_move_sight;
+	self.monsterinfo.scale = MODEL_SCALE;
 
 	walkmonster_start(self);
+
+#ifdef GROUND_ZERO
+	self.monsterinfo.aiflags |= AI_IGNORE_SHOTS;
+#endif
 }
 
 
@@ -815,12 +819,12 @@ void MakronSpawn(entity self)
 	if (!player)
 		return;
 
-	vec = player->s.origin - self->s.origin;
-	self->s.angles[YAW] = vectoyaw(vec);
+	vec = player.s.origin - self.s.origin;
+	self.s.angles[YAW] = vectoyaw(vec);
 	VectorNormalize(vec);
-	self->velocity = vec * 400;
-	self->velocity[2] = 200f;
-	self->groundentity = null_entity;
+	self.velocity = vec * 400;
+	self.velocity[2] = 200f;
+	self.groundentity = null_entity;
 }
 
 /*
@@ -835,8 +839,8 @@ void MakronToss(entity self)
 	entity ent;
 
 	ent = G_Spawn();
-	ent->nextthink = level.framenum + (int)(0.8f * BASE_FRAMERATE);
-	ent->think = MakronSpawn;
-	ent->target = self->target;
-	ent->s.origin = self->s.origin;
+	ent.nextthink = level.framenum + (int)(0.8f * BASE_FRAMERATE);
+	ent.think = MakronSpawn;
+	ent.target = self.target;
+	ent.s.origin = self.s.origin;
 }

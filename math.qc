@@ -1,3 +1,10 @@
+// not strictly math, but...
+typedef enum int
+{
+	false,
+	true
+} bool;
+
 float(float) fabsf = #0:fabsf;
 float(float) sqrtf = #0:sqrtf;
 float(float) sinf = #0:sinf;
@@ -7,6 +14,9 @@ float(float) floorf = #0:floorf;
 float(float) ceilf = #0:ceilf;
 float(float) roundf = #0:roundf;
 float(float) tanf = #0:tanf;
+float(float) atanf = #0:atanf;
+float(float) asinf = #0:asinf;
+bool(float) isnan = #0:isnan;
 
 const float M_PI = 3.14159265358979323846f;
 
@@ -22,57 +32,50 @@ vector() crandomv = #0:crandomv;
 #define random frandom
 #define randomv frandomv
 #else
-inline float crandom()
+/*inline*/ float crandom()
 {
 	return random(-1f, 1f);
 }
 
-inline vector crandomv()
+/*inline*/ vector crandomv()
 {
 	return randomv('-1 -1 -1', '1 1 1');
 }
 #endif
 
-// not strictly math, but...
-typedef enum int
-{
-	false,
-	true
-} bool;
-
-inline int(float x) ANGLE2SHORT =
+/*inline*/ int(float x) ANGLE2SHORT =
 {
 	return (int)(x * (65536f / 360f)) & 65535;
 }
 
-inline float(int x) SHORT2ANGLE =
+/*inline*/ float(int x) SHORT2ANGLE =
 {
 	return x * (360.0f / 65536);
 }
 
-inline int(float x) COORD2SHORT =
+/*inline*/ int(float x) COORD2SHORT =
 {
 	return (int)(x * 8.0f);
 }
 
-inline float(int x) SHORT2COORD = 
+/*inline*/ float(int x) SHORT2COORD = 
 {
 	return x * (1.0f / 8);
 }
 
-inline float(float a) DEG2RAD =
+/*inline*/ float(float a) DEG2RAD =
 {
 	return a * (M_PI / 180);
 }
 
-inline float(float a) RAD2DEG =
+/*inline*/ float(float a) RAD2DEG =
 {
 	return a * (180 / M_PI);
 }
 
 const int INT_MAX = 2147483647;
 
-inline float(float a) anglemod =
+/*inline*/ float(float a) anglemod =
 {
     return (360.0f / 65536) * ((int)(a * (65536 / 360.0f)) & 65535);
 }

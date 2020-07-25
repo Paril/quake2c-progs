@@ -25,12 +25,12 @@ void() PlayerTrail_Init =
 {
 	int     n;
 
-	if (deathmatch->intVal /* FIXME || coop */)
+	if (deathmatch.intVal /* FIXME || coop */)
 		return;
 
 	for (n = 0; n < TRAIL_LENGTH; n++) {
 		trail[n] = G_Spawn();
-		trail[n]->classname = "player_trail";
+		trail[n].classname = "player_trail";
 	}
 
 	trail_head = 0;
@@ -45,12 +45,12 @@ void(vector spot) PlayerTrail_Add =
 	if (!trail_active)
 		return;
 
-	trail[trail_head]->s.origin = spot;
+	trail[trail_head].s.origin = spot;
 
-	trail[trail_head]->timestamp = level.framenum;
+	trail[trail_head].timestamp = level.framenum;
 
-	temp = spot - trail[PREV(trail_head)]->s.origin;
-	trail[trail_head]->s.angles[YAW] = vectoyaw(temp);
+	temp = spot - trail[PREV(trail_head)].s.origin;
+	trail[trail_head].s.angles[YAW] = vectoyaw(temp);
 
 	trail_head = NEXT(trail_head);
 }
@@ -75,7 +75,7 @@ entity(entity self) PlayerTrail_PickFirst =
 		return world;
 
 	for (marker = trail_head, n = TRAIL_LENGTH; n; n--) {
-		if (trail[marker]->timestamp <= self->monsterinfo.trail_framenum)
+		if (trail[marker].timestamp <= self.monsterinfo.trail_framenum)
 			marker = NEXT(marker);
 		else
 			break;
@@ -101,7 +101,7 @@ entity(entity self) PlayerTrail_PickNext =
 		return world;
 
 	for (marker = trail_head, n = TRAIL_LENGTH; n; n--) {
-		if (trail[marker]->timestamp <= self->monsterinfo.trail_framenum)
+		if (trail[marker].timestamp <= self.monsterinfo.trail_framenum)
 			marker = NEXT(marker);
 		else
 			break;

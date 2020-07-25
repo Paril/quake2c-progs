@@ -21,21 +21,26 @@ static void floater_idle(entity self)
 
 static void floater_fire_blaster(entity self)
 {
+#ifdef GROUND_ZERO
+	if (!self.enemy || !self.enemy.inuse)
+		return;
+#endif
+
 	vector  start;
 	vector  forward, right;
 	vector  end;
 	vector  dir;
 	int     effect;
 
-	if ((self->s.frame == FRAME_attak104) || (self->s.frame == FRAME_attak107))
+	if ((self.s.frame == FRAME_attak104) || (self.s.frame == FRAME_attak107))
 		effect = EF_HYPERBLASTER;
 	else
 		effect = 0;
-	AngleVectors(self->s.angles, &forward, &right, 0);
-	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_FLOAT_BLASTER_1], forward, right, start);
+	AngleVectors(self.s.angles, &forward, &right, 0);
+	start = G_ProjectSource(self.s.origin, monster_flash_offset[MZ2_FLOAT_BLASTER_1], forward, right);
 
-	end = self->enemy->s.origin;
-	end_z += self->enemy->viewheight;
+	end = self.enemy.s.origin;
+	end.z += self.enemy.viewheight;
 	dir = end - start;
 
 	monster_fire_blaster(self, start, dir, 1, 1000, MZ2_FLOAT_BLASTER_1, effect);
@@ -156,9 +161,9 @@ static var mmove_t floater_move_stand2 = { FRAME_stand201, FRAME_stand252 };
 static void floater_stand(entity self)
 {
 	if (random() <= 0.5f)
-		self->monsterinfo.currentmove = &floater_move_stand1;
+		self.monsterinfo.currentmove = &floater_move_stand1;
 	else
-		self->monsterinfo.currentmove = &floater_move_stand2;
+		self.monsterinfo.currentmove = &floater_move_stand2;
 }
 
 static mframe_t floater_frames_run [] = {
@@ -219,10 +224,10 @@ static var mmove_t floater_move_run = { FRAME_stand101, FRAME_stand152 };
 
 static void floater_run(entity self)
 {
-	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
-		self->monsterinfo.currentmove = &floater_move_stand1;
+	if (self.monsterinfo.aiflags & AI_STAND_GROUND)
+		self.monsterinfo.currentmove = &floater_move_stand1;
 	else
-		self->monsterinfo.currentmove = &floater_move_run;
+		self.monsterinfo.currentmove = &floater_move_run;
 }
 
 static mframe_t floater_frames_attack1 [] = {
@@ -242,6 +247,27 @@ static mframe_t floater_frames_attack1 [] = {
 	{ ai_charge }            //                          -- LOOP Ends
 };
 static var mmove_t floater_move_attack1 = { FRAME_attak101, FRAME_attak114, floater_run };
+
+#ifdef GROUND_ZERO
+static mframe_t floater_frames_attack1a [] =
+{
+	{ ai_charge,	10 },			// Blaster attack
+	{ ai_charge,	10 },
+	{ ai_charge,	10 },
+	{ ai_charge,	10,	floater_fire_blaster },			// BOOM (0, -25.8, 32.5)	-- LOOP Starts
+	{ ai_charge,	10,	floater_fire_blaster },
+	{ ai_charge,	10,	floater_fire_blaster },
+	{ ai_charge,	10,	floater_fire_blaster },
+	{ ai_charge,	10,	floater_fire_blaster },
+	{ ai_charge,	10,	floater_fire_blaster },
+	{ ai_charge,	10,	floater_fire_blaster },
+	{ ai_charge,	10 },
+	{ ai_charge,	10 },
+	{ ai_charge,	10 },
+	{ ai_charge,	10 }			//							-- LOOP Ends
+};
+static var mmove_t floater_move_attack1a = { FRAME_attak101, FRAME_attak114, floater_run };
+#endif
 
 static void floater_wham(entity self)
 {
@@ -286,13 +312,13 @@ static void floater_zap(entity self)
 	vector  dir;
 	vector  offset;
 
-	dir = self->enemy->s.origin - self->s.origin;
+	dir = self.enemy.s.origin - self.s.origin;
 
-	AngleVectors(self->s.angles, &forward, &right, 0);
+	AngleVectors(self.s.angles, &forward, &right, 0);
 	//FIXME use a flash and replace these two lines with the commented one
 	offset = '18.5 -0.9 10';
-	G_ProjectSource(self->s.origin, offset, forward, right, origin);
-//  G_ProjectSource (self->s.origin, monster_flash_offset[flash_number], forward, right, origin);
+	origin = G_ProjectSource(self.s.origin, offset, forward, right);
+//  G_ProjectSource (self.s.origin, monster_flash_offset[flash_number], forward, right, origin);
 
 	gi.sound(self, CHAN_WEAPON, sound_attack2, 1, ATTN_NORM, 0);
 
@@ -305,7 +331,7 @@ static void floater_zap(entity self)
 	gi.WriteByte(1);    //sparks
 	gi.multicast(origin, MULTICAST_PVS);
 
-	T_Damage(self->enemy, self, self, dir, self->enemy->s.origin, vec3_origin, 5 + Q_rand() % 6, -10, DAMAGE_ENERGY, MOD_UNKNOWN);
+	T_Damage(self.enemy, self, self, dir, self.enemy.s.origin, vec3_origin, 5 + Q_rand() % 6, -10, DAMAGE_ENERGY, MOD_UNKNOWN);
 }
 
 static mframe_t floater_frames_attack3 [] = {
@@ -443,44 +469,67 @@ static var mmove_t floater_move_walk = { FRAME_stand101, FRAME_stand152 };
 
 static void floater_walk(entity self)
 {
-	self->monsterinfo.currentmove = &floater_move_walk;
+	self.monsterinfo.currentmove = &floater_move_walk;
 }
 
 static void floater_attack(entity self)
 {
-	self->monsterinfo.currentmove = &floater_move_attack1;
-}
+#ifdef GROUND_ZERO
+	float chance = 0;
 
+	// 0% chance of circle in easy
+	// 50% chance in normal
+	// 75% chance in hard
+	// 86.67% chance in nightmare
+	if (skill.intVal)
+		chance = 1.0 - (0.5 / skill.intVal);
+
+	if (random() > chance)
+	{
+		self.monsterinfo.attack_state = AS_STRAIGHT;
+#endif
+		self.monsterinfo.currentmove = &floater_move_attack1;
+#ifdef GROUND_ZERO
+	}
+	else // circle strafe
+	{
+		if (random () <= 0.5) // switch directions
+			self.monsterinfo.lefty = 1 - self.monsterinfo.lefty;
+		self.monsterinfo.attack_state = AS_SLIDING;
+		self.monsterinfo.currentmove = &floater_move_attack1a;
+	}
+#endif
+}
 
 static void floater_melee(entity self)
 {
 	if (random() < 0.5f)
-		self->monsterinfo.currentmove = &floater_move_attack3;
+		self.monsterinfo.currentmove = &floater_move_attack3;
 	else
-		self->monsterinfo.currentmove = &floater_move_attack2;
+		self.monsterinfo.currentmove = &floater_move_attack2;
 }
 
 static void floater_pain(entity self, entity other, float kick, int damage)
 {
 	int     n;
 
-	if (self->health < (self->max_health / 2))
-		self->s.skinnum = 1;
+	if (self.health < (self.max_health / 2))
+		self.s.skinnum = 1;
 
-	if (level.framenum < self->pain_debounce_framenum)
+	if (level.framenum < self.pain_debounce_framenum)
 		return;
 
-	self->pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
-	if (skill->intVal == 3)
+	self.pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
+	if (skill.intVal == 3)
 		return;     // no pain anims in nightmare
 
 	n = (Q_rand() + 1) % 3;
 	if (n == 0) {
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
-		self->monsterinfo.currentmove = &floater_move_pain1;
+		self.monsterinfo.currentmove = &floater_move_pain1;
 	} else {
 		gi.sound(self, CHAN_VOICE, sound_pain2, 1, ATTN_NORM, 0);
-		self->monsterinfo.currentmove = &floater_move_pain2;
+		self.monsterinfo.currentmove = &floater_move_pain2;
 	}
 }
 
@@ -490,11 +539,21 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 	BecomeExplosion1(self);
 }
 
+#ifdef GROUND_ZERO
+static bool floater_blocked (entity self, float dist)
+{
+	if(blocked_checkshot(self, 0.25 + (0.05 * skill.intVal)))
+		return true;
+
+	return false;
+}
+#endif
+
 /*QUAKED monster_floater (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
 */
 API_FUNC static void SP_monster_floater(entity self)
 {
-	if (deathmatch->intVal) {
+	if (deathmatch.intVal) {
 		G_FreeEdict(self);
 		return;
 	}
@@ -514,6 +573,10 @@ API_FUNC static void SP_monster_floater(entity self)
 		floater_move_pain3.frame = &floater_frames_pain3;
 
 		floater_move_walk.frame = &floater_frames_walk;
+
+#ifdef GROUND_ZERO
+		floater_move_attack1a.frame = &floater_frames_attack1a;
+#endif
 	}
 
 	sound_attack2 = gi.soundindex("floater/fltatck2.wav");
@@ -526,38 +589,41 @@ API_FUNC static void SP_monster_floater(entity self)
 
 	gi.soundindex("floater/fltatck1.wav");
 
-	self->s.sound = gi.soundindex("floater/fltsrch1.wav");
+	self.s.sound = gi.soundindex("floater/fltsrch1.wav");
 
-	self->movetype = MOVETYPE_STEP;
-	self->solid = SOLID_BBOX;
-	self->s.modelindex = gi.modelindex("models/monsters/float/tris.md2");
-	self->mins = '-24 -24 -24';
-	self->maxs = '24 24 32';
+	self.movetype = MOVETYPE_STEP;
+	self.solid = SOLID_BBOX;
+	self.s.modelindex = gi.modelindex("models/monsters/float/tris.md2");
+	self.mins = '-24 -24 -24';
+	self.maxs = '24 24 32';
 
-	self->health = 200;
-	self->gib_health = -80;
-	self->mass = 300;
+	self.health = 200;
+	self.gib_health = -80;
+	self.mass = 300;
 
-	self->pain = floater_pain;
-	self->die = floater_die;
+	self.pain = floater_pain;
+	self.die = floater_die;
 
-	self->monsterinfo.stand = floater_stand;
-	self->monsterinfo.walk = floater_walk;
-	self->monsterinfo.run = floater_run;
-//  self->monsterinfo.dodge = floater_dodge;
-	self->monsterinfo.attack = floater_attack;
-	self->monsterinfo.melee = floater_melee;
-	self->monsterinfo.sight = floater_sight;
-	self->monsterinfo.idle = floater_idle;
+	self.monsterinfo.stand = floater_stand;
+	self.monsterinfo.walk = floater_walk;
+	self.monsterinfo.run = floater_run;
+	self.monsterinfo.attack = floater_attack;
+	self.monsterinfo.melee = floater_melee;
+	self.monsterinfo.sight = floater_sight;
+	self.monsterinfo.idle = floater_idle;
+
+#ifdef GROUND_ZERO
+	self.monsterinfo.blocked = floater_blocked;
+#endif
 
 	gi.linkentity(self);
 
 	if (random() <= 0.5f)
-		self->monsterinfo.currentmove = &floater_move_stand1;
+		self.monsterinfo.currentmove = &floater_move_stand1;
 	else
-		self->monsterinfo.currentmove = &floater_move_stand2;
+		self.monsterinfo.currentmove = &floater_move_stand2;
 
-	self->monsterinfo.scale = MODEL_SCALE;
+	self.monsterinfo.scale = MODEL_SCALE;
 
 	flymonster_start(self);
 }

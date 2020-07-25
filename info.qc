@@ -1,4 +1,4 @@
-inline bool(int c) isprint =
+/*inline*/ bool(int c) isprint =
 {
 	return c >= 0x20 && c <= 0x7E;
 };

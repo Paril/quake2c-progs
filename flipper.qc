@@ -16,7 +16,7 @@ static var mmove_t flipper_move_stand = { FRAME_flphor01, FRAME_flphor01 };
 
 static void flipper_stand(entity self)
 {
-	self->monsterinfo.currentmove = &flipper_move_stand;
+	self.monsterinfo.currentmove = &flipper_move_stand;
 }
 
 const float FLIPPER_RUN_SPEED	= 24f;
@@ -53,7 +53,7 @@ static var mmove_t flipper_move_run_loop = { FRAME_flpver06, FRAME_flpver29 };
 
 static void flipper_run_loop(entity self)
 {
-	self->monsterinfo.currentmove = &flipper_move_run_loop;
+	self.monsterinfo.currentmove = &flipper_move_run_loop;
 }
 
 static mframe_t flipper_frames_run_start [] = {
@@ -68,7 +68,7 @@ static var mmove_t flipper_move_run_start = { FRAME_flpver01, FRAME_flpver06, fl
 
 static void flipper_run(entity self)
 {
-	self->monsterinfo.currentmove = &flipper_move_run_start;
+	self.monsterinfo.currentmove = &flipper_move_run_start;
 }
 
 /* Standard Swimming */
@@ -102,7 +102,7 @@ static var mmove_t flipper_move_walk = { FRAME_flphor01, FRAME_flphor24 };
 
 static void flipper_walk(entity self)
 {
-	self->monsterinfo.currentmove = &flipper_move_walk;
+	self.monsterinfo.currentmove = &flipper_move_walk;
 }
 
 static mframe_t flipper_frames_start_run [] = {
@@ -116,7 +116,7 @@ static var mmove_t flipper_move_start_run = { FRAME_flphor01, FRAME_flphor05 };
 
 static void flipper_start_run(entity self)
 {
-	self->monsterinfo.currentmove = &flipper_move_start_run;
+	self.monsterinfo.currentmove = &flipper_move_start_run;
 }
 
 static mframe_t flipper_frames_pain2 [] = {
@@ -174,41 +174,41 @@ static var mmove_t flipper_move_attack = { FRAME_flpbit01, FRAME_flpbit20, flipp
 
 static void flipper_melee(entity self)
 {
-	self->monsterinfo.currentmove = &flipper_move_attack;
+	self.monsterinfo.currentmove = &flipper_move_attack;
 }
 
 static void flipper_pain(entity self, entity other, float kick, int damage)
 {
 	int     n;
 
-	if (self->health < (self->max_health / 2))
-		self->s.skinnum = 1;
+	if (self.health < (self.max_health / 2))
+		self.s.skinnum = 1;
 
-	if (level.framenum < self->pain_debounce_framenum)
+	if (level.framenum < self.pain_debounce_framenum)
 		return;
 
-	self->pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
+	self.pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
 
-	if (skill->intVal == 3)
+	if (skill.intVal == 3)
 		return;     // no pain anims in nightmare
 
 	n = (Q_rand() + 1) % 2;
 	if (n == 0) {
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
-		self->monsterinfo.currentmove = &flipper_move_pain1;
+		self.monsterinfo.currentmove = &flipper_move_pain1;
 	} else {
 		gi.sound(self, CHAN_VOICE, sound_pain2, 1, ATTN_NORM, 0);
-		self->monsterinfo.currentmove = &flipper_move_pain2;
+		self.monsterinfo.currentmove = &flipper_move_pain2;
 	}
 }
 
 static void flipper_dead(entity self)
 {
-	self->mins = '-16 -16 -24';
-	self->maxs = '16 16 -8';
-	self->movetype = MOVETYPE_TOSS;
-	self->svflags |= SVF_DEADMONSTER;
-	self->nextthink = 0;
+	self.mins = '-16 -16 -24';
+	self.maxs = '16 16 -8';
+	self.movetype = MOVETYPE_TOSS;
+	self.svflags |= SVF_DEADMONSTER;
+	self.nextthink = 0;
 	gi.linkentity(self);
 }
 
@@ -287,32 +287,32 @@ static void flipper_die(entity self, entity inflictor, entity attacker, int dama
 	int     n;
 
 // check for gib
-	if (self->health <= self->gib_health) {
+	if (self.health <= self.gib_health) {
 		gi.sound(self, CHAN_VOICE, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
 		for (n = 0; n < 2; n++)
 			ThrowGib(self, "models/objects/gibs/bone/tris.md2", damage, GIB_ORGANIC);
 		for (n = 0; n < 2; n++)
 			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
 		ThrowHead(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
-		self->deadflag = DEAD_DEAD;
+		self.deadflag = DEAD_DEAD;
 		return;
 	}
 
-	if (self->deadflag == DEAD_DEAD)
+	if (self.deadflag == DEAD_DEAD)
 		return;
 
 // regular death
 	gi.sound(self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
-	self->deadflag = DEAD_DEAD;
-	self->takedamage = DAMAGE_YES;
-	self->monsterinfo.currentmove = &flipper_move_death;
+	self.deadflag = DEAD_DEAD;
+	self.takedamage = DAMAGE_YES;
+	self.monsterinfo.currentmove = &flipper_move_death;
 }
 
 /*QUAKED monster_flipper (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
 */
 API_FUNC static void SP_monster_flipper(entity self)
 {
-	if (deathmatch->intVal) {
+	if (deathmatch.intVal) {
 		G_FreeEdict(self);
 		return;
 	}
@@ -339,29 +339,29 @@ API_FUNC static void SP_monster_flipper(entity self)
 	sound_search    = gi.soundindex("flipper/flpsrch1.wav");
 	sound_sight     = gi.soundindex("flipper/flpsght1.wav");
 
-	self->movetype = MOVETYPE_STEP;
-	self->solid = SOLID_BBOX;
-	self->s.modelindex = gi.modelindex("models/monsters/flipper/tris.md2");
-	self->mins = '-16 -16 0';
-	self->maxs = '16 16 32';
+	self.movetype = MOVETYPE_STEP;
+	self.solid = SOLID_BBOX;
+	self.s.modelindex = gi.modelindex("models/monsters/flipper/tris.md2");
+	self.mins = '-16 -16 0';
+	self.maxs = '16 16 32';
 
-	self->health = 50;
-	self->gib_health = -30;
-	self->mass = 100;
+	self.health = 50;
+	self.gib_health = -30;
+	self.mass = 100;
 
-	self->pain = flipper_pain;
-	self->die = flipper_die;
+	self.pain = flipper_pain;
+	self.die = flipper_die;
 
-	self->monsterinfo.stand = flipper_stand;
-	self->monsterinfo.walk = flipper_walk;
-	self->monsterinfo.run = flipper_start_run;
-	self->monsterinfo.melee = flipper_melee;
-	self->monsterinfo.sight = flipper_sight;
+	self.monsterinfo.stand = flipper_stand;
+	self.monsterinfo.walk = flipper_walk;
+	self.monsterinfo.run = flipper_start_run;
+	self.monsterinfo.melee = flipper_melee;
+	self.monsterinfo.sight = flipper_sight;
 
 	gi.linkentity(self);
 
-	self->monsterinfo.currentmove = &flipper_move_stand;
-	self->monsterinfo.scale = MODEL_SCALE;
+	self.monsterinfo.currentmove = &flipper_move_stand;
+	self.monsterinfo.scale = MODEL_SCALE;
 
 	swimmonster_start(self);
 }

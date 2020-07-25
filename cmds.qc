@@ -2,10 +2,10 @@
 
 string(entity ent) ClientTeam =
 {
-	if (!ent->is_client)
+	if (!ent.is_client)
 		return "???";
 
-	string team = Info_ValueForKey (ent->client->pers.userinfo, "skin");
+	string team = Info_ValueForKey (ent.client.pers.userinfo, "skin");
 	int p = strchr(team, '/');
 
 	if (p == -1)
@@ -19,7 +19,7 @@ string(entity ent) ClientTeam =
 
 bool(entity ent1, entity ent2) OnSameTeam =
 {
-	if (!(dmflags->intVal & (DF_MODELTEAMS | DF_SKINTEAMS)))
+	if (!(dmflags.intVal & (DF_MODELTEAMS | DF_SKINTEAMS)))
 		return false;
 
 	return ClientTeam(ent1) == ClientTeam(ent2);
@@ -30,7 +30,7 @@ static void(entity ent, int itflags) SelectNextItem =
 	int		i;
 	gitem_id_t	index;
 
-	if (ent.client->chase_target) {
+	if (ent.client.chase_target) {
 		ChaseNext(ent);
 		return;
 	}
@@ -38,19 +38,19 @@ static void(entity ent, int itflags) SelectNextItem =
 	// scan  for the next valid one
 	for (i=1 ; i<=itemlist.length ; i++)
 	{
-		index = (ent.client->pers.selected_item + i)%itemlist.length;
-		if (!ent.client->pers.inventory[index])
+		index = (ent.client.pers.selected_item + i)%itemlist.length;
+		if (!ent.client.pers.inventory[index])
 			continue;
 		if (!GetItemKeyByIndex(index, use))
 			continue;
 		if (!(GetItemKeyByIndex(index, flags) & itflags))
 			continue;
 
-		ent.client->pers.selected_item = index;
+		ent.client.pers.selected_item = index;
 		return;
 	}
 
-	ent.client->pers.selected_item = -1;
+	ent.client.pers.selected_item = -1;
 }
 
 static void(entity ent, int itflags) SelectPrevItem =
@@ -58,7 +58,7 @@ static void(entity ent, int itflags) SelectPrevItem =
 	int		i;
 	gitem_id_t	index;
 
-	if (ent.client->chase_target) {
+	if (ent.client.chase_target) {
 		ChasePrev(ent);
 		return;
 	}
@@ -66,24 +66,24 @@ static void(entity ent, int itflags) SelectPrevItem =
 	// scan  for the next valid one
 	for (i=1 ; i<=itemlist.length ; i++)
 	{
-		index = (ent.client->pers.selected_item + itemlist.length - i)%itemlist.length;
-		if (!ent.client->pers.inventory[index])
+		index = (ent.client.pers.selected_item + itemlist.length - i)%itemlist.length;
+		if (!ent.client.pers.inventory[index])
 			continue;
 		if (!GetItemKeyByIndex(index, use))
 			continue;
 		if (!(GetItemKeyByIndex(index, flags) & itflags))
 			continue;
 
-		ent.client->pers.selected_item = index;
+		ent.client.pers.selected_item = index;
 		return;
 	}
 
-	ent.client->pers.selected_item = -1;
+	ent.client.pers.selected_item = -1;
 }
 
 void(entity ent) ValidateSelectedItem =
 {
-	if (ent.client->pers.inventory[ent.client->pers.selected_item])
+	if (ent.client.pers.inventory[ent.client.pers.selected_item])
 		return;		// valid
 
 	SelectNextItem (ent, -1);
@@ -108,7 +108,7 @@ static void(entity ent) Cmd_Give_f =
 	bool		give_all;
 	entity		it_ent;
 
-	if (deathmatch->intVal && !sv_cheats->intVal)
+	if (deathmatch.intVal && !sv_cheats.intVal)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -124,9 +124,9 @@ static void(entity ent) Cmd_Give_f =
 	if (give_all || stricmp(gi.argv(1), "health") == 0)
 	{
 		if (gi.argc() == 3)
-			ent->health = stoi(gi.argv(2));
+			ent.health = stoi(gi.argv(2));
 		else
-			ent->health = ent->max_health;
+			ent.health = ent.max_health;
 		if (!give_all)
 			return;
 	}
@@ -140,7 +140,7 @@ static void(entity ent) Cmd_Give_f =
 				continue;
 			if (!(GetItemKeyByIndex(it, flags) & IT_WEAPON))
 				continue;
-			ent->client->pers.inventory[i] += 1;
+			ent.client.pers.inventory[i] += 1;
 		}
 		if (!give_all)
 			return;
@@ -166,14 +166,14 @@ static void(entity ent) Cmd_Give_f =
 		gitem_armor_id_t	info;
 
 		it = FindItem("Jacket Armor");
-		ent->client->pers.inventory[ITEM_INDEX(it)] = 0;
+		ent.client.pers.inventory[ITEM_INDEX(it)] = 0;
 
 		it = FindItem("Combat Armor");
-		ent->client->pers.inventory[ITEM_INDEX(it)] = 0;
+		ent.client.pers.inventory[ITEM_INDEX(it)] = 0;
 
 		it = FindItem("Body Armor");
 		info = GetItemKeyByIndex(it, info);
-		ent->client->pers.inventory[ITEM_INDEX(it)] = GetArmorInfoKeyByIndex(info, max_count);
+		ent.client.pers.inventory[ITEM_INDEX(it)] = GetArmorInfoKeyByIndex(info, max_count);
 
 		if (!give_all)
 			return;
@@ -183,10 +183,10 @@ static void(entity ent) Cmd_Give_f =
 	{
 		it = FindItem("Power Shield");
 		it_ent = G_Spawn();
-		it_ent->classname = GetItemKeyByIndex(it, classname);
+		it_ent.classname = GetItemKeyByIndex(it, classname);
 		SpawnItem (it_ent, it);
 		Touch_Item (it_ent, ent, null_plane, null_surface);
-		if (it_ent->inuse)
+		if (it_ent.inuse)
 			G_FreeEdict(it_ent);
 
 		if (!give_all)
@@ -202,7 +202,7 @@ static void(entity ent) Cmd_Give_f =
 				continue;
 			if (GetItemKeyByIndex(it, flags) & (IT_ARMOR|IT_WEAPON|IT_AMMO))
 				continue;
-			ent->client->pers.inventory[i] = 1;
+			ent.client.pers.inventory[i] = 1;
 		}
 		return;
 	}
@@ -230,17 +230,17 @@ static void(entity ent) Cmd_Give_f =
 	if (GetItemKeyByIndex(it, flags) & IT_AMMO)
 	{
 		if (gi.argc() == 3)
-			ent->client->pers.inventory[index] = stoi(gi.argv(2));
+			ent.client.pers.inventory[index] = stoi(gi.argv(2));
 		else
-			ent->client->pers.inventory[index] += GetItemKeyByIndex(it, quantity);
+			ent.client.pers.inventory[index] += GetItemKeyByIndex(it, quantity);
 	}
 	else
 	{
 		it_ent = G_Spawn();
-		it_ent->classname = GetItemKeyByIndex(it, classname);
+		it_ent.classname = GetItemKeyByIndex(it, classname);
 		SpawnItem (it_ent, it);
 		Touch_Item (it_ent, ent, null_plane, null_surface);
-		if (it_ent->inuse)
+		if (it_ent.inuse)
 			G_FreeEdict(it_ent);
 	}
 }
@@ -259,14 +259,14 @@ static void(entity ent) Cmd_God_f =
 {
 	string	msg;
 
-	if (deathmatch->intVal && !sv_cheats->intVal)
+	if (deathmatch.intVal && !sv_cheats.intVal)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
 	}
 
-	ent->flags ^= FL_GODMODE;
-	if (!(ent->flags & FL_GODMODE) )
+	ent.flags ^= FL_GODMODE;
+	if (!(ent.flags & FL_GODMODE) )
 		msg = "godmode OFF\n";
 	else
 		msg = "godmode ON\n";
@@ -288,14 +288,14 @@ static void(entity ent) Cmd_Notarget_f =
 {
 	string	msg;
 
-	if (deathmatch->intVal && !sv_cheats->intVal)
+	if (deathmatch.intVal && !sv_cheats.intVal)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
 	}
 
-	ent->flags ^= FL_NOTARGET;
-	if (!(ent->flags & FL_NOTARGET) )
+	ent.flags ^= FL_NOTARGET;
+	if (!(ent.flags & FL_NOTARGET) )
 		msg = "notarget OFF\n";
 	else
 		msg = "notarget ON\n";
@@ -315,20 +315,20 @@ static void(entity ent) Cmd_Noclip_f =
 {
 	string	msg;
 
-	if (deathmatch->intVal && !sv_cheats->intVal)
+	if (deathmatch.intVal && !sv_cheats.intVal)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
 	}
 
-	if (ent->movetype == MOVETYPE_NOCLIP)
+	if (ent.movetype == MOVETYPE_NOCLIP)
 	{
-		ent->movetype = MOVETYPE_WALK;
+		ent.movetype = MOVETYPE_WALK;
 		msg = "noclip OFF\n";
 	}
 	else
 	{
-		ent->movetype = MOVETYPE_NOCLIP;
+		ent.movetype = MOVETYPE_NOCLIP;
 		msg = "noclip ON\n";
 	}
 
@@ -362,7 +362,7 @@ static void(entity ent) Cmd_Use_f =
 		return;
 	}
 	index = ITEM_INDEX(it);
-	if (!ent->client->pers.inventory[index])
+	if (!ent.client.pers.inventory[index])
 	{
 		gi.cprintf (ent, PRINT_HIGH, "Out of item: %s\n", s);
 		return;
@@ -398,7 +398,7 @@ static void(entity ent) Cmd_Drop_f =
 		return;
 	}
 	index = ITEM_INDEX(it);
-	if (!ent->client->pers.inventory[index])
+	if (!ent.client.pers.inventory[index])
 	{
 		gi.cprintf (ent, PRINT_HIGH, "Out of item: %s\n", s);
 		return;
@@ -417,22 +417,22 @@ static void(entity ent) Cmd_Inven_f =
 {
 	int		i;
 
-	ent.client->showscores = false;
-	ent.client->showhelp = false;
+	ent.client.showscores = false;
+	ent.client.showhelp = false;
 
-	if (ent.client->showinventory)
+	if (ent.client.showinventory)
 	{
-		ent.client->showinventory = false;
+		ent.client.showinventory = false;
 		return;
 	}
 
-	ent.client->showinventory = true;
+	ent.client.showinventory = true;
 
 	gi.WriteByte (svc_inventory);
 	for (i=0 ; i<MAX_ITEMS ; i++)
 	{
 		if (i < itemlist.length)
-			gi.WriteShort (ent.client->pers.inventory[i]);
+			gi.WriteShort (ent.client.pers.inventory[i]);
 		else
 			gi.WriteShort(0);
 	}
@@ -450,13 +450,13 @@ static void(entity ent) Cmd_InvUse_f =
 
 	ValidateSelectedItem (ent);
 
-	if (ent->client->pers.selected_item == -1)
+	if (ent.client.pers.selected_item == -1)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "No item to use.\n");
 		return;
 	}
 
-	it = ent->client->pers.selected_item;
+	it = ent.client.pers.selected_item;
 	if (!GetItemKeyByIndex(it, use))
 	{
 		gi.cprintf (ent, PRINT_HIGH, "Item is not usable.\n");
@@ -476,16 +476,16 @@ static void(entity ent) Cmd_WeapPrev_f =
 	gitem_id_t	it;
 	int		selected_weapon;
 
-	if (!ent.client->pers.weapon)
+	if (!ent.client.pers.weapon)
 		return;
 
-	selected_weapon = ITEM_INDEX(ent.client->pers.weapon);
+	selected_weapon = ITEM_INDEX(ent.client.pers.weapon);
 
 	// scan  for the next valid one
 	for (i=1 ; i<=itemlist.length ; i++)
 	{
-		index = (selected_weapon + i)%itemlist.length;
-		if (!ent.client->pers.inventory[index])
+		index = (selected_weapon + itemlist.length - i) % itemlist.length;
+		if (!ent.client.pers.inventory[index])
 			continue;
 		it = index;
 		if (!GetItemKeyByIndex(it, use))
@@ -493,7 +493,7 @@ static void(entity ent) Cmd_WeapPrev_f =
 		if (!(GetItemKeyByIndex(it, flags) & IT_WEAPON))
 			continue;
 		GetItemKeyByIndex(it, use) (ent, it);
-		if (ent.client->pers.weapon == it)
+		if (ent.client.newweapon == it || ent.client.pers.weapon == it)
 			return;	// successful
 	}
 }
@@ -509,16 +509,16 @@ static void(entity ent) Cmd_WeapNext_f =
 	gitem_id_t	it;
 	int		selected_weapon;
 
-	if (!ent.client->pers.weapon)
+	if (!ent.client.pers.weapon)
 		return;
 
-	selected_weapon = ITEM_INDEX(ent.client->pers.weapon);
+	selected_weapon = ITEM_INDEX(ent.client.pers.weapon);
 
 	// scan  for the next valid one
 	for (i=1 ; i<=itemlist.length ; i++)
 	{
-		index = (selected_weapon + itemlist.length - i)%itemlist.length;
-		if (!ent.client->pers.inventory[index])
+		index = (selected_weapon + i) % itemlist.length;
+		if (!ent.client.pers.inventory[index])
 			continue;
 		it = index;
 		if (!GetItemKeyByIndex(it, use))
@@ -526,7 +526,7 @@ static void(entity ent) Cmd_WeapNext_f =
 		if (!(GetItemKeyByIndex(it, flags) & IT_WEAPON))
 			continue;
 		GetItemKeyByIndex(it, use) (ent, it);
-		if (ent.client->pers.weapon == it)
+		if (ent.client.newweapon == it || ent.client.pers.weapon == it)
 			return;	// successful
 	}
 }
@@ -541,11 +541,11 @@ static void(entity ent) Cmd_WeapLast_f =
 	int		index;
 	gitem_id_t	it;
 
-	if (!ent.client->pers.weapon || !ent.client->pers.lastweapon)
+	if (!ent.client.pers.weapon || !ent.client.pers.lastweapon)
 		return;
 
-	index = ITEM_INDEX(ent.client->pers.lastweapon);
-	if (!ent.client->pers.inventory[index])
+	index = ITEM_INDEX(ent.client.pers.lastweapon);
+	if (!ent.client.pers.inventory[index])
 		return;
 	it = index;
 	if (!GetItemKeyByIndex(it, use))
@@ -566,13 +566,13 @@ static void(entity ent) Cmd_InvDrop_f =
 
 	ValidateSelectedItem (ent);
 
-	if (ent->client->pers.selected_item == -1)
+	if (ent.client.pers.selected_item == -1)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "No item to drop.\n");
 		return;
 	}
 
-	it = ent->client->pers.selected_item;
+	it = ent.client.pers.selected_item;
 	if (!GetItemKeyByIndex(it, drop))
 	{
 		gi.cprintf (ent, PRINT_HIGH, "Item is not dropable.\n");
@@ -588,10 +588,10 @@ Cmd_Kill_f
 */
 static void(entity ent) Cmd_Kill_f =
 {
-	if ((level.framenum - ent->client->respawn_framenum) < 5 * BASE_FRAMERATE)
+	if ((level.framenum - ent.client.respawn_framenum) < 5 * BASE_FRAMERATE)
 		return;
-	ent->flags &= ~FL_GODMODE;
-	ent->health = 0;
+	ent.flags &= ~FL_GODMODE;
+	ent.health = 0;
 	meansOfDeath = MOD_SUICIDE;
 	player_die (ent, ent, ent, 100000, vec3_origin);
 }
@@ -603,9 +603,9 @@ Cmd_PutAway_f
 */
 static void(entity ent) Cmd_PutAway_f =
 {
-	ent->client->showscores = false;
-	ent->client->showhelp = false;
-	ent->client->showinventory = false;
+	ent.client.showscores = false;
+	ent.client.showhelp = false;
+	ent.client.showinventory = false;
 }
 
 // TODO
@@ -642,7 +642,7 @@ static void (entity ent) Cmd_Players_f =
 	int		index[256];
 
 	count = 0;
-	for (i = 0 ; i < maxclients->value ; i++)
+	for (i = 0 ; i < maxclients.value ; i++)
 		if (game.clients[i].pers.connected)
 		{
 			index[count] = i;
@@ -683,41 +683,41 @@ static void(entity ent) Cmd_Wave_f =
 	i = stoi (gi.argv(1));
 
 	// can't wave when ducked
-	if (ent->client->ps.pmove.pm_flags & PMF_DUCKED)
+	if (ent.client.ps.pmove.pm_flags & PMF_DUCKED)
 		return;
 
-	if (ent->client->anim_priority > ANIM_WAVE)
+	if (ent.client.anim_priority > ANIM_WAVE)
 		return;
 
-	ent->client->anim_priority = ANIM_WAVE;
+	ent.client.anim_priority = ANIM_WAVE;
 
 	switch (i)
 	{
 	case 0:
 		gi.cprintf (ent, PRINT_HIGH, "flipoff\n");
-		ent->s.frame = FRAME_flip01-1;
-		ent->client->anim_end = FRAME_flip12;
+		ent.s.frame = FRAME_flip01-1;
+		ent.client.anim_end = FRAME_flip12;
 		break;
 	case 1:
 		gi.cprintf (ent, PRINT_HIGH, "salute\n");
-		ent->s.frame = FRAME_salute01-1;
-		ent->client->anim_end = FRAME_salute11;
+		ent.s.frame = FRAME_salute01-1;
+		ent.client.anim_end = FRAME_salute11;
 		break;
 	case 2:
 		gi.cprintf (ent, PRINT_HIGH, "taunt\n");
-		ent->s.frame = FRAME_taunt01-1;
-		ent->client->anim_end = FRAME_taunt17;
+		ent.s.frame = FRAME_taunt01-1;
+		ent.client.anim_end = FRAME_taunt17;
 		break;
 	case 3:
 		gi.cprintf (ent, PRINT_HIGH, "wave\n");
-		ent->s.frame = FRAME_wave01-1;
-		ent->client->anim_end = FRAME_wave11;
+		ent.s.frame = FRAME_wave01-1;
+		ent.client.anim_end = FRAME_wave11;
 		break;
 	case 4:
 	default:
 		gi.cprintf (ent, PRINT_HIGH, "point\n");
-		ent->s.frame = FRAME_point01-1;
-		ent->client->anim_end = FRAME_point12;
+		ent.s.frame = FRAME_point01-1;
+		ent.client.anim_end = FRAME_point12;
 		break;
 	}
 }
@@ -737,13 +737,13 @@ static void(entity ent, bool team, bool arg0) Cmd_Say_f =
 	if (gi.argc () < 2 && !arg0)
 		return;
 
-	if (!(dmflags->intVal & (DF_MODELTEAMS | DF_SKINTEAMS)))
+	if (!(dmflags.intVal & (DF_MODELTEAMS | DF_SKINTEAMS)))
 		team = false;
 
 	if (team)
-		text = va("(%s): ", ent->client->pers.netname);
+		text = va("(%s): ", ent.client.pers.netname);
 	else
-		text = va("%s: ", ent->client->pers.netname);
+		text = va("%s: ", ent.client.pers.netname);
 
 	if (arg0)
 		text = va("%s%s %s", text, gi.argv(0), gi.args());
@@ -763,37 +763,37 @@ static void(entity ent, bool team, bool arg0) Cmd_Say_f =
 
 	text = va("%s\n", text);
 
-	if (flood_msgs->intVal)
+	if (flood_msgs.intVal)
 	{
-		if (level.time < ent.client->flood_locktill)
+		if (level.time < ent.client.flood_locktill)
 		{
-			gi.cprintf(ent, PRINT_HIGH, "You can't talk for %d more seconds\n", (int)(ent.client->flood_locktill - level.time));
+			gi.cprintf(ent, PRINT_HIGH, "You can't talk for %d more seconds\n", (int)(ent.client.flood_locktill - level.time));
 			return;
 		}
-		i = ent.client->flood_whenhead - flood_msgs->intVal + 1;
+		i = ent.client.flood_whenhead - flood_msgs.intVal + 1;
 		if (i < 0)
 			i = client.flood_when.length + i;
             
-		if (ent.client->flood_when[i] && level.time - ent.client->flood_when[i] < flood_persecond->intVal)
+		if (ent.client.flood_when[i] && level.time - ent.client.flood_when[i] < flood_persecond.intVal)
 		{
-			ent.client->flood_locktill = level.time + flood_waitdelay->intVal;
-			gi.cprintf(ent, PRINT_CHAT, "Flood protection:  You can't talk for %d seconds.\n", (int)flood_waitdelay->intVal);
+			ent.client.flood_locktill = level.time + flood_waitdelay.intVal;
+			gi.cprintf(ent, PRINT_CHAT, "Flood protection:  You can't talk for %d seconds.\n", (int)flood_waitdelay.intVal);
 			return;
 		}
 
-		ent.client->flood_whenhead = (ent.client->flood_whenhead + 1) % client.flood_when.length;
-		ent.client->flood_when[ent.client->flood_whenhead] = level.time;
+		ent.client.flood_whenhead = (ent.client.flood_whenhead + 1) % client.flood_when.length;
+		ent.client.flood_when[ent.client.flood_whenhead] = level.time;
 	}
 
-	if (dedicated->intVal)
+	if (dedicated.intVal)
 		gi.cprintf(world, PRINT_CHAT, "%s", text);
 
 	for (j = 1; j <= game.maxclients; j++)
 	{
 		other = itoe(j);
-		if (!other->inuse)
+		if (!other.inuse)
 			continue;
-		if (!other->is_client)
+		if (!other.is_client)
 			continue;
 		if (team)
 		{
@@ -814,17 +814,17 @@ static void(entity ent) Cmd_PlayerList_f =
 
 	// connect time, ping, score, name
 	*text = 0;
-	for (i = 0, e2 = g_edicts + 1; i < maxclients->value; i++, e2++) {
-		if (!e2->inuse)
+	for (i = 0, e2 = g_edicts + 1; i < maxclients.value; i++, e2++) {
+		if (!e2.inuse)
 			continue;
 
 		sprintf(st, "%02d:%02d %4d %3d %s%s\n",
-			(level.framenum - e2->client->resp.enterframe) / 600,
-			((level.framenum - e2->client->resp.enterframe) % 600)/10,
-			e2->client->ping,
-			e2->client->resp.score,
-			e2->client->pers.netname,
-			e2->client->resp.spectator ? " (spectator)" : "");
+			(level.framenum - e2.client.resp.enterframe) / 600,
+			((level.framenum - e2.client.resp.enterframe) % 600)/10,
+			e2.client.ping,
+			e2.client.resp.score,
+			e2.client.pers.netname,
+			e2.client.resp.spectator ? " (spectator)" : "");
 		if (strlen(text) + strlen(st) > sizeof(text) - 50) {
 			sprintf(text+strlen(text), "And more...\n");
 			gi.cprintf(ent, PRINT_HIGH, "%s", text);
@@ -867,7 +867,7 @@ void(entity ent) ClientCommand =
 {
 	string	cmd;
 
-	if (!ent->is_client)
+	if (!ent.is_client)
 		return;		// not fully in game yet
 
 	cmd = gi.argv(0);

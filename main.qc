@@ -30,10 +30,6 @@ static void() InitGame =
 {
 	gi.dprintf("===== "__FUNC__" =====\n");
 	
-	gun_x = gi.cvar("gun_x", "0", 0);
-	gun_y = gi.cvar("gun_y", "0", 0);
-	gun_z = gi.cvar("gun_z", "0", 0);
-	
 	//FIXME: sv_ prefix is wrong for these
 	sv_rollspeed = gi.cvar("sv_rollspeed", "200", 0);
 	
@@ -118,7 +114,7 @@ static void() ClientEndServerFrames =
 	{
 		entity ent = itoe(1 + i);
 		
-		if (!ent->inuse || !ent->is_client)
+		if (!ent.inuse || !ent.is_client)
 			continue;
 			
 		ClientEndServerFrame(ent);
@@ -135,9 +131,9 @@ Returns the created target changelevel
 static entity(string new_map) CreateTargetChangeLevel =
 {
 	entity ent = G_Spawn();
-	ent->classname = "target_changelevel";
+	ent.classname = "target_changelevel";
 	level.nextmap = new_map;
-	ent->map = level.nextmap;
+	ent.map = level.nextmap;
 	return ent;
 }
 
@@ -153,7 +149,7 @@ static void() EndDMLevel =
 	entity	ent;
 
 	// stay on same level flag
-	if (dmflags->intVal & DF_SAME_LEVEL) {
+	if (dmflags.intVal & DF_SAME_LEVEL) {
 		BeginIntermission(CreateTargetChangeLevel(level.mapname));
 		return;
 	}
@@ -191,7 +187,7 @@ static void() EndDMLevel =
 		BeginIntermission(CreateTargetChangeLevel(level.nextmap));
 	else {  // search for a changelevel
 		ent = G_Find(null_entity, classname, "target_changelevel");
-		if (!ent) {
+		if (ent == null_entity) {
 			// the map designer didn't include a changelevel,
 			// so create a fake ent that goes back to the same level
 			BeginIntermission(CreateTargetChangeLevel(level.mapname));
@@ -239,24 +235,24 @@ static void() CheckDMRules =
 	if (level.intermission_framenum)
 		return;
 
-	if (!deathmatch->intVal)
+	if (!deathmatch.intVal)
 		return;
 
-	if (timelimit->intVal) {
-		if (level.time >= timelimit->intVal * 60) {
+	if (timelimit.intVal) {
+		if (level.time >= timelimit.intVal * 60) {
 			gi.bprintf(PRINT_HIGH, "Timelimit hit.\n");
 			EndDMLevel();
 			return;
 		}
 	}
 
-	if (fraglimit->intVal) {
-		for (i = 0 ; i < maxclients->intVal ; i++) {
+	if (fraglimit.intVal) {
+		for (i = 0 ; i < maxclients.intVal ; i++) {
 			entity cl = itoe(i + 1);
 			if (!cl.inuse)
 				continue;
 
-			if (cl->client.resp.score >= fraglimit->intVal) {
+			if (cl.client.resp.score >= fraglimit.intVal) {
 				gi.bprintf(PRINT_HIGH, "Fraglimit hit.\n");
 				EndDMLevel();
 				return;
@@ -284,11 +280,11 @@ static void(void) ExitLevel =
 	{
 		entity ent = itoe(1 + i);
 	
-		if (!ent->inuse)
+		if (!ent.inuse)
 			continue;
 	
-		if (ent->health > ent->client->pers.max_health)
-			ent->health = ent->client->pers.max_health;
+		if (ent.health > ent.client.pers.max_health)
+			ent.health = ent.client.pers.max_health;
 	}
 }
 
@@ -328,17 +324,17 @@ static void() RunFrame =
 	{
 		entity ent = itoe(i);
 
-		if (!ent->inuse)
+		if (!ent.inuse)
 			continue;
 		
 		level.current_entity = ent;
 		
-		ent->s.old_origin = ent->s.origin;
+		ent.s.old_origin = ent.s.origin;
 		
 		// if the ground entity moved, make sure we are still on it
-		if ((ent->groundentity != null_entity) && (ent->groundentity->linkcount != ent->groundentity_linkcount)) {
-			ent->groundentity = null_entity;
-			if (!(ent->flags & (FL_SWIM | FL_FLY)) && (ent->svflags & SVF_MONSTER)) {
+		if ((ent.groundentity != null_entity) && (ent.groundentity.linkcount != ent.groundentity_linkcount)) {
+			ent.groundentity = null_entity;
+			if (!(ent.flags & (FL_SWIM | FL_FLY)) && (ent.svflags & SVF_MONSTER)) {
 				M_CheckGround(ent);
 			}
 		}
@@ -402,7 +398,7 @@ static void(int num_edicts) PostReadLevel =
 	for (int i = 0 ; i < game.maxclients; i++)
 	{
 		entity ent = itoe(i + 1);
-		ent->client->pers.connected = false;
+		ent.client.pers.connected = false;
 	}
 
 	// do any load time things at this point
@@ -410,12 +406,12 @@ static void(int num_edicts) PostReadLevel =
 	{
 		entity ent = itoe(i);
 
-		if (!ent->inuse)
+		if (!ent.inuse)
 			continue;
 
 		// fire any cross-level triggers
-		if (ent->classname == "target_crosslevel_target")
-			ent->nextthink = level.framenum + (int)(ent->delay * BASE_FRAMERATE);
+		if (ent.classname == "target_crosslevel_target")
+			ent.nextthink = level.framenum + (int)(ent.delay * BASE_FRAMERATE);
 	}
 };
 

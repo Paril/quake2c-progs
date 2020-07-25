@@ -42,7 +42,7 @@ int(entity) etoi = #0:etoi;
 bool(string, string, string) struct_key_parse = #0:struct_key_parse;
 void(entity, .__variant, string) entity_key_parse = #0:entity_key_parse;
 
-// dmflags->value flags
+// dmflags.value flags
 enumflags : int
 {
 	DF_NO_HEALTH,
@@ -82,7 +82,13 @@ typedef enumflags int
 	DAMAGE_ENERGY,		// damage is from an energy based weapon
 	DAMAGE_NO_KNOCKBACK,	// do not affect velocity, just view angles
 	DAMAGE_BULLET,		// damage is from a bullet (used for ricochets)
-	DAMAGE_NO_PROTECTION,	// armor, shields, invulnerability, and godmode have no effect
+	DAMAGE_NO_PROTECTION	// armor, shields, invulnerability, and godmode have no effect
+	
+#ifdef GROUND_ZERO
+	, DAMAGE_DESTROY_ARMOR,	// damage is done to armor and health.
+	DAMAGE_NO_REG_ARMOR,	// damage skips regular armor
+	DAMAGE_NO_POWER_ARMOR	// damage skips power armor
+#endif
 } damage_flags_t;
 
 // means of death
@@ -131,7 +137,19 @@ typedef enum int
 	MOD_GEKK,
 	MOD_TRAP,
 #endif
-	
+
+#ifdef GROUND_ZERO
+	MOD_CHAINFIST,
+	MOD_DISINTEGRATOR,
+	MOD_ETF_RIFLE,
+	MOD_BLASTER2,
+	MOD_HEATBEAM,
+	MOD_TESLA,
+	MOD_PROX,
+	MOD_NUKE,
+	MOD_TRACKER,
+#endif
+
 	// bitflag
 	MOD_FRIENDLY_FIRE	= 0x8000000
 } means_of_death_t;

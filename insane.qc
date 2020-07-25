@@ -107,14 +107,14 @@ static var mmove_t insane_move_jumpdown = { FRAME_stand96, FRAME_stand100 };
 
 static void insane_checkdown(entity self)
 {
-//  if ( (self->s.frame == FRAME_stand94) || (self->s.frame == FRAME_stand65) )
-	if (self->spawnflags & 32)              // Always stand
+//  if ( (self.s.frame == FRAME_stand94) || (self.s.frame == FRAME_stand65) )
+	if (self.spawnflags & 32)              // Always stand
 		return;
 	if (random() < 0.3f) {
 		if (random() < 0.5f)
-			self->monsterinfo.currentmove = &insane_move_uptodown;
+			self.monsterinfo.currentmove = &insane_move_uptodown;
 		else
-			self->monsterinfo.currentmove = &insane_move_jumpdown;
+			self.monsterinfo.currentmove = &insane_move_jumpdown;
 	}
 }
 
@@ -165,10 +165,10 @@ static var mmove_t insane_move_stand_insane = { FRAME_stand65, FRAME_stand94 };
 static void insane_checkup(entity self)
 {
 	// If Hold_Ground and Crawl are set
-	if ((self->spawnflags & 4) && (self->spawnflags & 16))
+	if ((self.spawnflags & 4) && (self.spawnflags & 16))
 		return;
 	if (random() < 0.5f)
-		self->monsterinfo.currentmove = &insane_move_downtoup;
+		self.monsterinfo.currentmove = &insane_move_downtoup;
 }
 
 static mframe_t insane_frames_down [] = {
@@ -400,39 +400,39 @@ static var mmove_t insane_move_struggle_cross = { FRAME_cross16, FRAME_cross30 }
 static void insane_cross(entity self)
 {
 	if (random() < 0.8f)
-		self->monsterinfo.currentmove = &insane_move_cross;
+		self.monsterinfo.currentmove = &insane_move_cross;
 	else
-		self->monsterinfo.currentmove = &insane_move_struggle_cross;
+		self.monsterinfo.currentmove = &insane_move_struggle_cross;
 }
 
 static void insane_walk(entity self)
 {
-	if (self->spawnflags & 16)              // Hold Ground?
-		if (self->s.frame == FRAME_cr_pain10) {
-			self->monsterinfo.currentmove = &insane_move_down;
+	if (self.spawnflags & 16)              // Hold Ground?
+		if (self.s.frame == FRAME_cr_pain10) {
+			self.monsterinfo.currentmove = &insane_move_down;
 			return;
 		}
-	if (self->spawnflags & 4)
-		self->monsterinfo.currentmove = &insane_move_crawl;
+	if (self.spawnflags & 4)
+		self.monsterinfo.currentmove = &insane_move_crawl;
 	else if (random() <= 0.5f)
-		self->monsterinfo.currentmove = &insane_move_walk_normal;
+		self.monsterinfo.currentmove = &insane_move_walk_normal;
 	else
-		self->monsterinfo.currentmove = &insane_move_walk_insane;
+		self.monsterinfo.currentmove = &insane_move_walk_insane;
 }
 
 static void insane_run(entity self)
 {
-	if (self->spawnflags & 16)              // Hold Ground?
-		if (self->s.frame == FRAME_cr_pain10) {
-			self->monsterinfo.currentmove = &insane_move_down;
+	if (self.spawnflags & 16)              // Hold Ground?
+		if (self.s.frame == FRAME_cr_pain10) {
+			self.monsterinfo.currentmove = &insane_move_down;
 			return;
 		}
-	if (self->spawnflags & 4)               // Crawling?
-		self->monsterinfo.currentmove = &insane_move_runcrawl;
+	if (self.spawnflags & 4)               // Crawling?
+		self.monsterinfo.currentmove = &insane_move_runcrawl;
 	else if (random() <= 0.5f)              // Else, mix it up
-		self->monsterinfo.currentmove = &insane_move_run_normal;
+		self.monsterinfo.currentmove = &insane_move_run_normal;
 	else
-		self->monsterinfo.currentmove = &insane_move_run_insane;
+		self.monsterinfo.currentmove = &insane_move_run_insane;
 }
 
 
@@ -440,72 +440,72 @@ static void insane_pain(entity self, entity other, float kick, int damage)
 {
 	int l, r;
 
-//  if (self->health < (self->max_health / 2))
-//      self->s.skinnum = 1;
+//  if (self.health < (self.max_health / 2))
+//      self.s.skinnum = 1;
 
-	if (level.framenum < self->pain_debounce_framenum)
+	if (level.framenum < self.pain_debounce_framenum)
 		return;
 
-	self->pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
+	self.pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
 
 	r = 1 + (Q_rand() & 1);
-	if (self->health < 25)
+	if (self.health < 25)
 		l = 25;
-	else if (self->health < 50)
+	else if (self.health < 50)
 		l = 50;
-	else if (self->health < 75)
+	else if (self.health < 75)
 		l = 75;
 	else
 		l = 100;
 	gi.sound(self, CHAN_VOICE, gi.soundindex(va("player/male/pain%i_%i.wav", l, r)), 1, ATTN_IDLE, 0);
 
-	if (skill->intVal == 3)
+	if (skill.intVal == 3)
 		return;     // no pain anims in nightmare
 
 	// Don't go into pain frames if crucified.
-	if (self->spawnflags & 8) {
-		self->monsterinfo.currentmove = &insane_move_struggle_cross;
+	if (self.spawnflags & 8) {
+		self.monsterinfo.currentmove = &insane_move_struggle_cross;
 		return;
 	}
 
-	if (((self->s.frame >= FRAME_crawl1) && (self->s.frame <= FRAME_crawl9)) || ((self->s.frame >= FRAME_stand99) && (self->s.frame <= FRAME_stand160))) {
-		self->monsterinfo.currentmove = &insane_move_crawl_pain;
+	if (((self.s.frame >= FRAME_crawl1) && (self.s.frame <= FRAME_crawl9)) || ((self.s.frame >= FRAME_stand99) && (self.s.frame <= FRAME_stand160))) {
+		self.monsterinfo.currentmove = &insane_move_crawl_pain;
 	} else
-		self->monsterinfo.currentmove = &insane_move_stand_pain;
+		self.monsterinfo.currentmove = &insane_move_stand_pain;
 
 }
 
 static void insane_onground(entity self)
 {
-	self->monsterinfo.currentmove = &insane_move_down;
+	self.monsterinfo.currentmove = &insane_move_down;
 }
 
 static void insane_stand(entity self)
 {
-	if (self->spawnflags & 8) {         // If crucified
-		self->monsterinfo.currentmove = &insane_move_cross;
-		self->monsterinfo.aiflags |= AI_STAND_GROUND;
+	if (self.spawnflags & 8) {         // If crucified
+		self.monsterinfo.currentmove = &insane_move_cross;
+		self.monsterinfo.aiflags |= AI_STAND_GROUND;
 	}
 	// If Hold_Ground and Crawl are set
-	else if ((self->spawnflags & 4) && (self->spawnflags & 16))
-		self->monsterinfo.currentmove = &insane_move_down;
+	else if ((self.spawnflags & 4) && (self.spawnflags & 16))
+		self.monsterinfo.currentmove = &insane_move_down;
 	else if (random() < 0.5f)
-		self->monsterinfo.currentmove = &insane_move_stand_normal;
+		self.monsterinfo.currentmove = &insane_move_stand_normal;
 	else
-		self->monsterinfo.currentmove = &insane_move_stand_insane;
+		self.monsterinfo.currentmove = &insane_move_stand_insane;
 }
 
 static void insane_dead(entity self)
 {
-	if (self->spawnflags & 8) {
-		self->flags |= FL_FLY;
+	if (self.spawnflags & 8) {
+		self.flags |= FL_FLY;
 	} else {
-		self->mins = '-16 -16 -24';
-		self->maxs = '16 16 -8';
-		self->movetype = MOVETYPE_TOSS;
+		self.mins = '-16 -16 -24';
+		self.maxs = '16 16 -8';
+		self.movetype = MOVETYPE_TOSS;
 	}
-	self->svflags |= SVF_DEADMONSTER;
-	self->nextthink = 0;
+	self.svflags |= SVF_DEADMONSTER;
+	self.nextthink = 0;
 	gi.linkentity(self);
 }
 
@@ -513,32 +513,32 @@ static void insane_die(entity self, entity inflictor, entity attacker, int damag
 {
 	int     n;
 
-	if (self->health <= self->gib_health) {
+	if (self.health <= self.gib_health) {
 		gi.sound(self, CHAN_VOICE, gi.soundindex("misc/udeath.wav"), 1, ATTN_IDLE, 0);
 		for (n = 0; n < 2; n++)
 			ThrowGib(self, "models/objects/gibs/bone/tris.md2", damage, GIB_ORGANIC);
 		for (n = 0; n < 4; n++)
 			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
 		ThrowHead(self, "models/objects/gibs/head2/tris.md2", damage, GIB_ORGANIC);
-		self->deadflag = DEAD_DEAD;
+		self.deadflag = DEAD_DEAD;
 		return;
 	}
 
-	if (self->deadflag == DEAD_DEAD)
+	if (self.deadflag == DEAD_DEAD)
 		return;
 
 	gi.sound(self, CHAN_VOICE, gi.soundindex(va("player/male/death%i.wav", (Q_rand() % 4) + 1)), 1, ATTN_IDLE, 0);
 
-	self->deadflag = DEAD_DEAD;
-	self->takedamage = DAMAGE_YES;
+	self.deadflag = DEAD_DEAD;
+	self.takedamage = DAMAGE_YES;
 
-	if (self->spawnflags & 8) {
+	if (self.spawnflags & 8) {
 		insane_dead(self);
 	} else {
-		if (((self->s.frame >= FRAME_crawl1) && (self->s.frame <= FRAME_crawl9)) || ((self->s.frame >= FRAME_stand99) && (self->s.frame <= FRAME_stand160)))
-			self->monsterinfo.currentmove = &insane_move_crawl_death;
+		if (((self.s.frame >= FRAME_crawl1) && (self.s.frame <= FRAME_crawl9)) || ((self.s.frame >= FRAME_stand99) && (self.s.frame <= FRAME_stand160)))
+			self.monsterinfo.currentmove = &insane_move_crawl_death;
 		else
-			self->monsterinfo.currentmove = &insane_move_stand_death;
+			self.monsterinfo.currentmove = &insane_move_stand_death;
 	}
 }
 
@@ -549,7 +549,7 @@ API_FUNC static void SP_misc_insane(entity self)
 {
 //  static int skin = 0;    //@@
 
-	if (deathmatch->intVal) {
+	if (deathmatch.intVal) {
 		G_FreeEdict(self);
 		return;
 	}
@@ -618,51 +618,51 @@ API_FUNC static void SP_misc_insane(entity self)
 	sound_scream[6] = gi.soundindex("insane/insane9.wav");
 	sound_scream[7] = gi.soundindex("insane/insane10.wav");
 
-	self->movetype = MOVETYPE_STEP;
-	self->solid = SOLID_BBOX;
-	self->s.modelindex = gi.modelindex("models/monsters/insane/tris.md2");
+	self.movetype = MOVETYPE_STEP;
+	self.solid = SOLID_BBOX;
+	self.s.modelindex = gi.modelindex("models/monsters/insane/tris.md2");
 
-	self->mins = '-16 -16 -24';
-	self->maxs = '16 16 32';
+	self.mins = '-16 -16 -24';
+	self.maxs = '16 16 32';
 
-	self->health = 100;
-	self->gib_health = -50;
-	self->mass = 300;
+	self.health = 100;
+	self.gib_health = -50;
+	self.mass = 300;
 
-	self->pain = insane_pain;
-	self->die = insane_die;
+	self.pain = insane_pain;
+	self.die = insane_die;
 
-	self->monsterinfo.stand = insane_stand;
-	self->monsterinfo.walk = insane_walk;
-	self->monsterinfo.run = insane_run;
-	self->monsterinfo.dodge = 0;
-	self->monsterinfo.attack = 0;
-	self->monsterinfo.melee = 0;
-	self->monsterinfo.sight = 0;
-	self->monsterinfo.aiflags |= AI_GOOD_GUY;
+	self.monsterinfo.stand = insane_stand;
+	self.monsterinfo.walk = insane_walk;
+	self.monsterinfo.run = insane_run;
+	self.monsterinfo.dodge = 0;
+	self.monsterinfo.attack = 0;
+	self.monsterinfo.melee = 0;
+	self.monsterinfo.sight = 0;
+	self.monsterinfo.aiflags |= AI_GOOD_GUY;
 
 //@@
-//  self->s.skinnum = skin;
+//  self.s.skinnum = skin;
 //  skin++;
 //  if (skin > 12)
 //      skin = 0;
 
 	gi.linkentity(self);
 
-	if (self->spawnflags & 16)              // Stand Ground
-		self->monsterinfo.aiflags |= AI_STAND_GROUND;
+	if (self.spawnflags & 16)              // Stand Ground
+		self.monsterinfo.aiflags |= AI_STAND_GROUND;
 
-	self->monsterinfo.currentmove = &insane_move_stand_normal;
+	self.monsterinfo.currentmove = &insane_move_stand_normal;
 
-	self->monsterinfo.scale = MODEL_SCALE;
+	self.monsterinfo.scale = MODEL_SCALE;
 
-	if (self->spawnflags & 8) {                 // Crucified ?
-		self->mins = '-16 0 0';
-		self->maxs = '16 8 32';
-		self->flags |= FL_NO_KNOCKBACK;
+	if (self.spawnflags & 8) {                 // Crucified ?
+		self.mins = '-16 0 0';
+		self.maxs = '16 8 32';
+		self.flags |= FL_NO_KNOCKBACK;
 		flymonster_start(self);
 	} else {
 		walkmonster_start(self);
-		self->s.skinnum = Q_rand() % 3;
+		self.s.skinnum = Q_rand() % 3;
 	}
 }

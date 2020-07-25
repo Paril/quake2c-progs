@@ -15,19 +15,19 @@ static entity(entity self) fixbot_FindDeadMonster =
 	entity	ent = null_entity;
 	entity	best = null_entity;
 
-	while ((ent = findradius(ent, self->s.origin, 1024)) != null_entity)
+	while ((ent = findradius(ent, self.s.origin, 1024)) != null_entity)
 	{
 		if (ent == self)
 			continue;
-		if (!(ent->svflags & SVF_MONSTER))
+		if (!(ent.svflags & SVF_MONSTER))
 			continue;
-		if (ent->monsterinfo.aiflags & AI_GOOD_GUY)
+		if (ent.monsterinfo.aiflags & AI_GOOD_GUY)
 			continue;
-		if (ent->owner)
+		if (ent.owner)
 			continue;
-		if (ent->health > 0)
+		if (ent.health > 0)
 			continue;
-		if (ent->nextthink)
+		if (ent.nextthink)
 			continue;
 		if (!visible(self, ent))
 			continue;
@@ -36,7 +36,7 @@ static entity(entity self) fixbot_FindDeadMonster =
 			best = ent;
 			continue;
 		}
-		if (ent->max_health <= best->max_health)
+		if (ent.max_health <= best.max_health)
 			continue;
 		best = ent;
 	}
@@ -48,15 +48,15 @@ static int(entity self) fixbot_search =
 {
 	entity	ent;
 
-	if (!self->goalentity)
+	if (!self.goalentity)
 	{
 		ent = fixbot_FindDeadMonster(self);
 		if (ent)
 		{
-			self->oldenemy = self->enemy;
-			self->enemy = ent;
-			self->enemy->owner = self;
-			self->monsterinfo.aiflags |= AI_MEDIC;
+			self.oldenemy = self.enemy;
+			self.enemy = ent;
+			self.enemy.owner = self;
+			self.monsterinfo.aiflags |= AI_MEDIC;
 			FoundTarget (self);
 			return 1;
 		}
@@ -107,29 +107,29 @@ static void(entity self) change_to_roam =
 	if (fixbot_search(self))
 		return;
 
-	self->monsterinfo.currentmove = &fixbot_move_roamgoal;
+	self.monsterinfo.currentmove = &fixbot_move_roamgoal;
 	
-	if (self->spawnflags & 16)
+	if (self.spawnflags & 16)
 	{
 		landing_goal (self);
-		self->spawnflags &= ~16;
-		self->spawnflags = 32;
+		self.spawnflags &= ~16;
+		self.spawnflags = 32;
 	}
-	if (self->spawnflags & 8) 
+	if (self.spawnflags & 8) 
 	{
 		takeoff_goal (self);
-		self->spawnflags &= ~8;
-		self->spawnflags = 32;
+		self.spawnflags &= ~8;
+		self.spawnflags = 32;
 	}
-	if (self->spawnflags & 4)
+	if (self.spawnflags & 4)
 	{
-		self->monsterinfo.currentmove = &fixbot_move_roamgoal;
-		self->spawnflags &= ~4;
-		self->spawnflags = 32;
+		self.monsterinfo.currentmove = &fixbot_move_roamgoal;
+		self.spawnflags &= ~4;
+		self.spawnflags = 32;
 	}
-	if (!self->spawnflags)
+	if (!self.spawnflags)
 	{
-		self->monsterinfo.currentmove = &fixbot_move_stand2;
+		self.monsterinfo.currentmove = &fixbot_move_stand2;
 	}
 }
 
@@ -167,17 +167,17 @@ static void(entity self) fly_vertical2 =
 	vector v;
 	float len;
 	
-	v = self->goalentity->s.origin - self->s.origin;
+	v = self.goalentity.s.origin - self.s.origin;
 	len = VectorLength (v);
-	self->ideal_yaw = vectoyaw(v);	
+	self.ideal_yaw = vectoyaw(v);	
 	M_ChangeYaw (self);
 	
 	if (len < 32)
 	{
-		self->goalentity->nextthink = level.framenum + 1;
-		self->goalentity->think = G_FreeEdict;
-		self->monsterinfo.currentmove = &fixbot_move_stand;
-		self->goalentity = self->enemy = 0;
+		self.goalentity.nextthink = level.framenum + 1;
+		self.goalentity.think = G_FreeEdict;
+		self.monsterinfo.currentmove = &fixbot_move_stand;
+		self.goalentity = self.enemy = 0;
 	}
 		
 	// needs sound
@@ -259,24 +259,24 @@ static void(entity self) landing_goal =
 	entity	ent;
 	
 	ent = G_Spawn ();	
-	ent->classname = "bot_goal";
-	ent->solid = SOLID_BBOX;
-	ent->owner = self;
+	ent.classname = "bot_goal";
+	ent.solid = SOLID_BBOX;
+	ent.owner = self;
 	gi.linkentity (ent);
 	
-	ent->mins = '-32 -32 -24';
-	ent->maxs = '32 32 24';
+	ent.mins = '-32 -32 -24';
+	ent.maxs = '32 32 24';
 	
-	AngleVectors (self->s.angles, &forward, &right, &up);
+	AngleVectors (self.s.angles, &forward, &right, &up);
 	end = self.s.origin + (forward * 32); // Paril: this wasn't right in vanilla
 	end += up * -8192;
 		
-	gi.trace (&tr, self->s.origin, ent->mins, ent->maxs, end, self, MASK_MONSTERSOLID);
+	gi.trace (&tr, self.s.origin, ent.mins, ent.maxs, end, self, MASK_MONSTERSOLID);
 
-	ent->s.origin = tr.endpos;
+	ent.s.origin = tr.endpos;
 	
-	self->goalentity = self->enemy = ent;
-	self->monsterinfo.currentmove = &fixbot_move_landing;
+	self.goalentity = self.enemy = ent;
+	self.monsterinfo.currentmove = &fixbot_move_landing;
 }
 
 
@@ -300,10 +300,10 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 	bool	water = false;
 	int	content_mask = MASK_SHOT | MASK_WATER;
 
-	hspread += (self->s.frame - FRAME_takeoff_01);
-	vspread += (self->s.frame - FRAME_takeoff_01);
+	hspread += (self.s.frame - FRAME_takeoff_01);
+	vspread += (self.s.frame - FRAME_takeoff_01);
 
-	gi.trace (&tr, self->s.origin, vec3_origin, vec3_origin, start, self, MASK_SHOT);
+	gi.trace (&tr, self.s.origin, vec3_origin, vec3_origin, start, self, MASK_SHOT);
 	if (!(tr.fraction < 1.0))
 	{
 		dir = vectoangles (aimdir);
@@ -336,7 +336,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 			{
 				if (tr.contents & CONTENTS_WATER)
 				{
-					if (tr.surface->name == "*brwater")
+					if (tr.surface.name == "*brwater")
 						color = SPLASH_BROWN_WATER;
 					else
 						color = SPLASH_BLUE_WATER;
@@ -376,17 +376,17 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 	}
 
 	// send gun puff / flash
-	if (!((tr.surface) && (tr.surface->flags & SURF_SKY)))
+	if (!((tr.surface) && (tr.surface.flags & SURF_SKY)))
 	{
 		if (tr.fraction < 1.0)
 		{
-			if (tr.ent->takedamage)
+			if (tr.ent.takedamage)
 			{
 				T_Damage (tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal, damage, kick, DAMAGE_BULLET, MOD_BLASTOFF);
 			}
 			else
 			{
-				if (strncmp (tr.surface->name, "sky", 3) != 0)
+				if (strncmp (tr.surface.name, "sky", 3) != 0)
 				{
 					gi.WriteByte (svc_temp_entity);
 					gi.WriteByte (te_impact);
@@ -394,7 +394,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 					gi.WriteDir (tr.plane.normal);
 					gi.multicast (tr.endpos, MULTICAST_PVS);
 
-					if (self->is_client)
+					if (self.is_client)
 						PlayerNoise(self, tr.endpos, PNOISE_IMPACT);
 				}
 			}
@@ -432,24 +432,24 @@ static void(entity self) fly_vertical =
 	vector	start;
 	vector	tempvec;
 	
-	v = self->goalentity->s.origin - self->s.origin;
-	self->ideal_yaw = vectoyaw(v);	
+	v = self.goalentity.s.origin - self.s.origin;
+	self.ideal_yaw = vectoyaw(v);	
 	M_ChangeYaw (self);
 	
-	if (self->s.frame == FRAME_landing_58 || self->s.frame == FRAME_takeoff_16)
+	if (self.s.frame == FRAME_landing_58 || self.s.frame == FRAME_takeoff_16)
 	{
-		self->goalentity->nextthink = level.framenum + 1;
-		self->goalentity->think = G_FreeEdict;
-		self->monsterinfo.currentmove = &fixbot_move_stand;
-		self->goalentity = self->enemy = world;
+		self.goalentity.nextthink = level.framenum + 1;
+		self.goalentity.think = G_FreeEdict;
+		self.monsterinfo.currentmove = &fixbot_move_stand;
+		self.goalentity = self.enemy = world;
 	}
 
 	// kick up some particles
-	tempvec = self->s.angles;
+	tempvec = self.s.angles;
 	tempvec[PITCH] += 90;
 
 	AngleVectors (tempvec, &forward, &right, &up);
-	start = self->s.origin;
+	start = self.s.origin;
 	
 	for (int i = 0; i < 10; i++)
 		blastoff (self, start, forward, 2, 1, TE_SHOTGUN, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD);
@@ -490,24 +490,24 @@ static void(entity self) takeoff_goal =
 	entity	ent;
 	
 	ent = G_Spawn ();	
-	ent->classname = "bot_goal";
-	ent->solid = SOLID_BBOX;
-	ent->owner = self;
+	ent.classname = "bot_goal";
+	ent.solid = SOLID_BBOX;
+	ent.owner = self;
 	gi.linkentity (ent);
 	
-	ent->mins = '-32 -32 -24';
-	ent->maxs = '32 32 24';
+	ent.mins = '-32 -32 -24';
+	ent.maxs = '32 32 24';
 
-	AngleVectors (self->s.angles, &forward, &right, &up);
+	AngleVectors (self.s.angles, &forward, &right, &up);
 	end = self.s.origin + (forward * 32); // Paril: this wasn't right in vanilla
 	end += up * 128;
 		
-	gi.trace (&tr, self->s.origin, ent->mins, ent->maxs, end, self, MASK_MONSTERSOLID);
+	gi.trace (&tr, self.s.origin, ent.mins, ent.maxs, end, self, MASK_MONSTERSOLID);
 
-	ent->s.origin = tr.endpos;
+	ent.s.origin = tr.endpos;
 	
-	self->goalentity = self->enemy = ent;
-	self->monsterinfo.currentmove = &fixbot_move_takeoff;
+	self.goalentity = self.enemy = ent;
+	self.monsterinfo.currentmove = &fixbot_move_takeoff;
 }
 
 static void(entity self, float dist) ai_movetogoal =
@@ -520,22 +520,22 @@ static var mmove_t fixbot_move_weld;
 
 static void(entity self) weldstate =
 {
-	if (self->s.frame == FRAME_weldstart_10)
-		self->monsterinfo.currentmove = &fixbot_move_weld;
-	else if (self->s.frame == FRAME_weldmiddle_07)
+	if (self.s.frame == FRAME_weldstart_10)
+		self.monsterinfo.currentmove = &fixbot_move_weld;
+	else if (self.s.frame == FRAME_weldmiddle_07)
 	{
-		if (self->goalentity->health < 0) 
+		if (self.goalentity.health < 0) 
 		{
-			self->enemy->owner = 0;
-			self->monsterinfo.currentmove = &fixbot_move_weld_end;
+			self.enemy.owner = 0;
+			self.monsterinfo.currentmove = &fixbot_move_weld_end;
 		}
 		else
-			self->goalentity->health -= 10;
+			self.goalentity.health -= 10;
 	}
 	else
 	{
-		self->goalentity = self->enemy = 0;
-		self->monsterinfo.currentmove = &fixbot_move_stand;
+		self.goalentity = self.enemy = 0;
+		self.monsterinfo.currentmove = &fixbot_move_stand;
 	}
 }
 
@@ -544,10 +544,10 @@ static void(entity self, float dist) ai_move2 =
 	vector	v;
 	
 	if (dist)
-		M_walkmove (self, self->s.angles[YAW], dist);
+		M_walkmove (self, self.s.angles[YAW], dist);
 
-	v = self->goalentity->s.origin - self->s.origin;
-	self->ideal_yaw = vectoyaw(v);	
+	v = self.goalentity.s.origin - self.s.origin;
+	self.ideal_yaw = vectoyaw(v);	
 	M_ChangeYaw (self);
 };
 
@@ -576,15 +576,15 @@ static void(entity self) fixbot_fire_welder =
 	vector	vec;
 	float	r;
 	
-	if (!self->enemy)
+	if (!self.enemy)
 		return;
 
 	vec = '24.0 -0.8 -10.0';
 
-	AngleVectors (self->s.angles, &forward, &right, &up);
-	G_ProjectSource (self->s.origin, vec, forward, right, start);
+	AngleVectors (self.s.angles, &forward, &right, &up);
+	start = G_ProjectSource (self.s.origin, vec, forward, right);
 
-	end = self->enemy->s.origin;
+	end = self.enemy.s.origin;
 	
 	dir = end - start;
 
@@ -594,7 +594,7 @@ static void(entity self) fixbot_fire_welder =
 	gi.WritePosition (start);
 	gi.WriteDir (vec3_origin);
 	gi.WriteByte (0xe0 + (Q_rand()&7));
-	gi.multicast (self->s.origin, MULTICAST_PVS);
+	gi.multicast (self.s.origin, MULTICAST_PVS);
 
 
 	if (random() > 0.8)
@@ -643,29 +643,29 @@ static void(entity self) use_scanner =
 	float	oldlen = 0x10000;
 	entity	tempent = null_entity; 
 
-	while ((ent = findradius(ent, self->s.origin, radius)) != null_entity)
+	while ((ent = findradius(ent, self.s.origin, radius)) != null_entity)
 	{
-		if (ent->health >= 100)
+		if (ent.health >= 100)
 		{
-			if (ent->classname == "object_repair")
+			if (ent.classname == "object_repair")
 			{
 				if (visible(self, ent))
 				{	
 					// remove the old one
-					if (self->goalentity->classname == "bot_goal")
+					if (self.goalentity.classname == "bot_goal")
 					{
-						self->goalentity->nextthink = level.framenum + 1;
-						self->goalentity->think = G_FreeEdict;
+						self.goalentity.nextthink = level.framenum + 1;
+						self.goalentity.think = G_FreeEdict;
 					}	
 					
-					self->goalentity = self->enemy = ent;
+					self.goalentity = self.enemy = ent;
 					
-					vec = self->s.origin - self->goalentity->s.origin;
+					vec = self.s.origin - self.goalentity.s.origin;
 					len = VectorNormalize (vec);
 
 					if (len < 32)
 					{
-						self->monsterinfo.currentmove = &fixbot_move_weld_start;
+						self.monsterinfo.currentmove = &fixbot_move_weld_start;
 						return;
 					}
 					return;
@@ -674,26 +674,26 @@ static void(entity self) use_scanner =
 		}
 	}
 
-	vec = self->s.origin - self->goalentity->s.origin;
+	vec = self.s.origin - self.goalentity.s.origin;
 	len = VectorLength (vec);
 
 	if (len < 32)
 	{
-		if (self->goalentity->classname == "object_repair")
+		if (self.goalentity.classname == "object_repair")
 		{
-			self->monsterinfo.currentmove = &fixbot_move_weld_start;
+			self.monsterinfo.currentmove = &fixbot_move_weld_start;
 		}
 		else 
 		{
-			self->goalentity->nextthink = level.framenum + 1;
-			self->goalentity->think = G_FreeEdict;
-			self->goalentity = self->enemy = 0;
-			self->monsterinfo.currentmove = &fixbot_move_stand;
+			self.goalentity.nextthink = level.framenum + 1;
+			self.goalentity.think = G_FreeEdict;
+			self.goalentity = self.enemy = 0;
+			self.monsterinfo.currentmove = &fixbot_move_stand;
 		}
 		return;
 	}
 
-	vec = self->s.origin - self->s.old_origin;
+	vec = self.s.origin - self.s.old_origin;
 	len = VectorLength (vec);
 
 	/* 
@@ -701,16 +701,16 @@ static void(entity self) use_scanner =
 	*/
 	if (len == 0)
 	{
-		if (self->goalentity->classname == "object_repair")
+		if (self.goalentity.classname == "object_repair")
 		{
-			self->monsterinfo.currentmove = &fixbot_move_stand;
+			self.monsterinfo.currentmove = &fixbot_move_stand;
 		}
 		else 
 		{
-			self->goalentity->nextthink = level.framenum + 1;
-			self->goalentity->think = G_FreeEdict;
-			self->goalentity = self->enemy = 0;
-			self->monsterinfo.currentmove = &fixbot_move_stand;
+			self.goalentity.nextthink = level.framenum + 1;
+			self.goalentity.think = G_FreeEdict;
+			self.goalentity = self.enemy = 0;
+			self.monsterinfo.currentmove = &fixbot_move_stand;
 		}
 	}
 
@@ -726,12 +726,12 @@ static void(entity self, float dist) ai_facing =
 {
 	vector	v;
 
-	if (infront (self, self->goalentity))
-		self->monsterinfo.currentmove = &fixbot_move_forward;
+	if (infront (self, self.goalentity))
+		self.monsterinfo.currentmove = &fixbot_move_forward;
 	else
 	{
-		v = self->goalentity->s.origin - self->s.origin;
-		self->ideal_yaw = vectoyaw(v);	
+		v = self.goalentity.s.origin - self.s.origin;
+		self.ideal_yaw = vectoyaw(v);	
 		M_ChangeYaw (self);
 	}
 
@@ -756,9 +756,9 @@ static void(entity self) roam_goal =
 	vector	whichvec = vec3_origin;
 		
 	ent = G_Spawn ();	
-	ent->classname = "bot_goal";
-	ent->solid = SOLID_BBOX;
-	ent->owner = self;
+	ent.classname = "bot_goal";
+	ent.solid = SOLID_BBOX;
+	ent.owner = self;
 	gi.linkentity (ent);
 
 	oldlen = 0;
@@ -766,7 +766,7 @@ static void(entity self) roam_goal =
 	for (i=0; i<12; i++) 
 	{
 		
-		dang = self->s.angles;
+		dang = self.s.angles;
 
 		if (i < 6)
 			dang[YAW] += 30 * i;
@@ -775,9 +775,9 @@ static void(entity self) roam_goal =
 
 		AngleVectors (dang, &forward, &right, &up);
 		end = self.s.origin + (forward * 8192);
-		gi.trace (&tr, self->s.origin, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+		gi.trace (&tr, self.s.origin, vec3_origin, vec3_origin, end, self, MASK_SHOT);
 
-		vec = self->s.origin - tr.endpos;
+		vec = self.s.origin - tr.endpos;
 		len = VectorNormalize (vec);
 		
 		if (len > oldlen)
@@ -788,15 +788,15 @@ static void(entity self) roam_goal =
 		
 	}
 	
-	ent->s.origin = whichvec;
-	self->goalentity = self->enemy = ent;
+	ent.s.origin = whichvec;
+	self.goalentity = self.enemy = ent;
 	
-	self->monsterinfo.currentmove = &fixbot_move_turn;
+	self.monsterinfo.currentmove = &fixbot_move_turn;
 }
 
 static void(entity self) fixbot_stand =
 {
-	self->monsterinfo.currentmove = &fixbot_move_stand;
+	self.monsterinfo.currentmove = &fixbot_move_stand;
 }
 
 /*
@@ -810,10 +810,10 @@ static var mmove_t fixbot_move_run = { FRAME_freeze_01, FRAME_freeze_01 };
 
 static void(entity self) fixbot_run =
 {
-	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
-		self->monsterinfo.currentmove = &fixbot_move_stand;
+	if (self.monsterinfo.aiflags & AI_STAND_GROUND)
+		self.monsterinfo.currentmove = &fixbot_move_stand;
 	else
-		self->monsterinfo.currentmove = &fixbot_move_run;
+		self.monsterinfo.currentmove = &fixbot_move_run;
 }
 
 /* findout what this is */
@@ -870,13 +870,13 @@ static int(entity self) check_telefrag =
 	vector	forward, right, up;
 	trace_t	tr;
 
-	AngleVectors (self->enemy->s.angles, &forward, &right, &up);
-	start = self->enemy->s.origin + (up * 48); // Paril: this was broken in vanilla
-	gi.trace (&tr, self->enemy->s.origin, self->enemy->mins, self->enemy->maxs, start, self, MASK_MONSTERSOLID);
+	AngleVectors (self.enemy.s.angles, &forward, &right, &up);
+	start = self.enemy.s.origin + (up * 48); // Paril: this was broken in vanilla
+	gi.trace (&tr, self.enemy.s.origin, self.enemy.mins, self.enemy.maxs, start, self, MASK_MONSTERSOLID);
 	
-	if (tr.ent->takedamage)
+	if (tr.ent.takedamage)
 	{
-		tr.ent->health = -1000;
+		tr.ent.health = -1000;
 		return 0;
 	}
 			
@@ -891,62 +891,62 @@ static void(entity self) fixbot_fire_laser =
 	entity	ent;
 
 	// critter dun got blown up while bein' fixed
-	if (self->enemy->health <= self->enemy->gib_health)
+	if (self.enemy.health <= self.enemy.gib_health)
 	{
-		self->monsterinfo.currentmove = &fixbot_move_stand;
-		self->monsterinfo.aiflags &= ~AI_MEDIC;
+		self.monsterinfo.currentmove = &fixbot_move_stand;
+		self.monsterinfo.aiflags &= ~AI_MEDIC;
 		return;
 	}
 
 	gi.sound(self, CHAN_AUTO, gi.soundindex("misc/lasfly.wav"), 1, ATTN_STATIC, 0);
 
-	start = self->s.origin;
-	end = self->enemy->s.origin;
+	start = self.s.origin;
+	end = self.enemy.s.origin;
 	dir = end - start;
 	angles = vectoangles (dir);
 	
 	ent = G_Spawn ();
-	ent->s.origin = self->s.origin;
+	ent.s.origin = self.s.origin;
 	tempang = angles;
 	AngleVectors (tempang, &forward, &right, &up);
-	ent->s.angles = tempang;
-	start = ent->s.origin;
+	ent.s.angles = tempang;
+	start = ent.s.origin;
 	
 	start += forward * 16;
 	
-	ent->s.origin = start;
-	ent->enemy = self->enemy;
-	ent->owner = self;
-	ent->dmg = -1;
+	ent.s.origin = start;
+	ent.enemy = self.enemy;
+	ent.owner = self;
+	ent.dmg = -1;
 	monster_dabeam (ent);
 
-	if (self->enemy->health > (self->enemy->mass / 10))
+	if (self.enemy.health > (self.enemy.mass / 10))
 	{
 		// sorry guys but had to fix the problem this way
 		// if it doesn't do this then two creatures can share the same space
 		// and its real bad.
 		if (check_telefrag (self)) 
 		{
-			self->enemy->spawnflags = 0;
-			self->enemy->monsterinfo.aiflags = 0;
-			self->enemy->target = 0;
-			self->enemy->targetname = 0;
-			self->enemy->combattarget = 0;
-			self->enemy->deathtarget = 0;
-			self->enemy->owner = self;
-			ED_CallSpawn (self->enemy);
-			self->enemy->owner = 0;
-			self->s.origin[2] += 1;
+			self.enemy.spawnflags = 0;
+			self.enemy.monsterinfo.aiflags = 0;
+			self.enemy.target = 0;
+			self.enemy.targetname = 0;
+			self.enemy.combattarget = 0;
+			self.enemy.deathtarget = 0;
+			self.enemy.owner = self;
+			ED_CallSpawn (self.enemy);
+			self.enemy.owner = 0;
+			self.s.origin[2] += 1;
 		
-			self->enemy->monsterinfo.aiflags &= ~AI_RESURRECTING;
+			self.enemy.monsterinfo.aiflags &= ~AI_RESURRECTING;
 
-			self->monsterinfo.currentmove = &fixbot_move_stand;
-			self->monsterinfo.aiflags &= ~AI_MEDIC;
+			self.monsterinfo.currentmove = &fixbot_move_stand;
+			self.monsterinfo.aiflags &= ~AI_MEDIC;
 
 		}
 	}
 	else
-		self->enemy->monsterinfo.aiflags |= AI_RESURRECTING;
+		self.enemy.monsterinfo.aiflags |= AI_RESURRECTING;
 }
 
 static mframe_t fixbot_frames_laserattack [] =
@@ -967,16 +967,14 @@ static void(entity self) fixbot_fire_blaster =
 	vector	end;
 	vector	dir;
 
-	if (!visible(self, self->enemy))
-	{
-		self->monsterinfo.currentmove = &fixbot_move_run;	
-	}
+	if (!visible(self, self.enemy))
+		self.monsterinfo.currentmove = &fixbot_move_run;	
 	
-	AngleVectors (self->s.angles, &forward, &right, &up);
-	G_ProjectSource (self->s.origin, monster_flash_offset[MZ2_fixbot_BLASTER_1], forward, right, start);
+	AngleVectors (self.s.angles, &forward, &right, &up);
+	start = G_ProjectSource (self.s.origin, monster_flash_offset[MZ2_fixbot_BLASTER_1], forward, right);
 
-	end = self->enemy->s.origin;
-	end[2] += self->enemy->viewheight;
+	end = self.enemy.s.origin;
+	end[2] += self.enemy.viewheight;
 	dir = end - start;
 
 	monster_fire_blaster (self, start, dir, 15, 1000, MZ2_fixbot_BLASTER_1, EF_BLASTER);
@@ -1031,19 +1029,19 @@ static void(entity self) fixbot_attack =
 	vector	vec;
 	float	len;
 	
-	if (self->monsterinfo.aiflags & AI_MEDIC)
+	if (self.monsterinfo.aiflags & AI_MEDIC)
 	{
-		if (!visible (self, self->goalentity))
+		if (!visible (self, self.goalentity))
 			return;
-		vec = self->s.origin - self->enemy->s.origin;
+		vec = self.s.origin - self.enemy.s.origin;
 		len = VectorLength(vec);
 		if (len > 128)
 			return;
 		else
-			self->monsterinfo.currentmove = &fixbot_move_laserattack;
+			self.monsterinfo.currentmove = &fixbot_move_laserattack;
 	}
 	else
-		self->monsterinfo.currentmove = &fixbot_move_attack2;
+		self.monsterinfo.currentmove = &fixbot_move_attack2;
 	
 }
 
@@ -1059,42 +1057,42 @@ static void(entity self) fixbot_walk =
 	vector	vec;
 	float	len;
 
-	if (self->goalentity->classname == "object_repair")
+	if (self.goalentity.classname == "object_repair")
 	{
-		vec = self->s.origin - self->goalentity->s.origin;
+		vec = self.s.origin - self.goalentity.s.origin;
 		len = VectorLength (vec);
 		if (len < 32)
 		{
-			self->monsterinfo.currentmove = &fixbot_move_weld_start;
+			self.monsterinfo.currentmove = &fixbot_move_weld_start;
 			return;
 		}
 	}
-	self->monsterinfo.currentmove = &fixbot_move_walk;
+	self.monsterinfo.currentmove = &fixbot_move_walk;
 }
 
 static void(entity self) fixbot_start_attack =
 {
-	self->monsterinfo.currentmove = &fixbot_move_start_attack;
+	self.monsterinfo.currentmove = &fixbot_move_start_attack;
 }
 
 static void(entity self, entity other, float kick, int damage) fixbot_pain =
 {
-//	if (self->health < (self->max_health / 2))
-//		self->s.skinnum = 1;
+//	if (self.health < (self.max_health / 2))
+//		self.s.skinnum = 1;
 	// gi.dprintf("pain\n");
 
-	if (level.framenum < self->pain_debounce_framenum)
+	if (level.framenum < self.pain_debounce_framenum)
 		return;
 
-	self->pain_debounce_framenum = level.framenum + (int)(3 * BASE_FRAMERATE);
+	self.pain_debounce_framenum = level.framenum + (int)(3 * BASE_FRAMERATE);
 	gi.sound (self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 
 	if (damage <= 10)
-		self->monsterinfo.currentmove = &fixbot_move_pain3;
+		self.monsterinfo.currentmove = &fixbot_move_pain3;
 	else if (damage <= 25)
-		self->monsterinfo.currentmove = &fixbot_move_painb;
+		self.monsterinfo.currentmove = &fixbot_move_painb;
 	else
-		self->monsterinfo.currentmove = &fixbot_move_paina;
+		self.monsterinfo.currentmove = &fixbot_move_paina;
 }
 
 static void(entity self, entity inflictor, entity attacker, int damage, vector point) fixbot_die =
@@ -1110,7 +1108,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 */
 API_FUNC static void(entity self) SP_monster_fixbot =
 {
-	if (deathmatch->intVal)
+	if (deathmatch.intVal)
 	{
 		G_FreeEdict (self);
 		return;
@@ -1145,29 +1143,29 @@ API_FUNC static void(entity self) SP_monster_fixbot =
 	sound_weld2 = gi.soundindex ("misc/welder2.wav");
 	sound_weld3 = gi.soundindex ("misc/welder3.wav");
 
-	self->s.modelindex = gi.modelindex ("models/monsters/fixbot/tris.md2");
+	self.s.modelindex = gi.modelindex ("models/monsters/fixbot/tris.md2");
 	
-	self->mins = '-32 -32 -24';
-	self->maxs = '32 32 24';
+	self.mins = '-32 -32 -24';
+	self.maxs = '32 32 24';
 	
-	self->movetype = MOVETYPE_STEP;
-	self->solid = SOLID_BBOX;
+	self.movetype = MOVETYPE_STEP;
+	self.solid = SOLID_BBOX;
 
-	self->health = 150;
-	self->mass = 150;
+	self.health = 150;
+	self.mass = 150;
 
-	self->pain = fixbot_pain;
-	self->die = fixbot_die;
+	self.pain = fixbot_pain;
+	self.die = fixbot_die;
 
-	self->monsterinfo.stand = fixbot_stand;
-	self->monsterinfo.walk = fixbot_walk;
-	self->monsterinfo.run = fixbot_run;
-	self->monsterinfo.attack = fixbot_attack;
+	self.monsterinfo.stand = fixbot_stand;
+	self.monsterinfo.walk = fixbot_walk;
+	self.monsterinfo.run = fixbot_run;
+	self.monsterinfo.attack = fixbot_attack;
 	
 	gi.linkentity (self);
 
-	self->monsterinfo.currentmove = &fixbot_move_stand;	
-	self->monsterinfo.scale = MODEL_SCALE;
+	self.monsterinfo.currentmove = &fixbot_move_stand;	
+	self.monsterinfo.scale = MODEL_SCALE;
 			
 	flymonster_start (self);
 				

@@ -4,18 +4,18 @@ static void Use_Boss3(entity ent, entity other, entity activator)
 {
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_BOSSTPORT);
-	gi.WritePosition(ent->s.origin);
-	gi.multicast(ent->s.origin, MULTICAST_PVS);
+	gi.WritePosition(ent.s.origin);
+	gi.multicast(ent.s.origin, MULTICAST_PVS);
 	G_FreeEdict(ent);
 }
 
 static void Think_Boss3Stand(entity ent)
 {
-	if (ent->s.frame == FRAME_stand260)
-		ent->s.frame = FRAME_stand201;
+	if (ent.s.frame == FRAME_stand260)
+		ent.s.frame = FRAME_stand201;
 	else
-		ent->s.frame++;
-	ent->nextthink = level.framenum + 1;
+		ent.s.frame++;
+	ent.nextthink = level.framenum + 1;
 }
 
 /*QUAKED monster_boss3_stand (1 .5 0) (-32 -32 0) (32 32 90)
@@ -24,24 +24,24 @@ Just stands and cycles in one place until targeted, then teleports away.
 */
 API_FUNC static void SP_monster_boss3_stand(entity self)
 {
-	if (deathmatch->intVal) {
+	if (deathmatch.intVal) {
 		G_FreeEdict(self);
 		return;
 	}
 
-	self->movetype = MOVETYPE_STEP;
-	self->solid = SOLID_BBOX;
-	self->model = "models/monsters/boss3/rider/tris.md2";
-	self->s.modelindex = gi.modelindex(self->model);
-	self->s.frame = FRAME_stand201;
+	self.movetype = MOVETYPE_STEP;
+	self.solid = SOLID_BBOX;
+	self.model = "models/monsters/boss3/rider/tris.md2";
+	self.s.modelindex = gi.modelindex(self.model);
+	self.s.frame = FRAME_stand201;
 
 	gi.soundindex("misc/bigtele.wav");
 
-	self->mins = '-32 -32 0';
-	self->maxs = '32 32 90';
+	self.mins = '-32 -32 0';
+	self.maxs = '32 32 90';
 
-	self->use = Use_Boss3;
-	self->think = Think_Boss3Stand;
-	self->nextthink = level.framenum + 1;
+	self.use = Use_Boss3;
+	self.think = Think_Boss3Stand;
+	self.nextthink = level.framenum + 1;
 	gi.linkentity(self);
 }

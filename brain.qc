@@ -69,7 +69,7 @@ static var mmove_t brain_move_stand = { FRAME_stand01, FRAME_stand30 };
 
 static void brain_stand(entity self)
 {
-	self->monsterinfo.currentmove = &brain_move_stand;
+	self.monsterinfo.currentmove = &brain_move_stand;
 }
 
 
@@ -116,7 +116,7 @@ static var mmove_t brain_move_idle = { FRAME_stand31, FRAME_stand60, brain_stand
 static void brain_idle(entity self)
 {
 	gi.sound(self, CHAN_AUTO, sound_idle3, 1, ATTN_IDLE, 0);
-	self->monsterinfo.currentmove = &brain_move_idle;
+	self.monsterinfo.currentmove = &brain_move_idle;
 }
 
 //
@@ -138,7 +138,7 @@ static mframe_t brain_frames_walk1 [] = {
 static var mmove_t brain_move_walk1 = { FRAME_walk101, FRAME_walk111 };
 
 static void brain_walk(entity self) {
-	self->monsterinfo.currentmove = &brain_move_walk1;
+	self.monsterinfo.currentmove = &brain_move_walk1;
 }
 
 static mframe_t brain_frames_pain3 [] =
@@ -194,29 +194,34 @@ static var mmove_t brain_move_pain1 = { FRAME_pain101, FRAME_pain121 };
 //
 // DUCK
 //
-
+#ifdef GROUND_ZERO
+#define brain_duck_down monster_duck_down
+#define brain_duck_hold monster_duck_hold
+#define brain_duck_up monster_duck_up
+#else
 static void brain_duck_down(entity self) {
-	if (self->monsterinfo.aiflags & AI_DUCKED)
+	if (self.monsterinfo.aiflags & AI_DUCKED)
 		return;
-	self->monsterinfo.aiflags |= AI_DUCKED;
-	self->maxs[2] -= 32;
-	self->takedamage = DAMAGE_YES;
+	self.monsterinfo.aiflags |= AI_DUCKED;
+	self.maxs[2] -= 32;
+	self.takedamage = DAMAGE_YES;
 	gi.linkentity(self);
 }
 
 static void brain_duck_hold(entity self) {
-	if (level.framenum >= self->monsterinfo.pause_framenum)
-		self->monsterinfo.aiflags &= ~AI_HOLD_FRAME;
+	if (level.framenum >= self.monsterinfo.pause_framenum)
+		self.monsterinfo.aiflags &= ~AI_HOLD_FRAME;
 	else
-		self->monsterinfo.aiflags |= AI_HOLD_FRAME;
+		self.monsterinfo.aiflags |= AI_HOLD_FRAME;
 }
 
 static void brain_duck_up(entity self) {
-	self->monsterinfo.aiflags &= ~AI_DUCKED;
-	self->maxs[2] += 32;
-	self->takedamage = DAMAGE_AIM;
+	self.monsterinfo.aiflags &= ~AI_DUCKED;
+	self.maxs[2] += 32;
+	self.takedamage = DAMAGE_AIM;
 	gi.linkentity(self);
 }
+#endif
 
 static mframe_t brain_frames_duck [] =
 {
@@ -231,17 +236,33 @@ static mframe_t brain_frames_duck [] =
 };
 static var mmove_t brain_move_duck = { FRAME_duck01, FRAME_duck08 };
 
-static void brain_dodge(entity self, entity attacker, float eta) {
+#ifdef GROUND_ZERO
+static void brain_duck (entity self, float eta)
+{
+	// has to be done immediately otherwise he can get stuck
+	monster_duck_down(self);
+
+	if (skill.intVal == 0)
+		self.monsterinfo.duck_wait_framenum = level.framenum + (int)((eta + 1) * BASE_FRAMERATE);
+	else
+		self.monsterinfo.duck_wait_framenum = level.framenum + (int)((eta + (0.1 * (3 - skill.intVal))) * BASE_FRAMERATE);
+
+	self.monsterinfo.currentmove = &brain_move_duck;
+	self.monsterinfo.nextframe = FRAME_duck01;
+}
+#else
+static void brain_dodge(entity self, entity attacker, float eta)
+{
 	if (random() > 0.25f)
 		return;
 
-	if (!self->enemy)
-		self->enemy = attacker;
+	if (!self.enemy)
+		self.enemy = attacker;
 
-	self->monsterinfo.pause_framenum = level.framenum + (int)((eta + 0.5f) * BASE_FRAMERATE);
-	self->monsterinfo.currentmove = &brain_move_duck;
+	self.monsterinfo.pause_framenum = level.framenum + (int)((eta + 0.5f) * BASE_FRAMERATE);
+	self.monsterinfo.currentmove = &brain_move_duck;
 }
-
+#endif
 
 static mframe_t brain_frames_death2 [] =
 {
@@ -286,7 +307,7 @@ static void brain_swing_right(entity self) {
 }
 
 static void brain_hit_right(entity self) {
-	const vector  aim = [MELEE_DISTANCE, self->maxs_x, 8 ];
+	const vector  aim = [MELEE_DISTANCE, self.maxs.x, 8 ];
 	if (fire_hit(self, aim, (15 + (Q_rand() % 5)), 40))
 		gi.sound(self, CHAN_WEAPON, sound_melee3, 1, ATTN_NORM, 0);
 }
@@ -296,7 +317,7 @@ static void brain_swing_left(entity self) {
 }
 
 static void brain_hit_left(entity self) {
-	const vector  aim = [ MELEE_DISTANCE, self->mins_x, 8 ];
+	const vector  aim = [ MELEE_DISTANCE, self.mins.x, 8 ];
 	if (fire_hit(self, aim, (15 + (Q_rand() % 5)), 40))
 		gi.sound(self, CHAN_WEAPON, sound_melee3, 1, ATTN_NORM, 0);
 }
@@ -325,23 +346,23 @@ static mframe_t brain_frames_attack1 [] =
 static var mmove_t brain_move_attack1 = { FRAME_attak101, FRAME_attak118 };
 
 static void brain_chest_open(entity self) {
-	self->spawnflags &= ~65536;
-	self->monsterinfo.power_armor_type = POWER_ARMOR_NONE;
+	self.spawnflags &= ~65536;
+	self.monsterinfo.power_armor_type = POWER_ARMOR_NONE;
 	gi.sound(self, CHAN_BODY, sound_chest_open, 1, ATTN_NORM, 0);
 }
 
 static void brain_tentacle_attack(entity self) {
 	static const vector aim = [ MELEE_DISTANCE, 0, 8 ];
-	if (fire_hit(self, aim, (10 + (Q_rand() % 5)), -600) && skill->intVal > 0)
-		self->spawnflags |= 65536;
+	if (fire_hit(self, aim, (10 + (Q_rand() % 5)), -600) && skill.intVal > 0)
+		self.spawnflags |= 65536;
 	gi.sound(self, CHAN_WEAPON, sound_tentacles_retract, 1, ATTN_NORM, 0);
 }
 
 static void brain_chest_closed(entity self) {
-	self->monsterinfo.power_armor_type = POWER_ARMOR_SCREEN;
-	if (self->spawnflags & 65536) {
-		self->spawnflags &= ~65536;
-		self->monsterinfo.currentmove = &brain_move_attack1;
+	self.monsterinfo.power_armor_type = POWER_ARMOR_SCREEN;
+	if (self.spawnflags & 65536) {
+		self.spawnflags &= ~65536;
+		self.monsterinfo.currentmove = &brain_move_attack1;
 	}
 }
 
@@ -369,9 +390,9 @@ static var mmove_t brain_move_attack2 = { FRAME_attak201, FRAME_attak217 };
 
 static void brain_melee(entity self) {
 	if (random() <= 0.5f)
-		self->monsterinfo.currentmove = &brain_move_attack1;
+		self.monsterinfo.currentmove = &brain_move_attack1;
 	else
-		self->monsterinfo.currentmove = &brain_move_attack2;
+		self.monsterinfo.currentmove = &brain_move_attack2;
 }
 
 #ifdef THE_RECKONING
@@ -400,25 +421,25 @@ static void(entity self) brain_tounge_attack =
 	trace_t	tr;
 	int damage;
 
-	AngleVectors (self->s.angles, &f, &r, 0);
+	AngleVectors (self.s.angles, &f, &r, 0);
 	offset = [ 24, 0, 16 ];
-	G_ProjectSource (self->s.origin, offset, f, r, start);
+	start = G_ProjectSource (self.s.origin, offset, f, r);
 
-	end = self->enemy->s.origin;
+	end = self.enemy.s.origin;
 	if (!brain_tounge_attack_ok(start, end))
 	{
-		end[2] = self->enemy->s.origin[2] + self->enemy->maxs[2] - 8;
+		end[2] = self.enemy.s.origin[2] + self.enemy.maxs[2] - 8;
 		if (!brain_tounge_attack_ok(start, end))
 		{
-			end[2] = self->enemy->s.origin[2] + self->enemy->mins[2] + 8;
+			end[2] = self.enemy.s.origin[2] + self.enemy.mins[2] + 8;
 			if (!brain_tounge_attack_ok(start, end))
 				return;
 		}
 	}
-	end = self->enemy->s.origin;
+	end = self.enemy.s.origin;
 
 	gi.trace (&tr, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
-	if (tr.ent != self->enemy)
+	if (tr.ent != self.enemy)
 		return;
 
 	damage = 5;
@@ -429,17 +450,17 @@ static void(entity self) brain_tounge_attack =
 	gi.WriteShort (self.s.number);
 	gi.WritePosition (start);
 	gi.WritePosition (end);
-	gi.multicast (self->s.origin, MULTICAST_PVS);
+	gi.multicast (self.s.origin, MULTICAST_PVS);
 
 	dir = start - end;
-	T_Damage (self->enemy, self, self, dir, self->enemy->s.origin, vec3_origin, damage, 0, DAMAGE_NO_KNOCKBACK, MOD_BRAINTENTACLE);
+	T_Damage (self.enemy, self, self, dir, self.enemy.s.origin, vec3_origin, damage, 0, DAMAGE_NO_KNOCKBACK, MOD_BRAINTENTACLE);
 
 	// pull the enemy in
 	{
 		vector forward;
-		self->s.origin[2] += 1;
-		AngleVectors (self->s.angles, &forward, 0, 0);
-		self->enemy->velocity = forward * -1200;
+		self.s.origin[2] += 1;
+		AngleVectors (self.s.angles, &forward, 0, 0);
+		self.enemy.velocity = forward * -1200;
 	}
 	
 }
@@ -491,41 +512,41 @@ static void(entity self) brain_laserbeam =
 
 	// check for max distance
 	
-	start = self->s.origin;
-	end = self->enemy->s.origin;
+	start = self.s.origin;
+	end = self.enemy.s.origin;
 	dir = end - start;
 	angles = vectoangles(dir);
 	
 	// dis is my right eye
 	ent = G_Spawn ();
-	ent->s.origin = self->s.origin;
+	ent.s.origin = self.s.origin;
 	tempang = angles;
 	AngleVectors (tempang, &forward, &right, &up);
-	ent->s.angles = tempang;
-	start = ent->s.origin;
-	start += brain_reye[self->s.frame - FRAME_walk101][0] * right;
-	start += brain_reye[self->s.frame - FRAME_walk101][1] * forward;
-	start += brain_reye[self->s.frame - FRAME_walk101][2] * up;
-	ent->s.origin = start;
-	ent->enemy = self->enemy;
-	ent->owner = self;
-	ent->dmg = 1;
+	ent.s.angles = tempang;
+	start = ent.s.origin;
+	start += brain_reye[self.s.frame - FRAME_walk101][0] * right;
+	start += brain_reye[self.s.frame - FRAME_walk101][1] * forward;
+	start += brain_reye[self.s.frame - FRAME_walk101][2] * up;
+	ent.s.origin = start;
+	ent.enemy = self.enemy;
+	ent.owner = self;
+	ent.dmg = 1;
 	monster_dabeam (ent);
    
 	// dis is me left eye
 	ent = G_Spawn ();  
-	ent->s.origin = self->s.origin;
+	ent.s.origin = self.s.origin;
 	tempang = angles;
 	AngleVectors (tempang, &forward, &right, &up);
-	ent->s.angles = tempang;
-	start = ent->s.origin;
-	start += brain_leye[self->s.frame - FRAME_walk101][0] * right;
-	start += brain_leye[self->s.frame - FRAME_walk101][1] * forward;
-	start += brain_leye[self->s.frame - FRAME_walk101][2] * up;
-	ent->s.origin = start;
-	ent->enemy = self->enemy;
-	ent->owner = self;
-	ent->dmg = 1;
+	ent.s.angles = tempang;
+	start = ent.s.origin;
+	start += brain_leye[self.s.frame - FRAME_walk101][0] * right;
+	start += brain_leye[self.s.frame - FRAME_walk101][1] * forward;
+	start += brain_leye[self.s.frame - FRAME_walk101][2] * up;
+	ent.s.origin = start;
+	ent.enemy = self.enemy;
+	ent.owner = self;
+	ent.dmg = 1;
 	monster_dabeam (ent);
 	
 }
@@ -533,9 +554,9 @@ static void(entity self) brain_laserbeam =
 static void(entity self) brain_laserbeam_reattack =
 {
 	if (random() < 0.5)
-		if (visible (self, self->enemy))
-			if (self->enemy->health > 0)
-				self->s.frame = FRAME_walk101;
+		if (visible (self, self.enemy))
+			if (self.enemy.health > 0)
+				self.s.frame = FRAME_walk101;
 }
 
 
@@ -584,16 +605,16 @@ static void(entity self) brain_attack =
 	
 	if (random() < 0.8)
 	{
-		r = range (self, self->enemy);
+		r = range (self, self.enemy);
 		if (r == RANGE_NEAR)
 		{
 			if (random() < 0.5)
-				self->monsterinfo.currentmove = &brain_move_attack3;
+				self.monsterinfo.currentmove = &brain_move_attack3;
 			else 
-				self->monsterinfo.currentmove = &brain_move_attack4;
+				self.monsterinfo.currentmove = &brain_move_attack4;
 		}
 		else if (r > RANGE_NEAR)
-			self->monsterinfo.currentmove = &brain_move_attack4;
+			self.monsterinfo.currentmove = &brain_move_attack4;
 	}
 	
 }
@@ -620,85 +641,83 @@ static mframe_t brain_frames_run [] =
 static var mmove_t brain_move_run = { FRAME_walk101, FRAME_walk111 };
 
 static void brain_run(entity self) {
-	self->monsterinfo.power_armor_type = POWER_ARMOR_SCREEN;
-	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
-		self->monsterinfo.currentmove = &brain_move_stand;
+	self.monsterinfo.power_armor_type = POWER_ARMOR_SCREEN;
+	if (self.monsterinfo.aiflags & AI_STAND_GROUND)
+		self.monsterinfo.currentmove = &brain_move_stand;
 	else
-		self->monsterinfo.currentmove = &brain_move_run;
+		self.monsterinfo.currentmove = &brain_move_run;
 }
 
 static void brain_pain(entity self, entity other, float kick, int damage) {
 	float   r;
 
-	if (self->health < (self->max_health / 2))
-		self->s.skinnum = 1;
+	if (self.health < (self.max_health / 2))
+		self.s.skinnum = 1;
 
-	if (level.framenum < self->pain_debounce_framenum)
+	if (level.framenum < self.pain_debounce_framenum)
 		return;
 
-	self->pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
-	if (skill->intVal == 3)
+	self.pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
+	if (skill.intVal == 3)
 		return;     // no pain anims in nightmare
 
 	r = random();
 	if (r < 0.33f) {
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
-		self->monsterinfo.currentmove = &brain_move_pain1;
+		self.monsterinfo.currentmove = &brain_move_pain1;
 	} else if (r < 0.66f) {
 		gi.sound(self, CHAN_VOICE, sound_pain2, 1, ATTN_NORM, 0);
-		self->monsterinfo.currentmove = &brain_move_pain2;
+		self.monsterinfo.currentmove = &brain_move_pain2;
 	} else {
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
-		self->monsterinfo.currentmove = &brain_move_pain3;
+		self.monsterinfo.currentmove = &brain_move_pain3;
 	}
 }
 
 static void brain_dead(entity self) {
-	self->mins = '-16 -16 -24';
-	self->maxs = '16 16 -8';
-	self->movetype = MOVETYPE_TOSS;
-	self->svflags |= SVF_DEADMONSTER;
-	self->nextthink = 0;
+	self.mins = '-16 -16 -24';
+	self.maxs = '16 16 -8';
+	self.movetype = MOVETYPE_TOSS;
+	self.svflags |= SVF_DEADMONSTER;
+	self.nextthink = 0;
 	gi.linkentity(self);
 }
-
-
 
 static void brain_die(entity self, entity inflictor, entity attacker, int damage, vector point) {
 	int     n;
 
-	self->s.effects = 0;
-	self->monsterinfo.power_armor_type = POWER_ARMOR_NONE;
+	self.s.effects = 0;
+	self.monsterinfo.power_armor_type = POWER_ARMOR_NONE;
 
 // check for gib
-	if (self->health <= self->gib_health) {
+	if (self.health <= self.gib_health) {
 		gi.sound(self, CHAN_VOICE, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
 		for (n = 0; n < 2; n++)
 			ThrowGib(self, "models/objects/gibs/bone/tris.md2", damage, GIB_ORGANIC);
 		for (n = 0; n < 4; n++)
 			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
 		ThrowHead(self, "models/objects/gibs/head2/tris.md2", damage, GIB_ORGANIC);
-		self->deadflag = DEAD_DEAD;
+		self.deadflag = DEAD_DEAD;
 		return;
 	}
 
-	if (self->deadflag == DEAD_DEAD)
+	if (self.deadflag == DEAD_DEAD)
 		return;
 
 // regular death
 	gi.sound(self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
-	self->deadflag = DEAD_DEAD;
-	self->takedamage = DAMAGE_YES;
+	self.deadflag = DEAD_DEAD;
+	self.takedamage = DAMAGE_YES;
 	if (random() <= 0.5f)
-		self->monsterinfo.currentmove = &brain_move_death1;
+		self.monsterinfo.currentmove = &brain_move_death1;
 	else
-		self->monsterinfo.currentmove = &brain_move_death2;
+		self.monsterinfo.currentmove = &brain_move_death2;
 }
 
 /*QUAKED monster_brain (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
 */
 API_FUNC static void SP_monster_brain(entity self) {
-	if (deathmatch->intVal) {
+	if (deathmatch.intVal) {
 		G_FreeEdict(self);
 		return;
 	}
@@ -749,38 +768,44 @@ API_FUNC static void SP_monster_brain(entity self) {
 	sound_melee2 = gi.soundindex("brain/melee2.wav");
 	sound_melee3 = gi.soundindex("brain/melee3.wav");
 
-	self->movetype = MOVETYPE_STEP;
-	self->solid = SOLID_BBOX;
-	self->s.modelindex = gi.modelindex("models/monsters/brain/tris.md2");
-	self->mins = '-16 -16 -24';
-	self->maxs = '16 16 32';
+	self.movetype = MOVETYPE_STEP;
+	self.solid = SOLID_BBOX;
+	self.s.modelindex = gi.modelindex("models/monsters/brain/tris.md2");
+	self.mins = '-16 -16 -24';
+	self.maxs = '16 16 32';
 
-	self->health = 300;
-	self->gib_health = -150;
-	self->mass = 400;
+	self.health = 300;
+	self.gib_health = -150;
+	self.mass = 400;
 
-	self->pain = brain_pain;
-	self->die = brain_die;
+	self.pain = brain_pain;
+	self.die = brain_die;
 
-	self->monsterinfo.stand = brain_stand;
-	self->monsterinfo.walk = brain_walk;
-	self->monsterinfo.run = brain_run;
-	self->monsterinfo.dodge = brain_dodge;
-#ifdef THE_RECKONING
-	self->monsterinfo.attack = brain_attack;
+	self.monsterinfo.stand = brain_stand;
+	self.monsterinfo.walk = brain_walk;
+	self.monsterinfo.run = brain_run;
+#ifdef GROUND_ZERO
+	self.monsterinfo.dodge = M_MonsterDodge;
+	self.monsterinfo.duck = brain_duck;
+	self.monsterinfo.unduck = monster_duck_up;
+#else
+	self.monsterinfo.dodge = brain_dodge;
 #endif
-	self->monsterinfo.melee = brain_melee;
-	self->monsterinfo.sight = brain_sight;
-	self->monsterinfo.search = brain_search;
-	self->monsterinfo.idle = brain_idle;
+#ifdef THE_RECKONING
+	self.monsterinfo.attack = brain_attack;
+#endif
+	self.monsterinfo.melee = brain_melee;
+	self.monsterinfo.sight = brain_sight;
+	self.monsterinfo.search = brain_search;
+	self.monsterinfo.idle = brain_idle;
 
-	self->monsterinfo.power_armor_type = POWER_ARMOR_SCREEN;
-	self->monsterinfo.power_armor_power = 100;
+	self.monsterinfo.power_armor_type = POWER_ARMOR_SCREEN;
+	self.monsterinfo.power_armor_power = 100;
 
 	gi.linkentity(self);
 
-	self->monsterinfo.currentmove = &brain_move_stand;
-	self->monsterinfo.scale = MODEL_SCALE;
+	self.monsterinfo.currentmove = &brain_move_stand;
+	self.monsterinfo.scale = MODEL_SCALE;
 
 	walkmonster_start(self);
 }

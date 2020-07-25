@@ -1,4 +1,4 @@
-// gitem_t->flags
+// gitem_t.flags
 typedef enumflags int
 {
 	IT_WEAPON,       // use makes active weapon
@@ -7,9 +7,13 @@ typedef enumflags int
 	IT_STAY_COOP,
 	IT_KEY,
 	IT_POWERUP
+	
+#ifdef GROUND_ZERO
+	, IT_MELEE
+#endif
 } item_flags_t;
 
-// gitem_t->weapmodel for weapons indicates model index
+// gitem_t.weapmodel for weapons indicates model index
 typedef enum int
 {
 	WEAP_NONE,
@@ -29,6 +33,14 @@ typedef enum int
 	, WEAP_PHALANX,
 	WEAP_BOOMER
 #endif
+
+#ifdef GROUND_ZERO
+	, WEAP_DISRUPTOR,
+	WEAP_ETFRIFLE,
+	WEAP_PLASMA,
+	WEAP_PROXLAUNCH,
+	WEAP_CHAINFIST
+#endif
 } weap_model_t;
 
 typedef enum int
@@ -43,6 +55,13 @@ typedef enum int
 #ifdef THE_RECKONING
 	, AMMO_MAGSLUG,
 	AMMO_TRAP
+#endif
+
+#ifdef GROUND_ZERO
+	, AMMO_FLECHETTES,
+	AMMO_TESLA,
+	AMMO_PROX,
+	AMMO_DISRUPTOR
 #endif
 } ammo_t;
 
@@ -524,7 +543,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		WEAP_BFG,
 		0,
 		0,
-		/* precache */ "sprites/s_bfg1.sp2 sprites/s_bfg2.sp2 sprites/s_bfg3.sp2 weapons/bfg__f1y.wav weapons/bfg__l1a.wav weapons/bfg__x1b.wav weapons/bfg_hum.wav"
+		/* precache */ "sprites/s_bfg1.sp2 sprites/s_bfg2.sp2 sprites/s_bfg3.sp2 weapons/bfg__f1y.wav weapons/bfg__l1a.wav weapons/bfg_.x1b.wav weapons/bfg_hum.wav"
 	},
 
 	//
@@ -1242,5 +1261,331 @@ normal door key - blue
 		0,
 /* precache */ ""
 	}
+#endif
+
+#ifdef GROUND_ZERO
+/*QUAKED weapon_etf_rifle (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN
+*/
+	, {
+		"weapon_etf_rifle",					// classname
+		"Pickup_Weapon",					// pickup function
+		"Use_Weapon",						// use function
+		"Drop_Weapon",						// drop function
+		"Weapon_ETF_Rifle",					// weapon think function
+		"misc/w_pkup.wav",					// pick up sound
+		"models/weapons/g_etf_rifle/tris.md2", EF_ROTATE,	// world model, world model flags
+		"models/weapons/v_etf_rifle/tris.md2",			// view model
+		"w_etf_rifle",						// icon
+		"ETF Rifle",						// name printed when picked up 
+		0,							// number of digits for statusbar
+		1,							// amount used / contained
+		"Flechettes",						// ammo type used 
+		IT_WEAPON,						// inventory flags
+		WEAP_ETFRIFLE,						// visible weapon
+		0,							// info (void *)
+		0,							// tag
+		"weapons/nail1.wav models/proj/flechette/tris.md2",	// precaches
+	},
+	
+/*QUAKED weapon_proxlauncher (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN
+*/
+	{
+		"weapon_proxlauncher",								// classname
+		"Pickup_Weapon",										// pickup
+		"Use_Weapon",											// use
+		"Drop_Weapon",										// drop
+		"Weapon_GrenadeLauncher",								// weapon think
+		"misc/w_pkup.wav",									// pick up sound
+		"models/weapons/g_plaunch/tris.md2", EF_ROTATE,		// world model, world model flags
+		"models/weapons/v_plaunch/tris.md2",				// view model
+		"w_proxlaunch",										// icon
+		"Prox Launcher",									// name printed when picked up
+		0,													// number of digits for statusbar
+		1,													// amount used
+		"Prox",												// ammo type used
+		IT_WEAPON,											// inventory flags
+		WEAP_PROXLAUNCH,									// visible weapon
+		0,												// info (void *)
+		AMMO_PROX,											// tag
+		"weapons/grenlf1a.wav weapons/grenlr1b.wav weapons/grenlb1b.wav weapons/proxwarn.wav weapons/proxopen.wav",
+	},
+
+/*QUAKED weapon_plasmabeam (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN
+*/ 
+	{
+		"weapon_plasmabeam",								// classname
+		"Pickup_Weapon",										// pickup function
+		"Use_Weapon",											// use function
+		"Drop_Weapon",										// drop function
+		"Weapon_Heatbeam",									// weapon think function
+		"misc/w_pkup.wav",									// pick up sound
+		"models/weapons/g_beamer/tris.md2", EF_ROTATE,		// world model, world model flags
+		"models/weapons/v_beamer/tris.md2",					// view model
+		"w_heatbeam",											// icon
+		"Plasma Beam",											// name printed when picked up 
+		0,													// number of digits for statusbar
+		// FIXME - if this changes, change it in NoAmmoWeaponChange as well
+		2,													// amount used / contained
+		"Cells",											// ammo type used 
+		IT_WEAPON,											// inventory flags
+		WEAP_PLASMA,										// visible weapon
+		0,												// info (void *)
+		0,													// tag
+		"models/weapons/v_beamer2/tris.md2 weapons/bfg__l1a.wav",		// precaches
+	},
+
+/*QUAKED weapon_chainfist (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN
+*/
+	{
+		"weapon_chainfist",									// classname
+		"Pickup_Weapon",										// pickup function
+		"Use_Weapon",											// use function
+		"Drop_Weapon",										// drop function
+		"Weapon_ChainFist",									// weapon think function
+		"misc/w_pkup.wav",									// pick up sound
+		"models/weapons/g_chainf/tris.md2", EF_ROTATE,		// world model, world model flags
+		"models/weapons/v_chainf/tris.md2",					// view model
+		"w_chainfist",										// icon
+		"Chainfist",										// name printed when picked up 
+		0,													// number of digits for statusbar
+		0,													// amount used / contained
+		0,												// ammo type used 
+		IT_WEAPON | IT_MELEE,								// inventory flags
+		WEAP_CHAINFIST,										// visible weapon
+		0,												// info (void *)
+		1,													// tag
+		"weapons/sawidle.wav weapons/sawhit.wav",			// precaches
+	},
+	
+/*QUAKED weapon_disintegrator (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN
+*/
+	{
+		"weapon_disintegrator",								// classname
+		"Pickup_Weapon",										// pickup function
+		"Use_Weapon",											// use function
+		"Drop_Weapon",										// drop function
+		"Weapon_Disintegrator",								// weapon think function
+		"misc/w_pkup.wav",									// pick up sound
+		"models/weapons/g_dist/tris.md2", EF_ROTATE,		// world model, world model flags
+		"models/weapons/v_dist/tris.md2",					// view model
+		"w_disintegrator",									// icon
+		"Disruptor",										// name printed when picked up 
+		0,													// number of digits for statusbar
+		1,													// amount used / contained
+		"Rounds",
+		IT_WEAPON,											// inventory flags
+		WEAP_DISRUPTOR,										// visible weapon
+		0,												// info (void *)
+		1,													// tag
+		"models/items/spawngro/tris.md2 models/proj/disintegrator/tris.md2 weapons/disrupt.wav weapons/disint2.wav weapons/disrupthit.wav",	// precaches
+	},
+
+/*QUAKED ammo_flechettes (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN
+*/
+	{
+		"ammo_flechettes",
+		"Pickup_Ammo",
+		0,
+		"Drop_Ammo",
+		0,
+		"misc/am_pkup.wav",
+		"models/ammo/am_flechette/tris.md2", 0,
+		0,
+		"a_flechettes",
+		"Flechettes",
+		3,
+		50,
+		0,
+		IT_AMMO,
+		0,
+		0,
+		AMMO_FLECHETTES
+	},
+/*QUAKED ammo_prox (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN
+*/
+	{
+		"ammo_prox",										// Classname
+		"Pickup_Ammo",										// pickup function
+		0,												// use function
+		"Drop_Ammo",											// drop function
+		0,												// weapon think function
+		"misc/am_pkup.wav",									// pickup sound
+		"models/ammo/am_prox/tris.md2", 0,					// world model, world model flags
+		0,												// view model
+		"a_prox",											// icon
+		"Prox",												// Name printed when picked up
+		3,													// number of digits for status bar
+		5,													// amount contained
+		0,												// ammo type used
+		IT_AMMO,											// inventory flags
+		0,													// vwep index
+		0,												// info (void *)
+		AMMO_PROX,											// tag
+		"models/weapons/g_prox/tris.md2 weapons/proxwarn.wav"	// precaches
+	},
+
+/*QUAKED ammo_tesla (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN
+*/
+	{
+		"ammo_tesla",
+		"Pickup_Ammo",
+		"Use_Weapon",						// PGM
+		"Drop_Ammo",
+		"Weapon_Tesla",					// PGM
+		"misc/am_pkup.wav",
+		"models/ammo/am_tesl/tris.md2", 0,
+		"models/weapons/v_tesla/tris.md2",
+		"a_tesla",
+		"Tesla",
+		3,
+		5,
+		"Tesla",												// PGM
+		IT_AMMO | IT_WEAPON,						// inventory flags
+		0,
+		0,										// info (void *)
+		AMMO_TESLA,									// tag
+		"models/weapons/v_tesla2/tris.md2 weapons/teslaopen.wav weapons/hgrenb1a.wav weapons/hgrenb2a.wav models/weapons/g_tesla/tris.md2"			// precache
+	},
+
+/*QUAKED ammo_nuke (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN
+*/
+	{
+		"ammo_nuke",
+		"Pickup_Nuke",
+		"Use_Nuke",						// PMM
+		"Drop_Ammo",
+		0,							// PMM
+		"misc/am_pkup.wav",
+		"models/weapons/g_nuke/tris.md2", EF_ROTATE,
+		0,
+/* icon */		"p_nuke",
+/* pickup */	"A-M Bomb",
+/* width */		3,
+		300, /* quantity (used for respawn time) */
+		"A-M Bomb",
+		IT_POWERUP,	
+		0,
+		0,
+		0,
+		"weapons/nukewarn2.wav world/rumble.wav"
+	},
+
+/*QUAKED ammo_disruptor (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN
+*/
+	{
+		"ammo_disruptor",
+		"Pickup_Ammo",
+		0,
+		"Drop_Ammo",
+		0,
+		"misc/am_pkup.wav",
+		"models/ammo/am_disr/tris.md2", 0,
+		0,
+		"a_disruptor",
+		"Rounds",		// FIXME 
+		3,
+		15,
+		0,
+		IT_AMMO,											// inventory flags
+		0,
+		0,
+		AMMO_DISRUPTOR,
+	},
+
+
+/*QUAKED item_ir_goggles (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN
+gives +1 to maximum health
+*/
+	{
+		"item_ir_goggles",
+		"Pickup_Powerup",
+		"Use_IR",
+		"Drop_General",
+		0,
+		"items/pkup.wav",
+		"models/items/goggles/tris.md2", EF_ROTATE,
+		0,
+/* icon */		"p_ir",
+/* pickup */	"IR Goggles",
+/* width */		2,
+		60,
+		0,
+		IT_POWERUP,
+		0,
+		0,
+		0,
+/* precache */ "misc/ir_start.wav"
+	},
+
+/*QUAKED item_double (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN
+*/
+	{
+		"item_double", 
+		"Pickup_Powerup",
+		"Use_Double",
+		"Drop_General",
+		0,
+		"items/pkup.wav",
+		"models/items/ddamage/tris.md2", EF_ROTATE,
+		0,
+/* icon */		"p_double",
+/* pickup */	"Double Damage",
+/* width */		2,
+		60,
+		0,
+		IT_POWERUP,
+		0,
+		0,
+		0,
+/* precache */ "misc/ddamage1.wav misc/ddamage2.wav misc/ddamage3.wav"
+	},
+
+/*QUAKED key_nuke_container (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN
+*/
+	{
+		"key_nuke_container",								// classname
+		"Pickup_Key",											// pickup function
+		0,												// use function
+		"Drop_General",										// drop function
+		0,												// weapon think function
+		"items/pkup.wav",									// pick up sound
+		"models/weapons/g_nuke/tris.md2",					// world model
+		EF_ROTATE,											// world model flags
+		0,												// view model
+		"i_contain",										// icon
+		"Antimatter Pod",									// name printed when picked up 
+		2,													// number of digits for statusbar
+		0,													// respawn time
+		0,												// ammo type used 
+		IT_STAY_COOP|IT_KEY,								// inventory flags
+		0,
+		0,												// info (void *)
+		0,													// tag
+		0,												// precaches
+	},
+
+/*QUAKED key_nuke (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN
+*/
+	{
+		"key_nuke",											// classname
+		"Pickup_Key",											// pickup function
+		0,												// use function
+		"Drop_General",										// drop function
+		0,												// weapon think function
+		"items/pkup.wav",									// pick up sound
+		"models/weapons/g_nuke/tris.md2",					// world model
+		EF_ROTATE,											// world model flags
+		0,												// view model
+		"i_nuke",											// icon
+		"Antimatter Bomb",									// name printed when picked up 
+		2,													// number of digits for statusbar
+		0,													// respawn time
+		0,												// ammo type used 
+		IT_STAY_COOP|IT_KEY,								// inventory flags
+		0,
+		0,												// info (void *)
+		0,													// tag
+		0,												// precaches
+	},
 #endif
 };

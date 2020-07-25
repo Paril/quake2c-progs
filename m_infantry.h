@@ -230,5 +230,19 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define FRAME_attak208          206
 
 #define MODEL_SCALE     1.000000
+
+#ifdef GROUND_ZERO
+#define FRAME_jump01			207
+#define FRAME_jump02			208
+#define FRAME_jump03			209
+#define FRAME_jump04			210
+#define FRAME_jump05			211
+#define FRAME_jump06			212
+#define FRAME_jump07			213
+#define FRAME_jump08			214
+#define FRAME_jump09			215
+#define FRAME_jump10			216
+#endif
+
 #pragma warning enable F315
 #pragma warning enable F316

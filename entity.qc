@@ -1,4 +1,4 @@
-// entity_state_t->renderfx flags
+// entity_state_t.renderfx flags
 typedef enumflags int
 {
 	RF_MINLIGHT,	// allways have some light (viewmodel)
@@ -23,7 +23,7 @@ typedef enumflags int
 //ROGUE
 } render_effects_t;
 
-// entity_state_t->event values
+// entity_state_t.event values
 // ertity events are for effects that take place reletive
 // to an existing entities origin.  Very network efficient.
 // All muzzle flashes really should be converted to events...
@@ -77,12 +77,16 @@ const int MAX_ENT_CLUSTERS = 16;
 .int		headnode;
 .int		areanum, areanum2;
 
-// edict->svflags
+// edict.svflags
 .enumflags
 {
 	SVF_NOCLIENT,		// don't send entity to clients, even if it has effects
 	SVF_DEADMONSTER,	// treat as CONTENTS_DEADMONSTER for collision
-	SVF_MONSTER,		// treat as CONTENTS_MONSTER for collision
+	SVF_MONSTER		// treat as CONTENTS_MONSTER for collision
+
+#ifdef GROUND_ZERO
+	, SVF_DAMAGEABLE
+#endif
 }		svflags;
 .vector		mins, maxs;
 .vector		absmin, absmax, size;
@@ -117,7 +121,7 @@ const int MAX_ENT_CLUSTERS = 16;
 #endif
 } 		movetype;
 
-// edict->flags
+// edict.flags
 .enumflags
 {
 	FL_FLY,
@@ -133,6 +137,13 @@ const int MAX_ENT_CLUSTERS = 16;
 	FL_TEAMSLAVE,
 	FL_NO_KNOCKBACK,
 	FL_POWER_ARMOR,
+
+#ifdef GROUND_ZERO
+	FL_MECHANICAL,	// entity is mechanical, use sparks not blood
+	FL_SAM_RAIMI,	// entity is in sam raimi cam mode
+	FL_DISGUISED,	// entity is in disguise, monsters will not recognize.
+	FL_NOGIB,	// player has been vaporized by a nuke, drop no gibs
+#endif
 	
 	FL_RESPAWN
 }		flags;
@@ -246,6 +257,18 @@ const int MAX_ENT_CLUSTERS = 16;
 .int	style;
 .int	item;
 
+#ifdef GROUND_ZERO
+.int	plat2flags;
+.vector	offset;
+.vector	gravityVector;
+.entity	bad_area;
+.entity	hint_chain;
+.entity	monster_hint_chain;
+.entity	target_hint_chain;
+.int	hint_chain_id;
+.int	lastMoveFrameNum;
+#endif
+
 typedef enum int
 {
 	STATE_TOP,
@@ -300,7 +323,7 @@ struct mmove_t
 };
 
 //monster ai flags
-typedef enumflags int
+typedef enumflags : int
 {
 	AI_STAND_GROUND,
 	AI_TEMP_STAND_GROUND,
@@ -317,7 +340,34 @@ typedef enumflags int
 	AI_COMBAT_POINT,
 	AI_MEDIC,
 	AI_RESURRECTING
+	
+#ifdef GROUND_ZERO
+//ROGUE
+	, AI_WALK_WALLS,
+	AI_MANUAL_STEERING,
+	AI_TARGET_ANGER,
+	AI_DODGING,
+	AI_CHARGING,
+	AI_HINT_PATH,
+	AI_IGNORE_SHOTS,
+	AI_DO_NOT_COUNT,	// set for healed monsters
+	AI_SPAWNED_CARRIER,	// both do_not_count and spawned are set for spawned monsters
+	AI_SPAWNED_MEDIC_C,	// both do_not_count and spawned are set for spawned monsters
+	AI_SPAWNED_WIDOW,	// both do_not_count and spawned are set for spawned monsters
+	AI_BLOCKED		// used by blocked_checkattack: set to say I'm attacking while blocked (prevents run-attacks)
+//ROGUE
+#endif
 } ai_flags_t;
+
+#ifdef GROUND_ZERO
+const ai_flags_t AI_GOOD_GUY_MASK = AI_GOOD_GUY | AI_DO_NOT_COUNT;
+#else
+const ai_flags_t AI_GOOD_GUY_MASK = AI_GOOD_GUY;
+#endif
+
+#ifdef GROUND_ZERO
+const ai_flags_t AI_SPAWNED_MASK = AI_SPAWNED_CARRIER | AI_SPAWNED_MEDIC_C | AI_SPAWNED_WIDOW;	// mask to catch all three flavors of spawned
+#endif
 
 //monster attack state
 typedef enum int
@@ -326,6 +376,10 @@ typedef enum int
 	AS_SLIDING,
 	AS_MELEE,
 	AS_MISSILE
+
+#ifdef GROUND_ZERO
+	, AS_BLIND	// PMM - used by boss code to do nasty things even if it can't see you
+#endif
 } ai_attack_state_t;
 
 // power armor types
@@ -335,6 +389,12 @@ typedef enum int
 	POWER_ARMOR_SCREEN,
 	POWER_ARMOR_SHIELD,
 } power_armor_type_t;
+
+#ifdef GROUND_ZERO
+typedef void(entity, entity, float, trace_t *) mdodgefunc;
+#else
+typedef void(entity, entity, float) mdodgefunc;
+#endif
 
 struct monsterinfo_t
 {
@@ -348,7 +408,7 @@ struct monsterinfo_t
 	void(entity)			search;
 	void(entity)			walk;
 	void(entity)			run;
-	void(entity, entity, float)	dodge;
+	mdodgefunc			dodge;
 	void(entity)			attack;
 	void(entity)			melee;
 	void(entity, entity)		sight;
@@ -368,16 +428,62 @@ struct monsterinfo_t
 	
 	int	power_armor_type;
 	int	power_armor_power;
+	
+#ifdef GROUND_ZERO
+	bool(entity self, float dist)		blocked;
+	int		last_hint_framenum;		// last time the monster checked for hintpaths.
+	entity		goal_hint;			// which hint_path we're trying to get to
+	int		medicTries;
+	entity		badMedic1, badMedic2;	// these medics have declared this monster "unhealable"
+	entity		healer;	// this is who is healing this monster
+	void(entity self, float eta)	duck;
+	void(entity self)		unduck;
+	void(entity self)		sidestep;
+	float		base_height;
+	int		next_duck_framenum;
+	int		duck_wait_framenum;
+	entity		last_player_enemy;
+	// blindfire stuff .. the boolean says whether the monster will do it, and blind_fire_time is the timing
+	// (set in the monster) of the next shot
+	bool		blindfire;		// will the monster blindfire?
+	int		blind_fire_framedelay;
+	vector		blind_fire_target;
+	// used by the spawners to not spawn too much and keep track of #s of monsters spawned
+	int		monster_slots;
+	int		monster_used;
+	entity		commander;
+	// powerup timers, used by widow, our friend
+	int		quad_framenum;
+	int		invincible_framenum;
+	int		double_framenum;
+#endif
 };
 
 .monsterinfo_t	monsterinfo;
 .moveinfo_t	moveinfo;
 
+#ifdef GROUND_ZERO
+// this determines how long to wait after a duck to duck again.  this needs to be longer than
+// the time after the monster_duck_up in all of the animation sequences
+const float DUCK_INTERVAL	= 0.5;
+
+// this is for the count of monsters
+/*inline*/ int(entity ent) ENT_SLOTS_LEFT =
+{
+	return (ent.monsterinfo.monster_slots - ent.monsterinfo.monster_used);
+};
+
+/*inline*/ int(entity self) SELF_SLOTS_LEFT =
+{
+	return (self.monsterinfo.monster_slots - self.monsterinfo.monster_used);
+};
+#endif
+
 #ifdef THE_RECKONING
 .int	orders;
 #endif
 	
-// player_state_t->refdef flags
+// player_state_t.refdef flags
 typedef enumflags int
 {
 	RDF_UNDERWATER,	// warp the screen as apropriate
@@ -389,7 +495,7 @@ typedef enumflags int
 //ROGUE
 } refdef_flags_t;
 
-// player_state->stats[] indexes
+// player_state.stats[] indexes
 typedef enum : int
 {
 	// For engine compatibility, these 18 IDs should remain the same
@@ -476,6 +582,13 @@ struct client_persistant_t
 	int	max_magslug;
 	int	max_trap;
 #endif
+#ifdef GROUND_ZERO
+	int	max_tesla;
+	int	max_prox;
+	int	max_mines;
+	int	max_flechettes;
+	int	max_rounds;
+#endif
 	
 	int	weapon;
 	int	lastweapon;
@@ -492,7 +605,7 @@ struct client_persistant_t
 // client data that stays across deathmatch respawns
 struct client_respawn_t
 {
-	client_persistant_t	coop_respawn;   // what to set client->pers to on a respawn
+	client_persistant_t	coop_respawn;   // what to set client.pers to on a respawn
 	int			enterframe;         // level.framenum the client entered the game
 	int			score;              // frags, etc
 	vector			cmd_angles;         // angles sent over in the last command
@@ -508,7 +621,7 @@ typedef enum int
 	WEAPON_FIRING
 } weaponstate_t;
 
-// client_t->anim_priority
+// client_t.anim_priority
 typedef enum int
 {
 	ANIM_BASIC,		// stand / run
@@ -591,11 +704,6 @@ struct gclient_t
 	int	grenade_framenum;
 	int	silencer_shots;
 	int	weapon_sound;
-#ifdef THE_RECKONING
-	int	quadfire_framenum;
-	int	trap_framenum;
-	bool	trap_blew_up;
-#endif
 	
 	int	pickup_msg_framenum;
 	
@@ -607,6 +715,20 @@ struct gclient_t
 	
 	entity	chase_target;      // player we are chasing
 	bool	update_chase;       // need to update chase info?
+
+#ifdef THE_RECKONING
+	int	quadfire_framenum;
+	int	trap_framenum;
+	bool	trap_blew_up;
+#endif
+
+#ifdef GROUND_ZERO
+	int	double_framenum;
+	int	ir_framenum;
+	int	nuke_framenum;
+	int	tracker_pain_framenum;
+	entity	owned_sphere;		// this points to the player's sphere
+#endif
 };
 
 .gclient_t	client;

@@ -681,7 +681,7 @@ typedef enum int
 	PM_FREEZE
 } pmtype_t;
 
-// pmove->pm_flags
+// pmove.pm_flags
 typedef enumflags int
 {
 	PMF_DUCKED,
@@ -772,7 +772,7 @@ typedef enum int
 	svc_frame
 } svc_ops_t;
 
-// entity_state_t->effects
+// entity_state_t.effects
 // Effects are things handled on the client side (lights, particles, frame animations)
 // that happen constantly on the given entity.
 // An entity that has effects will be sent to the client
@@ -815,7 +815,6 @@ typedef enumflags int
 	EF_TAGTRAIL,
 	EF_HALF_DAMAGE,
 //ROGUE
-} entity_effects_t;
 
-// FIXME loop bug
-const entity_effects_t EF_TRACKERTRAIL = 0x80000000;
+	EF_TRACKERTRAIL
+} entity_effects_t;

@@ -23,10 +23,10 @@ static int  sound_chanthigh;
 
 static bool(entity self) gekk_check_melee =
 {
-	if (!self->enemy && self->enemy->health <= 0)
+	if (!self.enemy && self.enemy.health <= 0)
 		return false;
 
-	if (range (self, self->enemy) == RANGE_MELEE)
+	if (range (self, self.enemy) == RANGE_MELEE)
 		return true;
 	return false;
 }
@@ -36,14 +36,14 @@ static bool(entity self) gekk_check_jump =
 	vector	v;
 	float	distance;
 
-	if (self->absmin[2] > (self->enemy->absmin[2] + 0.75 * self->enemy->size[2]))
+	if (self.absmin[2] > (self.enemy.absmin[2] + 0.75 * self.enemy.size[2]))
 		return false;
 
-	if (self->absmax[2] < (self->enemy->absmin[2] + 0.25 * self->enemy->size[2]))
+	if (self.absmax[2] < (self.enemy.absmin[2] + 0.25 * self.enemy.size[2]))
 		return false;
 
-	v[0] = self->s.origin[0] - self->enemy->s.origin[0];
-	v[1] = self->s.origin[1] - self->enemy->s.origin[1];
+	v[0] = self.s.origin[0] - self.enemy.s.origin[0];
+	v[1] = self.s.origin[1] - self.enemy.s.origin[1];
 	v[2] = 0;
 	distance = VectorLength(v);
 
@@ -65,15 +65,15 @@ static bool(entity self) gekk_check_jump_close =
 	vector	v;
 	float	distance;
 
-	v[0] = self->s.origin[0] - self->enemy->s.origin[0];
-	v[1] = self->s.origin[1] - self->enemy->s.origin[1];
+	v[0] = self.s.origin[0] - self.enemy.s.origin[0];
+	v[1] = self.s.origin[1] - self.enemy.s.origin[1];
 	v[2] = 0;
 	
 	distance = VectorLength(v);
 
 	if (distance < 100)
 	{
-		if (self->s.origin[2] < self->enemy->s.origin[2])
+		if (self.s.origin[2] < self.enemy.s.origin[2])
 			return true;
 		else
 			return false;
@@ -85,24 +85,24 @@ static bool(entity self) gekk_check_jump_close =
 
 static bool(entity self) gekk_checkattack =
 {
-	if (!self->enemy || self->enemy->health <= 0)
+	if (!self.enemy || self.enemy.health <= 0)
 		return false;
 
 	if (gekk_check_melee(self))
 	{
-		self->monsterinfo.attack_state = AS_MELEE;
+		self.monsterinfo.attack_state = AS_MELEE;
 		return true;
 	}
 
 	if (gekk_check_jump(self))
 	{
-		self->monsterinfo.attack_state = AS_MISSILE;
+		self.monsterinfo.attack_state = AS_MISSILE;
 		return true;
 	}
 
-	if (gekk_check_jump_close (self) && !self->waterlevel)
+	if (gekk_check_jump_close (self) && !self.waterlevel)
 	{	
-		self->monsterinfo.attack_state = AS_MISSILE;
+		self.monsterinfo.attack_state = AS_MISSILE;
 		return true;
 	}
 
@@ -135,7 +135,7 @@ static void(entity self) gekk_search =
 {
 	float r;
 
-	if (self->spawnflags & 8)
+	if (self.spawnflags & 8)
 	{
 		r = random();
 		if (r < 0.33)
@@ -149,16 +149,16 @@ static void(entity self) gekk_search =
 		gi.sound (self, CHAN_VOICE, sound_search, 1, ATTN_NORM, 0);
 	
 
-	self->health += (int)random(10f, 20f);
-	if (self->health > self->max_health)
-		self->health = self->max_health;
+	self.health += (int)random(10f, 20f);
+	if (self.health > self.max_health)
+		self.health = self.max_health;
 
-	if (self->health < (self->max_health /4))
-		self->s.skinnum = 2;
-	else if (self->health < (self->max_health / 2))
-		self->s.skinnum = 1;
+	if (self.health < (self.max_health /4))
+		self.s.skinnum = 2;
+	else if (self.health < (self.max_health / 2))
+		self.s.skinnum = 1;
 	else 
-		self->s.skinnum = 0;
+		self.s.skinnum = 0;
 }
 
 static void(entity self) gekk_swing =
@@ -173,39 +173,39 @@ static void(entity self) gekk_swing =
 
 static void(entity self, entity other, cplane_t plane, csurface_t surf) gekk_jump_touch =
 {
-	if (self->health <= 0)
+	if (self.health <= 0)
 	{
-		self->touch = 0;
+		self.touch = 0;
 		return;
 	}
 
-	if (other->takedamage)
+	if (other.takedamage)
 	{
-		if (VectorLength(self->velocity) > 200)
+		if (VectorLength(self.velocity) > 200)
 		{
 			vector	point;
 			vector	normal;
 			int	damage;
 
-			normal = self->velocity;
+			normal = self.velocity;
 			VectorNormalize(normal);
-			point = self->s.origin + (normal * self->maxs[0]);
+			point = self.s.origin + (normal * self.maxs[0]);
 			damage = (int)random(10f, 20f);
-			T_Damage (other, self, self, self->velocity, point, normal, damage, damage, 0, MOD_GEKK);
+			T_Damage (other, self, self, self.velocity, point, normal, damage, damage, 0, MOD_GEKK);
 		}
 	}
 
 	if (!M_CheckBottom (self))
 	{
-		if (self->groundentity != null_entity)
+		if (self.groundentity != null_entity)
 		{
-			self->monsterinfo.nextframe = FRAME_leapatk_11;
-			self->touch = 0;
+			self.monsterinfo.nextframe = FRAME_leapatk_11;
+			self.touch = 0;
 		}
 		return;
 	}
 
-	self->touch = 0;
+	self.touch = 0;
 }
 
 static void(entity self) gekk_jump_takeoff =
@@ -213,26 +213,26 @@ static void(entity self) gekk_jump_takeoff =
 	vector	forward;
 
 	gi.sound (self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
-	AngleVectors (self->s.angles, &forward, 0, 0);
-	self->s.origin[2] += 1;
+	AngleVectors (self.s.angles, &forward, 0, 0);
+	self.s.origin[2] += 1;
 	
 	// high jump
 	if (gekk_check_jump (self))
 	{
-		self->velocity = forward * 700;
-		self->velocity[2] = 250f;
+		self.velocity = forward * 700;
+		self.velocity[2] = 250f;
 	}
 	else
 	{
-		self->velocity = forward * 250;
-		self->velocity[2] = 400f;
+		self.velocity = forward * 250;
+		self.velocity[2] = 400f;
 	}
 
 	
-	self->groundentity = null_entity;
-	self->monsterinfo.aiflags |= AI_DUCKED;
-	self->monsterinfo.attack_finished = level.framenum + 3 * BASE_FRAMERATE;
-	self->touch = gekk_jump_touch;
+	self.groundentity = null_entity;
+	self.monsterinfo.aiflags |= AI_DUCKED;
+	self.monsterinfo.attack_finished = level.framenum + 3 * BASE_FRAMERATE;
+	self.touch = gekk_jump_touch;
 }
 
 static void(entity self) gekk_jump_takeoff2 =
@@ -240,59 +240,59 @@ static void(entity self) gekk_jump_takeoff2 =
 	vector	forward;
 
 	gi.sound (self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
-	AngleVectors (self->s.angles, &forward, 0, 0);
-	self->s.origin[2] = self->enemy->s.origin[2];
+	AngleVectors (self.s.angles, &forward, 0, 0);
+	self.s.origin[2] = self.enemy.s.origin[2];
 	
 	if (gekk_check_jump (self))
 	{
-		self->velocity = forward * 300;
-		self->velocity[2] = 250f;
+		self.velocity = forward * 300;
+		self.velocity[2] = 250f;
 	}
 	else 
 	{
-		self->velocity = forward * 150;
-		self->velocity[2] = 300f;
+		self.velocity = forward * 150;
+		self.velocity[2] = 300f;
 	}
 
-	self->groundentity = null_entity;
-	self->monsterinfo.aiflags |= AI_DUCKED;
-	self->monsterinfo.attack_finished = level.framenum + 3 * BASE_FRAMERATE;
-	self->touch = gekk_jump_touch;
+	self.groundentity = null_entity;
+	self.monsterinfo.aiflags |= AI_DUCKED;
+	self.monsterinfo.attack_finished = level.framenum + 3 * BASE_FRAMERATE;
+	self.touch = gekk_jump_touch;
 }
 
 static void(entity self) gekk_stop_skid =
 {
-	if (self->groundentity != null_entity)
+	if (self.groundentity != null_entity)
 	{
-		self->velocity = vec3_origin;
+		self.velocity = vec3_origin;
 	}
 }
 
 static void(entity self) gekk_check_landing =
 {
-	if (self->groundentity != null_entity)
+	if (self.groundentity != null_entity)
 	{
 		gi.sound (self, CHAN_WEAPON, sound_thud, 1, ATTN_NORM, 0);
-		self->monsterinfo.attack_finished = 0;
-		self->monsterinfo.aiflags &= ~AI_DUCKED;
+		self.monsterinfo.attack_finished = 0;
+		self.monsterinfo.aiflags &= ~AI_DUCKED;
 
-		self->velocity = vec3_origin;
+		self.velocity = vec3_origin;
 		return;
 	}
 
 	// note to self
 	// causing skid
-	if (level.framenum > self->monsterinfo.attack_finished)
-		self->monsterinfo.nextframe = FRAME_leapatk_11;
+	if (level.framenum > self.monsterinfo.attack_finished)
+		self.monsterinfo.nextframe = FRAME_leapatk_11;
 	else
-		self->monsterinfo.nextframe = FRAME_leapatk_12;
+		self.monsterinfo.nextframe = FRAME_leapatk_12;
 }
 
 static void(entity self) land_to_water;
 
 static void(entity self) gekk_check_underwater =
 {
-	if (self->waterlevel)
+	if (self.waterlevel)
 		land_to_water (self);
 }
 
@@ -323,14 +323,14 @@ static var mmove_t gekk_move_leapatk2 = { FRAME_leapatk_01, FRAME_leapatk_19 };
 
 static void(entity self) water_to_land =
 {
-	self->flags &= ~FL_SWIM;
-	self->yaw_speed = 20f;
-	self->viewheight = 25;
+	self.flags &= ~FL_SWIM;
+	self.yaw_speed = 20f;
+	self.viewheight = 25;
 	
-	self->monsterinfo.currentmove = &gekk_move_leapatk2;
+	self.monsterinfo.currentmove = &gekk_move_leapatk2;
 	
-	self->mins = '-24 -24 -24';
-	self->maxs = '24 24 24';
+	self.mins = '-24 -24 -24';
+	self.maxs = '24 24 24';
 }
 
 static void(entity self) gekk_run;
@@ -338,7 +338,7 @@ static void(entity self) gekk_run;
 static void(entity self) gekk_swim =
 {
 	if (gekk_checkattack(self))	// Knightmare fixed, added argument
-		if (!self->enemy->waterlevel && random() > 0.7)
+		if (!self.enemy.waterlevel && random() > 0.7)
 			water_to_land (self);
 	else
 		gekk_run(self);
@@ -356,13 +356,13 @@ static var mmove_t gekk_move_swim_loop = { FRAME_amb_01, FRAME_amb_04 };
 
 static void(entity self) gekk_swim_loop =
 {
-	self->flags |= FL_SWIM;	
-	self->monsterinfo.currentmove = &gekk_move_swim_loop;
+	self.flags |= FL_SWIM;	
+	self.monsterinfo.currentmove = &gekk_move_swim_loop;
 }
 
 static void(entity self) gekk_hit_left =
 {
-	const vector aim = [ MELEE_DISTANCE, self->mins[0], 8 ];
+	static const vector aim = [ MELEE_DISTANCE, self.mins[0], 8 ];
 
 	if (fire_hit (self, aim, (15 + (Q_rand() %5)), 100))
 		gi.sound (self, CHAN_WEAPON, sound_hit, 1, ATTN_NORM, 0);
@@ -372,7 +372,7 @@ static void(entity self) gekk_hit_left =
 
 static void(entity self) gekk_hit_right =
 {
-	const vector aim = [ MELEE_DISTANCE, self->maxs[0], 8 ];
+	static const vector aim = [ MELEE_DISTANCE, self.maxs[0], 8 ];
 
 	if (fire_hit (self, aim, (15 + (Q_rand() %5)), 100))
 		gi.sound (self, CHAN_WEAPON, sound_hit2, 1, ATTN_NORM, 0);
@@ -428,14 +428,14 @@ static var mmove_t gekk_move_swim_start = { FRAME_swim_01, FRAME_swim_32, gekk_s
 
 static void(entity self) land_to_water =
 {
-	self->flags |= FL_SWIM;
-	self->yaw_speed = 10f;
-	self->viewheight = 10;
+	self.flags |= FL_SWIM;
+	self.yaw_speed = 10f;
+	self.viewheight = 10;
 	
-	self->monsterinfo.currentmove = &gekk_move_swim_start;
+	self.monsterinfo.currentmove = &gekk_move_swim_start;
 	
-	self->mins = '-24 -24 -24';
-	self->maxs = '24 24 16';
+	self.mins = '-24 -24 -24';
+	self.maxs = '24 24 16';
 }
 
 static mframe_t gekk_frames_run[] = 
@@ -451,7 +451,7 @@ static var mmove_t gekk_move_run = { FRAME_run_01, FRAME_run_06 };
 
 static void(entity self) gekk_face =
 {
-	self->monsterinfo.currentmove = &gekk_move_run;	
+	self.monsterinfo.currentmove = &gekk_move_run;	
 }
 
 //
@@ -460,19 +460,19 @@ static void(entity self) gekk_face =
 
 static void(entity self, float dist) ai_stand2 =
 {
-	if (self->spawnflags & 8)
+	if (self.spawnflags & 8)
 	{
 		ai_move (self, dist);
-		if (!(self->spawnflags & 1) && (self->monsterinfo.idle) && (level.framenum > self->monsterinfo.idle_framenum))
+		if (!(self.spawnflags & 1) && (self.monsterinfo.idle) && (level.framenum > self.monsterinfo.idle_framenum))
 		{
-			if (self->monsterinfo.idle_framenum)
+			if (self.monsterinfo.idle_framenum)
 			{
-				self->monsterinfo.idle (self);
-				self->monsterinfo.idle_framenum = level.framenum + (int)(random(15f, 30f) * BASE_FRAMETIME);
+				self.monsterinfo.idle (self);
+				self.monsterinfo.idle_framenum = level.framenum + (int)(random(15f, 30f) * BASE_FRAMETIME);
 			}
 			else
 			{
-				self->monsterinfo.idle_framenum = level.framenum + (int)(random(15f) * BASE_FRAMETIME);
+				self.monsterinfo.idle_framenum = level.framenum + (int)(random(15f) * BASE_FRAMETIME);
 			}
 		}
 	}
@@ -540,17 +540,17 @@ static var mmove_t gekk_move_standunderwater = { FRAME_amb_01, FRAME_amb_04 };
 
 static void(entity self) gekk_stand =
 {
-	if (self->waterlevel)
-		self->monsterinfo.currentmove = &gekk_move_standunderwater;
+	if (self.waterlevel)
+		self.monsterinfo.currentmove = &gekk_move_standunderwater;
 	else
-		self->monsterinfo.currentmove = &gekk_move_stand;
+		self.monsterinfo.currentmove = &gekk_move_stand;
 }
 
 static var mmove_t gekk_move_chant;
 
 static void(entity self) gekk_chant =
 {
-	self->monsterinfo.currentmove = &gekk_move_chant;
+	self.monsterinfo.currentmove = &gekk_move_chant;
 }
 
 //
@@ -559,8 +559,8 @@ static void(entity self) gekk_chant =
 
 static void(entity self) gekk_idle_loop =
 {
-	if (random() > 0.75 && self->health < self->max_health)
-		self->monsterinfo.nextframe = FRAME_idle_01;
+	if (random() > 0.75 && self.health < self.max_health)
+		self.monsterinfo.nextframe = FRAME_idle_01;
 }
 
 static mframe_t gekk_frames_idle [] =
@@ -646,10 +646,10 @@ static var mmove_t gekk_move_chant = { FRAME_idle_01, FRAME_idle_32, gekk_chant 
 
 static void(entity self) gekk_idle =
 {
-	if (!self->waterlevel)
-		self->monsterinfo.currentmove = &gekk_move_idle;
+	if (!self.waterlevel)
+		self.monsterinfo.currentmove = &gekk_move_idle;
 	else
-		self->monsterinfo.currentmove = &gekk_move_swim_start;
+		self.monsterinfo.currentmove = &gekk_move_swim_start;
 	// gi.sound (self, CHAN_VOICE, sound_idle, 1, ATTN_IDLE, 0);
 }
 
@@ -671,7 +671,7 @@ static var mmove_t gekk_move_walk = { FRAME_run_01, FRAME_run_06 };
 
 static void(entity self) gekk_walk =
 {
-	self->monsterinfo.currentmove = &gekk_move_walk;
+	self.monsterinfo.currentmove = &gekk_move_walk;
 }
 
 
@@ -682,17 +682,17 @@ static void(entity self) gekk_walk =
 static void(entity self) gekk_run =
 {
 	
-	if (self->waterlevel)
+	if (self.waterlevel)
 	{
-		self->monsterinfo.currentmove = &gekk_move_swim_start;
+		self.monsterinfo.currentmove = &gekk_move_swim_start;
 		return;
 	}
 	else
 	{
-		if (self->monsterinfo.aiflags & AI_STAND_GROUND)
-			self->monsterinfo.currentmove = &gekk_move_stand;
+		if (self.monsterinfo.aiflags & AI_STAND_GROUND)
+			self.monsterinfo.currentmove = &gekk_move_stand;
 		else
-			self->monsterinfo.currentmove = &gekk_move_run;
+			self.monsterinfo.currentmove = &gekk_move_run;
 	}
 
 }
@@ -706,13 +706,13 @@ static var mmove_t gekk_move_run_start = { FRAME_stand_01, FRAME_stand_02, gekk_
 
 static void(entity self) gekk_run_start =
 {
-	if (self->waterlevel)
+	if (self.waterlevel)
 	{
-		self->monsterinfo.currentmove = &gekk_move_swim_start;
+		self.monsterinfo.currentmove = &gekk_move_swim_start;
 	}	
 	else
 	{
-		self->monsterinfo.currentmove = &gekk_move_run_start;
+		self.monsterinfo.currentmove = &gekk_move_run_start;
 	}
 }
 
@@ -723,20 +723,20 @@ static void(entity self) gekk_run_start =
 static void(entity self, entity other, cplane_t plane, csurface_t surf) loogie_touch =
 {
 
-	if (other == self->owner)
+	if (other == self.owner)
 		return;
 
-	if (surf && (surf->flags & SURF_SKY))
+	if (surf && (surf.flags & SURF_SKY))
 	{
 		G_FreeEdict (self);
 		return;
 	}
 
-	if (self->owner->is_client)
-		PlayerNoise(self->owner, self->s.origin, PNOISE_IMPACT);
+	if (self.owner.is_client)
+		PlayerNoise(self.owner, self.s.origin, PNOISE_IMPACT);
 
-	if (other->takedamage)
-		T_Damage (other, self, self->owner, self->velocity, self->s.origin, plane->normal, self->dmg, 1, DAMAGE_ENERGY, MOD_GEKK);
+	if (other.takedamage)
+		T_Damage (other, self, self.owner, self.velocity, self.s.origin, plane.normal, self.dmg, 1, DAMAGE_ENERGY, MOD_GEKK);
 	
 	G_FreeEdict (self);
 };
@@ -750,28 +750,28 @@ static void(entity self, vector start, vector dir, int damage, int speed) fire_l
 	VectorNormalize (dir);
 
 	loogie = G_Spawn();
-	loogie->s.origin = start;
-	loogie->s.old_origin = start;
-	loogie->s.angles = vectoangles (dir);
-	loogie->velocity = dir * speed;
-	loogie->movetype = MOVETYPE_FLYMISSILE;
-	loogie->clipmask = MASK_SHOT;
-	loogie->solid = SOLID_BBOX;
-	loogie->s.effects |= RF_FULLBRIGHT;
+	loogie.s.origin = start;
+	loogie.s.old_origin = start;
+	loogie.s.angles = vectoangles (dir);
+	loogie.velocity = dir * speed;
+	loogie.movetype = MOVETYPE_FLYMISSILE;
+	loogie.clipmask = MASK_SHOT;
+	loogie.solid = SOLID_BBOX;
+	loogie.s.effects |= RF_FULLBRIGHT;
 	
-	loogie->s.modelindex = gi.modelindex ("models/objects/loogy/tris.md2");
-	loogie->owner = self;
-	loogie->touch = loogie_touch;
-	loogie->nextthink = level.framenum + (2 * BASE_FRAMETIME);
-	loogie->think = G_FreeEdict;
-	loogie->dmg = damage;
+	loogie.s.modelindex = gi.modelindex ("models/objects/loogy/tris.md2");
+	loogie.owner = self;
+	loogie.touch = loogie_touch;
+	loogie.nextthink = level.framenum + (2 * BASE_FRAMETIME);
+	loogie.think = G_FreeEdict;
+	loogie.dmg = damage;
 	gi.linkentity (loogie);
 
-	gi.trace (&tr, self->s.origin, vec3_origin, vec3_origin, loogie->s.origin, loogie, MASK_SHOT);
+	gi.trace (&tr, self.s.origin, vec3_origin, vec3_origin, loogie.s.origin, loogie, MASK_SHOT);
 	if (tr.fraction < 1.0)
 	{
-		loogie->s.origin += dir * -10;
-		loogie->touch (loogie, tr.ent, null_plane, null_surface);
+		loogie.s.origin += dir * -10;
+		loogie.touch (loogie, tr.ent, null_plane, null_surface);
 	}
 
 }	
@@ -784,16 +784,16 @@ static void(entity self) loogie =
 	vector	dir;
 	vector	gekkoffset = '-18 -0.8 24';
 
-	if (!self->enemy || self->enemy->health <= 0)
+	if (!self.enemy || self.enemy.health <= 0)
 		return;
 	
-	AngleVectors (self->s.angles, &forward, &right, &up);
-	G_ProjectSource (self->s.origin, gekkoffset, forward, right, start);
+	AngleVectors (self.s.angles, &forward, &right, &up);
+	start = G_ProjectSource (self.s.origin, gekkoffset, forward, right);
 
 	start += up * 2;
 	
-	end = self->enemy->s.origin;
-	end[2] += self->enemy->viewheight;
+	end = self.enemy.s.origin;
+	end[2] += self.enemy.viewheight;
 	dir = end - start;
 
 	fire_loogie (self, start, dir, 5, 550);
@@ -803,14 +803,14 @@ static void(entity self) do_spit;
 
 static void(entity self) reloogie =
 {
-	if (random() > 0.8 && self->health < self->max_health)
+	if (random() > 0.8 && self.health < self.max_health)
 	{
-		self->monsterinfo.currentmove = &gekk_move_idle2;
+		self.monsterinfo.currentmove = &gekk_move_idle2;
 		return;
 	}
 		
-	if (self->enemy->health >= 0)
-		if (random() > 0.7 && (range(self, self->enemy) == RANGE_NEAR))
+	if (self.enemy.health >= 0)
+		if (random() > 0.7 && (range(self, self.enemy) == RANGE_NEAR))
 			do_spit(self);
 }
 
@@ -830,7 +830,7 @@ static var mmove_t gekk_move_spit = { FRAME_spit_01, FRAME_spit_07, gekk_run_sta
 
 static void(entity self) do_spit =
 {
-	self->monsterinfo.currentmove = &gekk_move_spit;
+	self.monsterinfo.currentmove = &gekk_move_spit;
 };
 
 static var mmove_t gekk_move_attack1 = { FRAME_clawatk3_01, FRAME_clawatk3_09, gekk_run_start };
@@ -838,17 +838,17 @@ static var mmove_t gekk_move_attack2 = { FRAME_clawatk5_01, FRAME_clawatk5_09, g
 
 static void(entity self) gekk_check_refire =
 {
-	if (!self->enemy || !self->enemy->inuse || self->enemy->health <= 0)
+	if (!self.enemy || !self.enemy.inuse || self.enemy.health <= 0)
 		return;
 	
-	if (random() < (skill->intVal * 0.1))
+	if (random() < (skill.intVal * 0.1))
 	{
-		if (range (self, self->enemy) == RANGE_MELEE)
+		if (range (self, self.enemy) == RANGE_MELEE)
 		{
-			if (self->s.frame == FRAME_clawatk3_09)
-				self->monsterinfo.currentmove = &gekk_move_attack2;
-			else if (self->s.frame == FRAME_clawatk5_09)
-				self->monsterinfo.currentmove = &gekk_move_attack1;
+			if (self.s.frame == FRAME_clawatk3_09)
+				self.monsterinfo.currentmove = &gekk_move_attack2;
+			else if (self.s.frame == FRAME_clawatk5_09)
+				self.monsterinfo.currentmove = &gekk_move_attack1;
 		}
 	}
 }
@@ -943,18 +943,18 @@ static void(entity self) gekk_melee =
 	
 	float r;
 	
-	if (self->waterlevel)
+	if (self.waterlevel)
 	{
-		self->monsterinfo.currentmove = &gekk_move_attack;	
+		self.monsterinfo.currentmove = &gekk_move_attack;	
 	}
 	else
 	{
 		r = random();
 
 		if (r > 0.66)
-			self->monsterinfo.currentmove = &gekk_move_attack1;
+			self.monsterinfo.currentmove = &gekk_move_attack1;
 		else 
-			self->monsterinfo.currentmove = &gekk_move_attack2;
+			self.monsterinfo.currentmove = &gekk_move_attack2;
 		
 	}
 
@@ -962,22 +962,22 @@ static void(entity self) gekk_melee =
 
 static void(entity self) gekk_jump =
 {
-	if (self->flags & FL_SWIM || self->waterlevel)
+	if (self.flags & FL_SWIM || self.waterlevel)
 	{
 		return;
 	}
 	else
 	{
-		//if (random() > 0.8 && self->health < self->max_health)
-		//	self->monsterinfo.currentmove = &gekk_move_idle2;
+		//if (random() > 0.8 && self.health < self.max_health)
+		//	self.monsterinfo.currentmove = &gekk_move_idle2;
 		//else
 		{
-			if (random() > 0.5 && (range (self, self->enemy) >= RANGE_NEAR))
-				self->monsterinfo.currentmove = &gekk_move_spit;
+			if (random() > 0.5 && (range (self, self.enemy) >= RANGE_NEAR))
+				self.monsterinfo.currentmove = &gekk_move_spit;
 			else if (random() > 0.8)
-				self->monsterinfo.currentmove = &gekk_move_spit;
+				self.monsterinfo.currentmove = &gekk_move_spit;
 			else
-				self->monsterinfo.currentmove = &gekk_move_leapatk;
+				self.monsterinfo.currentmove = &gekk_move_leapatk;
 			
 		}
 	}
@@ -1038,39 +1038,39 @@ static void(entity self, entity other, float kick, int damage) gekk_pain =
 {
 	float	r;
 
-	if (self->spawnflags & 8)
+	if (self.spawnflags & 8)
 	{
-		self->spawnflags &= ~8;
+		self.spawnflags &= ~8;
 		return;
 	}
 	
-	if (self->health < (self->max_health /4))
-		self->s.skinnum = 2;
-	else if (self->health < (self->max_health / 2))
-		self->s.skinnum = 1;
+	if (self.health < (self.max_health /4))
+		self.s.skinnum = 2;
+	else if (self.health < (self.max_health / 2))
+		self.s.skinnum = 1;
 
-	if (level.framenum < self->pain_debounce_framenum)
+	if (level.framenum < self.pain_debounce_framenum)
 		return;
 
-	self->pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
+	self.pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
 
 	gi.sound (self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 		
-	if (self->waterlevel)
+	if (self.waterlevel)
 	{
-		if (!(self->flags & FL_SWIM))
-			self->flags |= FL_SWIM;
+		if (!(self.flags & FL_SWIM))
+			self.flags |= FL_SWIM;
 		
-		self->monsterinfo.currentmove = &gekk_move_pain;
+		self.monsterinfo.currentmove = &gekk_move_pain;
 	}
 	else
 	{
 		r = random();
 
 		if (r > 0.5)
-			self->monsterinfo.currentmove = &gekk_move_pain1;
+			self.monsterinfo.currentmove = &gekk_move_pain1;
 		else
-			self->monsterinfo.currentmove = &gekk_move_pain2;
+			self.monsterinfo.currentmove = &gekk_move_pain2;
 	}
 }
 
@@ -1082,14 +1082,14 @@ static void(entity self, entity other, float kick, int damage) gekk_pain =
 static void(entity self) gekk_dead =
 {
 	// fix this because of no blocking problem
-	if (self->waterlevel)
+	if (self.waterlevel)
 		return;
 		
-	self->mins = '-16 -16 -24';
-	self->maxs = '16 16 -8';
-	self->movetype = MOVETYPE_TOSS;
-	self->svflags |= SVF_DEADMONSTER;
-	self->nextthink = 0;
+	self.mins = '-16 -16 -24';
+	self.maxs = '16 16 -8';
+	self.movetype = MOVETYPE_TOSS;
+	self.svflags |= SVF_DEADMONSTER;
+	self.nextthink = 0;
 	gi.linkentity (self);
 }
 
@@ -1114,7 +1114,7 @@ static void(entity self) gekk_gibfest =
 	ThrowHeadACID (self, "models/objects/gekkgib/head/tris.md2", damage, GIB_ORGANIC);
 	
 
-	self->deadflag = DEAD_DEAD;
+	self.deadflag = DEAD_DEAD;
 }
 
 static void(entity self) isgibfest =
@@ -1244,7 +1244,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 {
 	float	r;
 
-	if (self->health <= self->gib_health)
+	if (self.health <= self.gib_health)
 	{
 		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
 
@@ -1258,29 +1258,29 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 	
 		ThrowHeadACID (self, "models/objects/gekkgib/head/tris.md2", damage, GIB_ORGANIC);
 
-		self->deadflag = DEAD_DEAD;
+		self.deadflag = DEAD_DEAD;
 		return;
 	}
 
-	if (self->deadflag == DEAD_DEAD)
+	if (self.deadflag == DEAD_DEAD)
 		return;
 
 	gi.sound (self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
-	self->deadflag = DEAD_DEAD;
-	self->takedamage = DAMAGE_YES;
-	self->s.skinnum = 2;
+	self.deadflag = DEAD_DEAD;
+	self.takedamage = DAMAGE_YES;
+	self.s.skinnum = 2;
 
-	if (self->waterlevel)
-		self->monsterinfo.currentmove = &gekk_move_wdeath;
+	if (self.waterlevel)
+		self.monsterinfo.currentmove = &gekk_move_wdeath;
 	else
 	{
 		r = random();
 		if (r > 0.66)
-			self->monsterinfo.currentmove = &gekk_move_death1;
+			self.monsterinfo.currentmove = &gekk_move_death1;
 		else if (r > 0.33)
-			self->monsterinfo.currentmove = &gekk_move_death3;
+			self.monsterinfo.currentmove = &gekk_move_death3;
 		else
-			self->monsterinfo.currentmove = &gekk_move_death4;
+			self.monsterinfo.currentmove = &gekk_move_death4;
 	}
 }
 
@@ -1290,29 +1290,29 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 */
 static void(entity self) gekk_duck_down =
 {
-	if (self->monsterinfo.aiflags & AI_DUCKED)
+	if (self.monsterinfo.aiflags & AI_DUCKED)
 		return;
-	self->monsterinfo.aiflags |= AI_DUCKED;
-	self->maxs[2] -= 32;
-	self->takedamage = DAMAGE_YES;
-	self->monsterinfo.pause_framenum = level.framenum + 1 * BASE_FRAMERATE;
+	self.monsterinfo.aiflags |= AI_DUCKED;
+	self.maxs[2] -= 32;
+	self.takedamage = DAMAGE_YES;
+	self.monsterinfo.pause_framenum = level.framenum + 1 * BASE_FRAMERATE;
 	gi.linkentity (self);
 }
 
 static void(entity self) gekk_duck_up =
 {
-	self->monsterinfo.aiflags &= ~AI_DUCKED;
-	self->maxs[2] += 32;
-	self->takedamage = DAMAGE_AIM;
+	self.monsterinfo.aiflags &= ~AI_DUCKED;
+	self.maxs[2] += 32;
+	self.takedamage = DAMAGE_AIM;
 	gi.linkentity (self);
 }
 
 static void(entity self) gekk_duck_hold =
 {
-	if (level.framenum >= self->monsterinfo.pause_framenum)
-		self->monsterinfo.aiflags &= ~AI_HOLD_FRAME;
+	if (level.framenum >= self.monsterinfo.pause_framenum)
+		self.monsterinfo.aiflags &= ~AI_HOLD_FRAME;
 	else
-		self->monsterinfo.aiflags |= AI_HOLD_FRAME;
+		self.monsterinfo.aiflags |= AI_HOLD_FRAME;
 }
 
 static mframe_t gekk_frames_lduck[] = 
@@ -1360,76 +1360,76 @@ static void(entity self, entity attacker, float eta) gekk_dodge =
 	if (r > 0.25)
 		return;
 
-	if (!self->enemy)
-		self->enemy = attacker;
+	if (!self.enemy)
+		self.enemy = attacker;
 
-	if (self->waterlevel)
+	if (self.waterlevel)
 	{
-		self->monsterinfo.currentmove = &gekk_move_attack;
+		self.monsterinfo.currentmove = &gekk_move_attack;
 		return;
 	}
 	
-	if (skill->intVal == 0)
+	if (skill.intVal == 0)
 	{
 		r = random();
 		if (r > 0.5)
-			self->monsterinfo.currentmove = &gekk_move_lduck;
+			self.monsterinfo.currentmove = &gekk_move_lduck;
 		else 
-			self->monsterinfo.currentmove = &gekk_move_rduck;
+			self.monsterinfo.currentmove = &gekk_move_rduck;
 		return;
 	}
 
-	self->monsterinfo.pause_framenum = level.framenum + (int)(eta + 0.3 * BASE_FRAMERATE);
+	self.monsterinfo.pause_framenum = level.framenum + (int)(eta + 0.3 * BASE_FRAMERATE);
 	r = random();
 
-	if (skill->intVal == 1)
+	if (skill.intVal == 1)
 	{
 		if (r > 0.33)
 		{
 			r = random();
 			if (r > 0.5)
-				self->monsterinfo.currentmove = &gekk_move_lduck;
+				self.monsterinfo.currentmove = &gekk_move_lduck;
 			else 
-				self->monsterinfo.currentmove = &gekk_move_rduck;
+				self.monsterinfo.currentmove = &gekk_move_rduck;
 		}
 		else
 		{
 			r = random();
 			if (r > 0.66)
-				self->monsterinfo.currentmove = &gekk_move_attack1;
+				self.monsterinfo.currentmove = &gekk_move_attack1;
 			else 
-				self->monsterinfo.currentmove = &gekk_move_attack2;
+				self.monsterinfo.currentmove = &gekk_move_attack2;
 			
 		}
 		return;
 	}
 
-	if (skill->intVal == 2)
+	if (skill.intVal == 2)
 	{
 		if (r > 0.66)
 		{
 			r = random();
 			if (r > 0.5)
-				self->monsterinfo.currentmove = &gekk_move_lduck;
+				self.monsterinfo.currentmove = &gekk_move_lduck;
 			else 
-				self->monsterinfo.currentmove = &gekk_move_rduck;
+				self.monsterinfo.currentmove = &gekk_move_rduck;
 		}
 		else
 		{
 			r = random();
 			if (r > 0.66)
-				self->monsterinfo.currentmove = &gekk_move_attack1;
+				self.monsterinfo.currentmove = &gekk_move_attack1;
 			else 
-				self->monsterinfo.currentmove = &gekk_move_attack2;
+				self.monsterinfo.currentmove = &gekk_move_attack2;
 		}
 		return;
 	}
 
 	r = random();
 	if (r > 0.66)
-		self->monsterinfo.currentmove = &gekk_move_attack1;
+		self.monsterinfo.currentmove = &gekk_move_attack1;
 	else 
-		self->monsterinfo.currentmove = &gekk_move_attack2;
+		self.monsterinfo.currentmove = &gekk_move_attack2;
 }
 
 //
@@ -1440,7 +1440,7 @@ static void(entity self, entity attacker, float eta) gekk_dodge =
 */
 API_FUNC static void(entity self) SP_monster_gekk =
 {
-	if (deathmatch->intVal)
+	if (deathmatch.intVal)
 	{
 		G_FreeEdict (self);
 		return;
@@ -1493,11 +1493,11 @@ API_FUNC static void(entity self) SP_monster_gekk =
 	sound_chantmid = gi.soundindex ("gek/gek_mid.wav");
 	sound_chanthigh = gi.soundindex ("gek/gek_high.wav");
 	
-	self->movetype = MOVETYPE_STEP;
-	self->solid = SOLID_BBOX;
-	self->s.modelindex = gi.modelindex ("models/monsters/gekk/tris.md2");
-	self->mins = '-24 -24 -24';
-	self->maxs = '24 24 24';
+	self.movetype = MOVETYPE_STEP;
+	self.solid = SOLID_BBOX;
+	self.s.modelindex = gi.modelindex ("models/monsters/gekk/tris.md2");
+	self.mins = '-24 -24 -24';
+	self.maxs = '24 24 24';
 
 	gi.modelindex ("models/objects/gekkgib/pelvis/tris.md2");
 	gi.modelindex ("models/objects/gekkgib/arm/tris.md2");
@@ -1506,35 +1506,35 @@ API_FUNC static void(entity self) SP_monster_gekk =
 	gi.modelindex ("models/objects/gekkgib/leg/tris.md2");
 	gi.modelindex ("models/objects/gekkgib/head/tris.md2");
 		
-	self->health = 125;
-	self->gib_health = -30;
-	self->mass = 300;
+	self.health = 125;
+	self.gib_health = -30;
+	self.mass = 300;
 
-	self->pain = gekk_pain;
-	self->die = gekk_die;
+	self.pain = gekk_pain;
+	self.die = gekk_die;
 
-	self->monsterinfo.stand = gekk_stand;
+	self.monsterinfo.stand = gekk_stand;
 
-	self->monsterinfo.walk = gekk_walk;
-	self->monsterinfo.run = gekk_run_start;
-	self->monsterinfo.dodge = gekk_dodge;
-	self->monsterinfo.attack = gekk_jump;
-	self->monsterinfo.melee = gekk_melee;
-	self->monsterinfo.sight = gekk_sight;
+	self.monsterinfo.walk = gekk_walk;
+	self.monsterinfo.run = gekk_run_start;
+	self.monsterinfo.dodge = gekk_dodge;
+	self.monsterinfo.attack = gekk_jump;
+	self.monsterinfo.melee = gekk_melee;
+	self.monsterinfo.sight = gekk_sight;
 	
-	self->monsterinfo.search = gekk_search;
-	self->monsterinfo.idle = gekk_idle;
-	self->monsterinfo.checkattack = gekk_checkattack;
+	self.monsterinfo.search = gekk_search;
+	self.monsterinfo.idle = gekk_idle;
+	self.monsterinfo.checkattack = gekk_checkattack;
 
 	gi.linkentity (self);
 	
-	self->monsterinfo.currentmove = &gekk_move_stand;
+	self.monsterinfo.currentmove = &gekk_move_stand;
 
-	self->monsterinfo.scale = MODEL_SCALE;
+	self.monsterinfo.scale = MODEL_SCALE;
 	walkmonster_start (self);
 
-	if (self->spawnflags & 8)
-		self->monsterinfo.currentmove = &gekk_move_chant;
+	if (self.spawnflags & 8)
+		self.monsterinfo.currentmove = &gekk_move_chant;
 	
 }
 

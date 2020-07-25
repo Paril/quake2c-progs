@@ -48,7 +48,7 @@ static var mmove_t gladiator_move_stand = { FRAME_stand1, FRAME_stand7 };
 
 static void gladiator_stand(entity self)
 {
-	self->monsterinfo.currentmove = &gladiator_move_stand;
+	self.monsterinfo.currentmove = &gladiator_move_stand;
 }
 
 static mframe_t gladiator_frames_walk [] = {
@@ -73,7 +73,7 @@ static var mmove_t gladiator_move_walk = { FRAME_walk1, FRAME_walk16 };
 
 static void gladiator_walk(entity self)
 {
-	self->monsterinfo.currentmove = &gladiator_move_walk;
+	self.monsterinfo.currentmove = &gladiator_move_walk;
 }
 
 
@@ -89,16 +89,16 @@ static var mmove_t gladiator_move_run = { FRAME_run1, FRAME_run6 };
 
 static void gladiator_run(entity self)
 {
-	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
-		self->monsterinfo.currentmove = &gladiator_move_stand;
+	if (self.monsterinfo.aiflags & AI_STAND_GROUND)
+		self.monsterinfo.currentmove = &gladiator_move_stand;
 	else
-		self->monsterinfo.currentmove = &gladiator_move_run;
+		self.monsterinfo.currentmove = &gladiator_move_run;
 }
 
 
 static void GaldiatorMelee(entity self)
 {
-	const vector  aim = [ MELEE_DISTANCE, self->mins_x, -4 ];
+	const vector  aim = [ MELEE_DISTANCE, self.mins.x, -4 ];
 	if (fire_hit(self, aim, (20 + (Q_rand() % 5)), 300))
 		gi.sound(self, CHAN_AUTO, sound_cleaver_hit, 1, ATTN_NORM, 0);
 	else
@@ -128,7 +128,7 @@ static var mmove_t gladiator_move_attack_melee = { FRAME_melee1, FRAME_melee17, 
 
 static void gladiator_melee(entity self)
 {
-	self->monsterinfo.currentmove = &gladiator_move_attack_melee;
+	self.monsterinfo.currentmove = &gladiator_move_attack_melee;
 }
 
 static void GladiatorGun(entity self)
@@ -140,11 +140,11 @@ static void GladiatorGun(entity self)
 	vector  dir;
 	vector  forward, right;
 
-	AngleVectors(self->s.angles, &forward, &right, 0);
-	G_ProjectSource(self->s.origin, monster_flash_offset[MZ2_GLADIATOR_RAILGUN_1], forward, right, start);
+	AngleVectors(self.s.angles, &forward, &right, 0);
+	start = G_ProjectSource(self.s.origin, monster_flash_offset[MZ2_GLADIATOR_RAILGUN_1], forward, right);
 
 	// calc direction to where we targted
-	dir = self->pos1 - start;
+	dir = self.pos1 - start;
 	VectorNormalize(dir);
 
 	monster_fire_railgun(self, start, dir, 50, 100, MZ2_GLADIATOR_RAILGUN_1);
@@ -160,11 +160,11 @@ static void(entity self) gladbGun =
 	vector	dir;
 	vector	forward, right;
 
-	AngleVectors (self->s.angles, &forward, &right, 0);
-	G_ProjectSource (self->s.origin, monster_flash_offset[MZ2_GLADIATOR_RAILGUN_1], forward, right, start);
+	AngleVectors (self.s.angles, &forward, &right, 0);
+	start = G_ProjectSource (self.s.origin, monster_flash_offset[MZ2_GLADIATOR_RAILGUN_1], forward, right);
 
 	// calc direction to where we targted
-	dir = self->pos1 - start;
+	dir = self.pos1 - start;
 	VectorNormalize(dir);
 
 	fire_plasma (self, start, dir, 100, 725, 60, 60);
@@ -172,7 +172,7 @@ static void(entity self) gladbGun =
 
 static void(entity self) gladbGun_check =
 {
-	if (skill->intVal == 3)
+	if (skill.intVal == 3)
 		gladbGun (self);
 }
 #endif
@@ -210,7 +210,7 @@ static void gladiator_attack(entity self)
 	vector  v;
 
 	// a small safe zone
-	v = self->s.origin - self->enemy->s.origin;
+	v = self.s.origin - self.enemy.s.origin;
 	range = VectorLength(v);
 	if (range <= (MELEE_DISTANCE + 32))
 		return;
@@ -222,9 +222,9 @@ static void gladiator_attack(entity self)
 	else
 #endif
 		gi.sound(self, CHAN_WEAPON, sound_gun, 1, ATTN_NORM, 0);
-	self->pos1 = self->enemy->s.origin;  //save for aiming the shot
-	self->pos1[2] += self->enemy->viewheight;
-	self->monsterinfo.currentmove = &gladiator_move_attack_gun;
+	self.pos1 = self.enemy.s.origin;  //save for aiming the shot
+	self.pos1[2] += self.enemy.viewheight;
+	self.monsterinfo.currentmove = &gladiator_move_attack_gun;
 }
 
 
@@ -252,40 +252,40 @@ static var mmove_t gladiator_move_pain_air = { FRAME_painup1, FRAME_painup7, gla
 static void gladiator_pain(entity self, entity other, float kick, int damage)
 {
 
-	if (self->health < (self->max_health / 2))
-		self->s.skinnum = 1;
+	if (self.health < (self.max_health / 2))
+		self.s.skinnum = 1;
 
-	if (level.framenum < self->pain_debounce_framenum) {
-		if ((self->velocity[2] > 100) && (self->monsterinfo.currentmove == &gladiator_move_pain))
-			self->monsterinfo.currentmove = &gladiator_move_pain_air;
+	if (level.framenum < self.pain_debounce_framenum) {
+		if ((self.velocity[2] > 100) && (self.monsterinfo.currentmove == &gladiator_move_pain))
+			self.monsterinfo.currentmove = &gladiator_move_pain_air;
 		return;
 	}
 
-	self->pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
+	self.pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
 
 	if (random() < 0.5f)
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
 	else
 		gi.sound(self, CHAN_VOICE, sound_pain2, 1, ATTN_NORM, 0);
 
-	if (skill->intVal == 3)
+	if (skill.intVal == 3)
 		return;     // no pain anims in nightmare
 
-	if (self->velocity[2] > 100)
-		self->monsterinfo.currentmove = &gladiator_move_pain_air;
+	if (self.velocity[2] > 100)
+		self.monsterinfo.currentmove = &gladiator_move_pain_air;
 	else
-		self->monsterinfo.currentmove = &gladiator_move_pain;
+		self.monsterinfo.currentmove = &gladiator_move_pain;
 
 }
 
 
 static void gladiator_dead(entity self)
 {
-	self->mins = '-16 -16 -24';
-	self->maxs = '16 16 -8';
-	self->movetype = MOVETYPE_TOSS;
-	self->svflags |= SVF_DEADMONSTER;
-	self->nextthink = 0;
+	self.mins = '-16 -16 -24';
+	self.maxs = '16 16 -8';
+	self.movetype = MOVETYPE_TOSS;
+	self.svflags |= SVF_DEADMONSTER;
+	self.nextthink = 0;
 	gi.linkentity(self);
 }
 
@@ -320,33 +320,46 @@ static void gladiator_die(entity self, entity inflictor, entity attacker, int da
 	int     n;
 
 // check for gib
-	if (self->health <= self->gib_health) {
+	if (self.health <= self.gib_health) {
 		gi.sound(self, CHAN_VOICE, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
 		for (n = 0; n < 2; n++)
 			ThrowGib(self, "models/objects/gibs/bone/tris.md2", damage, GIB_ORGANIC);
 		for (n = 0; n < 4; n++)
 			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
 		ThrowHead(self, "models/objects/gibs/head2/tris.md2", damage, GIB_ORGANIC);
-		self->deadflag = DEAD_DEAD;
+		self.deadflag = DEAD_DEAD;
 		return;
 	}
 
-	if (self->deadflag == DEAD_DEAD)
+	if (self.deadflag == DEAD_DEAD)
 		return;
 
 // regular death
 	gi.sound(self, CHAN_VOICE, sound_die, 1, ATTN_NORM, 0);
-	self->deadflag = DEAD_DEAD;
-	self->takedamage = DAMAGE_YES;
+	self.deadflag = DEAD_DEAD;
+	self.takedamage = DAMAGE_YES;
 
-	self->monsterinfo.currentmove = &gladiator_move_death;
+	self.monsterinfo.currentmove = &gladiator_move_death;
 }
+
+#ifdef GROUND_ZERO
+static bool gladiator_blocked (entity self, float dist)
+{
+	if(blocked_checkshot (self, 0.25 + (0.05 * skill.intVal)))
+		return true;
+
+	if(blocked_checkplat (self, dist))
+		return true;
+
+	return false;
+}
+#endif
 
 /*QUAKED monster_gladiator (1 .5 0) (-32 -32 -24) (32 32 64) Ambush Trigger_Spawn Sight
 */
 API_FUNC static void SP_monster_gladiator(entity self)
 {
-	if (deathmatch->intVal) {
+	if (deathmatch.intVal) {
 		G_FreeEdict(self);
 		return;
 	}
@@ -380,53 +393,56 @@ API_FUNC static void SP_monster_gladiator(entity self)
 		sound_gun = gi.soundindex("gladiator/railgun.wav");
 #endif
 
-	self->movetype = MOVETYPE_STEP;
-	self->solid = SOLID_BBOX;
+	self.movetype = MOVETYPE_STEP;
+	self.solid = SOLID_BBOX;
 #ifdef THE_RECKONING
 	if (self.classname == "monster_gladb")
-		self->s.modelindex = gi.modelindex ("models/monsters/gladb/tris.md2");
+		self.s.modelindex = gi.modelindex ("models/monsters/gladb/tris.md2");
 	else
 #endif
-		self->s.modelindex = gi.modelindex("models/monsters/gladiatr/tris.md2");
-	self->mins = '-32 -32 -24';
-	self->maxs = '32 32 64';
+		self.s.modelindex = gi.modelindex("models/monsters/gladiatr/tris.md2");
+	self.mins = '-32 -32 -24';
+	self.maxs = '32 32 64';
 
 #ifdef THE_RECKONING
 	if (self.classname == "monster_gladb")
 	{
-		self->health = 800;
-		self->gib_health = -175;
-		self->mass = 350;
+		self.health = 800;
+		self.gib_health = -175;
+		self.mass = 350;
 
-		self->monsterinfo.power_armor_type = POWER_ARMOR_SHIELD;
-		self->monsterinfo.power_armor_power = 400;
+		self.monsterinfo.power_armor_type = POWER_ARMOR_SHIELD;
+		self.monsterinfo.power_armor_power = 400;
 	}
 	else
 	{
 #endif
-		self->health = 400;
-		self->gib_health = -175;
-		self->mass = 400;
+		self.health = 400;
+		self.gib_health = -175;
+		self.mass = 400;
 #ifdef THE_RECKONING
 	}
 #endif
 
-	self->pain = gladiator_pain;
-	self->die = gladiator_die;
+	self.pain = gladiator_pain;
+	self.die = gladiator_die;
 
-	self->monsterinfo.stand = gladiator_stand;
-	self->monsterinfo.walk = gladiator_walk;
-	self->monsterinfo.run = gladiator_run;
-	self->monsterinfo.dodge = 0;
-	self->monsterinfo.attack = gladiator_attack;
-	self->monsterinfo.melee = gladiator_melee;
-	self->monsterinfo.sight = gladiator_sight;
-	self->monsterinfo.idle = gladiator_idle;
-	self->monsterinfo.search = gladiator_search;
+	self.monsterinfo.stand = gladiator_stand;
+	self.monsterinfo.walk = gladiator_walk;
+	self.monsterinfo.run = gladiator_run;
+	self.monsterinfo.dodge = 0;
+	self.monsterinfo.attack = gladiator_attack;
+	self.monsterinfo.melee = gladiator_melee;
+	self.monsterinfo.sight = gladiator_sight;
+	self.monsterinfo.idle = gladiator_idle;
+	self.monsterinfo.search = gladiator_search;
+#ifdef GROUND_ZERO
+	self.monsterinfo.blocked = gladiator_blocked;
+#endif
 
 	gi.linkentity(self);
-	self->monsterinfo.currentmove = &gladiator_move_stand;
-	self->monsterinfo.scale = MODEL_SCALE;
+	self.monsterinfo.currentmove = &gladiator_move_stand;
+	self.monsterinfo.scale = MODEL_SCALE;
 
 	walkmonster_start(self);
 }

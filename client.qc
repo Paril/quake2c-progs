@@ -23,12 +23,12 @@ static void(entity self) SP_FixCoopSpots =
 		spot = G_Find(spot, classname, "info_player_start");
 		if (spot == null_entity)
 			return;
-		if (!spot->targetname)
+		if (!spot.targetname)
 			continue;
-		d = self->s.origin - spot->s.origin;
+		d = self.s.origin - spot.s.origin;
 		if (VectorLength(d) < 384) {
-			if ((!self->targetname) || stricmp(self->targetname, spot->targetname) != 0) {
-				self->targetname = spot->targetname;
+			if ((!self.targetname) || stricmp(self.targetname, spot.targetname) != 0) {
+				self.targetname = spot.targetname;
 			}
 			return;
 		}
@@ -45,28 +45,28 @@ static void(entity self) SP_CreateCoopSpots =
 
     if (level.mapname == "security") {
         spot = G_Spawn();
-        spot->classname = "info_player_coop";
-        spot->s.origin[0] = 188f - 64f;
-        spot->s.origin[1] = -164f;
-        spot->s.origin[2] = 80f;
-        spot->targetname = "jail3";
-        spot->s.angles[1] = 90f;
+        spot.classname = "info_player_coop";
+        spot.s.origin[0] = 188f - 64f;
+        spot.s.origin[1] = -164f;
+        spot.s.origin[2] = 80f;
+        spot.targetname = "jail3";
+        spot.s.angles[1] = 90f;
 
         spot = G_Spawn();
-        spot->classname = "info_player_coop";
-        spot->s.origin[0] = 188f + 64f;
-        spot->s.origin[1] = -164f;
-        spot->s.origin[2] = 80f;
-        spot->targetname = "jail3";
-        spot->s.angles[1] = 90f;
+        spot.classname = "info_player_coop";
+        spot.s.origin[0] = 188f + 64f;
+        spot.s.origin[1] = -164f;
+        spot.s.origin[2] = 80f;
+        spot.targetname = "jail3";
+        spot.s.angles[1] = 90f;
 
         spot = G_Spawn();
-        spot->classname = "info_player_coop";
-        spot->s.origin[0] = 188f + 128f;
-        spot->s.origin[1] = -164f;
-        spot->s.origin[2] = 80f;
-        spot->targetname = "jail3";
-        spot->s.angles[1] = 90f;
+        spot.classname = "info_player_coop";
+        spot.s.origin[0] = 188f + 128f;
+        spot.s.origin[1] = -164f;
+        spot.s.origin[2] = 80f;
+        spot.targetname = "jail3";
+        spot.s.angles[1] = 90f;
 
         return;
     }
@@ -78,12 +78,12 @@ The normal starting point for a level.
 */
 API_FUNC static void(entity self) SP_info_player_start =
 {
-    if (!coop->intVal)
+    if (!coop.intVal)
         return;
     if (stricmp(level.mapname, "security") == 0) {
         // invoke one of our gross, ugly, disgusting hacks
-        self->think = SP_CreateCoopSpots;
-        self->nextthink = level.framenum + 1;
+        self.think = SP_CreateCoopSpots;
+        self.nextthink = level.framenum + 1;
     }
 }
 
@@ -126,8 +126,8 @@ API_FUNC static void(entity self) SP_info_player_coop =
         (stricmp(level.mapname, "power2") == 0) ||
         (stricmp(level.mapname, "strike") == 0)) {
         // invoke one of our gross, ugly, disgusting hacks
-        self->think = SP_FixCoopSpots;
-        self->nextthink = level.framenum + 1;
+        self.think = SP_FixCoopSpots;
+        self.nextthink = level.framenum + 1;
     }
 }
 
@@ -140,6 +140,21 @@ API_FUNC static void() SP_info_player_intermission =
 {
 }
 
+#ifdef GROUND_ZERO
+/*QUAKED info_player_coop_lava (1 0 1) (-16 -16 -24) (16 16 32)
+potential spawning position for coop games on rmine2 where lava level
+needs to be checked
+*/
+API_FUNC static void(entity self) SP_info_player_coop_lava =
+{
+	if (!coop.intVal)
+	{
+		G_FreeEdict (self);
+		return;
+	}
+}
+#endif
+
 //=======================================================================
 
 
@@ -151,10 +166,10 @@ static void(entity self, entity other, float kick, int damage) player_pain =
 
 static bool(entity ent) IsFemale =
 {
-	if (!ent->is_client)
+	if (!ent.is_client)
 		return false;
 	
-	string info = Info_ValueForKey(ent->client->pers.userinfo, "gender");
+	string info = Info_ValueForKey(ent.client.pers.userinfo, "gender");
 	if (strat(info, 0) == 'f' || strat(info, 0) == 'F')
 		return true;
 	return false;
@@ -162,10 +177,10 @@ static bool(entity ent) IsFemale =
 
 static bool(entity ent) IsNeutral =
 {
-    if (!ent->is_client)
+    if (!ent.is_client)
         return false;
 
-    string info = Info_ValueForKey(ent->client->pers.userinfo, "gender");
+    string info = Info_ValueForKey(ent.client.pers.userinfo, "gender");
     if (strat(info, 0) != 'f' && strat(info, 0) != 'F' && strat(info, 0) != 'm' && strat(info, 0) != 'M')
         return true;
     return false;
@@ -180,10 +195,10 @@ static void(entity self, entity inflictor, entity attacker) ClientObituary =
 	string	message2;
 	int	ff;
 
-	if (coop.intVal && attacker->is_client)
+	if (coop.intVal && attacker.is_client)
 		meansOfDeath |= MOD_FRIENDLY_FIRE;
 
-	if (deathmatch->intVal || coop->intVal) {
+	if (deathmatch.intVal || coop.intVal) {
 		ff = meansOfDeath & MOD_FRIENDLY_FIRE;
 		mod = meansOfDeath & ~MOD_FRIENDLY_FIRE;
 		message = 0;
@@ -281,15 +296,15 @@ static void(entity self, entity inflictor, entity attacker) ClientObituary =
 			}
 		}
 		if (message) {
-			gi.bprintf(PRINT_MEDIUM, "%s %s.\n", self->client->pers.netname, message);
-			if (deathmatch->intVal)
-				self->client->resp.score--;
-			self->enemy = world;
+			gi.bprintf(PRINT_MEDIUM, "%s %s.\n", self.client.pers.netname, message);
+			if (deathmatch.intVal)
+				self.client.resp.score--;
+			self.enemy = world;
 			return;
 		}
 
-		self->enemy = attacker;
-		if (attacker && attacker->is_client) {
+		self.enemy = attacker;
+		if (attacker && attacker.is_client) {
 			switch (mod) {
 			case MOD_BLASTER:
 				message = "was blasted by";
@@ -360,7 +375,6 @@ static void(entity self, entity inflictor, entity attacker) ClientObituary =
 				message2 = "'s personal space";
 				break;
 #ifdef THE_RECKONING
-			// RAFAEL 14-APR-98
 			case MOD_RIPPER:
 				message = "ripped to shreds by";
 				message2 = "'s ripper gun";
@@ -372,25 +386,58 @@ static void(entity self, entity inflictor, entity attacker) ClientObituary =
 				message = "caught in";
 				message2 = "'s trap";
 				break;
-			// END 14-APR-98
+#endif
+#ifdef GROUND_ZERO
+
+			case MOD_CHAINFIST:
+				message = "was shredded by";
+				message2 = "'s ripsaw";
+				break;
+			case MOD_DISINTEGRATOR:
+				message = "lost his grip courtesy of";
+				message2 = "'s disintegrator";
+				break;
+			case MOD_ETF_RIFLE:
+				message = "was perforated by";
+				break;
+			case MOD_HEATBEAM:
+				message = "was scorched by";
+				message2 = "'s plasma beam";
+				break;
+			case MOD_TESLA:
+				message = "was enlightened by";
+				message2 = "'s tesla mine";
+				break;
+			case MOD_PROX:
+				message = "got too close to";
+				message2 = "'s proximity mine";
+				break;
+			case MOD_NUKE:
+				message = "was nuked by";
+				message2 = "'s antimatter bomb";
+				break;
+			case MOD_TRACKER:
+				message = "was annihilated by";
+				message2 = "'s disruptor";
+				break;
 #endif
 			}
 			if (message) {
-				gi.bprintf(PRINT_MEDIUM, "%s %s %s%s\n", self->client->pers.netname, message, attacker->client->pers.netname, message2);
-				if (deathmatch->intVal) {
+				gi.bprintf(PRINT_MEDIUM, "%s %s %s%s\n", self.client.pers.netname, message, attacker.client.pers.netname, message2);
+				if (deathmatch.intVal) {
 					if (ff)
-						attacker->client->resp.score--;
+						attacker.client.resp.score--;
 					else
-						attacker->client->resp.score++;
+						attacker.client.resp.score++;
 				}
 				return;
 			}
 		}
 	}
 
-	gi.bprintf(PRINT_MEDIUM, "%s died.\n", self->client->pers.netname);
-	if (deathmatch->intVal)
-		self->client->resp.score--;
+	gi.bprintf(PRINT_MEDIUM, "%s died.\n", self.client.pers.netname);
+	if (deathmatch.intVal)
+		self.client.resp.score--;
 }
 
 static void(entity self) TossClientWeapon =
@@ -400,29 +447,29 @@ static void(entity self) TossClientWeapon =
 	bool		quad;
 	float		spread;
 
-	if (!deathmatch->intVal)
+	if (!deathmatch.intVal)
 		return;
 
-	it = self->client->pers.weapon;
-	if (!self->client->pers.inventory[self->client->ammo_index])
+	it = self.client.pers.weapon;
+	if (!self.client.pers.inventory[self.client.ammo_index])
 		it = 0;
 	
 	if (it && GetItemKeyByIndex(it, pickup_name) == "Blaster")
 		it = 0;
 
-	if (!(dmflags->intVal & DF_QUAD_DROP))
+	if (!(dmflags.intVal & DF_QUAD_DROP))
 		quad = false;
 	else
-		quad = (bool)(self->client->quad_framenum > (level.framenum + 10));
+		quad = (bool)(self.client.quad_framenum > (level.framenum + 10));
 		
 #ifdef THE_RECKONING
 	// RAFAEL
 	bool		quadfire;
 
-	if (!(dmflags->intVal & DF_QUADFIRE_DROP))
+	if (!(dmflags.intVal & DF_QUADFIRE_DROP))
 		quadfire = false;
 	else
-		quadfire = (self->client->quadfire_framenum > (level.framenum + 10));
+		quadfire = (self.client.quadfire_framenum > (level.framenum + 10));
 #endif
 
 	if (it && quad)
@@ -435,35 +482,35 @@ static void(entity self) TossClientWeapon =
 		spread = 0.0f;
 
 	if (it) {
-		self->client->v_angle[YAW] -= spread;
+		self.client.v_angle[YAW] -= spread;
 		drop = Drop_Item(self, it);
-		self->client->v_angle[YAW] += spread;
-		drop->spawnflags = DROPPED_PLAYER_ITEM;
+		self.client.v_angle[YAW] += spread;
+		drop.spawnflags = DROPPED_PLAYER_ITEM;
 	}
 
 	if (quad) {
-		self->client->v_angle[YAW] += spread;
+		self.client.v_angle[YAW] += spread;
 		drop = Drop_Item(self, FindItemByClassname("item_quad"));
-		self->client->v_angle[YAW] -= spread;
-		drop->spawnflags |= DROPPED_PLAYER_ITEM;
+		self.client.v_angle[YAW] -= spread;
+		drop.spawnflags |= DROPPED_PLAYER_ITEM;
 
-		drop->touch = Touch_Item;
-		drop->nextthink = self->client->quad_framenum;
-		drop->think = G_FreeEdict;
+		drop.touch = Touch_Item;
+		drop.nextthink = self.client.quad_framenum;
+		drop.think = G_FreeEdict;
 	}
 	
 #ifdef THE_RECKONING
 	// RAFAEL
 	if (quadfire)
 	{
-		self->client->v_angle[YAW] += spread;
+		self.client.v_angle[YAW] += spread;
 		drop = Drop_Item (self, FindItemByClassname ("item_quadfire"));
-		self->client->v_angle[YAW] -= spread;
-		drop->spawnflags |= DROPPED_PLAYER_ITEM;
+		self.client.v_angle[YAW] -= spread;
+		drop.spawnflags |= DROPPED_PLAYER_ITEM;
 
-		drop->touch = Touch_Item;
-		drop->nextthink = self->client->quadfire_framenum;
-		drop->think = G_FreeEdict;
+		drop.touch = Touch_Item;
+		drop.nextthink = self.client.quadfire_framenum;
+		drop.think = G_FreeEdict;
 	}
 #endif
 }
@@ -478,25 +525,15 @@ void(entity self, entity inflictor, entity attacker) LookAtKiller =
 	vector	dir;
 
 	if (attacker && attacker != world && attacker != self) {
-		dir = attacker->s.origin - self->s.origin;
+		dir = attacker.s.origin - self.s.origin;
 	} else if (inflictor && inflictor != world && inflictor != self) {
-		dir = inflictor->s.origin - self->s.origin;
+		dir = inflictor.s.origin - self.s.origin;
 	} else {
-		self->client->killer_yaw = self->s.angles[YAW];
+		self.client.killer_yaw = self.s.angles[YAW];
 		return;
 	}
 
-	if (dir[PITCH])
-		self->client->killer_yaw = RAD2DEG(atan2f(dir[YAW], dir[PITCH]));
-	else {
-		self->client->killer_yaw = 0;
-		if (dir[YAW] > 0)
-			self->client->killer_yaw = 90f;
-		else if (dir[YAW] < 0)
-			self->client->killer_yaw = -90f;
-	}
-	if (self->client->killer_yaw < 0)
-		self->client->killer_yaw += 360f;
+	self.client.killer_yaw = vectoyaw(dir);
 }
 
 // from hud.qc
@@ -513,90 +550,115 @@ player_die
 */
 void(entity self, entity inflictor, entity attacker, int damage, vector point) player_die =
 {
-	self->avelocity = vec3_origin;
+	self.avelocity = vec3_origin;
 
-	self->takedamage = DAMAGE_YES;
-	self->movetype = MOVETYPE_TOSS;
+	self.takedamage = DAMAGE_YES;
+	self.movetype = MOVETYPE_TOSS;
 
-	self->s.modelindex2 = 0;    // remove linked weapon model
+	self.s.modelindex2 = 0;    // remove linked weapon model
 
-	self->s.angles[PITCH] = 0;
-	self->s.angles[ROLL] = 0;
+	self.s.angles[PITCH] = 0;
+	self.s.angles[ROLL] = 0;
 
-	self->s.sound = 0;
-	self->client->weapon_sound = 0;
+	self.s.sound = 0;
+	self.client.weapon_sound = 0;
 
-	self->maxs_z = -8f;
+	self.maxs.z = -8f;
 
-	self->svflags |= SVF_DEADMONSTER;
+	self.svflags |= SVF_DEADMONSTER;
 
-	if (!self->deadflag) {
-		self->client->respawn_framenum = (int)(level.framenum + 1.0f * BASE_FRAMERATE);
+	if (!self.deadflag) {
+		self.client.respawn_framenum = (int)(level.framenum + 1.0f * BASE_FRAMERATE);
 		LookAtKiller(self, inflictor, attacker);
-		self->client->ps.pmove.pm_type = PM_DEAD;
+		self.client.ps.pmove.pm_type = PM_DEAD;
 		ClientObituary(self, inflictor, attacker);
 		TossClientWeapon(self);
-		if (deathmatch->intVal)
+		if (deathmatch.intVal)
 			Cmd_Help_f(self);       // show scores
 
 		// clear inventory
 		// this is kind of ugly, but it's how we want to handle keys in coop
 		for (int n = 0; n < itemlist.length; n++) {
-			if (coop->intVal && itemlist[n].flags & IT_KEY)
-				self->client->resp.coop_respawn.inventory[n] = self->client->pers.inventory[n];
-			self->client->pers.inventory[n] = 0;
+			if (coop.intVal && itemlist[n].flags & IT_KEY)
+				self.client.resp.coop_respawn.inventory[n] = self.client.pers.inventory[n];
+			self.client.pers.inventory[n] = 0;
 		}
 	}
 
 	// remove powerups
-	self->client->quad_framenum = 0;
-	self->client->invincible_framenum = 0;
-	self->client->breather_framenum = 0;
-	self->client->enviro_framenum = 0;
+	self.client.quad_framenum = 0;
+	self.client.invincible_framenum = 0;
+	self.client.breather_framenum = 0;
+	self.client.enviro_framenum = 0;
 #ifdef THE_RECKONING
-	// RAFAEL
-	self->client->quadfire_framenum = 0;
+	self.client.quadfire_framenum = 0;
 #endif
-	self->flags &= ~FL_POWER_ARMOR;
+	self.flags &= ~FL_POWER_ARMOR;
+	
+#ifdef GROUND_ZERO
+	self.client.double_framenum = 0;
+	// if we've been killed by the tracker, GIB!
+	if((meansOfDeath & ~MOD_FRIENDLY_FIRE) == MOD_TRACKER)
+	{
+		self.health = -100;
+		damage = 400;
+	}
+	
+	// if we got obliterated by the nuke, don't gib
+	if ((self.health < -80) && (meansOfDeath == MOD_NUKE))
+		self.flags |= FL_NOGIB;
+#endif
 
-	if (self->health < -40) {
-		// gib
-		gi.sound(self, CHAN_BODY, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
-		for (int n = 0; n < 4; n++)
-			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
+	if (self.health < -40)
+	{
+#ifdef GROUND_ZERO
+		if (!(self.flags & FL_NOGIB))
+		{
+#endif
+			// gib
+			gi.sound(self, CHAN_BODY, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
+			for (int n = 0; n < 4; n++)
+				ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
+#ifdef GROUND_ZERO
+		}
+		self.flags &= ~FL_NOGIB;
+#endif
+
 		ThrowClientHead(self, damage);
 
-		self->takedamage = DAMAGE_NO;
-	} else {
+		self.takedamage = DAMAGE_NO;
+	}
+	else
+	{
 		// normal death
-		if (!self->deadflag) {
+		if (!self.deadflag) {
 			static int i;
 
 			i = (i + 1) % 3;
 			// start a death animation
-			self->client->anim_priority = ANIM_DEATH;
-			if (self->client->ps.pmove.pm_flags & PMF_DUCKED) {
-				self->s.frame = FRAME_crdeath1 - 1;
-				self->client->anim_end = FRAME_crdeath5;
+			self.client.anim_priority = ANIM_DEATH;
+			if (self.client.ps.pmove.pm_flags & PMF_DUCKED) {
+				self.s.frame = FRAME_crdeath1 - 1;
+				self.client.anim_end = FRAME_crdeath5;
 			} else switch (i) {
 				case 0:
-					self->s.frame = FRAME_death101 - 1;
-					self->client->anim_end = FRAME_death106;
+					self.s.frame = FRAME_death101 - 1;
+					self.client.anim_end = FRAME_death106;
 					break;
 				case 1:
-					self->s.frame = FRAME_death201 - 1;
-					self->client->anim_end = FRAME_death206;
+					self.s.frame = FRAME_death201 - 1;
+					self.client.anim_end = FRAME_death206;
 					break;
 				case 2:
-					self->s.frame = FRAME_death301 - 1;
-					self->client->anim_end = FRAME_death308;
+					self.s.frame = FRAME_death301 - 1;
+					self.client.anim_end = FRAME_death308;
 					break;
 				}
 			gi.sound(self, CHAN_VOICE, gi.soundindex(va("*death%i.wav", (Q_rand() % 4) + 1)), 1, ATTN_NORM, 0);
 		}
 	}
 
-	self->deadflag = DEAD_DEAD;
+	self.deadflag = DEAD_DEAD;
 
 	gi.linkentity(self);
 }
@@ -632,9 +694,16 @@ static void(entity ent) InitClientPersistant =
 	ent.client.pers.max_slugs      = 50;
 	
 #ifdef THE_RECKONING
-	// RAFAEL
-	ent.client->pers.max_magslug	= 50;
-	ent.client->pers.max_trap	= 5;
+	ent.client.pers.max_magslug	= 50;
+	ent.client.pers.max_trap	= 5;
+#endif
+
+#ifdef GROUND_ZERO
+	// FIXME - give these real numbers....
+	ent.client.pers.max_prox		= 50;
+	ent.client.pers.max_tesla		= 50;
+	ent.client.pers.max_flechettes = 200;
+	ent.client.pers.max_rounds     = 100;
 #endif
 	
 	ent.client.pers.connected = true;
@@ -711,13 +780,13 @@ static float(entity spot) PlayersRangeFromSpot =
 	{
 		player = itoe(n);
 
-		if (!player->inuse)
+		if (!player.inuse)
 			continue;
 
-		if (player->health <= 0)
+		if (player.health <= 0)
 			continue;
 
-		v = spot->s.origin - player->s.origin;
+		v = spot.s.origin - player.s.origin;
 		playerdistance = VectorLength(v);
 
 		if (playerdistance < bestplayerdistance)
@@ -822,9 +891,103 @@ static entity() SelectDeathmatchSpawnPoint =
 		return SelectRandomDeathmatchSpawnPoint();
 }
 
+#ifdef GROUND_ZERO
+static entity(entity ent) SelectLavaCoopSpawnPoint =
+{
+	int	index;
+	entity	spot = null_entity;
+	float	lavatop;
+	entity	lava;
+	entity	pointWithLeastLava;
+	float	lowest;
+	entity	spawnPoints[64] = { 0 };
+	vector	center;
+	int	numPoints;
+	entity	highestlava;
+
+	lavatop = -99999f;
+	highestlava = null_entity;
+
+	// first, find the highest lava
+	// remember that some will stop moving when they've filled their
+	// areas...
+	lava = null_entity;
+	while (1)
+	{
+		lava = G_Find (lava, classname, "func_door");
+		if(lava == null_entity)
+			break;
+		
+		center = (lava.absmax + lava.absmin) * 0.5f;
+
+		if(lava.spawnflags & 2 && (gi.pointcontents(center) & MASK_WATER))
+		{
+			if (lava.absmax[2] > lavatop)
+			{
+				lavatop = lava.absmax[2];
+				highestlava = lava;
+			}
+		}
+	}
+
+	// if we didn't find ANY lava, then return NULL
+	if (highestlava == null_entity)
+		return null_entity;
+
+	// find the top of the lava and include a small margin of error (plus bbox size)
+	lavatop = highestlava.absmax[2] + 64;
+
+	// find all the lava spawn points and store them in spawnPoints[]
+	spot = null_entity;
+	numPoints = 0;
+	while((spot = G_Find (spot, classname, "info_player_coop_lava")) != null_entity)
+	{
+		if(numPoints == 64)
+			break;
+
+		spawnPoints[numPoints++] = spot;
+	}
+
+	if(numPoints < 1)
+		return null_entity;
+
+	// walk up the sorted list and return the lowest, open, non-lava spawn point
+	spot = null_entity;
+	lowest = 999999f;
+	pointWithLeastLava = null_entity;
+	for (index = 0; index < numPoints; index++)
+	{
+		if(spawnPoints[index].s.origin[2] < lavatop)
+			continue;
+
+		if(PlayersRangeFromSpot(spawnPoints[index]) > 32)
+		{
+			if(spawnPoints[index].s.origin[2] < lowest)
+			{
+				// save the last point
+				pointWithLeastLava = spawnPoints[index];
+				lowest = spawnPoints[index].s.origin[2];
+			}
+		}
+	}
+
+	// FIXME - better solution????
+	// well, we may telefrag someone, but oh well...
+	if(pointWithLeastLava != null_entity)
+		return pointWithLeastLava;
+
+	return null_entity;
+}
+#endif
 
 static entity(entity ent) SelectCoopSpawnPoint =
 {
+#ifdef GROUND_ZERO
+	// rogue hack, but not too gross...
+	if (!stricmp(level.mapname, "rmine2p") || !stricmp(level.mapname, "rmine2"))
+		return SelectLavaCoopSpawnPoint (ent);
+#endif
+
 	int	index;
 	entity	spot = null_entity;
 	string	target;
@@ -843,7 +1006,7 @@ static entity(entity ent) SelectCoopSpawnPoint =
 		if (spot == null_entity)
 			return null_entity;    // we didn't have enough...
 
-		target = spot->targetname;
+		target = spot.targetname;
 
 		if (stricmp(game.spawnpoint, target) == 0) {
 			// this is a coop spawn point for one of the clients here
@@ -879,13 +1042,13 @@ static void(entity ent, __out vector origin, __out vector angles) SelectSpawnPoi
 	{
 		while ((spot = G_Find(spot, classname, "info_player_start")) != null_entity)
 		{
-			if (!game.spawnpoint && !spot->targetname)
+			if (!game.spawnpoint && !spot.targetname)
 				break;
 
-			if (!game.spawnpoint || !spot->targetname)
+			if (!game.spawnpoint || !spot.targetname)
 				continue;
 
-			if (stricmp(game.spawnpoint, spot->targetname) == 0)
+			if (stricmp(game.spawnpoint, spot.targetname) == 0)
 				break;
 		}
 
@@ -904,9 +1067,9 @@ static void(entity ent, __out vector origin, __out vector angles) SelectSpawnPoi
 		}
 	}
 
-	origin = spot->s.origin;
+	origin = spot.s.origin;
 	origin[2] += 9f;
-	angles = spot->s.angles;
+	angles = spot.s.angles;
 }
 
 void InitBodyQue(void)
@@ -916,7 +1079,7 @@ void InitBodyQue(void)
 	level.body_que = 0;
 	for (i = 0; i < BODY_QUEUE_SIZE ; i++) {
 		entity ent = G_Spawn();
-		ent->classname = "bodyque";
+		ent.classname = "bodyque";
 	}
 }
 
@@ -924,13 +1087,13 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 {
 	int n;
 	
-	if (self->health < -40) {
+	if (self.health < -40) {
 		gi.sound(self, CHAN_BODY, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
 		for (n = 0; n < 4; n++)
 			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
-		self->s.origin[2] -= 48f;
+		self.s.origin[2] -= 48f;
 		ThrowClientHead(self, damage);
-		self->takedamage = DAMAGE_NO;
+		self.takedamage = DAMAGE_NO;
 	}
 }
 
@@ -943,35 +1106,35 @@ static void(entity ent) CopyToBodyQue =
 	level.body_que = (level.body_que + 1) % BODY_QUEUE_SIZE;
 	
 	// send an effect on the removed body
-	if (body->s.modelindex) {
+	if (body.s.modelindex) {
 		gi.WriteByte(svc_temp_entity);
 		gi.WriteByte(TE_BLOOD);
-		gi.WritePosition(body->s.origin);
+		gi.WritePosition(body.s.origin);
 		gi.WriteDir(vec3_origin);
-		gi.multicast(body->s.origin, MULTICAST_PVS);
+		gi.multicast(body.s.origin, MULTICAST_PVS);
 	}
 	
 	gi.unlinkentity(body);
-	memcpy(&body->s, &ent->s, sizeof(ent->s));
+	memcpy(&body.s, &ent.s, sizeof(ent.s));
 	body.s.number = etoi(body);
-	body->s.event = EV_OTHER_TELEPORT;
+	body.s.event = EV_OTHER_TELEPORT;
 	
-	body->svflags = ent->svflags;
-	body->mins = ent->mins;
-	body->maxs = ent->maxs;
-	body->absmin = ent->absmin;
-	body->absmax = ent->absmax;
-	body->size = ent->size;
-	body->velocity = ent->velocity;
-	body->avelocity = ent->avelocity;
-	body->solid = ent->solid;
-	body->clipmask = ent->clipmask;
-	body->owner = ent->owner;
-	body->movetype = ent->movetype;
-	body->groundentity = ent->groundentity;
+	body.svflags = ent.svflags;
+	body.mins = ent.mins;
+	body.maxs = ent.maxs;
+	body.absmin = ent.absmin;
+	body.absmax = ent.absmax;
+	body.size = ent.size;
+	body.velocity = ent.velocity;
+	body.avelocity = ent.avelocity;
+	body.solid = ent.solid;
+	body.clipmask = ent.clipmask;
+	body.owner = ent.owner;
+	body.movetype = ent.movetype;
+	body.groundentity = ent.groundentity;
 	
-	body->die = body_die;
-	body->takedamage = DAMAGE_YES;
+	body.die = body_die;
+	body.takedamage = DAMAGE_YES;
 	
 	gi.linkentity(body);
 }
@@ -981,21 +1144,21 @@ void(entity self) PutClientInServer;
 
 void(entity self) respawn =
 {
-	if (deathmatch->intVal || coop->intVal) {
+	if (deathmatch.intVal || coop.intVal) {
 		// spectator's don't leave bodies
-		if (self->movetype != MOVETYPE_NOCLIP)
+		if (self.movetype != MOVETYPE_NOCLIP)
 			CopyToBodyQue(self);
-		self->svflags &= ~SVF_NOCLIENT;
+		self.svflags &= ~SVF_NOCLIENT;
 		PutClientInServer(self);
 
 		// add a teleportation effect
-		self->s.event = EV_PLAYER_TELEPORT;
+		self.s.event = EV_PLAYER_TELEPORT;
 
 		// hold in place briefly
-		self->client->ps.pmove.pm_flags = PMF_TIME_TELEPORT;
-		self->client->ps.pmove.pm_time = 14;
+		self.client.ps.pmove.pm_flags = PMF_TIME_TELEPORT;
+		self.client.ps.pmove.pm_time = 14;
 
-		self->client->respawn_framenum = level.framenum;
+		self.client.respawn_framenum = level.framenum;
 
 		return;
 	}
@@ -1015,14 +1178,14 @@ static void(entity ent) spectator_respawn =
 	// if the user wants to become a spectator, make sure he doesn't
 	// exceed max_spectators
 
-	if (ent->client->pers.spectator) {
-		string value = Info_ValueForKey(ent->client->pers.userinfo, "spectator");
+	if (ent.client.pers.spectator) {
+		string value = Info_ValueForKey(ent.client.pers.userinfo, "spectator");
 		if (spectator_password.str &&
 			spectator_password.str != "none" &&
 			spectator_password.str != value)
 		{
 			gi.cprintf(ent, PRINT_HIGH, "Spectator password incorrect.\n");
-			ent->client->pers.spectator = false;
+			ent.client.pers.spectator = false;
 			gi.WriteByte(svc_stufftext);
 			gi.WriteString("spectator 0\n");
 			gi.unicast(ent, true);
@@ -1031,12 +1194,12 @@ static void(entity ent) spectator_respawn =
 
 		// count spectators
 		for (i = 1, numspec = 0; i <= game.maxclients; i++)
-			if (itoe(i).inuse && itoe(i).client->pers.spectator)
+			if (itoe(i).inuse && itoe(i).client.pers.spectator)
 				numspec++;
 
 		if (numspec >= maxspectators.intVal) {
 			gi.cprintf(ent, PRINT_HIGH, "Server spectator limit is full.");
-			ent->client->pers.spectator = false;
+			ent.client.pers.spectator = false;
 			// reset his spectator var
 			gi.WriteByte(svc_stufftext);
 			gi.WriteString("spectator 0\n");
@@ -1046,13 +1209,13 @@ static void(entity ent) spectator_respawn =
 	} else {
 		// he was a spectator and wants to join the game
 		// he must have the right password
-		string value = Info_ValueForKey(ent->client->pers.userinfo, "password");
+		string value = Info_ValueForKey(ent.client.pers.userinfo, "password");
 		if (password.str &&
 			password.str != "none" &&
-			password->str != value)
+			password.str != value)
 		{
 			gi.cprintf(ent, PRINT_HIGH, "Password incorrect.\n");
-			ent->client->pers.spectator = true;
+			ent.client.pers.spectator = true;
 			gi.WriteByte(svc_stufftext);
 			gi.WriteString("spectator 1\n");
 			gi.unicast(ent, true);
@@ -1061,30 +1224,30 @@ static void(entity ent) spectator_respawn =
 	}
 
 	// clear client on respawn
-	ent->client->resp.score = ent->client->pers.score = 0;
+	ent.client.resp.score = ent.client.pers.score = 0;
 
-	ent->svflags &= ~SVF_NOCLIENT;
+	ent.svflags &= ~SVF_NOCLIENT;
 	PutClientInServer(ent);
 
 	// add a teleportation effect
-	if (!ent->client->pers.spectator)  {
+	if (!ent.client.pers.spectator)  {
 		// send effect
 		gi.WriteByte(svc_muzzleflash);
 		gi.WriteShort(ent.s.number);
 		gi.WriteByte(MZ_LOGIN);
-		gi.multicast(ent->s.origin, MULTICAST_PVS);
+		gi.multicast(ent.s.origin, MULTICAST_PVS);
 
 		// hold in place briefly
-		ent->client->ps.pmove.pm_flags = PMF_TIME_TELEPORT;
-		ent->client->ps.pmove.pm_time = 14;
+		ent.client.ps.pmove.pm_flags = PMF_TIME_TELEPORT;
+		ent.client.ps.pmove.pm_time = 14;
 	}
 
-	ent->client->respawn_framenum = level.framenum;
+	ent.client.respawn_framenum = level.framenum;
 
-	if (ent->client->pers.spectator)
-		gi.bprintf(PRINT_HIGH, "%s has moved to the sidelines\n", ent->client->pers.netname);
+	if (ent.client.pers.spectator)
+		gi.bprintf(PRINT_HIGH, "%s has moved to the sidelines\n", ent.client.pers.netname);
 	else
-		gi.bprintf(PRINT_HIGH, "%s joined the game\n", ent->client->pers.netname);
+		gi.bprintf(PRINT_HIGH, "%s joined the game\n", ent.client.pers.netname);
 }
 
 //==============================================================
@@ -1105,8 +1268,8 @@ a deathmatch.
 */
 static void(entity ent) PutClientInServer =
 {
-	const vector player_mins = '-16 -16 -24';
-	const vector player_maxs = ' 16  16  32';
+	static const vector player_mins = '-16 -16 -24';
+	static const vector player_maxs = ' 16  16  32';
 	vector spawn_origin, spawn_angles;
 	client_persistant_t saved;
 	client_respawn_t    resp;
@@ -1195,7 +1358,10 @@ static void(entity ent) PutClientInServer =
 			ent.client.ps.fov = 160.f;
 	}
 
-	ent.client.ps.gunindex = gi.modelindex(GetItemKeyByIndex(ent.client.pers.weapon, view_model));
+	if (ent.client.pers.weapon)
+		ent.client.ps.gunindex = gi.modelindex(GetItemKeyByIndex(ent.client.pers.weapon, view_model));
+	else
+		ent.client.ps.gunindex = 0;
 
 	// clear entity state values
 	ent.s.effects = 0;
@@ -1208,7 +1374,7 @@ static void(entity ent) PutClientInServer =
 	ent.s.frame = 0;
 	ent.s.origin = spawn_origin;
 	ent.s.origin += '0 0 1';  // make sure off ground
-	ent->s.old_origin = ent->s.origin;
+	ent.s.old_origin = ent.s.origin;
 
 	// set the delta angle
 	ent.client.ps.pmove.delta_angles[0] = ANGLE2SHORT(spawn_angles[0] - ent.client.resp.cmd_angles[0]);
@@ -1243,6 +1409,21 @@ static void(entity ent) PutClientInServer =
 	}
 
 	gi.linkentity(ent);
+
+#ifdef GROUND_ZERO
+	// my tribute to cash's level-specific hacks. I hope I live
+	// up to his trailblazing cheese.
+	if(!deathmatch.intVal && level.mapname == "rboss")
+	{
+		// if you get on to rboss in single player or coop, ensure
+		// the player has the nuke key. (not in DM)
+		gitem_id_t	it;
+
+		it = FindItem("Antimatter Bomb");
+		ent.client.pers.selected_item = ITEM_INDEX(it);
+		ent.client.pers.inventory[ent.client.pers.selected_item] = 1;
+	}
+#endif
 
 	// force the current weapon up
 	ent.client.newweapon = ent.client.pers.weapon;
@@ -1299,9 +1480,9 @@ void(entity ent) ClientBegin =
 		// connecting to the server, which is different than the
 		// state when the game is saved, so we need to compensate
 		// with deltaangles
-		ent.client.ps.pmove.delta_angles[0] = ANGLE2SHORT(ent->client->ps.viewangles[0]);
-		ent.client.ps.pmove.delta_angles[1] = ANGLE2SHORT(ent->client->ps.viewangles[1]);
-		ent.client.ps.pmove.delta_angles[2] = ANGLE2SHORT(ent->client->ps.viewangles[2]);
+		ent.client.ps.pmove.delta_angles[0] = ANGLE2SHORT(ent.client.ps.viewangles[0]);
+		ent.client.ps.pmove.delta_angles[1] = ANGLE2SHORT(ent.client.ps.viewangles[1]);
+		ent.client.ps.pmove.delta_angles[2] = ANGLE2SHORT(ent.client.ps.viewangles[2]);
 	}
 	else
 	{
@@ -1355,7 +1536,7 @@ void(entity ent, string userinfo) ClientUserinfoChanged =
 	
 	// set name
 	string str = Info_ValueForKey(userinfo, "name");
-	ent->client->pers.netname = str;
+	ent.client.pers.netname = str;
 	
 	// set spectator
 	str = Info_ValueForKey(userinfo, "spectator");
@@ -1496,28 +1677,28 @@ Will not be called between levels.
 */
 void(entity ent) ClientDisconnect =
 {
-	if (!ent->is_client)
+	if (!ent.is_client)
 		return;
 	
-	gi.bprintf(PRINT_HIGH, "%s disconnected\n", ent->client->pers.netname);
+	gi.bprintf(PRINT_HIGH, "%s disconnected\n", ent.client.pers.netname);
 	
 	// send effect
-	if (ent->inuse) {
+	if (ent.inuse) {
 		gi.WriteByte(svc_muzzleflash);
 		gi.WriteShort(ent.s.number);
 		gi.WriteByte(MZ_LOGOUT);
-		gi.multicast(ent->s.origin, MULTICAST_PVS);
+		gi.multicast(ent.s.origin, MULTICAST_PVS);
 	}
 	
 	gi.unlinkentity(ent);
-	ent->s.modelindex = 0;
-	ent->s.sound = 0;
-	ent->s.event = 0;
-	ent->s.effects = 0;
-	ent->solid = SOLID_NOT;
-	ent->inuse = false;
-	ent->classname = "disconnected";
-	ent->client->pers.connected = false;
+	ent.s.modelindex = 0;
+	ent.s.sound = 0;
+	ent.s.event = 0;
+	ent.s.effects = 0;
+	ent.solid = SOLID_NOT;
+	ent.inuse = false;
+	ent.classname = "disconnected";
+	ent.client.pers.connected = false;
 }
 
 PROGS_LOCAL static entity pm_passent;
@@ -1525,7 +1706,7 @@ PROGS_LOCAL static entity pm_passent;
 // pmove doesn't need to know about passent and contentmask
 static void(trace_t *tr, vector start, vector mins, vector maxs, vector end) PM_trace =
 {
-    if (pm_passent->health > 0)
+    if (pm_passent.health > 0)
         gi.trace(tr, start, mins, maxs, end, pm_passent, MASK_PLAYERSOLID);
     else
         gi.trace(tr, start, mins, maxs, end, pm_passent, MASK_DEADSOLID);
@@ -1555,45 +1736,49 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 	level.current_entity = ent;
 
 	if (level.intermission_framenum) {
-		ent.client->ps.pmove.pm_type = PM_FREEZE;
+		ent.client.ps.pmove.pm_type = PM_FREEZE;
 		// can exit intermission after five seconds
 		if (level.framenum > level.intermission_framenum + 5.0f * BASE_FRAMERATE
-			&& (ucmd->buttons & BUTTON_ANY))
+			&& (ucmd.buttons & BUTTON_ANY))
 			level.exitintermission = true;
 		return;
 	}
 
 	pm_passent = ent;
 
-	if (ent->client->chase_target) {
+	if (ent.client.chase_target) {
 
-		ent.client->resp.cmd_angles[0] = SHORT2ANGLE(ucmd->angles[0]);
-		ent.client->resp.cmd_angles[1] = SHORT2ANGLE(ucmd->angles[1]);
-		ent.client->resp.cmd_angles[2] = SHORT2ANGLE(ucmd->angles[2]);
+		ent.client.resp.cmd_angles[0] = SHORT2ANGLE(ucmd.angles[0]);
+		ent.client.resp.cmd_angles[1] = SHORT2ANGLE(ucmd.angles[1]);
+		ent.client.resp.cmd_angles[2] = SHORT2ANGLE(ucmd.angles[2]);
 
 	} else {
 
 		// set up for pmove
-		if (ent->movetype == MOVETYPE_NOCLIP)
-			ent.client->ps.pmove.pm_type = PM_SPECTATOR;
-		else if (ent->s.modelindex != 255)
-			ent.client->ps.pmove.pm_type = PM_GIB;
-		else if (ent->deadflag)
-			ent.client->ps.pmove.pm_type = PM_DEAD;
+		if (ent.movetype == MOVETYPE_NOCLIP)
+			ent.client.ps.pmove.pm_type = PM_SPECTATOR;
+		else if (ent.s.modelindex != 255)
+			ent.client.ps.pmove.pm_type = PM_GIB;
+		else if (ent.deadflag)
+			ent.client.ps.pmove.pm_type = PM_DEAD;
 		else
-			ent.client->ps.pmove.pm_type = PM_NORMAL;
+			ent.client.ps.pmove.pm_type = PM_NORMAL;
 
-		ent.client->ps.pmove.gravity = sv_gravity.intVal;
+#ifdef GROUND_ZERO
+		ent.client.ps.pmove.gravity = (int)(sv_gravity.intVal * ent.gravity);
+#else
+		ent.client.ps.pmove.gravity = sv_gravity.intVal;
+#endif
 		memcpy(&pm.s, &ent.client.ps.pmove, sizeof(pm.s));
 
-		pm.s.origin[0] = COORD2SHORT(ent->s.origin[0]);
-		pm.s.velocity[0] = COORD2SHORT(ent->velocity[0]);
-		pm.s.origin[1] = COORD2SHORT(ent->s.origin[1]);
-		pm.s.velocity[1] = COORD2SHORT(ent->velocity[1]);
-		pm.s.origin[2] = COORD2SHORT(ent->s.origin[2]);
-		pm.s.velocity[2] = COORD2SHORT(ent->velocity[2]);
+		pm.s.origin[0] = COORD2SHORT(ent.s.origin[0]);
+		pm.s.velocity[0] = COORD2SHORT(ent.velocity[0]);
+		pm.s.origin[1] = COORD2SHORT(ent.s.origin[1]);
+		pm.s.velocity[1] = COORD2SHORT(ent.velocity[1]);
+		pm.s.origin[2] = COORD2SHORT(ent.s.origin[2]);
+		pm.s.velocity[2] = COORD2SHORT(ent.velocity[2]);
 
-		if (memcmp(&ent.client->old_pmove, &pm.s, sizeof(pm.s))) {
+		if (memcmp(&ent.client.old_pmove, &pm.s, sizeof(pm.s))) {
 			pm.snapinitial = true;
 			//      gi.dprintf ("pmove changed!\n");
 		}
@@ -1610,100 +1795,104 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 		memcpy(&ent.client.ps.pmove, &pm.s, sizeof(pm.s));
 		memcpy(&ent.client.old_pmove, &ent.client.ps.pmove, sizeof(ent.client.old_pmove));
 
-		ent->s.origin[0] = SHORT2COORD(pm.s.origin[0]);
-		ent->velocity[0] = SHORT2COORD(pm.s.velocity[0]);
-		ent->s.origin[1] = SHORT2COORD(pm.s.origin[1]);
-		ent->velocity[1] = SHORT2COORD(pm.s.velocity[1]);
-		ent->s.origin[2] = SHORT2COORD(pm.s.origin[2]);
-		ent->velocity[2] = SHORT2COORD(pm.s.velocity[2]);
+		ent.s.origin[0] = SHORT2COORD(pm.s.origin[0]);
+		ent.velocity[0] = SHORT2COORD(pm.s.velocity[0]);
+		ent.s.origin[1] = SHORT2COORD(pm.s.origin[1]);
+		ent.velocity[1] = SHORT2COORD(pm.s.velocity[1]);
+		ent.s.origin[2] = SHORT2COORD(pm.s.origin[2]);
+		ent.velocity[2] = SHORT2COORD(pm.s.velocity[2]);
 
-		ent->mins = pm.mins;
-		ent->maxs = pm.maxs;
+		ent.mins = pm.mins;
+		ent.maxs = pm.maxs;
 
-		ent.client->resp.cmd_angles[0] = SHORT2ANGLE(ucmd->angles[0]);
-		ent.client->resp.cmd_angles[1] = SHORT2ANGLE(ucmd->angles[1]);
-		ent.client->resp.cmd_angles[2] = SHORT2ANGLE(ucmd->angles[2]);
+		ent.client.resp.cmd_angles[0] = SHORT2ANGLE(ucmd.angles[0]);
+		ent.client.resp.cmd_angles[1] = SHORT2ANGLE(ucmd.angles[1]);
+		ent.client.resp.cmd_angles[2] = SHORT2ANGLE(ucmd.angles[2]);
 
-		if (ent->groundentity != null_entity && pm.groundentity == null_entity && (pm.cmd.upmove >= 10) && (pm.waterlevel == 0)) {
+		if (ent.groundentity != null_entity && pm.groundentity == null_entity && (pm.cmd.upmove >= 10) && (pm.waterlevel == 0)) {
 			gi.sound(ent, CHAN_VOICE, gi.soundindex("*jump1.wav"), 1, ATTN_NORM, 0);
-			PlayerNoise(ent, ent->s.origin, PNOISE_SELF);
+			PlayerNoise(ent, ent.s.origin, PNOISE_SELF);
 		}
 
-		ent->viewheight = (int)pm.viewheight;
-		ent->waterlevel = pm.waterlevel;
-		ent->watertype = pm.watertype;
-		ent->groundentity = pm.groundentity;
+		ent.viewheight = (int)pm.viewheight;
+		ent.waterlevel = pm.waterlevel;
+		ent.watertype = pm.watertype;
+		ent.groundentity = pm.groundentity;
 		if (pm.groundentity != null_entity)
-			ent->groundentity_linkcount = pm.groundentity->linkcount;
+			ent.groundentity_linkcount = pm.groundentity.linkcount;
 
-		if (ent->deadflag) {
-			ent.client->ps.viewangles[ROLL] = 40f;
-			ent.client->ps.viewangles[PITCH] = -15f;
-			ent.client->ps.viewangles[YAW] = ent.client->killer_yaw;
+		if (ent.deadflag) {
+			ent.client.ps.viewangles[ROLL] = 40f;
+			ent.client.ps.viewangles[PITCH] = -15f;
+			ent.client.ps.viewangles[YAW] = ent.client.killer_yaw;
 		} else {
-			ent.client->v_angle = pm.viewangles;
-			ent.client->ps.viewangles = pm.viewangles;
+			ent.client.v_angle = pm.viewangles;
+			ent.client.ps.viewangles = pm.viewangles;
 		}
 
 		gi.linkentity(ent);
 
-		if (ent->movetype != MOVETYPE_NOCLIP)
+		if (ent.movetype != MOVETYPE_NOCLIP)
 			G_TouchTriggers(ent);
+
+#ifdef GROUND_ZERO
+		ent.gravity = 1.0;
+#endif
 
 		// touch other objects
 		for (int i = 0; i < pm.touchents.length; i++)
 		{
 			entity other = pm.touchents[i];
-			if (!other->touch)
+			if (!other.touch)
 				continue;
-			other->touch(other, ent, null_plane, null_surface);
+			other.touch(other, ent, null_plane, null_surface);
 		}
 
 	}
 
-	ent.client->oldbuttons = ent.client->buttons;
-	ent.client->buttons = ucmd->buttons;
-	ent.client->latched_buttons |= ent.client->buttons & ~ent.client->oldbuttons;
+	ent.client.oldbuttons = ent.client.buttons;
+	ent.client.buttons = ucmd.buttons;
+	ent.client.latched_buttons |= ent.client.buttons & ~ent.client.oldbuttons;
 
 	// save light level the player is standing on for
 	// monster sighting AI
-	ent->light_level = ucmd->lightlevel;
+	ent.light_level = ucmd.lightlevel;
 
 	// fire weapon from final position if needed
-	if (ent.client->latched_buttons & BUTTON_ATTACK) {
-		if (ent.client->resp.spectator) {
+	if (ent.client.latched_buttons & BUTTON_ATTACK) {
+		if (ent.client.resp.spectator) {
 
-			ent.client->latched_buttons = 0;
+			ent.client.latched_buttons = 0;
 
-			if (ent.client->chase_target) {
-				ent.client->chase_target = world;
-				ent.client->ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
+			if (ent.client.chase_target) {
+				ent.client.chase_target = world;
+				ent.client.ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 			} else
 				GetChaseTarget(ent);
 
-		} else if (!ent.client->weapon_thunk) {
-			ent.client->weapon_thunk = true;
+		} else if (!ent.client.weapon_thunk) {
+			ent.client.weapon_thunk = true;
 			Think_Weapon(ent);
 		}
 	}
 
-	if (ent.client->resp.spectator) {
-		if (ucmd->upmove >= 10) {
-			if (!(ent.client->ps.pmove.pm_flags & PMF_JUMP_HELD)) {
-				ent.client->ps.pmove.pm_flags |= PMF_JUMP_HELD;
-				if (ent.client->chase_target)
+	if (ent.client.resp.spectator) {
+		if (ucmd.upmove >= 10) {
+			if (!(ent.client.ps.pmove.pm_flags & PMF_JUMP_HELD)) {
+				ent.client.ps.pmove.pm_flags |= PMF_JUMP_HELD;
+				if (ent.client.chase_target)
 					ChaseNext(ent);
 				else
 					GetChaseTarget(ent);
 			}
 		} else
-			ent.client->ps.pmove.pm_flags &= ~PMF_JUMP_HELD;
+			ent.client.ps.pmove.pm_flags &= ~PMF_JUMP_HELD;
 	}
 
 	// update chase cam if being followed
 	for (i = 1; i <= game.maxclients; i++) {
 		other = itoe(i);
-		if (other->inuse && other->client->chase_target == ent)
+		if (other.inuse && other.client.chase_target == ent)
 			UpdateChaseCam(other);
 	}
 };
@@ -1727,31 +1916,31 @@ void(entity ent) ClientBeginServerFrame =
 		return;
 
 	if (deathmatch.intVal &&
-		ent.client->pers.spectator != ent.client->resp.spectator &&
-		(level.framenum - ent.client->respawn_framenum) >= 5 * BASE_FRAMERATE) {
+		ent.client.pers.spectator != ent.client.resp.spectator &&
+		(level.framenum - ent.client.respawn_framenum) >= 5 * BASE_FRAMERATE) {
 		spectator_respawn(ent);
 		return;
 	}
 
 	// run weapon animations if it hasn't been done by a ucmd_t
-	if (!ent.client->weapon_thunk && !ent.client->resp.spectator)
+	if (!ent.client.weapon_thunk && !ent.client.resp.spectator)
 		Think_Weapon(ent);
 	else
-		ent.client->weapon_thunk = false;
+		ent.client.weapon_thunk = false;
 
-	if (ent->deadflag) {
+	if (ent.deadflag) {
 		// wait for any button just going down
-		if (level.framenum > ent.client->respawn_framenum) {
+		if (level.framenum > ent.client.respawn_framenum) {
 			// in deathmatch, only wait for attack button
 			if (deathmatch.intVal)
 				buttonMask = BUTTON_ATTACK;
 			else
 				buttonMask = -1;
 
-			if ((ent.client->latched_buttons & buttonMask) ||
+			if ((ent.client.latched_buttons & buttonMask) ||
 				(deathmatch.intVal && (dmflags.intVal & DF_FORCE_RESPAWN))) {
 				respawn(ent);
-				ent.client->latched_buttons = 0;
+				ent.client.latched_buttons = 0;
 			}
 		}
 		return;
@@ -1760,7 +1949,7 @@ void(entity ent) ClientBeginServerFrame =
 	// add player trail so monsters can follow
 	if (!deathmatch.intVal)
 		if (!visible(ent, PlayerTrail_LastSpot()))
-			PlayerTrail_Add(ent->s.old_origin);
+			PlayerTrail_Add(ent.s.old_origin);
 
-	ent.client->latched_buttons = 0;
+	ent.client.latched_buttons = 0;
 }

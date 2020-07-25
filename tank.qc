@@ -79,7 +79,7 @@ static var mmove_t tank_move_stand = { FRAME_stand01, FRAME_stand30 };
 
 static void tank_stand(entity self)
 {
-	self->monsterinfo.currentmove = &tank_move_stand;
+	self.monsterinfo.currentmove = &tank_move_stand;
 }
 
 //
@@ -125,7 +125,7 @@ static var mmove_t tank_move_stop_walk = { FRAME_walk21, FRAME_walk25, tank_stan
 
 static void tank_walk(entity self)
 {
-	self->monsterinfo.currentmove = &tank_move_walk;
+	self.monsterinfo.currentmove = &tank_move_walk;
 }
 
 //
@@ -171,21 +171,21 @@ static var mmove_t tank_move_stop_run = { FRAME_walk21, FRAME_walk25, tank_walk 
 
 static void tank_run(entity self)
 {
-	if (self->enemy && self->enemy->is_client)
-		self->monsterinfo.aiflags |= AI_BRUTAL;
+	if (self.enemy && self.enemy.is_client)
+		self.monsterinfo.aiflags |= AI_BRUTAL;
 	else
-		self->monsterinfo.aiflags &= ~AI_BRUTAL;
+		self.monsterinfo.aiflags &= ~AI_BRUTAL;
 
-	if (self->monsterinfo.aiflags & AI_STAND_GROUND) {
-		self->monsterinfo.currentmove = &tank_move_stand;
+	if (self.monsterinfo.aiflags & AI_STAND_GROUND) {
+		self.monsterinfo.currentmove = &tank_move_stand;
 		return;
 	}
 
-	if (self->monsterinfo.currentmove == &tank_move_walk ||
-		self->monsterinfo.currentmove == &tank_move_start_run) {
-		self->monsterinfo.currentmove = &tank_move_run;
+	if (self.monsterinfo.currentmove == &tank_move_walk ||
+		self.monsterinfo.currentmove == &tank_move_start_run) {
+		self.monsterinfo.currentmove = &tank_move_run;
 	} else {
-		self->monsterinfo.currentmove = &tank_move_start_run;
+		self.monsterinfo.currentmove = &tank_move_start_run;
 	}
 }
 
@@ -232,13 +232,13 @@ static var mmove_t tank_move_pain3 = { FRAME_pain301, FRAME_pain316, tank_run };
 
 static void tank_pain(entity self, entity other, float kick, int damage)
 {
-	if (self->health < (self->max_health / 2))
-		self->s.skinnum |= 1;
+	if (self.health < (self.max_health / 2))
+		self.s.skinnum |= 1;
 
 	if (damage <= 10)
 		return;
 
-	if (level.framenum < self->pain_debounce_framenum)
+	if (level.framenum < self.pain_debounce_framenum)
 		return;
 
 	if (damage <= 30)
@@ -246,25 +246,29 @@ static void tank_pain(entity self, entity other, float kick, int damage)
 			return;
 
 	// If hard or nightmare, don't go into pain while attacking
-	if (skill->intVal >= 2) {
-		if ((self->s.frame >= FRAME_attak301) && (self->s.frame <= FRAME_attak330))
+	if (skill.intVal >= 2) {
+		if ((self.s.frame >= FRAME_attak301) && (self.s.frame <= FRAME_attak330))
 			return;
-		if ((self->s.frame >= FRAME_attak101) && (self->s.frame <= FRAME_attak116))
+		if ((self.s.frame >= FRAME_attak101) && (self.s.frame <= FRAME_attak116))
 			return;
 	}
 
-	self->pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
+	self.pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
 	gi.sound(self, CHAN_VOICE, sound_pain, 1, ATTN_NORM, 0);
 
-	if (skill->intVal == 3)
+	if (skill.intVal == 3)
 		return;     // no pain anims in nightmare
 
+#ifdef GROUND_ZERO
+	self.monsterinfo.aiflags &= ~AI_MANUAL_STEERING;
+#endif
+
 	if (damage <= 30)
-		self->monsterinfo.currentmove = &tank_move_pain1;
+		self.monsterinfo.currentmove = &tank_move_pain1;
 	else if (damage <= 60)
-		self->monsterinfo.currentmove = &tank_move_pain2;
+		self.monsterinfo.currentmove = &tank_move_pain2;
 	else
-		self->monsterinfo.currentmove = &tank_move_pain3;
+		self.monsterinfo.currentmove = &tank_move_pain3;
 }
 
 
@@ -274,24 +278,29 @@ static void tank_pain(entity self, entity other, float kick, int damage)
 
 static void TankBlaster(entity self)
 {
+#ifdef GROUND_ZERO
+	if(!self.enemy || !self.enemy.inuse)
+		return;
+#endif
+
 	vector  forward, right;
 	vector  start;
 	vector  end;
 	vector  dir;
 	int     flash_number;
 
-	if (self->s.frame == FRAME_attak110)
+	if (self.s.frame == FRAME_attak110)
 		flash_number = MZ2_TANK_BLASTER_1;
-	else if (self->s.frame == FRAME_attak113)
+	else if (self.s.frame == FRAME_attak113)
 		flash_number = MZ2_TANK_BLASTER_2;
-	else // (self->s.frame == FRAME_attak116)
+	else // (self.s.frame == FRAME_attak116)
 		flash_number = MZ2_TANK_BLASTER_3;
 
-	AngleVectors(self->s.angles, &forward, &right, 0);
-	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
+	AngleVectors(self.s.angles, &forward, &right, 0);
+	start = G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right);
 
-	end = self->enemy->s.origin;
-	end_z += self->enemy->viewheight;
+	end = self.enemy.s.origin;
+	end.z += self.enemy.viewheight;
 	dir = end - start;
 
 	monster_fire_blaster(self, start, dir, 30, 800, flash_number, EF_BLASTER);
@@ -310,51 +319,152 @@ static void TankRocket(entity self)
 	vector  vec;
 	int     flash_number;
 
-	if (self->s.frame == FRAME_attak324)
+#ifdef GROUND_ZERO
+	if(!self.enemy || !self.enemy.inuse)
+		return;
+
+	trace_t	trace;
+	int	rocketSpeed;
+	vector	target;
+	bool blindfire = false;
+
+	// blindfire check
+	blindfire = (self.monsterinfo.aiflags & AI_MANUAL_STEERING);
+#endif
+
+	if (self.s.frame == FRAME_attak324)
 		flash_number = MZ2_TANK_ROCKET_1;
-	else if (self->s.frame == FRAME_attak327)
+	else if (self.s.frame == FRAME_attak327)
 		flash_number = MZ2_TANK_ROCKET_2;
-	else // (self->s.frame == FRAME_attak330)
+	else // (self.s.frame == FRAME_attak330)
 		flash_number = MZ2_TANK_ROCKET_3;
 
-	AngleVectors(self->s.angles, &forward, &right, 0);
-	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
+	AngleVectors(self.s.angles, &forward, &right, 0);
+	start = G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right);
 
-	vec = self->enemy->s.origin;
-	vec_z += self->enemy->viewheight;
-	dir = vec - start;
+#ifdef GROUND_ZERO
+	rocketSpeed = 500 + (100 * skill.intVal);	// PGM rock & roll.... :)
+
+	if (blindfire)
+		target = self.monsterinfo.blind_fire_target;
+	else
+		target = self.enemy.s.origin;
+
+	if (blindfire)
+	{
+		vec = target;
+		dir = vec - start;
+	}
+
+	// don't shoot at feet if they're above me.
+	else if(random() < 0.66 || (start[2] < self.enemy.absmin[2]))
+	{
+#endif
+		vec = self.enemy.s.origin;
+		vec.z += self.enemy.viewheight;
+		dir = vec - start;
+#ifdef GROUND_ZERO
+	}
+	else
+	{
+		vec = self.enemy.s.origin;
+		vec[2] = self.enemy.absmin[2];
+		dir = vec - start;
+	}
+
+	if (!blindfire && (random() < (0.2 + (3 - skill.intVal) * 0.15)))
+	{
+		float	dist;
+		float	time;
+
+		dist = VectorLength (dir);
+		time = dist / rocketSpeed;
+		vec += time * self.enemy.velocity;
+		dir = vec - start;
+	}
+#endif
+
 	VectorNormalize(dir);
 
+#ifdef GROUND_ZERO
+	// pmm blindfire doesn't check target (done in checkattack)
+	// paranoia, make sure we're not shooting a target right next to us
+	gi.trace(&trace, start, vec3_origin, vec3_origin, vec, self, MASK_SHOT);
+	if (blindfire)
+	{
+		// blindfire has different fail criteria for the trace
+		if (!(trace.startsolid || trace.allsolid || (trace.fraction < 0.5)))
+			monster_fire_rocket (self, start, dir, 50, rocketSpeed, flash_number);
+		else 
+		{
+			// try shifting the target to the left a little (to help counter large offset)
+			vec = target;
+			vec += -20 * right;
+			dir = vec - start;
+			VectorNormalize (dir);
+			gi.trace(&trace, start, vec3_origin, vec3_origin, vec, self, MASK_SHOT);
+			if (!(trace.startsolid || trace.allsolid || (trace.fraction < 0.5)))
+				monster_fire_rocket (self, start, dir, 50, rocketSpeed, flash_number);
+			else 
+			{
+				// ok, that failed.  try to the right
+				vec = target;
+				vec += 20 * right;
+				dir = vec - start;
+				VectorNormalize (dir);
+				gi.trace(&trace, start, vec3_origin, vec3_origin, vec, self, MASK_SHOT);
+
+				if (!(trace.startsolid || trace.allsolid || (trace.fraction < 0.5)))
+					monster_fire_rocket (self, start, dir, 50, rocketSpeed, flash_number);
+			}
+		}
+	}
+	else
+	{
+		gi.trace(&trace, start, vec3_origin, vec3_origin, vec, self, MASK_SHOT);
+		if(trace.ent == self.enemy || trace.ent == world)
+		{
+			if (trace.fraction > 0.5 || (trace.ent && trace.ent.is_client))
+				monster_fire_rocket (self, start, dir, 50, rocketSpeed, flash_number);
+		}
+	}
+#else
 	monster_fire_rocket(self, start, dir, 50, 550, flash_number);
+#endif
 }
 
 static void TankMachineGun(entity self)
 {
+#ifdef GROUND_ZERO
+	if(!self.enemy || !self.enemy.inuse)
+		return;
+#endif
+
 	vector  dir;
 	vector  vec;
 	vector  start;
 	vector  forward, right;
 	int     flash_number;
 
-	flash_number = MZ2_TANK_MACHINEGUN_1 + (self->s.frame - FRAME_attak406);
+	flash_number = MZ2_TANK_MACHINEGUN_1 + (self.s.frame - FRAME_attak406);
 
-	AngleVectors(self->s.angles, &forward, &right, 0);
-	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
+	AngleVectors(self.s.angles, &forward, &right, 0);
+	start = G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right);
 
-	if (self->enemy) {
-		vec = self->enemy->s.origin;
-		vec_z += self->enemy->viewheight;
+	if (self.enemy) {
+		vec = self.enemy.s.origin;
+		vec.z += self.enemy.viewheight;
 		vec = vec - start;
 		vec = vectoangles(vec);
-		dir_x = vec_x;
+		dir.x = vec.x;
 	} else {
-		dir_x = 0;
+		dir.x = 0;
 	}
-	if (self->s.frame <= FRAME_attak415)
-		dir_y = self->s.angles[1] - 8 * (self->s.frame - FRAME_attak411);
+	if (self.s.frame <= FRAME_attak415)
+		dir.y = self.s.angles[1] - 8 * (self.s.frame - FRAME_attak411);
 	else
-		dir_y = self->s.angles[1] + 8 * (self->s.frame - FRAME_attak419);
-	dir_z = 0;
+		dir.y = self.s.angles[1] + 8 * (self.s.frame - FRAME_attak419);
+	dir.z = 0;
 
 	AngleVectors(dir, &forward, 0, 0);
 
@@ -403,20 +513,20 @@ static var mmove_t tank_move_attack_post_blast = { FRAME_attak117, FRAME_attak12
 
 static void tank_reattack_blaster(entity self)
 {
-	if (skill->intVal >= 2)
-		if (visible(self, self->enemy))
-			if (self->enemy->health > 0)
+	if (skill.intVal >= 2)
+		if (visible(self, self.enemy))
+			if (self.enemy.health > 0)
 				if (random() <= 0.6f) {
-					self->monsterinfo.currentmove = &tank_move_reattack_blast;
+					self.monsterinfo.currentmove = &tank_move_reattack_blast;
 					return;
 				}
-	self->monsterinfo.currentmove = &tank_move_attack_post_blast;
+	self.monsterinfo.currentmove = &tank_move_attack_post_blast;
 }
 
 
 static void tank_poststrike(entity self)
 {
-	self->enemy = world;
+	self.enemy = world;
 	tank_run(self);
 }
 
@@ -566,20 +676,29 @@ static var mmove_t tank_move_attack_chain = { FRAME_attak401, FRAME_attak429, ta
 
 static void tank_refire_rocket(entity self)
 {
+#ifdef GROUND_ZERO
+	if (self.monsterinfo.aiflags & AI_MANUAL_STEERING)
+	{
+		self.monsterinfo.aiflags &= ~AI_MANUAL_STEERING;
+		self.monsterinfo.currentmove = &tank_move_attack_post_rocket;
+		return;
+	}
+#endif
+
 	// Only on hard or nightmare
-	if (skill->intVal >= 2)
-		if (self->enemy->health > 0)
-			if (visible(self, self->enemy))
+	if (skill.intVal >= 2)
+		if (self.enemy.health > 0)
+			if (visible(self, self.enemy))
 				if (random() <= 0.4f) {
-					self->monsterinfo.currentmove = &tank_move_attack_fire_rocket;
+					self.monsterinfo.currentmove = &tank_move_attack_fire_rocket;
 					return;
 				}
-	self->monsterinfo.currentmove = &tank_move_attack_post_rocket;
+	self.monsterinfo.currentmove = &tank_move_attack_post_rocket;
 }
 
 static void tank_doattack_rocket(entity self)
 {
-	self->monsterinfo.currentmove = &tank_move_attack_fire_rocket;
+	self.monsterinfo.currentmove = &tank_move_attack_fire_rocket;
 }
 
 static void tank_attack(entity self)
@@ -588,35 +707,72 @@ static void tank_attack(entity self)
 	float   range;
 	float   r;
 
-	if (self->enemy->health < 0) {
-		self->monsterinfo.currentmove = &tank_move_attack_strike;
-		self->monsterinfo.aiflags &= ~AI_BRUTAL;
+#ifdef GROUND_ZERO
+	if(!self.enemy || !self.enemy.inuse)
+		return;
+#endif
+
+	if (self.enemy.health < 0) {
+		self.monsterinfo.currentmove = &tank_move_attack_strike;
+		self.monsterinfo.aiflags &= ~AI_BRUTAL;
 		return;
 	}
 
-	vec = self->enemy->s.origin - self->s.origin;
+#ifdef GROUND_ZERO
+	if (self.monsterinfo.attack_state == AS_BLIND)
+	{
+		float chance = 0.1;
+
+		// setup shot probabilities
+		if (self.monsterinfo.blind_fire_framedelay < (int)(1.0 * BASE_FRAMERATE))
+			chance = 1.0;
+		else if (self.monsterinfo.blind_fire_framedelay < (int)(7.5 * BASE_FRAMERATE))
+			chance = 0.4;
+
+		r = random();
+
+		self.monsterinfo.blind_fire_framedelay += (int)(random(5.2, 8.2) * BASE_FRAMERATE);
+
+		// don't shoot at the origin
+		if (!self.monsterinfo.blind_fire_target)
+			return;
+
+		// don't shoot if the dice say not to
+		if (r > chance)
+			return;
+
+		// turn on manual steering to signal both manual steering and blindfire
+		self.monsterinfo.aiflags |= AI_MANUAL_STEERING;
+		self.monsterinfo.currentmove = &tank_move_attack_fire_rocket;
+		self.monsterinfo.attack_finished = level.framenum + (int)(random(3.0, 5.0) * BASE_FRAMERATE);
+		self.pain_debounce_framenum = level.framenum + (int)(5.0 * BASE_FRAMERATE);	// no pain for a while
+		return;
+	}
+#endif
+
+	vec = self.enemy.s.origin - self.s.origin;
 	range = VectorLength(vec);
 
 	r = random();
 
 	if (range <= 125) {
 		if (r < 0.4f)
-			self->monsterinfo.currentmove = &tank_move_attack_chain;
+			self.monsterinfo.currentmove = &tank_move_attack_chain;
 		else
-			self->monsterinfo.currentmove = &tank_move_attack_blast;
+			self.monsterinfo.currentmove = &tank_move_attack_blast;
 	} else if (range <= 250) {
 		if (r < 0.5f)
-			self->monsterinfo.currentmove = &tank_move_attack_chain;
+			self.monsterinfo.currentmove = &tank_move_attack_chain;
 		else
-			self->monsterinfo.currentmove = &tank_move_attack_blast;
+			self.monsterinfo.currentmove = &tank_move_attack_blast;
 	} else {
 		if (r < 0.33f)
-			self->monsterinfo.currentmove = &tank_move_attack_chain;
+			self.monsterinfo.currentmove = &tank_move_attack_chain;
 		else if (r < 0.66f) {
-			self->monsterinfo.currentmove = &tank_move_attack_pre_rocket;
-			self->pain_debounce_framenum = level.framenum + (int)(5.0f * BASE_FRAMERATE);  // no pain for a while
+			self.monsterinfo.currentmove = &tank_move_attack_pre_rocket;
+			self.pain_debounce_framenum = level.framenum + (int)(5.0f * BASE_FRAMERATE);  // no pain for a while
 		} else
-			self->monsterinfo.currentmove = &tank_move_attack_blast;
+			self.monsterinfo.currentmove = &tank_move_attack_blast;
 	}
 }
 
@@ -627,11 +783,11 @@ static void tank_attack(entity self)
 
 static void tank_dead(entity self)
 {
-	self->mins = '-16 -16 -16';
-	self->maxs = '16 16 -0';
-	self->movetype = MOVETYPE_TOSS;
-	self->svflags |= SVF_DEADMONSTER;
-	self->nextthink = 0;
+	self.mins = '-16 -16 -16';
+	self.maxs = '16 16 -0';
+	self.movetype = MOVETYPE_TOSS;
+	self.svflags |= SVF_DEADMONSTER;
+	self.nextthink = 0;
 	gi.linkentity(self);
 }
 
@@ -676,7 +832,7 @@ static void tank_die(entity self, entity inflictor, entity attacker, int damage,
 	int     n;
 
 // check for gib
-	if (self->health <= self->gib_health) {
+	if (self.health <= self.gib_health) {
 		gi.sound(self, CHAN_VOICE, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
 		for (n = 0; n < 1 /*4*/; n++)
 			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
@@ -684,19 +840,19 @@ static void tank_die(entity self, entity inflictor, entity attacker, int damage,
 			ThrowGib(self, "models/objects/gibs/sm_metal/tris.md2", damage, GIB_METALLIC);
 		ThrowGib(self, "models/objects/gibs/chest/tris.md2", damage, GIB_ORGANIC);
 		ThrowHead(self, "models/objects/gibs/gear/tris.md2", damage, GIB_METALLIC);
-		self->deadflag = DEAD_DEAD;
+		self.deadflag = DEAD_DEAD;
 		return;
 	}
 
-	if (self->deadflag == DEAD_DEAD)
+	if (self.deadflag == DEAD_DEAD)
 		return;
 
 // regular death
 	gi.sound(self, CHAN_VOICE, sound_die, 1, ATTN_NORM, 0);
-	self->deadflag = DEAD_DEAD;
-	self->takedamage = DAMAGE_YES;
+	self.deadflag = DEAD_DEAD;
+	self.takedamage = DAMAGE_YES;
 
-	self->monsterinfo.currentmove = &tank_move_death;
+	self.monsterinfo.currentmove = &tank_move_death;
 
 }
 
@@ -704,6 +860,18 @@ static void tank_die(entity self, entity inflictor, entity attacker, int damage,
 //
 // monster_tank
 //
+#ifdef GROUND_ZERO
+static bool tank_blocked (entity self, float dist)
+{
+	if(blocked_checkshot (self, 0.25 + (0.05 * skill.intVal)))
+		return true;
+
+	if(blocked_checkplat (self, dist))
+		return true;
+
+	return false;
+}
+#endif
 
 /*QUAKED monster_tank (1 .5 0) (-32 -32 -16) (32 32 72) Ambush Trigger_Spawn Sight
 */
@@ -711,7 +879,7 @@ static void tank_die(entity self, entity inflictor, entity attacker, int damage,
 */
 API_FUNC static void SP_monster_tank(entity self)
 {
-	if (deathmatch->intVal) {
+	if (deathmatch.intVal) {
 		G_FreeEdict(self);
 		return;
 	}
@@ -745,11 +913,11 @@ API_FUNC static void SP_monster_tank(entity self)
 		tank_move_death.frame = &tank_frames_death1;
 	}
 
-	self->s.modelindex = gi.modelindex("models/monsters/tank/tris.md2");
-	self->mins = '-32 -32 -16';
-	self->maxs = '32 32 72';
-	self->movetype = MOVETYPE_STEP;
-	self->solid = SOLID_BBOX;
+	self.s.modelindex = gi.modelindex("models/monsters/tank/tris.md2");
+	self.mins = '-32 -32 -16';
+	self.maxs = '32 32 72';
+	self.movetype = MOVETYPE_STEP;
+	self.solid = SOLID_BBOX;
 
 	sound_pain = gi.soundindex("tank/tnkpain2.wav");
 	sound_thud = gi.soundindex("tank/tnkdeth2.wav");
@@ -768,34 +936,40 @@ API_FUNC static void SP_monster_tank(entity self)
 	gi.soundindex("tank/tnkatk2e.wav");
 	gi.soundindex("tank/tnkatck3.wav");
 
-	if (self->classname == "monster_tank_commander") {
-		self->health = 1000;
-		self->gib_health = -225;
+	if (self.classname == "monster_tank_commander") {
+		self.health = 1000;
+		self.gib_health = -225;
 	} else {
-		self->health = 750;
-		self->gib_health = -200;
+		self.health = 750;
+		self.gib_health = -200;
 	}
 
-	self->mass = 500;
+	self.mass = 500;
 
-	self->pain = tank_pain;
-	self->die = tank_die;
-	self->monsterinfo.stand = tank_stand;
-	self->monsterinfo.walk = tank_walk;
-	self->monsterinfo.run = tank_run;
-	self->monsterinfo.dodge = 0;
-	self->monsterinfo.attack = tank_attack;
-	self->monsterinfo.melee = 0;
-	self->monsterinfo.sight = tank_sight;
-	self->monsterinfo.idle = tank_idle;
+	self.pain = tank_pain;
+	self.die = tank_die;
+	self.monsterinfo.stand = tank_stand;
+	self.monsterinfo.walk = tank_walk;
+	self.monsterinfo.run = tank_run;
+	self.monsterinfo.dodge = 0;
+	self.monsterinfo.attack = tank_attack;
+	self.monsterinfo.melee = 0;
+	self.monsterinfo.sight = tank_sight;
+	self.monsterinfo.idle = tank_idle;
+
+#ifdef GROUND_ZERO
+	self.monsterinfo.blocked = tank_blocked;
+	self.monsterinfo.aiflags |= AI_IGNORE_SHOTS;
+	self.monsterinfo.blindfire = true;
+#endif
 
 	gi.linkentity(self);
 
-	self->monsterinfo.currentmove = &tank_move_stand;
-	self->monsterinfo.scale = MODEL_SCALE;
+	self.monsterinfo.currentmove = &tank_move_stand;
+	self.monsterinfo.scale = MODEL_SCALE;
 
 	walkmonster_start(self);
 
-	if (self->classname == "monster_tank_commander")
-		self->s.skinnum = 2;
+	if (self.classname == "monster_tank_commander")
+		self.s.skinnum = 2;
 }

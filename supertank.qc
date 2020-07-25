@@ -94,7 +94,7 @@ static var mmove_t supertank_move_stand = { FRAME_stand_1, FRAME_stand_60 };
 
 static void supertank_stand(entity self)
 {
-	self->monsterinfo.currentmove = &supertank_move_stand;
+	self.monsterinfo.currentmove = &supertank_move_stand;
 }
 
 static mframe_t supertank_frames_run [] = {
@@ -146,20 +146,20 @@ static var mmove_t supertank_move_forward = { FRAME_forwrd_1, FRAME_forwrd_18 };
 
 static void supertank_forward(entity self)
 {
-	self->monsterinfo.currentmove = &supertank_move_forward;
+	self.monsterinfo.currentmove = &supertank_move_forward;
 }
 
 static void supertank_walk(entity self)
 {
-	self->monsterinfo.currentmove = &supertank_move_forward;
+	self.monsterinfo.currentmove = &supertank_move_forward;
 }
 
 static void supertank_run(entity self)
 {
-	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
-		self->monsterinfo.currentmove = &supertank_move_stand;
+	if (self.monsterinfo.aiflags & AI_STAND_GROUND)
+		self.monsterinfo.currentmove = &supertank_move_stand;
 	else
-		self->monsterinfo.currentmove = &supertank_move_run;
+		self.monsterinfo.currentmove = &supertank_move_run;
 }
 
 static mframe_t supertank_frames_pain3 [] = {
@@ -188,11 +188,11 @@ static var mmove_t supertank_move_pain1 = { FRAME_pain1_1, FRAME_pain1_4, supert
 
 static void supertank_dead(entity self)
 {
-	self->mins = '-60 -60 0';
-	self->maxs = '60 60 72';
-	self->movetype = MOVETYPE_TOSS;
-	self->svflags |= SVF_DEADMONSTER;
-	self->nextthink = 0;
+	self.mins = '-60 -60 0';
+	self.maxs = '60 60 72';
+	self.movetype = MOVETYPE_TOSS;
+	self.svflags |= SVF_DEADMONSTER;
+	self.nextthink = 0;
 	gi.linkentity(self);
 }
 
@@ -204,10 +204,10 @@ void BossExplode(entity self)
 	vector  org;
 	int     n;
 
-	self->think = BossExplode;
-	org = self->s.origin;
+	self.think = BossExplode;
+	org = self.s.origin;
 	org[2] += 24 + (Q_rand() & 15);
-	switch (self->count++) {
+	switch (self.count++) {
 	case 0:
 		org[0] -= 24;
 		org[1] -= 24;
@@ -241,23 +241,23 @@ void BossExplode(entity self)
 		org[1] -= 48;
 		break;
 	case 8:
-		self->s.sound = 0;
+		self.s.sound = 0;
 		for (n = 0; n < 4; n++)
 			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", 500, GIB_ORGANIC);
 		for (n = 0; n < 8; n++)
 			ThrowGib(self, "models/objects/gibs/sm_metal/tris.md2", 500, GIB_METALLIC);
 		ThrowGib(self, "models/objects/gibs/chest/tris.md2", 500, GIB_ORGANIC);
 		ThrowHead(self, "models/objects/gibs/gear/tris.md2", 500, GIB_METALLIC);
-		self->deadflag = DEAD_DEAD;
+		self.deadflag = DEAD_DEAD;
 		return;
 	}
 
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_EXPLOSION1);
 	gi.WritePosition(org);
-	gi.multicast(self->s.origin, MULTICAST_PVS);
+	gi.multicast(self.s.origin, MULTICAST_PVS);
 
-	self->nextthink = level.framenum + 1;
+	self.nextthink = level.framenum + 1;
 }
 
 static mframe_t supertank_frames_death1 [] = {
@@ -290,24 +290,29 @@ static var mmove_t supertank_move_death = { FRAME_death_1, FRAME_death_24, super
 
 static void supertankRocket(entity self)
 {
+#ifdef GROUND_ZERO
+	if(!self.enemy || !self.enemy.inuse)
+		return;
+#endif
+
 	vector  forward, right;
 	vector  start;
 	vector  dir;
 	vector  vec;
 	int     flash_number;
 
-	if (self->s.frame == FRAME_attak2_8)
+	if (self.s.frame == FRAME_attak2_8)
 		flash_number = MZ2_SUPERTANK_ROCKET_1;
-	else if (self->s.frame == FRAME_attak2_11)
+	else if (self.s.frame == FRAME_attak2_11)
 		flash_number = MZ2_SUPERTANK_ROCKET_2;
-	else // (self->s.frame == FRAME_attak2_14)
+	else // (self.s.frame == FRAME_attak2_14)
 		flash_number = MZ2_SUPERTANK_ROCKET_3;
 
-	AngleVectors(self->s.angles, &forward, &right, 0);
-	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
+	AngleVectors(self.s.angles, &forward, &right, 0);
+	start = G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right);
 
-	vec = self->enemy->s.origin;
-	vec[2] += self->enemy->viewheight;
+	vec = self.enemy.s.origin;
+	vec[2] += self.enemy.viewheight;
 	dir = vec - start;
 	VectorNormalize(dir);
 
@@ -347,25 +352,30 @@ static var mmove_t supertank_move_attack2 = { FRAME_attak2_1, FRAME_attak2_27, s
 
 void supertankMachineGun(entity self)
 {
+#ifdef GROUND_ZERO
+	if(!self.enemy || !self.enemy.inuse)
+		return;
+#endif
+
 	vector  dir;
 	vector  vec;
 	vector  start;
 	vector  forward, right;
 	int     flash_number;
 
-	flash_number = MZ2_SUPERTANK_MACHINEGUN_1 + (self->s.frame - FRAME_attak1_1);
+	flash_number = MZ2_SUPERTANK_MACHINEGUN_1 + (self.s.frame - FRAME_attak1_1);
 
 	//FIXME!!!
 	dir[0] = 0;
-	dir[1] = self->s.angles[1];
+	dir[1] = self.s.angles[1];
 	dir[2] = 0;
 
 	AngleVectors(dir, &forward, &right, 0);
-	G_ProjectSource(self->s.origin, monster_flash_offset[flash_number], forward, right, start);
+	start = G_ProjectSource(self.s.origin, monster_flash_offset[flash_number], forward, right);
 
-	if (self->enemy) {
-		vec = self->enemy->s.origin;
-		vec[2] += self->enemy->viewheight;
+	if (self.enemy) {
+		vec = self.enemy.s.origin;
+		vec[2] += self.enemy.viewheight;
 		forward = vec - start;
 		VectorNormalize(forward);
 	}
@@ -404,22 +414,21 @@ static var mmove_t supertank_move_end_attack1 = { FRAME_attak1_7, FRAME_attak1_2
 
 static void supertank_reattack1(entity self)
 {
-	if (visible(self, self->enemy))
+	if (visible(self, self.enemy))
 		if (random() < 0.9f)
-			self->monsterinfo.currentmove = &supertank_move_attack1;
+			self.monsterinfo.currentmove = &supertank_move_attack1;
 		else
-			self->monsterinfo.currentmove = &supertank_move_end_attack1;
+			self.monsterinfo.currentmove = &supertank_move_end_attack1;
 	else
-		self->monsterinfo.currentmove = &supertank_move_end_attack1;
+		self.monsterinfo.currentmove = &supertank_move_end_attack1;
 }
 
 static void supertank_pain(entity self, entity other, float kick, int damage)
 {
+	if (self.health < (self.max_health / 2))
+		self.s.skinnum = 1;
 
-	if (self->health < (self->max_health / 2))
-		self->s.skinnum = 1;
-
-	if (level.framenum < self->pain_debounce_framenum)
+	if (level.framenum < self.pain_debounce_framenum)
 		return;
 
 	// Lessen the chance of him going into his pain frames
@@ -428,24 +437,24 @@ static void supertank_pain(entity self, entity other, float kick, int damage)
 			return;
 
 	// Don't go into pain if he's firing his rockets
-	if (skill->intVal >= 2)
-		if ((self->s.frame >= FRAME_attak2_1) && (self->s.frame <= FRAME_attak2_14))
+	if (skill.intVal >= 2)
+		if ((self.s.frame >= FRAME_attak2_1) && (self.s.frame <= FRAME_attak2_14))
 			return;
 
-	self->pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
+	self.pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
 
-	if (skill->intVal == 3)
+	if (skill.intVal == 3)
 		return;     // no pain anims in nightmare
 
 	if (damage <= 10) {
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
-		self->monsterinfo.currentmove = &supertank_move_pain1;
+		self.monsterinfo.currentmove = &supertank_move_pain1;
 	} else if (damage <= 25) {
 		gi.sound(self, CHAN_VOICE, sound_pain3, 1, ATTN_NORM, 0);
-		self->monsterinfo.currentmove = &supertank_move_pain2;
+		self.monsterinfo.currentmove = &supertank_move_pain2;
 	} else {
 		gi.sound(self, CHAN_VOICE, sound_pain2, 1, ATTN_NORM, 0);
-		self->monsterinfo.currentmove = &supertank_move_pain3;
+		self.monsterinfo.currentmove = &supertank_move_pain3;
 	}
 }
 
@@ -453,24 +462,21 @@ static void supertank_attack(entity self)
 {
 	vector  vec;
 	float   range;
-	//float r;
 
-	vec = self->enemy->s.origin - self->s.origin;
+	vec = self.enemy.s.origin - self.s.origin;
 	range = VectorLength(vec);
-
-	//r = random();
 
 	// Attack 1 == Chaingun
 	// Attack 2 == Rocket Launcher
 
 	if (range <= 160) {
-		self->monsterinfo.currentmove = &supertank_move_attack1;
+		self.monsterinfo.currentmove = &supertank_move_attack1;
 	} else {
 		// fire rockets more often at distance
 		if (random() < 0.3f)
-			self->monsterinfo.currentmove = &supertank_move_attack1;
+			self.monsterinfo.currentmove = &supertank_move_attack1;
 		else
-			self->monsterinfo.currentmove = &supertank_move_attack2;
+			self.monsterinfo.currentmove = &supertank_move_attack2;
 	}
 }
 
@@ -478,11 +484,24 @@ static void supertank_attack(entity self)
 static void supertank_die(entity self, entity inflictor, entity attacker, int damage, vector point)
 {
 	gi.sound(self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
-	self->deadflag = DEAD_DEAD;
-	self->takedamage = DAMAGE_NO;
-	self->count = 0;
-	self->monsterinfo.currentmove = &supertank_move_death;
+	self.deadflag = DEAD_DEAD;
+	self.takedamage = DAMAGE_NO;
+	self.count = 0;
+	self.monsterinfo.currentmove = &supertank_move_death;
 }
+
+#ifdef GROUND_ZERO
+static bool supertank_blocked (entity self, float dist)
+{
+	if(blocked_checkshot (self, 0.25 + (0.05 * skill.intVal)))
+		return true;
+
+	if(blocked_checkplat (self, dist))
+		return true;
+
+	return false;
+}
+#endif
 
 //
 // monster_supertank
@@ -492,7 +511,7 @@ static void supertank_die(entity self, entity inflictor, entity attacker, int da
 */
 API_FUNC static void SP_monster_supertank(entity self)
 {
-	if (deathmatch->intVal) {
+	if (deathmatch.intVal) {
 		G_FreeEdict(self);
 		return;
 	}
@@ -519,46 +538,51 @@ API_FUNC static void SP_monster_supertank(entity self)
 	sound_search1 = gi.soundindex("bosstank/btkunqv1.wav");
 	sound_search2 = gi.soundindex("bosstank/btkunqv2.wav");
 
-//  self->s.sound = gi.soundindex ("bosstank/btkengn1.wav");
+//  self.s.sound = gi.soundindex ("bosstank/btkengn1.wav");
 	tread_sound = gi.soundindex("bosstank/btkengn1.wav");
 
-	self->movetype = MOVETYPE_STEP;
-	self->solid = SOLID_BBOX;
-	self->mins = '-64 -64 0';
-	self->maxs = '64 64 112';
+	self.movetype = MOVETYPE_STEP;
+	self.solid = SOLID_BBOX;
+	self.mins = '-64 -64 0';
+	self.maxs = '64 64 112';
 
-	self->health = 1500;
-	self->gib_health = -500;
-	self->mass = 800;
+	self.health = 1500;
+	self.gib_health = -500;
+	self.mass = 800;
 
-	self->pain = supertank_pain;
-	self->die = supertank_die;
-	self->monsterinfo.stand = supertank_stand;
-	self->monsterinfo.walk = supertank_walk;
-	self->monsterinfo.run = supertank_run;
-	self->monsterinfo.dodge = 0;
-	self->monsterinfo.attack = supertank_attack;
-	self->monsterinfo.search = supertank_search;
-	self->monsterinfo.melee = 0;
-	self->monsterinfo.sight = 0;
+	self.pain = supertank_pain;
+	self.die = supertank_die;
+	self.monsterinfo.stand = supertank_stand;
+	self.monsterinfo.walk = supertank_walk;
+	self.monsterinfo.run = supertank_run;
+	self.monsterinfo.dodge = 0;
+	self.monsterinfo.attack = supertank_attack;
+	self.monsterinfo.search = supertank_search;
+	self.monsterinfo.melee = 0;
+	self.monsterinfo.sight = 0;
 
 	gi.linkentity(self);
 
-	self->monsterinfo.currentmove = &supertank_move_stand;
-	self->monsterinfo.scale = MODEL_SCALE;
+	self.monsterinfo.currentmove = &supertank_move_stand;
+	self.monsterinfo.scale = MODEL_SCALE;
 
 #ifdef THE_RECKONING
-	if (self->spawnflags & 8)
+	if (self.spawnflags & 8)
 	{
-		self->monsterinfo.power_armor_type = POWER_ARMOR_SHIELD;
-		self->monsterinfo.power_armor_power = 400;
-		self->s.modelindex = gi.modelindex("models/monsters/boss5/tris.md2");
+		self.monsterinfo.power_armor_type = POWER_ARMOR_SHIELD;
+		self.monsterinfo.power_armor_power = 400;
+		self.s.modelindex = gi.modelindex("models/monsters/boss5/tris.md2");
 	}
 	else
 #endif
-		self->s.modelindex = gi.modelindex("models/monsters/boss1/tris.md2");
+		self.s.modelindex = gi.modelindex("models/monsters/boss1/tris.md2");
 
 	walkmonster_start(self);
+
+#ifdef GROUND_ZERO
+	self.monsterinfo.blocked = supertank_blocked;
+	self.monsterinfo.aiflags |= AI_IGNORE_SHOTS;
+#endif
 }
 
 

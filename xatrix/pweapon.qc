@@ -13,7 +13,7 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_ionripper_fire =
 	int	damage;
 	int	kick;
 
-	if (deathmatch->intVal)
+	if (deathmatch.intVal)
 	{
 		// tone down for deathmatch
 		damage = 30;
@@ -27,21 +27,21 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_ionripper_fire =
 	
 	if (is_quad)
 	{
-		damage *= 4;
-		kick *= 4;
+		damage *= damage_multiplier;
+		kick *= damage_multiplier;
 	}
 
-	tempang = ent->client->v_angle;
+	tempang = ent.client.v_angle;
 	tempang[YAW] += crandom();
 
 	AngleVectors (tempang, &forward, &right, 0);
 	
-	ent->client->kick_origin = forward * -3;
-	ent->client->kick_angles[0] = -3f;
+	ent.client.kick_origin = forward * -3;
+	ent.client.kick_angles[0] = -3f;
 
-	offset = [ 16, 7, ent->viewheight - 8 ];
+	offset = [ 16, 7, ent.viewheight - 8 ];
 
-	P_ProjectSource (ent, ent->s.origin, offset, forward, right, start);
+	start = P_ProjectSource (ent, ent.s.origin, offset, forward, right);
 
 	fire_ionripper (ent, start, forward, damage, 500, EF_IONRIPPER);
 
@@ -49,16 +49,16 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_ionripper_fire =
 	gi.WriteByte (svc_muzzleflash);
 	gi.WriteShort (ent.s.number);
 	gi.WriteByte (MZ_IONRIPPER | is_silenced);
-	gi.multicast (ent->s.origin, MULTICAST_PVS);
+	gi.multicast (ent.s.origin, MULTICAST_PVS);
 
-	ent->client->ps.gunframe++;
+	ent.client.ps.gunframe++;
 	PlayerNoise (ent, start, PNOISE_WEAPON);
 
-	if (!(dmflags->intVal & DF_INFINITE_AMMO))
-		ent->client->pers.inventory[ent->client->ammo_index] -= GetItemKeyByIndex(ent->client->pers.weapon, quantity);
+	if (!(dmflags.intVal & DF_INFINITE_AMMO))
+		ent.client.pers.inventory[ent.client.ammo_index] -= GetItemKeyByIndex(ent.client.pers.weapon, quantity);
 	
-	if (ent->client->pers.inventory[ent->client->ammo_index] < 0)
-		ent->client->pers.inventory[ent->client->ammo_index] = 0;
+	if (ent.client.pers.inventory[ent.client.ammo_index] < 0)
+		ent.client.pers.inventory[ent.client.ammo_index] = 0;
 }
 
 void(entity ent) Weapon_Ionripper =
@@ -97,23 +97,23 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_phalanx_fire =
 	
 	if (is_quad)
 	{
-		damage *= 4;
-		radius_damage *= 4;
+		damage *= damage_multiplier;
+		radius_damage *= damage_multiplier;
 	}
 
-	AngleVectors (ent->client->v_angle, &forward, &right, 0);
+	AngleVectors (ent.client.v_angle, &forward, &right, 0);
 
-	ent->client->kick_origin = forward * -2;
-	ent->client->kick_angles[0] = -2f;
+	ent.client.kick_origin = forward * -2;
+	ent.client.kick_angles[0] = -2f;
 
-	offset = [ 0, 8, ent->viewheight - 8 ];
-	P_ProjectSource (ent, ent->s.origin, offset, forward, right, start);
+	offset = [ 0, 8, ent.viewheight - 8 ];
+	start = P_ProjectSource (ent, ent.s.origin, offset, forward, right);
 
-	if (ent->client->ps.gunframe == 8)
+	if (ent.client.ps.gunframe == 8)
 	{
-		v[PITCH] = ent->client->v_angle[PITCH];
-		v[YAW]   = ent->client->v_angle[YAW] - 1.5;
-		v[ROLL]  = ent->client->v_angle[ROLL];
+		v[PITCH] = ent.client.v_angle[PITCH];
+		v[YAW]   = ent.client.v_angle[YAW] - 1.5;
+		v[ROLL]  = ent.client.v_angle[ROLL];
 		AngleVectors (v, &forward, &right, &up);
 		
 		radius_damage = 30;
@@ -121,14 +121,14 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_phalanx_fire =
 	
 		fire_plasma (ent, start, forward, damage, 725, damage_radius, radius_damage);
 
-		if (!(dmflags->intVal & DF_INFINITE_AMMO))
-			ent->client->pers.inventory[ent->client->ammo_index]--;
+		if (!(dmflags.intVal & DF_INFINITE_AMMO))
+			ent.client.pers.inventory[ent.client.ammo_index]--;
 	}
 	else
 	{
-		v[PITCH] = ent->client->v_angle[PITCH];
-		v[YAW]   = ent->client->v_angle[YAW] + 1.5;
-		v[ROLL]  = ent->client->v_angle[ROLL];
+		v[PITCH] = ent.client.v_angle[PITCH];
+		v[YAW]   = ent.client.v_angle[YAW] + 1.5;
+		v[ROLL]  = ent.client.v_angle[ROLL];
 		AngleVectors (v, &forward, &right, &up);
 		fire_plasma (ent, start, forward, damage, 725, damage_radius, radius_damage);
 
@@ -136,12 +136,12 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_phalanx_fire =
 		gi.WriteByte (svc_muzzleflash);
 		gi.WriteShort (ent.s.number);
 		gi.WriteByte (MZ_PHALANX | is_silenced);
-		gi.multicast (ent->s.origin, MULTICAST_PVS);
+		gi.multicast (ent.s.origin, MULTICAST_PVS);
 		
 		PlayerNoise(ent, start, PNOISE_WEAPON);
 	}
 	
-	ent->client->ps.gunframe++;
+	ent.client.ps.gunframe++;
 	
 }
 
@@ -185,108 +185,108 @@ PROGS_LOCAL void(entity ent, bool held) weapon_trap_fire =
 
 	radius = damage + 40f;
 	if (is_quad)
-		damage *= 4;
+		damage *= damage_multiplier;
 
-	offset = [ 8, 8, ent->viewheight - 8 ];
-	AngleVectors (ent->client->v_angle, &forward, &right, 0);
-	P_ProjectSource (ent, ent->s.origin, offset, forward, right, start);
+	offset = [ 8, 8, ent.viewheight - 8 ];
+	AngleVectors (ent.client.v_angle, &forward, &right, 0);
+	start = P_ProjectSource (ent, ent.s.origin, offset, forward, right);
 
-	timer = (ent->client->trap_framenum - level.framenum) * FRAMETIME;
+	timer = (ent.client.trap_framenum - level.framenum) * FRAMETIME;
 	speed = (int)(TRAP_MINSPEED + (TRAP_TIMER - timer) * ((TRAP_MAXSPEED - TRAP_MINSPEED) / TRAP_TIMER));
 	fire_trap (ent, start, forward, damage, speed, timer, radius, held);
 	
 // you don't get infinite traps!  ZOID
-//	if (! ( (int)dmflags->value & DF_INFINITE_AMMO ) )
+//	if (! ( (int)dmflags.value & DF_INFINITE_AMMO ) )
 
-	ent->client->pers.inventory[ent->client->ammo_index]--;
+	ent.client.pers.inventory[ent.client.ammo_index]--;
 
-	ent->client->trap_framenum = (int)(level.framenum + 1.0f * BASE_FRAMERATE);
+	ent.client.trap_framenum = (int)(level.framenum + 1.0f * BASE_FRAMERATE);
 }
 
 void(entity ent) Weapon_Trap =
 {
-	if ((ent->client->newweapon) && (ent->client->weaponstate == WEAPON_READY))
+	if ((ent.client.newweapon) && (ent.client.weaponstate == WEAPON_READY))
 	{
 		ChangeWeapon (ent);
 		return;
 	}
 
-	if (ent->client->weaponstate == WEAPON_ACTIVATING)
+	if (ent.client.weaponstate == WEAPON_ACTIVATING)
 	{
-		ent->client->weaponstate = WEAPON_READY;
-		ent->client->ps.gunframe = 16;
+		ent.client.weaponstate = WEAPON_READY;
+		ent.client.ps.gunframe = 16;
 		return;
 	}
 
-	if (ent->client->weaponstate == WEAPON_READY)
+	if (ent.client.weaponstate == WEAPON_READY)
 	{
-		if ( ((ent->client->latched_buttons|ent->client->buttons) & BUTTON_ATTACK) )
+		if ( ((ent.client.latched_buttons|ent.client.buttons) & BUTTON_ATTACK) )
 		{
-			ent->client->latched_buttons &= ~BUTTON_ATTACK;
-			if (ent->client->pers.inventory[ent->client->ammo_index])
+			ent.client.latched_buttons &= ~BUTTON_ATTACK;
+			if (ent.client.pers.inventory[ent.client.ammo_index])
 			{
-				ent->client->ps.gunframe = 1;
-				ent->client->weaponstate = WEAPON_FIRING;
-				ent->client->trap_framenum = 0;
+				ent.client.ps.gunframe = 1;
+				ent.client.weaponstate = WEAPON_FIRING;
+				ent.client.trap_framenum = 0;
 			}
 			else
 			{
-				if (level.framenum >= ent->pain_debounce_framenum)
+				if (level.framenum >= ent.pain_debounce_framenum)
 				{
 					gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/noammo.wav"), 1, ATTN_NORM, 0);
-					ent->pain_debounce_framenum = level.framenum + 1 * BASE_FRAMERATE;
+					ent.pain_debounce_framenum = level.framenum + 1 * BASE_FRAMERATE;
 				}
 				NoAmmoWeaponChange (ent);
 			}
 			return;
 		}
 
-		if ((ent->client->ps.gunframe == 29) || (ent->client->ps.gunframe == 34) || (ent->client->ps.gunframe == 39) || (ent->client->ps.gunframe == 48))
+		if ((ent.client.ps.gunframe == 29) || (ent.client.ps.gunframe == 34) || (ent.client.ps.gunframe == 39) || (ent.client.ps.gunframe == 48))
 		{
 			if (Q_rand()&15)
 				return;
 		}
 
-		if (++ent->client->ps.gunframe > 48)
-			ent->client->ps.gunframe = 16;
+		if (++ent.client.ps.gunframe > 48)
+			ent.client.ps.gunframe = 16;
 		return;
 	}
 
-	if (ent->client->weaponstate == WEAPON_FIRING)
+	if (ent.client.weaponstate == WEAPON_FIRING)
 	{
-		if (ent->client->ps.gunframe == 5)
+		if (ent.client.ps.gunframe == 5)
 			// RAFAEL 16-APR-98
 			// gi.sound(ent, CHAN_WEAPON, gi.soundindex("weapons/hgrena1b.wav"), 1, ATTN_NORM, 0);
 			gi.sound(ent, CHAN_WEAPON, gi.soundindex("weapons/trapcock.wav"), 1, ATTN_NORM, 0);
 			// END 16-APR-98
 
-		if (ent->client->ps.gunframe == 11)
+		if (ent.client.ps.gunframe == 11)
 		{
-			if (!ent->client->trap_framenum)
+			if (!ent.client.trap_framenum)
 			{
-				ent->client->trap_framenum = (int)(level.framenum + (TRAP_TIMER + 0.2f) * BASE_FRAMERATE);
+				ent.client.trap_framenum = (int)(level.framenum + (TRAP_TIMER + 0.2f) * BASE_FRAMERATE);
 				// RAFAEL 16-APR-98
-				ent->client->weapon_sound = gi.soundindex("weapons/traploop.wav");
+				ent.client.weapon_sound = gi.soundindex("weapons/traploop.wav");
 				// END 16-APR-98
 			}
 
 			// they waited too long, detonate it in their hand
-			if (!ent->client->grenade_blew_up && level.framenum >= ent->client->trap_framenum)
+			if (!ent.client.grenade_blew_up && level.framenum >= ent.client.trap_framenum)
 			{
-				ent->client->weapon_sound = 0;
+				ent.client.weapon_sound = 0;
 				weapon_trap_fire (ent, true);
-				ent->client->grenade_blew_up = true;
+				ent.client.grenade_blew_up = true;
 			}
 
-			if (ent->client->buttons & BUTTON_ATTACK)
+			if (ent.client.buttons & BUTTON_ATTACK)
 				return;
 
-			if (ent->client->grenade_blew_up)
+			if (ent.client.grenade_blew_up)
 			{
-				if (level.framenum >= ent->client->grenade_framenum)
+				if (level.framenum >= ent.client.grenade_framenum)
 				{
-					ent->client->ps.gunframe = 15;
-					ent->client->grenade_blew_up = false;
+					ent.client.ps.gunframe = 15;
+					ent.client.grenade_blew_up = false;
 				}
 				else
 				{
@@ -295,23 +295,23 @@ void(entity ent) Weapon_Trap =
 			}
 		}
 
-		if (ent->client->ps.gunframe == 12)
+		if (ent.client.ps.gunframe == 12)
 		{
-			ent->client->weapon_sound = 0;
+			ent.client.weapon_sound = 0;
 			weapon_trap_fire (ent, false);
-			if (ent->client->pers.inventory[ent->client->ammo_index] == 0)
+			if (ent.client.pers.inventory[ent.client.ammo_index] == 0)
 				NoAmmoWeaponChange (ent);
 		}
 
-		if ((ent->client->ps.gunframe == 15) && (level.framenum < ent->client->trap_framenum))
+		if ((ent.client.ps.gunframe == 15) && (level.framenum < ent.client.trap_framenum))
 			return;
 
-		ent->client->ps.gunframe++;
+		ent.client.ps.gunframe++;
 
-		if (ent->client->ps.gunframe == 16)
+		if (ent.client.ps.gunframe == 16)
 		{
-			ent->client->trap_framenum = 0;
-			ent->client->weaponstate = WEAPON_READY;
+			ent.client.trap_framenum = 0;
+			ent.client.weaponstate = WEAPON_READY;
 		}
 	}
 }

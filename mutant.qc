@@ -111,7 +111,7 @@ static var mmove_t mutant_move_stand = { FRAME_stand101, FRAME_stand151 };
 
 static void mutant_stand(entity self)
 {
-	self->monsterinfo.currentmove = &mutant_move_stand;
+	self.monsterinfo.currentmove = &mutant_move_stand;
 }
 
 
@@ -122,7 +122,7 @@ static void mutant_stand(entity self)
 static void mutant_idle_loop(entity self)
 {
 	if (random() < 0.75f)
-		self->monsterinfo.nextframe = FRAME_stand155;
+		self.monsterinfo.nextframe = FRAME_stand155;
 }
 
 static mframe_t mutant_frames_idle [] = {
@@ -144,7 +144,7 @@ static var mmove_t mutant_move_idle = { FRAME_stand152, FRAME_stand164, mutant_s
 
 static void mutant_idle(entity self)
 {
-	self->monsterinfo.currentmove = &mutant_move_idle;
+	self.monsterinfo.currentmove = &mutant_move_idle;
 	gi.sound(self, CHAN_VOICE, sound_idle, 1, ATTN_IDLE, 0);
 }
 
@@ -171,7 +171,7 @@ static var mmove_t mutant_move_walk = { FRAME_walk05, FRAME_walk16 };
 
 static void mutant_walk_loop(entity self)
 {
-	self->monsterinfo.currentmove = &mutant_move_walk;
+	self.monsterinfo.currentmove = &mutant_move_walk;
 }
 
 static mframe_t mutant_frames_start_walk [] = {
@@ -184,7 +184,7 @@ static var mmove_t mutant_move_start_walk = { FRAME_walk01, FRAME_walk04, mutant
 
 static void mutant_walk(entity self)
 {
-	self->monsterinfo.currentmove = &mutant_move_start_walk;
+	self.monsterinfo.currentmove = &mutant_move_start_walk;
 }
 
 
@@ -204,10 +204,10 @@ static var mmove_t mutant_move_run = { FRAME_run03, FRAME_run08 };
 
 static void mutant_run(entity self)
 {
-	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
-		self->monsterinfo.currentmove = &mutant_move_stand;
+	if (self.monsterinfo.aiflags & AI_STAND_GROUND)
+		self.monsterinfo.currentmove = &mutant_move_stand;
 	else
-		self->monsterinfo.currentmove = &mutant_move_run;
+		self.monsterinfo.currentmove = &mutant_move_run;
 }
 
 
@@ -217,7 +217,7 @@ static void mutant_run(entity self)
 
 static void mutant_hit_left(entity self)
 {
-	const vector  aim = [MELEE_DISTANCE, self->mins_x, 8 ];
+	const vector  aim = [MELEE_DISTANCE, self.mins.x, 8 ];
 	if (fire_hit(self, aim, (10 + (Q_rand() % 5)), 100))
 		gi.sound(self, CHAN_WEAPON, sound_hit, 1, ATTN_NORM, 0);
 	else
@@ -226,7 +226,7 @@ static void mutant_hit_left(entity self)
 
 static void mutant_hit_right(entity self)
 {
-	const vector  aim = [ MELEE_DISTANCE, self->maxs_x, 8 ];
+	const vector  aim = [ MELEE_DISTANCE, self.maxs.x, 8 ];
 	if (fire_hit(self, aim, (10 + (Q_rand() % 5)), 100))
 		gi.sound(self, CHAN_WEAPON, sound_hit2, 1, ATTN_NORM, 0);
 	else
@@ -235,11 +235,11 @@ static void mutant_hit_right(entity self)
 
 static void mutant_check_refire(entity self)
 {
-	if (!self->enemy || !self->enemy->inuse || self->enemy->health <= 0)
+	if (!self.enemy || !self.enemy.inuse || self.enemy.health <= 0)
 		return;
 
-	if (((skill->intVal == 3) && (random() < 0.5f)) || (range(self, self->enemy) == RANGE_MELEE))
-		self->monsterinfo.nextframe = FRAME_attack09;
+	if (((skill.intVal == 3) && (random() < 0.5f)) || (range(self, self.enemy) == RANGE_MELEE))
+		self.monsterinfo.nextframe = FRAME_attack09;
 }
 
 static mframe_t mutant_frames_attack [] = {
@@ -255,7 +255,7 @@ static var mmove_t mutant_move_attack = { FRAME_attack09, FRAME_attack15, mutant
 
 static void mutant_melee(entity self)
 {
-	self->monsterinfo.currentmove = &mutant_move_attack;
+	self.monsterinfo.currentmove = &mutant_move_attack;
 }
 
 
@@ -265,34 +265,34 @@ static void mutant_melee(entity self)
 
 static void mutant_jump_touch(entity self, entity other, cplane_t plane, csurface_t surf)
 {
-	if (self->health <= 0) {
-		self->touch = 0;
+	if (self.health <= 0) {
+		self.touch = 0;
 		return;
 	}
 
-	if (other->takedamage) {
-		if (VectorLength(self->velocity) > 400) {
+	if (other.takedamage) {
+		if (VectorLength(self.velocity) > 400) {
 			vector  point;
 			vector  normal;
 			int     damage;
 
-			normal = self->velocity;
+			normal = self.velocity;
 			VectorNormalize(normal);
-			point = self->s.origin + (self->maxs[0] * normal);
+			point = self.s.origin + (self.maxs[0] * normal);
 			damage = (int)random(40f, 50f);
-			T_Damage(other, self, self, self->velocity, point, normal, damage, damage, 0, MOD_UNKNOWN);
+			T_Damage(other, self, self, self.velocity, point, normal, damage, damage, 0, MOD_UNKNOWN);
 		}
 	}
 
 	if (!M_CheckBottom(self)) {
-		if (self->groundentity != null_entity) {
-			self->monsterinfo.nextframe = FRAME_attack02;
-			self->touch = 0;
+		if (self.groundentity != null_entity) {
+			self.monsterinfo.nextframe = FRAME_attack02;
+			self.touch = 0;
 		}
 		return;
 	}
 
-	self->touch = 0;
+	self.touch = 0;
 }
 
 void mutant_jump_takeoff(entity self)
@@ -300,29 +300,29 @@ void mutant_jump_takeoff(entity self)
 	vector  forward;
 
 	gi.sound(self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
-	AngleVectors(self->s.angles, &forward, 0, 0);
-	self->s.origin[2] += 1;
-	self->velocity = forward * 600;
-	self->velocity[2] = 250f;
-	self->groundentity = null_entity;
-	self->monsterinfo.aiflags |= AI_DUCKED;
-	self->monsterinfo.attack_finished = level.framenum + 3 * BASE_FRAMERATE;
-	self->touch = mutant_jump_touch;
+	AngleVectors(self.s.angles, &forward, 0, 0);
+	self.s.origin[2] += 1;
+	self.velocity = forward * 600;
+	self.velocity[2] = 250f;
+	self.groundentity = null_entity;
+	self.monsterinfo.aiflags |= AI_DUCKED;
+	self.monsterinfo.attack_finished = level.framenum + 3 * BASE_FRAMERATE;
+	self.touch = mutant_jump_touch;
 }
 
 void mutant_check_landing(entity self)
 {
-	if (self->groundentity != null_entity) {
+	if (self.groundentity != null_entity) {
 		gi.sound(self, CHAN_WEAPON, sound_thud, 1, ATTN_NORM, 0);
-		self->monsterinfo.attack_finished = 0;
-		self->monsterinfo.aiflags &= ~AI_DUCKED;
+		self.monsterinfo.attack_finished = 0;
+		self.monsterinfo.aiflags &= ~AI_DUCKED;
 		return;
 	}
 
-	if (level.framenum > self->monsterinfo.attack_finished)
-		self->monsterinfo.nextframe = FRAME_attack02;
+	if (level.framenum > self.monsterinfo.attack_finished)
+		self.monsterinfo.nextframe = FRAME_attack02;
 	else
-		self->monsterinfo.nextframe = FRAME_attack05;
+		self.monsterinfo.nextframe = FRAME_attack05;
 }
 
 static mframe_t mutant_frames_jump [] = {
@@ -339,7 +339,7 @@ static var mmove_t mutant_move_jump = { FRAME_attack01, FRAME_attack08, mutant_r
 
 static void mutant_jump(entity self)
 {
-	self->monsterinfo.currentmove = &mutant_move_jump;
+	self.monsterinfo.currentmove = &mutant_move_jump;
 }
 
 
@@ -349,7 +349,7 @@ static void mutant_jump(entity self)
 
 static bool mutant_check_melee(entity self)
 {
-	if (range(self, self->enemy) == RANGE_MELEE)
+	if (range(self, self.enemy) == RANGE_MELEE)
 		return true;
 	return false;
 }
@@ -359,14 +359,14 @@ static bool mutant_check_jump(entity self)
 	vector  v;
 	float   distance;
 
-	if (self->absmin[2] > (self->enemy->absmin[2] + 0.75f * self->enemy->size[2]))
+	if (self.absmin[2] > (self.enemy.absmin[2] + 0.75f * self.enemy.size[2]))
 		return false;
 
-	if (self->absmax[2] < (self->enemy->absmin[2] + 0.25f * self->enemy->size[2]))
+	if (self.absmax[2] < (self.enemy.absmin[2] + 0.25f * self.enemy.size[2]))
 		return false;
 
-	v[0] = self->s.origin[0] - self->enemy->s.origin[0];
-	v[1] = self->s.origin[1] - self->enemy->s.origin[1];
+	v[0] = self.s.origin[0] - self.enemy.s.origin[0];
+	v[1] = self.s.origin[1] - self.enemy.s.origin[1];
 	v[2] = 0;
 	distance = VectorLength(v);
 
@@ -382,16 +382,16 @@ static bool mutant_check_jump(entity self)
 
 static bool mutant_checkattack(entity self)
 {
-	if (!self->enemy || self->enemy->health <= 0)
+	if (!self.enemy || self.enemy.health <= 0)
 		return false;
 
 	if (mutant_check_melee(self)) {
-		self->monsterinfo.attack_state = AS_MELEE;
+		self.monsterinfo.attack_state = AS_MELEE;
 		return true;
 	}
 
 	if (mutant_check_jump(self)) {
-		self->monsterinfo.attack_state = AS_MISSILE;
+		self.monsterinfo.attack_state = AS_MISSILE;
 		// FIXME play a jump sound here
 		return true;
 	}
@@ -442,27 +442,27 @@ static void mutant_pain(entity self, entity other, float kick, int damage)
 {
 	float   r;
 
-	if (self->health < (self->max_health / 2))
-		self->s.skinnum = 1;
+	if (self.health < (self.max_health / 2))
+		self.s.skinnum = 1;
 
-	if (level.framenum < self->pain_debounce_framenum)
+	if (level.framenum < self.pain_debounce_framenum)
 		return;
 
-	self->pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
+	self.pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
 
-	if (skill->intVal == 3)
+	if (skill.intVal == 3)
 		return;     // no pain anims in nightmare
 
 	r = random();
 	if (r < 0.33f) {
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
-		self->monsterinfo.currentmove = &mutant_move_pain1;
+		self.monsterinfo.currentmove = &mutant_move_pain1;
 	} else if (r < 0.66f) {
 		gi.sound(self, CHAN_VOICE, sound_pain2, 1, ATTN_NORM, 0);
-		self->monsterinfo.currentmove = &mutant_move_pain2;
+		self.monsterinfo.currentmove = &mutant_move_pain2;
 	} else {
 		gi.sound(self, CHAN_VOICE, sound_pain1, 1, ATTN_NORM, 0);
-		self->monsterinfo.currentmove = &mutant_move_pain3;
+		self.monsterinfo.currentmove = &mutant_move_pain3;
 	}
 }
 
@@ -473,10 +473,10 @@ static void mutant_pain(entity self, entity other, float kick, int damage)
 
 static void mutant_dead(entity self)
 {
-	self->mins = '-16 -16 -24';
-	self->maxs = '16 16 -8';
-	self->movetype = MOVETYPE_TOSS;
-	self->svflags |= SVF_DEADMONSTER;
+	self.mins = '-16 -16 -24';
+	self.maxs = '16 16 -8';
+	self.movetype = MOVETYPE_TOSS;
+	self.svflags |= SVF_DEADMONSTER;
 	gi.linkentity(self);
 
 	M_FlyCheck(self);
@@ -513,31 +513,108 @@ static void mutant_die(entity self, entity inflictor, entity attacker, int damag
 {
 	int     n;
 
-	if (self->health <= self->gib_health) {
+	if (self.health <= self.gib_health) {
 		gi.sound(self, CHAN_VOICE, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
 		for (n = 0; n < 2; n++)
 			ThrowGib(self, "models/objects/gibs/bone/tris.md2", damage, GIB_ORGANIC);
 		for (n = 0; n < 4; n++)
 			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
 		ThrowHead(self, "models/objects/gibs/head2/tris.md2", damage, GIB_ORGANIC);
-		self->deadflag = DEAD_DEAD;
+		self.deadflag = DEAD_DEAD;
 		return;
 	}
 
-	if (self->deadflag == DEAD_DEAD)
+	if (self.deadflag == DEAD_DEAD)
 		return;
 
 	gi.sound(self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
-	self->deadflag = DEAD_DEAD;
-	self->takedamage = DAMAGE_YES;
-	self->s.skinnum = 1;
+	self.deadflag = DEAD_DEAD;
+	self.takedamage = DAMAGE_YES;
+	self.s.skinnum = 1;
 
 	if (random() < 0.5f)
-		self->monsterinfo.currentmove = &mutant_move_death1;
+		self.monsterinfo.currentmove = &mutant_move_death1;
 	else
-		self->monsterinfo.currentmove = &mutant_move_death2;
+		self.monsterinfo.currentmove = &mutant_move_death2;
 }
 
+#ifdef GROUND_ZERO
+static void mutant_jump_down (entity self)
+{
+	vector	forward,up;
+
+	AngleVectors (self.s.angles, &forward, 0, &up);
+	self.velocity += 100 * forward;
+	self.velocity += 300 * up;
+}
+
+static void mutant_jump_up (entity self)
+{
+	vector	forward,up;
+
+	AngleVectors (self.s.angles, &forward, 0, &up);
+	self.velocity += 200 * forward;
+	self.velocity += 450 * up;
+}
+
+static void mutant_jump_wait_land (entity self)
+{
+	if (self.groundentity == null_entity)
+		self.monsterinfo.nextframe = self.s.frame;
+	else 
+		self.monsterinfo.nextframe = self.s.frame + 1;
+}
+
+static mframe_t mutant_frames_jump_up [] =
+{
+	{ ai_move, -8 },
+	{ ai_move, -8, mutant_jump_up },
+	{ ai_move, 0, mutant_jump_wait_land },
+	{ ai_move },
+	{ ai_move }
+};
+static var mmove_t mutant_move_jump_up = { FRAME_jump01, FRAME_jump05, mutant_run };
+
+static mframe_t mutant_frames_jump_down [] =
+{
+	{ ai_move },
+	{ ai_move, 0, mutant_jump_down },
+	{ ai_move, 0, mutant_jump_wait_land },
+	{ ai_move },
+	{ ai_move }
+};
+static var mmove_t mutant_move_jump_down = { FRAME_jump01, FRAME_jump05, mutant_run };
+
+static void mutant_jump_updown (entity self)
+{
+	if(!self.enemy)
+		return;
+
+	if(self.enemy.s.origin[2] > self.s.origin[2])
+		self.monsterinfo.currentmove = &mutant_move_jump_up;
+	else
+		self.monsterinfo.currentmove = &mutant_move_jump_down;
+}
+
+/*
+===
+Blocked
+===
+*/
+static bool mutant_blocked (entity self, float dist)
+{
+	if(blocked_checkjump (self, dist, 256, 68))
+	{
+		mutant_jump_updown (self);
+		return true;
+	}
+
+	if(blocked_checkplat (self, dist))
+		return true;
+
+	return false;	// Knightmare- warning fix
+}
+#endif
 
 //
 // SPAWN
@@ -547,7 +624,7 @@ static void mutant_die(entity self, entity inflictor, entity attacker, int damag
 */
 API_FUNC static void SP_monster_mutant(entity self)
 {
-	if (deathmatch->intVal) {
+	if (deathmatch.intVal) {
 		G_FreeEdict(self);
 		return;
 	}
@@ -566,6 +643,11 @@ API_FUNC static void SP_monster_mutant(entity self)
 		mutant_move_pain3.frame = &mutant_frames_pain3;
 		mutant_move_death1.frame = &mutant_frames_death1;
 		mutant_move_death2.frame = &mutant_frames_death2;
+
+#ifdef GROUND_ZERO
+		mutant_move_jump_up.frame = &mutant_frames_jump_up;
+		mutant_move_jump_down.frame = &mutant_frames_jump_down;
+#endif
 	}
 
 	sound_swing = gi.soundindex("mutant/mutatck1.wav");
@@ -582,34 +664,37 @@ API_FUNC static void SP_monster_mutant(entity self)
 	sound_step3 = gi.soundindex("mutant/step3.wav");
 	sound_thud = gi.soundindex("mutant/thud1.wav");
 
-	self->movetype = MOVETYPE_STEP;
-	self->solid = SOLID_BBOX;
-	self->s.modelindex = gi.modelindex("models/monsters/mutant/tris.md2");
-	self->mins = '-32 -32 -24';
-	self->maxs = '32 32 48';
+	self.movetype = MOVETYPE_STEP;
+	self.solid = SOLID_BBOX;
+	self.s.modelindex = gi.modelindex("models/monsters/mutant/tris.md2");
+	self.mins = '-32 -32 -24';
+	self.maxs = '32 32 48';
 
-	self->health = 300;
-	self->gib_health = -120;
-	self->mass = 300;
+	self.health = 300;
+	self.gib_health = -120;
+	self.mass = 300;
 
-	self->pain = mutant_pain;
-	self->die = mutant_die;
+	self.pain = mutant_pain;
+	self.die = mutant_die;
 
-	self->monsterinfo.stand = mutant_stand;
-	self->monsterinfo.walk = mutant_walk;
-	self->monsterinfo.run = mutant_run;
-	self->monsterinfo.dodge = 0;
-	self->monsterinfo.attack = mutant_jump;
-	self->monsterinfo.melee = mutant_melee;
-	self->monsterinfo.sight = mutant_sight;
-	self->monsterinfo.search = mutant_search;
-	self->monsterinfo.idle = mutant_idle;
-	self->monsterinfo.checkattack = mutant_checkattack;
+	self.monsterinfo.stand = mutant_stand;
+	self.monsterinfo.walk = mutant_walk;
+	self.monsterinfo.run = mutant_run;
+	self.monsterinfo.dodge = 0;
+#ifdef GROUND_ZERO
+	self.monsterinfo.blocked = mutant_blocked;
+#endif
+	self.monsterinfo.attack = mutant_jump;
+	self.monsterinfo.melee = mutant_melee;
+	self.monsterinfo.sight = mutant_sight;
+	self.monsterinfo.search = mutant_search;
+	self.monsterinfo.idle = mutant_idle;
+	self.monsterinfo.checkattack = mutant_checkattack;
 
 	gi.linkentity(self);
 
-	self->monsterinfo.currentmove = &mutant_move_stand;
+	self.monsterinfo.currentmove = &mutant_move_stand;
 
-	self->monsterinfo.scale = MODEL_SCALE;
+	self.monsterinfo.scale = MODEL_SCALE;
 	walkmonster_start(self);
 }

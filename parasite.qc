@@ -74,25 +74,25 @@ static var mmove_t parasite_move_end_fidget = { FRAME_stand28, FRAME_stand35 };
 
 static void parasite_end_fidget(entity self)
 {
-	self->monsterinfo.currentmove = &parasite_move_end_fidget;
+	self.monsterinfo.currentmove = &parasite_move_end_fidget;
 }
 
 static void parasite_do_fidget(entity self)
 {
-	self->monsterinfo.currentmove = &parasite_move_fidget;
+	self.monsterinfo.currentmove = &parasite_move_fidget;
 }
 
 static void parasite_refidget(entity self)
 {
 	if (random() <= 0.8f)
-		self->monsterinfo.currentmove = &parasite_move_fidget;
+		self.monsterinfo.currentmove = &parasite_move_fidget;
 	else
-		self->monsterinfo.currentmove = &parasite_move_end_fidget;
+		self.monsterinfo.currentmove = &parasite_move_end_fidget;
 }
 
 static void parasite_idle(entity self)
 {
-	self->monsterinfo.currentmove = &parasite_move_start_fidget;
+	self.monsterinfo.currentmove = &parasite_move_start_fidget;
 }
 
 
@@ -119,7 +119,7 @@ static var mmove_t parasite_move_stand = { FRAME_stand01, FRAME_stand17 };
 
 static void parasite_stand(entity self)
 {
-	self->monsterinfo.currentmove = &parasite_move_stand;
+	self.monsterinfo.currentmove = &parasite_move_stand;
 }
 
 
@@ -152,18 +152,18 @@ static var mmove_t parasite_move_stop_run = { FRAME_run10, FRAME_run15 };
 
 static void parasite_start_run(entity self)
 {
-	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
-		self->monsterinfo.currentmove = &parasite_move_stand;
+	if (self.monsterinfo.aiflags & AI_STAND_GROUND)
+		self.monsterinfo.currentmove = &parasite_move_stand;
 	else
-		self->monsterinfo.currentmove = &parasite_move_start_run;
+		self.monsterinfo.currentmove = &parasite_move_start_run;
 }
 
 static void parasite_run(entity self)
 {
-	if (self->monsterinfo.aiflags & AI_STAND_GROUND)
-		self->monsterinfo.currentmove = &parasite_move_stand;
+	if (self.monsterinfo.aiflags & AI_STAND_GROUND)
+		self.monsterinfo.currentmove = &parasite_move_stand;
 	else
-		self->monsterinfo.currentmove = &parasite_move_run;
+		self.monsterinfo.currentmove = &parasite_move_run;
 }
 
 static mframe_t parasite_frames_walk [] = {
@@ -179,7 +179,7 @@ static var mmove_t parasite_move_walk = { FRAME_run03, FRAME_run09 };
 
 static void parasite_walk(entity self)
 {
-	self->monsterinfo.currentmove = &parasite_move_walk;
+	self.monsterinfo.currentmove = &parasite_move_walk;
 }
 
 static mframe_t parasite_frames_start_walk [] = {
@@ -200,7 +200,7 @@ static var mmove_t parasite_move_stop_walk = { FRAME_run10, FRAME_run15 };
 
 static void parasite_start_walk(entity self)
 {
-	self->monsterinfo.currentmove = &parasite_move_start_walk;
+	self.monsterinfo.currentmove = &parasite_move_start_walk;
 }
 
 
@@ -221,15 +221,15 @@ static var mmove_t parasite_move_pain1 = { FRAME_pain101, FRAME_pain111, parasit
 
 static void parasite_pain(entity self, entity other, float kick, int damage)
 {
-	if (self->health < (self->max_health / 2))
-		self->s.skinnum = 1;
+	if (self.health < (self.max_health / 2))
+		self.s.skinnum = 1;
 
-	if (level.framenum < self->pain_debounce_framenum)
+	if (level.framenum < self.pain_debounce_framenum)
 		return;
 
-	self->pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
+	self.pain_debounce_framenum = level.framenum + 3 * BASE_FRAMERATE;
 
-	if (skill->intVal == 3)
+	if (skill.intVal == 3)
 		return;     // no pain anims in nightmare
 
 	if (random() < 0.5f)
@@ -237,11 +237,10 @@ static void parasite_pain(entity self, entity other, float kick, int damage)
 	else
 		gi.sound(self, CHAN_VOICE, sound_pain2, 1, ATTN_NORM, 0);
 
-	self->monsterinfo.currentmove = &parasite_move_pain1;
+	self.monsterinfo.currentmove = &parasite_move_pain1;
 }
 
-
-static bool parasite_drain_attack_ok(vector start, vector end)
+bool parasite_drain_attack_ok(vector start, vector end)
 {
 	vector  dir, angles;
 
@@ -252,9 +251,9 @@ static bool parasite_drain_attack_ok(vector start, vector end)
 
 	// check for min/max pitch
 	angles = vectoangles(dir);
-	if (angles_x < -180)
-		angles_x += 360;
-	if (fabsf(angles_x) > 30)
+	if (angles.x < -180)
+		angles.x += 360;
+	if (fabsf(angles.x) > 30)
 		return false;
 
 	return true;
@@ -266,30 +265,30 @@ static void parasite_drain_attack(entity self)
 	trace_t tr;
 	int damage;
 
-	AngleVectors(self->s.angles, &f, &r, 0);
+	AngleVectors(self.s.angles, &f, &r, 0);
 	offset = '24 0 6';
-	G_ProjectSource(self->s.origin, offset, f, r, start);
+	start = G_ProjectSource(self.s.origin, offset, f, r);
 
-	end = self->enemy->s.origin;
+	end = self.enemy.s.origin;
 	if (!parasite_drain_attack_ok(start, end)) {
-		end_z = self->enemy->s.origin[2] + self->enemy->maxs_z - 8;
+		end.z = self.enemy.s.origin[2] + self.enemy.maxs.z - 8;
 		if (!parasite_drain_attack_ok(start, end)) {
-			end_z = self->enemy->s.origin[2] + self->enemy->mins_z + 8;
+			end.z = self.enemy.s.origin[2] + self.enemy.mins.z + 8;
 			if (!parasite_drain_attack_ok(start, end))
 				return;
 		}
 	}
-	end = self->enemy->s.origin;
+	end = self.enemy.s.origin;
 
 	gi.trace(&tr, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
-	if (tr.ent != self->enemy)
+	if (tr.ent != self.enemy)
 		return;
 
-	if (self->s.frame == FRAME_drain03) {
+	if (self.s.frame == FRAME_drain03) {
 		damage = 5;
-		gi.sound(self->enemy, CHAN_AUTO, sound_impact, 1, ATTN_NORM, 0);
+		gi.sound(self.enemy, CHAN_AUTO, sound_impact, 1, ATTN_NORM, 0);
 	} else {
-		if (self->s.frame == FRAME_drain04)
+		if (self.s.frame == FRAME_drain04)
 			gi.sound(self, CHAN_WEAPON, sound_suck, 1, ATTN_NORM, 0);
 		damage = 2;
 	}
@@ -299,10 +298,10 @@ static void parasite_drain_attack(entity self)
 	gi.WriteShort(self.s.number);
 	gi.WritePosition(start);
 	gi.WritePosition(end);
-	gi.multicast(self->s.origin, MULTICAST_PVS);
+	gi.multicast(self.s.origin, MULTICAST_PVS);
 
 	dir = start - end;
-	T_Damage(self->enemy, self, self, dir, self->enemy->s.origin, vec3_origin, damage, 0, DAMAGE_NO_KNOCKBACK, MOD_UNKNOWN);
+	T_Damage(self.enemy, self, self, dir, self.enemy.s.origin, vec3_origin, damage, 0, DAMAGE_NO_KNOCKBACK, MOD_UNKNOWN);
 }
 
 static mframe_t parasite_frames_drain [] = {
@@ -329,7 +328,7 @@ static var mmove_t parasite_move_drain = { FRAME_drain01, FRAME_drain18, parasit
 
 static void parasite_attack(entity self)
 {
-	self->monsterinfo.currentmove = &parasite_move_drain;
+	self.monsterinfo.currentmove = &parasite_move_drain;
 }
 
 
@@ -342,11 +341,11 @@ Death Stuff Starts
 
 static void parasite_dead(entity self)
 {
-	self->mins = '-16 -16 -24';
-	self->maxs = '16 16 -8';
-	self->movetype = MOVETYPE_TOSS;
-	self->svflags |= SVF_DEADMONSTER;
-	self->nextthink = 0;
+	self.mins = '-16 -16 -24';
+	self.maxs = '16 16 -8';
+	self.movetype = MOVETYPE_TOSS;
+	self.svflags |= SVF_DEADMONSTER;
+	self.nextthink = 0;
 	gi.linkentity(self);
 }
 
@@ -366,25 +365,25 @@ static void parasite_die(entity self, entity inflictor, entity attacker, int dam
 	int     n;
 
 // check for gib
-	if (self->health <= self->gib_health) {
+	if (self.health <= self.gib_health) {
 		gi.sound(self, CHAN_VOICE, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
 		for (n = 0; n < 2; n++)
 			ThrowGib(self, "models/objects/gibs/bone/tris.md2", damage, GIB_ORGANIC);
 		for (n = 0; n < 4; n++)
 			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
 		ThrowHead(self, "models/objects/gibs/head2/tris.md2", damage, GIB_ORGANIC);
-		self->deadflag = DEAD_DEAD;
+		self.deadflag = DEAD_DEAD;
 		return;
 	}
 
-	if (self->deadflag == DEAD_DEAD)
+	if (self.deadflag == DEAD_DEAD)
 		return;
 
 // regular death
 	gi.sound(self, CHAN_VOICE, sound_die, 1, ATTN_NORM, 0);
-	self->deadflag = DEAD_DEAD;
-	self->takedamage = DAMAGE_YES;
-	self->monsterinfo.currentmove = &parasite_move_death;
+	self.deadflag = DEAD_DEAD;
+	self.takedamage = DAMAGE_YES;
+	self.monsterinfo.currentmove = &parasite_move_death;
 }
 
 /*
@@ -393,11 +392,153 @@ End Death Stuff
 ===
 */
 
+#ifdef GROUND_ZERO
+
+//================
+//ROGUE
+static void parasite_jump_down (entity self)
+{
+	vector	forward,up;
+
+	monster_jump_start (self);
+
+	AngleVectors (self.s.angles, &forward, 0, &up);
+	self.velocity += 100 * forward;
+	self.velocity += 300 * up;
+}
+
+static void parasite_jump_up (entity self)
+{
+	vector	forward,up;
+
+	monster_jump_start (self);
+
+	AngleVectors (self.s.angles, &forward, 0, &up);
+	self.velocity += 200 * forward;
+	self.velocity += 450 * up;
+}
+
+static void parasite_jump_wait_land (entity self)
+{
+	if(self.groundentity == null_entity)
+	{
+		self.monsterinfo.nextframe = self.s.frame;
+
+		if(monster_jump_finished (self))
+			self.monsterinfo.nextframe = self.s.frame + 1;
+	}
+	else 
+		self.monsterinfo.nextframe = self.s.frame + 1;
+}
+
+static mframe_t parasite_frames_jump_up [] =
+{
+	{ ai_move, -8 },
+	{ ai_move, -8 },
+	{ ai_move, -8 },
+	{ ai_move, -8, parasite_jump_up },
+	{ ai_move },
+	{ ai_move },
+	{ ai_move, 0, parasite_jump_wait_land },
+	{ ai_move }
+};
+static var mmove_t parasite_move_jump_up = { FRAME_jump01, FRAME_jump08, parasite_run };
+
+static mframe_t parasite_frames_jump_down [] =
+{
+	{ ai_move },
+	{ ai_move },
+	{ ai_move },
+	{ ai_move, 0, parasite_jump_down },
+	{ ai_move },
+	{ ai_move },
+	{ ai_move, 0, parasite_jump_wait_land },
+	{ ai_move }
+};
+static var mmove_t parasite_move_jump_down = { FRAME_jump01, FRAME_jump08, parasite_run };
+
+static void parasite_jump (entity self)
+{
+	if(!self.enemy)
+		return;
+
+	if(self.enemy.s.origin[2] > self.s.origin[2])
+		self.monsterinfo.currentmove = &parasite_move_jump_up;
+	else
+		self.monsterinfo.currentmove = &parasite_move_jump_down;
+}
+
+/*
+===
+Blocked
+===
+*/
+static bool parasite_blocked (entity self, float dist)
+{
+	if(blocked_checkshot (self, 0.25 + (0.05 * skill.intVal)))
+		return true;
+
+	if(blocked_checkjump (self, dist, 256, 68))
+	{
+		parasite_jump (self);
+		return true;
+	}
+
+	if(blocked_checkplat (self, dist))
+		return true;
+
+	return false;	// Knightmare- warning fix
+}
+
+static bool parasite_checkattack (entity self)
+{
+	vector	f, r, offset, start, end;
+	trace_t	tr;
+	bool	retval;
+
+	retval = M_CheckAttack (self);
+
+	if (!retval)
+		return false;
+
+	AngleVectors (self.s.angles, &f, &r, 0);
+	offset = '24 0 6';
+	start = G_ProjectSource (self.s.origin, offset, f, r);
+
+	end = self.enemy.s.origin;
+	if (!parasite_drain_attack_ok(start, end))
+	{
+		end[2] = self.enemy.s.origin[2] + self.enemy.maxs[2] - 8;
+		if (!parasite_drain_attack_ok(start, end))
+		{
+			end[2] = self.enemy.s.origin[2] + self.enemy.mins[2] + 8;
+			if (!parasite_drain_attack_ok(start, end))
+				return false;
+		}
+	}
+	end = self.enemy.s.origin;
+
+	gi.trace (&tr, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+	if (tr.ent != self.enemy)
+	{
+		self.monsterinfo.aiflags |= AI_BLOCKED;
+		
+		if(self.monsterinfo.attack)
+			self.monsterinfo.attack(self);
+		
+		self.monsterinfo.aiflags &= ~AI_BLOCKED;
+		return true;
+	}
+
+	return true;	// Knightmare- warning fix
+}
+#endif
+
 /*QUAKED monster_parasite (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
 */
 API_FUNC static void SP_monster_parasite(entity self)
 {
-	if (deathmatch->intVal) {
+	if (deathmatch.intVal) {
 		G_FreeEdict(self);
 		return;
 	}
@@ -435,6 +576,11 @@ API_FUNC static void SP_monster_parasite(entity self)
 		parasite_move_drain.frame = &parasite_frames_drain;
 
 		parasite_move_death.frame = &parasite_frames_death;
+
+#ifdef GROUND_ZERO
+		parasite_move_jump_up.frame = &parasite_frames_jump_up;
+		parasite_move_jump_down.frame = &parasite_frames_jump_down;
+#endif
 	}
 
 	sound_pain1 = gi.soundindex("parasite/parpain1.wav");
@@ -449,30 +595,34 @@ API_FUNC static void SP_monster_parasite(entity self)
 	sound_scratch = gi.soundindex("parasite/paridle2.wav");
 	sound_search = gi.soundindex("parasite/parsrch1.wav");
 
-	self->s.modelindex = gi.modelindex("models/monsters/parasite/tris.md2");
-	self->mins = '-16 -16 -24';
-	self->maxs = '16 16 24';
-	self->movetype = MOVETYPE_STEP;
-	self->solid = SOLID_BBOX;
+	self.s.modelindex = gi.modelindex("models/monsters/parasite/tris.md2");
+	self.mins = '-16 -16 -24';
+	self.maxs = '16 16 24';
+	self.movetype = MOVETYPE_STEP;
+	self.solid = SOLID_BBOX;
 
-	self->health = 175;
-	self->gib_health = -50;
-	self->mass = 250;
+	self.health = 175;
+	self.gib_health = -50;
+	self.mass = 250;
 
-	self->pain = parasite_pain;
-	self->die = parasite_die;
+	self.pain = parasite_pain;
+	self.die = parasite_die;
 
-	self->monsterinfo.stand = parasite_stand;
-	self->monsterinfo.walk = parasite_start_walk;
-	self->monsterinfo.run = parasite_start_run;
-	self->monsterinfo.attack = parasite_attack;
-	self->monsterinfo.sight = parasite_sight;
-	self->monsterinfo.idle = parasite_idle;
+	self.monsterinfo.stand = parasite_stand;
+	self.monsterinfo.walk = parasite_start_walk;
+	self.monsterinfo.run = parasite_start_run;
+	self.monsterinfo.attack = parasite_attack;
+	self.monsterinfo.sight = parasite_sight;
+	self.monsterinfo.idle = parasite_idle;
+#ifdef GROUND_ZERO
+	self.monsterinfo.blocked = parasite_blocked;
+	self.monsterinfo.checkattack = parasite_checkattack;
+#endif
 
 	gi.linkentity(self);
 
-	self->monsterinfo.currentmove = &parasite_move_stand;
-	self->monsterinfo.scale = MODEL_SCALE;
+	self.monsterinfo.currentmove = &parasite_move_stand;
+	self.monsterinfo.scale = MODEL_SCALE;
 
 	walkmonster_start(self);
 }

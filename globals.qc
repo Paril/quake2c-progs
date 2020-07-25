@@ -35,9 +35,6 @@ cvar_t  sv_gravity;
 
 cvar_t  sv_rollspeed;
 cvar_t  sv_rollangle;
-cvar_t  gun_x;
-cvar_t  gun_y;
-cvar_t  gun_z;
 
 cvar_t  run_pitch;
 cvar_t  run_roll;

@@ -2,20 +2,23 @@ const vector vec3_origin = '0 0 0';
 
 enum : int { PITCH, YAW, ROLL };
 
-inline float VectorLengthSquared(vector v)
+/*inline*/ float VectorLengthSquared(vector v)
 {
 	return v * v;
 }
 
-inline float VectorLength(vector v)
+/*inline*/ float VectorLength(vector v)
 {
 	return sqrtf(VectorLengthSquared(v));
 }
 
-float VectorNormalize(__inout vector v)
+/*inline*/ float VectorNormalize(__inout vector v)
 {
 	float length = VectorLength(v);
-	v *= 1.f / length;
+	
+	if (length)
+		v *= 1.f / length;
+
 	return length;
 }
 
@@ -69,7 +72,6 @@ vector vectoangles(vector value1)
 	}
 	else
 	{
-	// PMM - fixed to correct for pitch of 0
 		if (value1[0])
 		{
 			yaw = RAD2DEG(atan2f(value1[1], value1[0]));
@@ -95,14 +97,14 @@ float(vector vec) vectoyaw =
 {
 	float   yaw;
 
-	if (vec_x == 0) {
+	if (vec.x == 0) {
 		yaw = 0;
-		if (vec_y > 0)
+		if (vec.y > 0)
 			yaw = 90f;
-		else if (vec_y < 0)
+		else if (vec.y < 0)
 			yaw = -90f;
 	} else {
-		yaw = RAD2DEG(atan2f(vec_y, vec_x));
+		yaw = RAD2DEG(atan2f(vec.y, vec.x));
 		if (yaw < 0)
 			yaw += 360f;
 	}
@@ -110,22 +112,15 @@ float(vector vec) vectoyaw =
 	return yaw;
 }
 
-inline vector(vector v1, vector v2) CrossProduct =
+/*inline*/ vector(vector v1, vector v2) CrossProduct =
 {
 	return [	v1[1] * v2[2] - v1[2] * v2[1],
 			v1[2] * v2[0] - v1[0] * v2[2],
 			v1[0] * v2[1] - v1[1] * v2[0] ];
 }
 
-float min(float a, float b)
-{
-	return (a < b) ? a : b;
-}
-
-float max(float a, float b)
-{
-	return (a > b) ? a : b;
-}
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+#define max(a, b) (((a) > (b)) ? (a) : (b))
 
 void AddPointToBounds(vector v, __inout vector mins, __inout vector maxs)
 {

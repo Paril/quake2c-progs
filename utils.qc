@@ -1,7 +1,6 @@
-void G_ProjectSource(vector point, vector distance, vector forward, vector right, __out vector result)
+/*inline*/ vector G_ProjectSource(vector point, vector distance, vector forward, vector right)
 {
-	result = point + (forward * distance_x) + (right * distance_y);
-	result_z += distance_z;
+	return point + (forward * distance.x) + (right * distance.y) + [ 0, 0, distance.z ];
 }
 
 /*
@@ -27,7 +26,7 @@ entity(entity from, .string fieldofs, string match) G_Find =
 
 	for (; etoi(from) < globals.num_edicts; from = next_ent(from))
 	{
-		if (!from->inuse)
+		if (!from.inuse)
 			continue;
 		str = from.fieldofs;
 		if (!str)
@@ -58,9 +57,9 @@ entity(entity from, vector org, float rad) findradius =
 		from = next_ent(from);
 
 	for (; etoi(from) < globals.num_edicts; from = next_ent(from)) {
-		if (!from->inuse)
+		if (!from.inuse)
 			continue;
-		if (from->solid == SOLID_NOT)
+		if (from.solid == SOLID_NOT)
 			continue;
 		eorg = org - (from.s.origin + (from.mins + from.maxs) * 0.5f);
 		if (VectorLength(eorg) > rad)
@@ -119,7 +118,7 @@ void G_FreeEdict(entity ent);
 
 static void(entity ent) Think_Delay
 {
-	G_UseTargets(ent, ent->activator);
+	G_UseTargets(ent, ent.activator);
 	G_FreeEdict(ent);
 }
 
@@ -149,18 +148,18 @@ void(entity ent, entity cactivator) G_UseTargets =
 //
 // check for a delay
 //
-	if (ent->delay) {
+	if (ent.delay) {
 		// create a temp object to fire at a later time
 		t = G_Spawn();
-		t->classname = "DelayedUse";
-		t->nextthink = level.framenum + (int)(ent->delay * BASE_FRAMERATE);
-		t->think = Think_Delay;
-		t->activator = cactivator;
+		t.classname = "DelayedUse";
+		t.nextthink = level.framenum + (int)(ent.delay * BASE_FRAMERATE);
+		t.think = Think_Delay;
+		t.activator = cactivator;
 		if (!cactivator)
 			gi.dprintf("Think_Delay with no activator\n");
-		t->message = ent->message;
-		t->target = ent->target;
-		t->killtarget = ent->killtarget;
+		t.message = ent.message;
+		t.target = ent.target;
+		t.killtarget = ent.killtarget;
 		return;
 	}
 
@@ -168,10 +167,10 @@ void(entity ent, entity cactivator) G_UseTargets =
 //
 // print the message
 //
-	if ((ent->message) && !(cactivator->svflags & SVF_MONSTER)) {
-		gi.centerprintf(cactivator, "%s", ent->message);
-		if (ent->noise_index)
-			gi.sound(cactivator, CHAN_AUTO, ent->noise_index, 1, ATTN_NORM, 0);
+	if ((ent.message) && !(cactivator.svflags & SVF_MONSTER)) {
+		gi.centerprintf(cactivator, "%s", ent.message);
+		if (ent.noise_index)
+			gi.sound(cactivator, CHAN_AUTO, ent.noise_index, 1, ATTN_NORM, 0);
 		else
 			gi.sound(cactivator, CHAN_AUTO, gi.soundindex("misc/talk1.wav"), 1, ATTN_NORM, 0);
 	}
@@ -179,11 +178,39 @@ void(entity ent, entity cactivator) G_UseTargets =
 //
 // kill killtargets
 //
-	if (ent->killtarget) {
+	if (ent.killtarget)
+	{
+#ifdef GROUND_ZERO
+		bool done = false;
+		entity master;
+#endif
+					
 		t = null_entity;
-		while ((t = G_Find(t, targetname, ent->killtarget)) != null_entity) {
+		while ((t = G_Find(t, targetname, ent.killtarget)) != null_entity)
+		{
+#ifdef GROUND_ZERO
+			// PMM - if this entity is part of a train, cleanly remove it
+			if (t.flags & FL_TEAMSLAVE)
+			{
+				if (t.teammaster)
+				{
+					master = t.teammaster;
+					while (!done)
+					{
+						if (master.teamchain == t)
+						{
+							master.teamchain = t.teamchain;
+							done = true;
+						}
+						master = master.teamchain;
+					}
+				}
+			}
+#endif
+			
+			
 			G_FreeEdict(t);
-			if (!ent->inuse) {
+			if (!ent.inuse) {
 				gi.dprintf("entity was removed while using killtargets\n");
 				return;
 			}
@@ -193,21 +220,21 @@ void(entity ent, entity cactivator) G_UseTargets =
 //
 // fire targets
 //
-	if (ent->target) {
+	if (ent.target) {
 		t = null_entity;
-		while ((t = G_Find(t, targetname, ent->target)) != null_entity) {
+		while ((t = G_Find(t, targetname, ent.target)) != null_entity) {
 			// doors fire area portals in a specific way
-			if (!stricmp(t->classname, "func_areaportal") &&
-				(!stricmp(ent->classname, "func_door") || !stricmp(ent->classname, "func_door_rotating")))
+			if (!stricmp(t.classname, "func_areaportal") &&
+				(!stricmp(ent.classname, "func_door") || !stricmp(ent.classname, "func_door_rotating")))
 				continue;
 
 			if (t == ent) {
 				gi.dprintf("WARNING: Entity used itself.\n");
 			} else {
-				if (t->use)
-					t->use(t, ent, cactivator);
+				if (t.use)
+					t.use(t, ent, cactivator);
 			}
-			if (!ent->inuse) {
+			if (!ent.inuse) {
 				gi.dprintf("entity was removed while using targets\n");
 				return;
 			}
@@ -247,6 +274,10 @@ void(entity e) G_InitEdict =
 	e.classname = "noclass";
 	e.gravity = 1.0f;
 	e.groundentity = null_entity;
+	
+#ifdef GROUND_ZERO
+	e.gravityVector = '0 0 -1';
+#endif
 };
 
 /*
@@ -320,21 +351,21 @@ void(entity ent) G_TouchTriggers =
 	entity	hit;
 
 	// dead things don't activate triggers!
-	if ((ent->is_client || (ent->svflags & SVF_MONSTER)) && (ent->health <= 0))
+	if ((ent.is_client || (ent.svflags & SVF_MONSTER)) && (ent.health <= 0))
 		return;
 
-	entity_list_t touches = gi.BoxEdicts(ent->absmin, ent->absmax, MAX_EDICTS, AREA_TRIGGERS);
+	entity_list_t touches = gi.BoxEdicts(ent.absmin, ent.absmax, MAX_EDICTS, AREA_TRIGGERS);
 	int num = touches.length;
 
 	// be careful, it is possible to have an entity in this
 	// list removed before we get to it (killtriggered)
 	for (i = 0 ; i < num ; i++) {
 		hit = touches[i];
-		if (!hit->inuse)
+		if (!hit.inuse)
 			continue;
-		if (!hit->touch)
+		if (!hit.touch)
 			continue;
-		hit->touch(hit, ent, null_plane, null_surface);
+		hit.touch(hit, ent, null_plane, null_surface);
 	}
 	
 	entity_list_free(touches);
@@ -363,16 +394,16 @@ bool(entity ent) KillBox =
 	trace_t     tr;
 
 	while (1) {
-		gi.trace(&tr, ent->s.origin, ent->mins, ent->maxs, ent->s.origin, world, MASK_PLAYERSOLID);
+		gi.trace(&tr, ent.s.origin, ent.mins, ent.maxs, ent.s.origin, world, MASK_PLAYERSOLID);
 
 		if (!tr.ent)
 			break;
 
 		// nail it
-		T_Damage(tr.ent, ent, ent, vec3_origin, ent->s.origin, vec3_origin, 100000, 0, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
+		T_Damage(tr.ent, ent, ent, vec3_origin, ent.s.origin, vec3_origin, 100000, 0, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
 
 		// if we didn't kill it, fail
-		if (tr.ent->solid)
+		if (tr.ent.solid)
 			return false;
 	}
 
