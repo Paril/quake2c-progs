@@ -837,7 +837,10 @@ static void(entity self) soldier_duck_up =
 
 static void(entity self) soldier_fire3 =
 {
-	soldier_duck_down(self);
+#ifdef GROUND_ZERO
+	if (!(self.monsterinfo.aiflags & AI_DUCKED))
+#endif
+		soldier_duck_down(self);
 	soldier_fire(self, 2);
 }
 
@@ -992,7 +995,8 @@ static void(entity self) soldier_attack =
 	if ((!(self.monsterinfo.aiflags & (AI_BLOCKED|AI_STAND_GROUND))) &&
 		(range(self, self.enemy) >= RANGE_NEAR) && 
 		(r < (skill.intVal*0.25) && 
-		(self.s.skinnum <= 3)))
+		(self.s.skinnum <= 3)) &&
+		(visible(self, self.enemy)))
 	{
 		self.monsterinfo.currentmove = &soldier_move_attack6;
 		return;
@@ -1024,7 +1028,7 @@ static void(entity self, entity other) soldier_sight =
 	else
 		gi.sound(self, CHAN_VOICE, sound_sight2, 1, ATTN_NORM, 0);
 
-	if ((skill.intVal > 0) && self.enemy && (range(self, self.enemy) >= RANGE_MID)) {
+	if ((skill.intVal > 0) && self.enemy && (range(self, self.enemy) >= RANGE_MID) && visible(self, self.enemy)) {
 		if (random() > 0.5f)
 #if defined(THE_RECKONING) || defined(GROUND_ZERO)
 		{
