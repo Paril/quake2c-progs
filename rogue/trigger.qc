@@ -31,7 +31,6 @@ start_on: when trigger has targetname, start active, deactivate when used.
 static void(entity self, entity other, cplane_t plane, csurface_t surf) trigger_teleport_touch =
 {
 	entity	dest;
-	int	i;
 
 	if(/*(self.spawnflags & TELEPORT_PLAYER_ONLY) &&*/ !(other.is_client))
 		return;
@@ -66,12 +65,10 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) trigger_
 		other.client.ps.pmove.pm_flags |= PMF_TIME_TELEPORT;
 
 		// draw the teleport splash at source and on the player
-//		self.s.event = EV_PLAYER_TELEPORT;
 		other.s.event = EV_PLAYER_TELEPORT;
 
 		// set angles
-		for (i=0 ; i<3 ; i++)
-			other.client.ps.pmove.delta_angles[i] = ANGLE2SHORT(dest.s.angles[i] - other.client.resp.cmd_angles[i]);
+		other.client.ps.pmove.delta_angles = dest.s.angles - other.client.resp.cmd_angles;
 
 		other.client.ps.viewangles = vec3_origin;
 		other.client.v_angle = vec3_origin;

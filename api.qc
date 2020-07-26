@@ -662,7 +662,7 @@ struct usercmd_t
 {
 	int		msec;
 	button_bits_t	buttons;
-	int		angles[3];
+	vector		angles;
 	int		forwardmove, sidemove, upmove;
 	int		impulse;        // remove?
 	int		lightlevel;     // light level the player is standing on
@@ -697,12 +697,12 @@ typedef enumflags int
 struct pmove_state_t
 {
 	pmtype_t	pm_type;
-	int		origin[3];
-	int		velocity[3];
+	vector		origin;
+	vector		velocity;
 	int		pm_flags;
 	int		pm_time;
 	int		gravity;
-	int		delta_angles[3];
+	vector		delta_angles;
 };
 
 struct pmove_t

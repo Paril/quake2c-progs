@@ -69,9 +69,7 @@ void(entity ent) UpdateChaseCam =
 		ent.client.ps.pmove.pm_type = PM_FREEZE;
 
 	ent.s.origin = goal;
-	ent.client.ps.pmove.delta_angles[0] = ANGLE2SHORT(targ.client.v_angle[0] - ent.client.resp.cmd_angles[0]);
-	ent.client.ps.pmove.delta_angles[1] = ANGLE2SHORT(targ.client.v_angle[1] - ent.client.resp.cmd_angles[1]);
-	ent.client.ps.pmove.delta_angles[2] = ANGLE2SHORT(targ.client.v_angle[2] - ent.client.resp.cmd_angles[2]);
+	ent.client.ps.pmove.delta_angles = targ.client.v_angle - ent.client.resp.cmd_angles;
 
 	if (targ.deadflag) {
 		ent.client.ps.viewangles[ROLL] = 40f;

@@ -942,12 +942,8 @@ void(entity ent) ClientEndServerFrame =
 	// If it wasn't updated here, the view position would lag a frame
 	// behind the body position when pushed -- "sinking into plats"
 	//
-	ent.client.ps.pmove.origin[0] = COORD2SHORT(ent.s.origin[0]);
-	ent.client.ps.pmove.velocity[0] = COORD2SHORT(ent.velocity[0]);
-	ent.client.ps.pmove.origin[1] = COORD2SHORT(ent.s.origin[1]);
-	ent.client.ps.pmove.velocity[1] = COORD2SHORT(ent.velocity[1]);
-	ent.client.ps.pmove.origin[2] = COORD2SHORT(ent.s.origin[2]);
-	ent.client.ps.pmove.velocity[2] = COORD2SHORT(ent.velocity[2]);
+	ent.client.ps.pmove.origin = ent.s.origin;
+	ent.client.ps.pmove.velocity = ent.velocity;
 
 	//
 	// If the end of unit layout is displayed, don't give

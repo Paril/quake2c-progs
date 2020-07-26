@@ -737,6 +737,6 @@ struct gclient_t
 {
 	vector	origin, angles;
 #if USE_SMOOTH_DELTA_ANGLES
-	int	deltayaw;
+	float	deltayaw;
 #endif
 } pushed;

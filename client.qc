@@ -1341,14 +1341,10 @@ static void(entity ent) PutClientInServer =
 	// clear playerstate values
 	memclear(&ent.client.ps, sizeof(ent.client.ps));
 
-	ent.client.ps.pmove.origin[0] = COORD2SHORT(spawn_origin[0]);
-	ent.client.ps.pmove.origin[1] = COORD2SHORT(spawn_origin[1]);
-	ent.client.ps.pmove.origin[2] = COORD2SHORT(spawn_origin[2]);
+	ent.client.ps.pmove.origin = spawn_origin;
 
 	if (deathmatch.intVal && (dmflags.intVal & DF_FIXED_FOV))
-	{
 		ent.client.ps.fov = 90.f;
-	}
 	else
 	{
 		ent.client.ps.fov = stof(Info_ValueForKey(ent.client.pers.userinfo, "fov"));
@@ -1377,9 +1373,7 @@ static void(entity ent) PutClientInServer =
 	ent.s.old_origin = ent.s.origin;
 
 	// set the delta angle
-	ent.client.ps.pmove.delta_angles[0] = ANGLE2SHORT(spawn_angles[0] - ent.client.resp.cmd_angles[0]);
-	ent.client.ps.pmove.delta_angles[1] = ANGLE2SHORT(spawn_angles[1] - ent.client.resp.cmd_angles[1]);
-	ent.client.ps.pmove.delta_angles[2] = ANGLE2SHORT(spawn_angles[2] - ent.client.resp.cmd_angles[2]);
+	ent.client.ps.pmove.delta_angles = spawn_angles - ent.client.resp.cmd_angles;
 
 	ent.s.angles[PITCH] = 0;
 	ent.s.angles[YAW] = spawn_angles[YAW];
@@ -1474,16 +1468,12 @@ void(entity ent) ClientBegin =
 
 	// if there is already a body waiting for us (a loadgame), just
 	// take it, otherwise spawn one from scratch
-	if (ent.inuse == true)
-	{
+	if (ent.inuse)
 		// the client has cleared the client side viewangles upon
 		// connecting to the server, which is different than the
 		// state when the game is saved, so we need to compensate
 		// with deltaangles
-		ent.client.ps.pmove.delta_angles[0] = ANGLE2SHORT(ent.client.ps.viewangles[0]);
-		ent.client.ps.pmove.delta_angles[1] = ANGLE2SHORT(ent.client.ps.viewangles[1]);
-		ent.client.ps.pmove.delta_angles[2] = ANGLE2SHORT(ent.client.ps.viewangles[2]);
-	}
+		ent.client.ps.pmove.delta_angles = ent.client.ps.viewangles;
 	else
 	{
 		// a spawn point will completely reinitialize the entity
@@ -1496,21 +1486,16 @@ void(entity ent) ClientBegin =
 	}
 
 	if (level.intermission_framenum)
-	{
 		MoveClientToIntermission(ent);
-	}
-	else
+	else if (game.maxclients > 1)
 	{
 		// send effect if in a multiplayer game
-		if (game.maxclients > 1)
-		{
-			gi.WriteByte(svc_muzzleflash);
-			gi.WriteShort(ent.s.number);
-			gi.WriteByte(MZ_LOGIN);
-			gi.multicast(ent.s.origin, MULTICAST_PVS);
+		gi.WriteByte(svc_muzzleflash);
+		gi.WriteShort(ent.s.number);
+		gi.WriteByte(MZ_LOGIN);
+		gi.multicast(ent.s.origin, MULTICAST_PVS);
 
-			gi.bprintf(PRINT_HIGH, "%s entered the game\n", ent.client.pers.netname);
-		}
+		gi.bprintf(PRINT_HIGH, "%s entered the game\n", ent.client.pers.netname);
 	}
 
 	// make sure all view stuff is valid
@@ -1747,11 +1732,7 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 	pm_passent = ent;
 
 	if (ent.client.chase_target) {
-
-		ent.client.resp.cmd_angles[0] = SHORT2ANGLE(ucmd.angles[0]);
-		ent.client.resp.cmd_angles[1] = SHORT2ANGLE(ucmd.angles[1]);
-		ent.client.resp.cmd_angles[2] = SHORT2ANGLE(ucmd.angles[2]);
-
+		ent.client.resp.cmd_angles = ucmd.angles;
 	} else {
 
 		// set up for pmove
@@ -1771,17 +1752,10 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 #endif
 		memcpy(&pm.s, &ent.client.ps.pmove, sizeof(pm.s));
 
-		pm.s.origin[0] = COORD2SHORT(ent.s.origin[0]);
-		pm.s.velocity[0] = COORD2SHORT(ent.velocity[0]);
-		pm.s.origin[1] = COORD2SHORT(ent.s.origin[1]);
-		pm.s.velocity[1] = COORD2SHORT(ent.velocity[1]);
-		pm.s.origin[2] = COORD2SHORT(ent.s.origin[2]);
-		pm.s.velocity[2] = COORD2SHORT(ent.velocity[2]);
+		pm.s.origin = ent.s.origin;
+		pm.s.velocity = ent.velocity;
 
-		if (memcmp(&ent.client.old_pmove, &pm.s, sizeof(pm.s))) {
-			pm.snapinitial = true;
-			//      gi.dprintf ("pmove changed!\n");
-		}
+		pm.snapinitial = !!memcmp(&ent.client.old_pmove, &pm.s, sizeof(pm.s));
 
 		pm.cmd = ucmd;
 
@@ -1795,19 +1769,13 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 		memcpy(&ent.client.ps.pmove, &pm.s, sizeof(pm.s));
 		memcpy(&ent.client.old_pmove, &ent.client.ps.pmove, sizeof(ent.client.old_pmove));
 
-		ent.s.origin[0] = SHORT2COORD(pm.s.origin[0]);
-		ent.velocity[0] = SHORT2COORD(pm.s.velocity[0]);
-		ent.s.origin[1] = SHORT2COORD(pm.s.origin[1]);
-		ent.velocity[1] = SHORT2COORD(pm.s.velocity[1]);
-		ent.s.origin[2] = SHORT2COORD(pm.s.origin[2]);
-		ent.velocity[2] = SHORT2COORD(pm.s.velocity[2]);
+		ent.s.origin = pm.s.origin;
+		ent.velocity = pm.s.velocity;
 
 		ent.mins = pm.mins;
 		ent.maxs = pm.maxs;
 
-		ent.client.resp.cmd_angles[0] = SHORT2ANGLE(ucmd.angles[0]);
-		ent.client.resp.cmd_angles[1] = SHORT2ANGLE(ucmd.angles[1]);
-		ent.client.resp.cmd_angles[2] = SHORT2ANGLE(ucmd.angles[2]);
+		ent.client.resp.cmd_angles = ucmd.angles;
 
 		if (ent.groundentity != null_entity && pm.groundentity == null_entity && (pm.cmd.upmove >= 10) && (pm.waterlevel == 0)) {
 			gi.sound(ent, CHAN_VOICE, gi.soundindex("*jump1.wav"), 1, ATTN_NORM, 0);

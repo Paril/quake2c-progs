@@ -43,26 +43,6 @@ vector() crandomv = #0:crandomv;
 }
 #endif
 
-/*inline*/ int(float x) ANGLE2SHORT =
-{
-	return (int)(x * (65536f / 360f)) & 65535;
-}
-
-/*inline*/ float(int x) SHORT2ANGLE =
-{
-	return x * (360.0f / 65536);
-}
-
-/*inline*/ int(float x) COORD2SHORT =
-{
-	return (int)(x * 8.0f);
-}
-
-/*inline*/ float(int x) SHORT2COORD = 
-{
-	return x * (1.0f / 8);
-}
-
 /*inline*/ float(float a) DEG2RAD =
 {
 	return a * (M_PI / 180);

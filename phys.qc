@@ -474,7 +474,7 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 			if (check.is_client) {
 				// FIXME: doesn't rotate monsters?
 				// FIXME: skuller: needs client side interpolation
-				check.client.ps.pmove.delta_angles[YAW] += ANGLE2SHORT(amove[YAW]);
+				check.client.ps.pmove.delta_angles[YAW] += amove[YAW];
 			}
 #endif
 

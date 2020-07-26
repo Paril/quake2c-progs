@@ -14,9 +14,7 @@ void(entity ent) MoveClientToIntermission =
 	if (deathmatch.intVal || coop.intVal)
 		ent.client.showscores = true;
 	ent.s.origin = level.intermission_origin;
-	ent.client.ps.pmove.origin[0] = COORD2SHORT(level.intermission_origin[0]);
-	ent.client.ps.pmove.origin[1] = COORD2SHORT(level.intermission_origin[1]);
-	ent.client.ps.pmove.origin[2] = COORD2SHORT(level.intermission_origin[2]);
+	ent.client.ps.pmove.origin = level.intermission_origin;
 	ent.client.ps.viewangles = level.intermission_angle;
 	ent.client.ps.pmove.pm_type = PM_FREEZE;
 	ent.client.ps.gunindex = 0;

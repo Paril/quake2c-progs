@@ -1698,9 +1698,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) teleport
 	other.s.event = EV_PLAYER_TELEPORT;
 
 	// set angles
-	other.client.ps.pmove.delta_angles[0] = ANGLE2SHORT(dest.s.angles[0] - other.client.resp.cmd_angles[0]);
-	other.client.ps.pmove.delta_angles[1] = ANGLE2SHORT(dest.s.angles[1] - other.client.resp.cmd_angles[1]);
-	other.client.ps.pmove.delta_angles[2] = ANGLE2SHORT(dest.s.angles[2] - other.client.resp.cmd_angles[2]);
+	other.client.ps.pmove.delta_angles = dest.s.angles - other.client.resp.cmd_angles;
 
 	other.s.angles = vec3_origin;
 	other.client.ps.viewangles = vec3_origin;
