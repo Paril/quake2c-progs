@@ -362,7 +362,7 @@ static void(entity self) gekk_swim_loop =
 
 static void(entity self) gekk_hit_left =
 {
-	static const vector aim = [ MELEE_DISTANCE, self.mins[0], 8 ];
+	vector aim = [ MELEE_DISTANCE, self.mins[0], 8 ];
 
 	if (fire_hit (self, aim, (15 + (Q_rand() %5)), 100))
 		gi.sound (self, CHAN_WEAPON, sound_hit, 1, ATTN_NORM, 0);
@@ -372,7 +372,7 @@ static void(entity self) gekk_hit_left =
 
 static void(entity self) gekk_hit_right =
 {
-	static const vector aim = [ MELEE_DISTANCE, self.maxs[0], 8 ];
+	vector aim = [ MELEE_DISTANCE, self.maxs[0], 8 ];
 
 	if (fire_hit (self, aim, (15 + (Q_rand() %5)), 100))
 		gi.sound (self, CHAN_WEAPON, sound_hit2, 1, ATTN_NORM, 0);
@@ -1352,7 +1352,11 @@ static mframe_t gekk_frames_rduck[] =
 };
 static var mmove_t gekk_move_rduck = { FRAME_rduck_01, FRAME_rduck_13, gekk_run_start };
 
+#ifdef GROUND_ZERO
+static void(entity self, entity attacker, float eta, trace_t *tr) gekk_dodge =
+#else
 static void(entity self, entity attacker, float eta) gekk_dodge =
+#endif
 {
 	float	r;
 
@@ -1379,7 +1383,7 @@ static void(entity self, entity attacker, float eta) gekk_dodge =
 		return;
 	}
 
-	self.monsterinfo.pause_framenum = level.framenum + (int)(eta + 0.3 * BASE_FRAMERATE);
+	self.monsterinfo.pause_framenum = level.framenum + (int)((eta + 0.3) * BASE_FRAMERATE);
 	r = random();
 
 	if (skill.intVal == 1)

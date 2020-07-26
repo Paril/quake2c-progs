@@ -32,8 +32,8 @@ static const float sweep_angles[] = {
 	32.0, 26.0, 20.0, 10.0, 0.0, -6.5, -13.0, -27.0, -41.0
 };
 
-static const vector stalker_mins = '-28 -28 -18';
-static const vector stalker_maxs = '28 28 18';
+const vector stalker_mins = '-28 -28 -18';
+const vector stalker_maxs = '28 28 18';
 
 static int	widow_damage_multiplier;
 
@@ -583,12 +583,12 @@ static mframe_t widow_frames_attack_rail_l [] =
 	{ ai_charge, 0, widow_rail_done }
 };
 
-static void widow_start_spawn (entity self)
+void widow_start_spawn (entity self)
 {
 	self.monsterinfo.aiflags |= AI_MANUAL_STEERING;
 }
 
-static void widow_done_spawn (entity self)
+void widow_done_spawn (entity self)
 {
 	self.monsterinfo.aiflags &= ~AI_MANUAL_STEERING;
 }
@@ -776,7 +776,7 @@ static void widow_walk (entity self)
 	self.monsterinfo.currentmove = &widow_move_walk;
 }
 
-static void WidowCalcSlots (entity self)
+void WidowCalcSlots (entity self)
 {
 	int old_slots;
 
@@ -1047,7 +1047,7 @@ static void WidowRespondPowerup (entity self, entity other)
 	}
 }
 
-static void WidowPowerups (entity self)
+void WidowPowerups (entity self)
 {
 	int player;
 	entity ent;

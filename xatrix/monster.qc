@@ -39,7 +39,7 @@ void(entity self) dabeam_hit =
 	entity	ignore;
 	vector	start;
 	vector	end;
-	trace_t	tr;
+	trace_t	tr = { 0 };
 	int	count;
 	static const vector lmins = '-4 -4 -4';
 	static const vector lmaxs = '4 4 4';

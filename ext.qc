@@ -18,7 +18,7 @@ __variant(string) func_get = #0:func_get;
 
 // define for mission pack support
 #define GROUND_ZERO
-//#define THE_RECKONING
+#define THE_RECKONING
 
 // temp
 #ifdef GROUND_ZERO

@@ -502,7 +502,7 @@ void ThrowWidowGibSized (entity self, string gibname, int damage, int type, vect
 	ThrowWidowGibReal (self, gibname, damage, type, startpos, true, hitsound, fade);
 }
 
-static void ThrowSmallStuff (entity self, vector point)
+void ThrowSmallStuff (entity self, vector point)
 {
 	int n;
 
@@ -513,7 +513,7 @@ static void ThrowSmallStuff (entity self, vector point)
 
 }
 
-static void ThrowMoreStuff (entity self, vector point)
+void ThrowMoreStuff (entity self, vector point)
 {
 	int n;
 
@@ -665,116 +665,6 @@ void ThrowArm2 (entity self)
 		gi.soundindex ("misc/fhit3.wav"), false);
 	ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
 }
-
-/*void WidowExplode (entity self)
-{
-	vector	org;
-	int	n;
-
-	self.think = WidowExplode;
-
-	org = self.s.origin;
-	org[2] += 24 + (Q_rand()&15);
-	if (self.count < 8)
-		org[2] += 24 + (Q_rand()&31);
-	switch (self.count)
-	{
-	case 0:
-		org[0] -= 24;
-		org[1] -= 24;
-		break;
-	case 1:
-		org[0] += 24;
-		org[1] += 24;
-		ThrowSmallStuff(self, org);
-		break;
-	case 2:
-		org[0] += 24;
-		org[1] -= 24;
-		break;
-	case 3:
-		org[0] -= 24;
-		org[1] += 24;
-		ThrowMoreStuff(self, org);
-		break;
-	case 4:
-		org[0] -= 48;
-		org[1] -= 48;
-		break;
-	case 5:
-		org[0] += 48;
-		org[1] += 48;
-		ThrowArm1 (self);
-		break;
-	case 6:
-		org[0] -= 48;
-		org[1] += 48;
-		ThrowArm2 (self);
-		break;
-	case 7:
-		org[0] += 48;
-		org[1] -= 48;
-		ThrowSmallStuff(self, org);
-		break;
-	case 8:
-		org[0] += 18;
-		org[1] += 18;
-		org[2] = self.s.origin[2] + 48;
-		ThrowMoreStuff(self, org);
-		break;
-	case 9:
-		org[0] -= 18;
-		org[1] += 18;
-		org[2] = self.s.origin[2] + 48;
-		break;
-	case 10:
-		org[0] += 18;
-		org[1] -= 18;
-		org[2] = self.s.origin[2] + 48;
-		break;
-	case 11:
-		org[0] -= 18;
-		org[1] -= 18;
-		org[2] = self.s.origin[2] + 48;
-		break;
-	case 12:
-		self.s.sound = 0;
-		for (n= 0; n < 1; n++)
-			ThrowWidowGib (self, "models/objects/gibs/sm_meat/tris.md2", 400, GIB_ORGANIC);
-		for (n= 0; n < 2; n++)
-			ThrowWidowGib (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC);
-		for (n= 0; n < 2; n++)
-			ThrowWidowGib (self, "models/objects/gibs/sm_metal/tris.md2", 400, GIB_METALLIC);
-
-		self.deadflag = DEAD_DEAD;
-		self.think = monster_think;
-		self.nextthink = level.framenum + 1;
-		self.monsterinfo.currentmove = &widow2_move_dead;
-		return;
-	}
-
-	self.count++;
-	if (self.count >=9 && self.count <=12)
-	{
-		gi.WriteByte (svc_temp_entity);
-		gi.WriteByte (TE_EXPLOSION1_BIG);
-		gi.WritePosition (org);
-		gi.multicast (self.s.origin, MULTICAST_ALL);
-	} 
-	else
-	{
-		// else
-		gi.WriteByte (svc_temp_entity);
-		if (self.count %2)
-			gi.WriteByte (TE_EXPLOSION1);
-		else
-			gi.WriteByte (TE_EXPLOSION1_NP);
-		gi.WritePosition (org);
-		gi.multicast (self.s.origin, MULTICAST_ALL);
-	}
-
-	self.nextthink = level.framenum + 1;
-}*/
 
 void WidowExplosion1 (entity self)
 {
