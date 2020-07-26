@@ -1191,6 +1191,7 @@ void(entity self, entity attacker, float eta, trace_t *tr) M_MonsterDodge =
 void(entity self) monster_duck_down =
 {
 	self.monsterinfo.aiflags |= AI_DUCKED;
+	self.monsterinfo.aiflags &= ~AI_HOLD_FRAME;
 
 	self.maxs[2] = self.monsterinfo.base_height - 32;
 	self.takedamage = DAMAGE_YES;
