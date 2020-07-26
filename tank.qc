@@ -973,3 +973,8 @@ API_FUNC static void SP_monster_tank(entity self)
 	if (self.classname == "monster_tank_commander")
 		self.s.skinnum = 2;
 }
+
+API_FUNC static void SP_monster_tank_commander(entity self)
+{
+	SP_monster_tank(self);
+}

@@ -160,7 +160,7 @@ static void(entity ent) object_repair_sparks =
 	
 }
 
-API_FUNC static void(entity ent) SP_object_repair =
+API_FUNC static void(entity ent) SP_func_object_repair =
 {
 	ent.movetype = MOVETYPE_NONE;
 	ent.solid = SOLID_BBOX;

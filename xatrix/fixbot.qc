@@ -51,7 +51,7 @@ static int(entity self) fixbot_search =
 	if (!self.goalentity)
 	{
 		ent = fixbot_FindDeadMonster(self);
-		if (ent)
+		if (ent != null_entity)
 		{
 			self.oldenemy = self.enemy;
 			self.enemy = ent;
@@ -64,12 +64,225 @@ static int(entity self) fixbot_search =
 	return 0;
 }
 
+static var mmove_t fixbot_move_weld = { FRAME_weldmiddle_01, FRAME_weldmiddle_07 };
+static var mmove_t fixbot_move_weld_end = { FRAME_weldend_01, FRAME_weldend_07 };
+static var mmove_t fixbot_move_stand = { FRAME_ambient_01, FRAME_ambient_19 };
+
+static void(entity self) weldstate =
+{
+	if (self.s.frame == FRAME_weldstart_10)
+		self.monsterinfo.currentmove = &fixbot_move_weld;
+	else if (self.s.frame == FRAME_weldmiddle_07)
+	{
+		if (self.goalentity.health < 0) 
+		{
+			self.enemy.owner = 0;
+			self.monsterinfo.currentmove = &fixbot_move_weld_end;
+		}
+		else
+			self.goalentity.health -= 10;
+	}
+	else
+	{
+		self.goalentity = self.enemy = 0;
+		self.monsterinfo.currentmove = &fixbot_move_stand;
+	}
+}
+
+static void(entity self, float dist) ai_move2 =
+{
+	vector	v;
+	
+	if (dist)
+		M_walkmove (self, self.s.angles[YAW], dist);
+
+	v = self.goalentity.s.origin - self.s.origin;
+	self.ideal_yaw = vectoyaw(v);	
+	M_ChangeYaw (self);
+};
+
+static mframe_t fixbot_frames_weld_start [] = 
+{
+	{ ai_move2 },
+	{ ai_move2 },
+	{ ai_move2 },
+	{ ai_move2 },
+	{ ai_move2 },
+	{ ai_move2 },
+	{ ai_move2 },
+	{ ai_move2 },
+	{ ai_move2 },
+	{ ai_move2, 0, weldstate }
+};
+static var mmove_t fixbot_move_weld_start = { FRAME_weldstart_01, FRAME_weldstart_10 };
+
+static void(entity self) use_scanner =
+{
+	entity	ent = null_entity;
+	float   radius = 1024;
+	vector	vec;
+	float	len;
+	float	oldlen = 0x10000;
+	entity	tempent = null_entity; 
+
+	while ((ent = findradius(ent, self.s.origin, radius)) != null_entity)
+	{
+		if (ent.health >= 100)
+		{
+			if (ent.classname == "object_repair")
+			{
+				if (visible(self, ent))
+				{	
+					// remove the old one
+					if (self.goalentity.classname == "bot_goal")
+					{
+						self.goalentity.nextthink = level.framenum + 1;
+						self.goalentity.think = G_FreeEdict;
+					}	
+					
+					self.goalentity = self.enemy = ent;
+					
+					vec = self.s.origin - self.goalentity.s.origin;
+					len = VectorNormalize (vec);
+
+					if (len < 32)
+					{
+						self.monsterinfo.currentmove = &fixbot_move_weld_start;
+						return;
+					}
+					return;
+				}
+			}
+		}
+	}
+
+	vec = self.s.origin - self.goalentity.s.origin;
+	len = VectorLength (vec);
+
+	if (len < 32)
+	{
+		if (self.goalentity.classname == "object_repair")
+			self.monsterinfo.currentmove = &fixbot_move_weld_start;
+		else 
+		{
+			self.goalentity.nextthink = level.framenum + 1;
+			self.goalentity.think = G_FreeEdict;
+			self.goalentity = self.enemy = 0;
+			self.monsterinfo.currentmove = &fixbot_move_stand;
+		}
+		return;
+	}
+
+	vec = self.s.origin - self.s.old_origin;
+	len = VectorLength (vec);
+
+	/* 
+	  bot is stuck get new goalentity
+	*/
+	if (len == 0)
+	{
+		if (self.goalentity.classname == "object_repair")
+		{
+			self.monsterinfo.currentmove = &fixbot_move_stand;
+		}
+		else 
+		{
+			self.goalentity.nextthink = level.framenum + 1;
+			self.goalentity.think = G_FreeEdict;
+			self.goalentity = self.enemy = 0;
+			self.monsterinfo.currentmove = &fixbot_move_stand;
+		}
+	}
+}
+
+static void(entity self, float dist) ai_movetogoal =
+{
+	M_MoveToGoal (self, dist);
+}
+
+static mframe_t fixbot_frames_forward [] =
+{
+	{ ai_movetogoal,	5,	use_scanner }
+};
+static var mmove_t fixbot_move_forward = { FRAME_freeze_01, FRAME_freeze_01 };
+
+static void(entity self, float dist) ai_facing =
+{
+	vector	v;
+
+	if (infront (self, self.goalentity))
+		self.monsterinfo.currentmove = &fixbot_move_forward;
+	else
+	{
+		v = self.goalentity.s.origin - self.s.origin;
+		self.ideal_yaw = vectoyaw(v);	
+		M_ChangeYaw (self);
+	}
+}
+
+static mframe_t fixbot_frames_turn [] =
+{
+	{ ai_facing }
+};
+static var mmove_t fixbot_move_turn = { FRAME_freeze_01, FRAME_freeze_01 };
+
+static void(entity self) roam_goal =
+{
+	trace_t		tr;
+	vector	forward, right, up;
+	vector	end;
+	entity	ent;
+	vector	dang;
+	float	len, oldlen;
+	int	whichi, i;
+	vector	vec;
+	vector	whichvec = vec3_origin;
+		
+	ent = G_Spawn ();	
+	ent.classname = "bot_goal";
+	ent.solid = SOLID_BBOX;
+	ent.owner = self;
+	gi.linkentity (ent);
+
+	oldlen = 0;
+	whichi = 0;
+	for (i=0; i<12; i++) 
+	{
+		
+		dang = self.s.angles;
+
+		if (i < 6)
+			dang[YAW] += 30 * i;
+		else 
+			dang[YAW] -= 30 * (i-6);
+
+		AngleVectors (dang, &forward, &right, &up);
+		end = self.s.origin + (forward * 8192);
+		gi.trace (&tr, self.s.origin, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+
+		vec = self.s.origin - tr.endpos;
+		len = VectorNormalize (vec);
+		
+		if (len > oldlen)
+		{
+			oldlen = len;
+			whichvec = tr.endpos;
+		}
+		
+	}
+	
+	ent.s.origin = whichvec;
+	self.goalentity = self.enemy = ent;
+	
+	self.monsterinfo.currentmove = &fixbot_move_turn;
+}
+
 /*
 	generic frame to move bot
 */
 static mframe_t fixbot_frames_roamgoal [] =
 {
-	{ ai_move }
+	{ ai_move, 0, roam_goal }
 };
 static var mmove_t fixbot_move_roamgoal = { FRAME_freeze_01, FRAME_freeze_01 };
 
@@ -158,9 +371,7 @@ static mframe_t fixbot_frames_stand [] =
 	{ ai_move },
 	{ ai_move },
 	{ ai_move, 0, change_to_roam }
-	
 };
-static var mmove_t fixbot_move_stand = { FRAME_ambient_01, FRAME_ambient_19 };
 
 static void(entity self) fly_vertical2 =
 {
@@ -510,62 +721,6 @@ static void(entity self) takeoff_goal =
 	self.monsterinfo.currentmove = &fixbot_move_takeoff;
 }
 
-static void(entity self, float dist) ai_movetogoal =
-{
-	M_MoveToGoal (self, dist);
-}
-
-static var mmove_t fixbot_move_weld_end;
-static var mmove_t fixbot_move_weld;
-
-static void(entity self) weldstate =
-{
-	if (self.s.frame == FRAME_weldstart_10)
-		self.monsterinfo.currentmove = &fixbot_move_weld;
-	else if (self.s.frame == FRAME_weldmiddle_07)
-	{
-		if (self.goalentity.health < 0) 
-		{
-			self.enemy.owner = 0;
-			self.monsterinfo.currentmove = &fixbot_move_weld_end;
-		}
-		else
-			self.goalentity.health -= 10;
-	}
-	else
-	{
-		self.goalentity = self.enemy = 0;
-		self.monsterinfo.currentmove = &fixbot_move_stand;
-	}
-}
-
-static void(entity self, float dist) ai_move2 =
-{
-	vector	v;
-	
-	if (dist)
-		M_walkmove (self, self.s.angles[YAW], dist);
-
-	v = self.goalentity.s.origin - self.s.origin;
-	self.ideal_yaw = vectoyaw(v);	
-	M_ChangeYaw (self);
-};
-
-static mframe_t fixbot_frames_weld_start [] = 
-{
-	{ ai_move2 },
-	{ ai_move2 },
-	{ ai_move2 },
-	{ ai_move2 },
-	{ ai_move2 },
-	{ ai_move2 },
-	{ ai_move2 },
-	{ ai_move2 },
-	{ ai_move2 },
-	{ ai_move2, 0, weldstate }
-};
-static var mmove_t fixbot_move_weld_start = { FRAME_weldstart_01, FRAME_weldstart_10 };
-
 static void(entity self) fixbot_fire_welder =
 {
 	vector	start;
@@ -620,7 +775,6 @@ static mframe_t fixbot_frames_weld [] =
 	{ ai_move2, 0, fixbot_fire_welder },
 	{ ai_move2, 0, weldstate }
 };
-static var mmove_t fixbot_move_weld = { FRAME_weldmiddle_01, FRAME_weldmiddle_07 };
 
 static mframe_t fixbot_frames_weld_end [] =
 {
@@ -632,167 +786,6 @@ static mframe_t fixbot_frames_weld_end [] =
 	{ ai_move2, -2 },
 	{ ai_move2, -2, weldstate }
 };
-static var mmove_t fixbot_move_weld_end = { FRAME_weldend_01, FRAME_weldend_07 };
-
-static void(entity self) use_scanner =
-{
-	entity	ent = null_entity;
-	float   radius = 1024;
-	vector	vec;
-	float	len;
-	float	oldlen = 0x10000;
-	entity	tempent = null_entity; 
-
-	while ((ent = findradius(ent, self.s.origin, radius)) != null_entity)
-	{
-		if (ent.health >= 100)
-		{
-			if (ent.classname == "object_repair")
-			{
-				if (visible(self, ent))
-				{	
-					// remove the old one
-					if (self.goalentity.classname == "bot_goal")
-					{
-						self.goalentity.nextthink = level.framenum + 1;
-						self.goalentity.think = G_FreeEdict;
-					}	
-					
-					self.goalentity = self.enemy = ent;
-					
-					vec = self.s.origin - self.goalentity.s.origin;
-					len = VectorNormalize (vec);
-
-					if (len < 32)
-					{
-						self.monsterinfo.currentmove = &fixbot_move_weld_start;
-						return;
-					}
-					return;
-				}
-			}
-		}
-	}
-
-	vec = self.s.origin - self.goalentity.s.origin;
-	len = VectorLength (vec);
-
-	if (len < 32)
-	{
-		if (self.goalentity.classname == "object_repair")
-		{
-			self.monsterinfo.currentmove = &fixbot_move_weld_start;
-		}
-		else 
-		{
-			self.goalentity.nextthink = level.framenum + 1;
-			self.goalentity.think = G_FreeEdict;
-			self.goalentity = self.enemy = 0;
-			self.monsterinfo.currentmove = &fixbot_move_stand;
-		}
-		return;
-	}
-
-	vec = self.s.origin - self.s.old_origin;
-	len = VectorLength (vec);
-
-	/* 
-	  bot is stuck get new goalentity
-	*/
-	if (len == 0)
-	{
-		if (self.goalentity.classname == "object_repair")
-		{
-			self.monsterinfo.currentmove = &fixbot_move_stand;
-		}
-		else 
-		{
-			self.goalentity.nextthink = level.framenum + 1;
-			self.goalentity.think = G_FreeEdict;
-			self.goalentity = self.enemy = 0;
-			self.monsterinfo.currentmove = &fixbot_move_stand;
-		}
-	}
-
-}
-
-static mframe_t fixbot_frames_forward [] =
-{
-	{ ai_movetogoal,	5,	use_scanner }
-};
-static var mmove_t fixbot_move_forward = { FRAME_freeze_01, FRAME_freeze_01 };
-
-static void(entity self, float dist) ai_facing =
-{
-	vector	v;
-
-	if (infront (self, self.goalentity))
-		self.monsterinfo.currentmove = &fixbot_move_forward;
-	else
-	{
-		v = self.goalentity.s.origin - self.s.origin;
-		self.ideal_yaw = vectoyaw(v);	
-		M_ChangeYaw (self);
-	}
-
-};
-
-static mframe_t fixbot_frames_turn [] =
-{
-	{ ai_facing }
-};
-static var mmove_t fixbot_move_turn = { FRAME_freeze_01, FRAME_freeze_01 };
-
-static void(entity self) roam_goal =
-{
-	trace_t		tr;
-	vector	forward, right, up;
-	vector	end;
-	entity	ent;
-	vector	dang;
-	float	len, oldlen;
-	int	whichi, i;
-	vector	vec;
-	vector	whichvec = vec3_origin;
-		
-	ent = G_Spawn ();	
-	ent.classname = "bot_goal";
-	ent.solid = SOLID_BBOX;
-	ent.owner = self;
-	gi.linkentity (ent);
-
-	oldlen = 0;
-	whichi = 0;
-	for (i=0; i<12; i++) 
-	{
-		
-		dang = self.s.angles;
-
-		if (i < 6)
-			dang[YAW] += 30 * i;
-		else 
-			dang[YAW] -= 30 * (i-6);
-
-		AngleVectors (dang, &forward, &right, &up);
-		end = self.s.origin + (forward * 8192);
-		gi.trace (&tr, self.s.origin, vec3_origin, vec3_origin, end, self, MASK_SHOT);
-
-		vec = self.s.origin - tr.endpos;
-		len = VectorNormalize (vec);
-		
-		if (len > oldlen)
-		{
-			oldlen = len;
-			whichvec = tr.endpos;
-		}
-		
-	}
-	
-	ent.s.origin = whichvec;
-	self.goalentity = self.enemy = ent;
-	
-	self.monsterinfo.currentmove = &fixbot_move_turn;
-}
 
 static void(entity self) fixbot_stand =
 {

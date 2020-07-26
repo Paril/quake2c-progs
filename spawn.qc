@@ -179,61 +179,6 @@ All but the first will have the FL_TEAMSLAVE flag set.
 All but the last will have the teamchain field set to the next one
 ================
 */
-#ifdef GROUND_ZERO
-static void() G_FixTeams =
-{
-	entity	e, e2, chain;
-	int	i, j;
-	int	c, c2;
-
-	c = 0;
-	c2 = 0;
-	for (i=1; i < globals.num_edicts; i++)
-	{
-		e = itoe(i);
-		if (!e.inuse)
-			continue;
-		if (!e.team)
-			continue;
-		if (e.classname == "func_train")
-		{
-			if(e.flags & FL_TEAMSLAVE)
-			{
-				chain = e;
-				e.teammaster = e;
-				e.teamchain = 0;
-				e.flags &= ~FL_TEAMSLAVE;
-				c++;
-				c2++;
-				for (j=1; j < globals.num_edicts; j++)
-				{
-					e2 = itoe(j);
-					if (e2 == e)
-						continue;
-					if (!e2.inuse)
-						continue;
-					if (!e2.team)
-						continue;
-					if (e.team == e2.team)
-					{
-						c2++;
-						chain.teamchain = e2;
-						e2.teammaster = e;
-						e2.teamchain = 0;
-						chain = e2;
-						e2.flags |= FL_TEAMSLAVE;
-						e2.movetype = MOVETYPE_PUSH;
-						e2.speed = e.speed;
-					}
-				}
-			}
-		}
-	}
-
-	gi.dprintf ("%i teams repaired\n", c);
-}
-#endif
-
 static void() G_FindTeams =
 {
 	entity	e, e2, chain;
@@ -254,6 +199,7 @@ static void() G_FindTeams =
 			continue;
 		chain = e;
 		e.teammaster = e;
+		e.teamchain = 0;
 		c++;
 		c2++;
 		for (j = i + 1; j < globals.num_edicts ; j++)
@@ -270,17 +216,22 @@ static void() G_FindTeams =
 				c2++;
 				chain.teamchain = e2;
 				e2.teammaster = e;
+				e2.teamchain = 0;
 				chain = e2;
 				e2.flags |= FL_TEAMSLAVE;
+
+#ifdef GROUND_ZERO
+				if (e.classname == "func_train")
+				{
+					e2.movetype = MOVETYPE_PUSH;
+					e2.speed = e.speed;
+				}
+#endif
 			}
 		}
 	}
 
 	gi.dprintf("%i teams with %i entities\n", c, c2);
-
-#ifdef GROUND_ZERO
-	G_FixTeams();
-#endif
 }
 
 

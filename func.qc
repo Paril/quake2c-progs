@@ -83,6 +83,7 @@ static void(entity ent) Move_Begin =
 
 // from func.qc
 static void(entity ent) Think_AccelMove;
+static void(entity ent) plat_CalcAcceleratedMove;
 
 void(entity ent, vector dest, void(entity) func) Move_Calc =
 {
@@ -100,6 +101,8 @@ void(entity ent, vector dest, void(entity) func) Move_Calc =
 		}
 	} else {
 		// accelerative
+		plat_CalcAcceleratedMove(ent);
+		
 		ent.moveinfo.current_speed = 0;
 		ent.think = Think_AccelMove;
 		ent.nextthink = level.framenum + 1;
@@ -314,17 +317,13 @@ static void(entity ent) plat_Accelerate =
 	}
 
 	// we are at constant velocity (move_speed)
-	return;
 }
 
 static void(entity ent) Think_AccelMove =
 {
 	ent.moveinfo.remaining_distance -= ent.moveinfo.current_speed;
 
-#ifndef GROUND_ZERO
-	if (ent.moveinfo.current_speed == 0)       // starting or blocked
-#endif
-		plat_CalcAcceleratedMove(ent);
+	//plat_CalcAcceleratedMove(ent);
 
 	plat_Accelerate(ent);
 

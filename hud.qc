@@ -356,10 +356,13 @@ void(entity ent) G_SetStats =
 	//
 	// ammo
 	//
-	if (!ent.client.ammo_index || !ent.client.pers.inventory[ent.client.ammo_index]) {
+	if (!ent.client.ammo_index)
+	{
 		ent.client.ps.stats[STAT_AMMO_ICON] = 0;
 		ent.client.ps.stats[STAT_AMMO] = 0;
-	} else {
+	}
+	else
+	{
 		it = ent.client.ammo_index;
 		ent.client.ps.stats[STAT_AMMO_ICON] = gi.imageindex(GetItemKeyByIndex(it, icon));
 		ent.client.ps.stats[STAT_AMMO] = ent.client.pers.inventory[ent.client.ammo_index];
