@@ -179,16 +179,6 @@ All but the first will have the FL_TEAMSLAVE flag set.
 All but the last will have the teamchain field set to the next one
 ================
 */
-static void PrintTeam(entity e)
-{
-	gi.dprintf("team %s", e.team);
-	
-	for (entity t = e; t; t = t.teamchain)
-		gi.dprintf(" -> %s(%i)", t.classname, t.s.number);
-	
-	gi.dprintf("\n");
-}
-
 // Paril: it took me a while to sus out what exactly this function was for in
 // Ground Zero, but basically it was to fix their mappers' bad teams. Maybe they
 // were broken later on or grouped wrong and it caused issues? Anyways,
@@ -265,8 +255,6 @@ static void G_FixTeams (void)
 		
 		// give the old master the flag
 		master.flags |= FL_TEAMSLAVE;
-		
-		PrintTeam(first_train);
 	}
 
 	gi.dprintf ("%i teams repaired\n", c);
@@ -314,8 +302,6 @@ static void() G_FindTeams =
 				e2.flags |= FL_TEAMSLAVE;
 			}
 		}
-		
-		PrintTeam(e);
 	}
 
 	gi.dprintf("%i teams with %i entities\n", c, c2);
