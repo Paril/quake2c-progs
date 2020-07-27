@@ -501,23 +501,19 @@ API_FUNC void(entity ent) Weapon_ETF_Rifle =
 		ent.client.ps.gunframe = 6;
 }
 
-const int HEATBEAM_DM_DMG	= 15;
-const int HEATBEAM_SP_DMG	= 15;
-
 static void(entity ent) Heatbeam_Fire =
 {
+	if (ent.client.pers.inventory[ent.client.ammo_index] < GetItemKeyByIndex(ent.client.pers.weapon, quantity))
+	{
+		ent.client.ps.gunframe++;
+		return;
+	}
+	
 	vector	start;
 	vector	forward, right, up;
 	vector	offset;
-	int	damage;
+	int	damage = 15;
 	int	kick;
-
-	// for comparison, the hyperblaster is 15/20
-	// jim requested more damage, so try 15/15 --- PGM 07/23/98
-	if (deathmatch.intVal)
-		damage = HEATBEAM_DM_DMG;
-	else
-		damage = HEATBEAM_SP_DMG;
 
 	if (deathmatch.intVal)  // really knock 'em around in deathmatch
 		kick = 75;
@@ -589,7 +585,7 @@ API_FUNC void(entity ent) Weapon_Heatbeam =
 	if (ent.client.weaponstate == WEAPON_FIRING)
 	{
 		ent.client.weapon_sound = gi.soundindex ("weapons/bfg__l1a.wav");
-		if ((ent.client.pers.inventory[ent.client.ammo_index] >= 2) && ((ent.client.buttons) & BUTTON_ATTACK))
+		if ((ent.client.pers.inventory[ent.client.ammo_index] >= GetItemKeyByIndex(ent.client.pers.weapon, quantity)) && ((ent.client.buttons) & BUTTON_ATTACK))
 		{
 			if(ent.client.ps.gunframe >= 13)
 			{

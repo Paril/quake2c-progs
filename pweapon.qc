@@ -357,29 +357,165 @@ Use_Weapon
 Make the weapon ready if there is ammo
 ================
 */
-// TODO: reckoning/gz
+typedef enum : int
+{
+	USEWEAP_OK,
+	USEWEAP_NO_AMMO,
+	USEWEAP_NOT_ENOUGH_AMMO,
+	USEWEAP_IS_ACTIVE,
+	USEWEAP_OUT_OF_ITEM
+} useweap_t;
+
+static useweap_t(entity ent, gitem_id_t it) CanUseWeapon =
+{
+	if (it == ent.client.pers.weapon)
+		return USEWEAP_IS_ACTIVE;
+
+	if (!ent.client.pers.inventory[it])
+		return USEWEAP_OUT_OF_ITEM;
+	
+	if (GetItemKeyByIndex(it, ammo) && !g_select_empty.intVal && !(GetItemKeyByIndex(it, flags) & IT_AMMO))
+	{
+		int ammo_item = FindItem(GetItemKeyByIndex(it, ammo));
+		gitem_id_t ammo_index = ITEM_INDEX(ammo_item);
+
+		if (!ent.client.pers.inventory[ammo_index])
+			return USEWEAP_NO_AMMO;
+
+		if (ent.client.pers.inventory[ammo_index] < GetItemKeyByIndex(it, quantity))
+			return USEWEAP_NOT_ENOUGH_AMMO;
+	}
+
+	return USEWEAP_OK;
+};
+
+#ifdef THE_RECKONING
+static const string rail_chain[] = { "Railgun", "Phalanx" };
+#endif
+
+#ifdef GROUND_ZERO
+static const string grenadelauncher_chain[] = { "Grenade Launcher", "Prox Launcher" };
+static const string machinegun_chain[] = { "Machinegun", "ETF Rifle" };
+static const string blaster_chain[] = { "Blaster", "Chainfist" };
+static const string bfg_chain[] = { "BFG10k", "Disruptor" };
+#endif
+
+#if (defined(GROUND_ZERO) && defined(THE_RECKONING))
+static const string grenade_chain[] = { "Grenades", "Trap", "Tesla"};
+static const string hyperblaster_chain[] = { "HyperBlaster", "Ionripper", "Plasma Beam" };
+#elif defined(GROUND_ZERO)
+static const string grenade_chain[] = { "Grenades", "Tesla"};
+static const string hyperblaster_chain[] = { "HyperBlaster", "Plasma Beam" };
+#elif defined(THE_RECKONING)
+static const string grenade_chain[] = { "Grenades", "Trap" };
+static const string hyperblaster_chain[] = { "HyperBlaster", "Ionripper" };
+#endif
+
+static bool(entity ent, gitem_id_t it, __out string *chain, __out int chain_length) GetChain =
+{
+	chain = 0;
+
+#if defined(GROUND_ZERO) || defined(THE_RECKONING)
+	if (GetItemKeyByIndex(it, pickup_name) == "HyperBlaster")
+	{
+		chain = hyperblaster_chain;
+		chain_length = hyperblaster_chain.length;
+	}
+	else if (GetItemKeyByIndex(it, pickup_name) == "Grenades")
+	{
+		chain = grenade_chain;
+		chain_length = grenade_chain.length;
+	}
+#endif
+#if defined(GROUND_ZERO)
+	else if (GetItemKeyByIndex(it, pickup_name) == "Grenade Launcher")
+	{
+		chain = grenadelauncher_chain;
+		chain_length = grenadelauncher_chain.length;
+	}
+	else if (GetItemKeyByIndex(it, pickup_name) == "Machinegun")
+	{
+		chain = machinegun_chain;
+		chain_length = machinegun_chain.length;
+	}
+	else if (GetItemKeyByIndex(it, pickup_name) == "Blaster")
+	{
+		chain = blaster_chain;
+		chain_length = blaster_chain.length;
+	}
+	else if (GetItemKeyByIndex(it, pickup_name) == "BFG10k")
+	{
+		chain = bfg_chain;
+		chain_length = bfg_chain.length;
+	}
+#endif
+#if defined(THE_RECKONING)
+	else if (GetItemKeyByIndex(it, pickup_name) == "Railgun")
+	{
+		chain = rail_chain;
+		chain_length = rail_chain.length;
+	}
+#endif
+
+	return !!chain;
+};
+
 API_FUNC static void(entity ent, gitem_id_t it) Use_Weapon =
 {
-	int		ammo_index;
-	gitem_id_t	ammo_item;
+	string *chain;
+	int chain_length;
 
-	// see if we're already using it
-	if (it == ent.client.pers.weapon)
+	// we have a weapon chain; find our current position in this chain
+	if (GetChain(ent, it, chain, chain_length))
+	{
+		int chain_start = 0;
+
+		for (string *c = chain; c < chain + chain_length; c++)
+		{
+			gitem_id_t cit = FindItem(*c);
+			
+			if (!cit)
+			{
+				gi.dprintf("Bad chain specified: %s", *c);
+				continue;
+			}
+
+			if (ent.client.pers.weapon == cit || ent.client.newweapon == cit)
+			{
+				chain_start = (c - chain) + 1;
+				break;
+			}
+		}
+
+		// find the next weapon we can equip that doesn't return false
+		for (int cid = 0; cid < chain_length; cid++)
+		{
+			gitem_id_t cit = FindItem(chain[(chain_start + cid) % chain_length]);
+			
+			// got it!
+			if (CanUseWeapon(ent, cit) == USEWEAP_OK)
+			{
+				ent.client.newweapon = cit;
+				return;
+			}
+		}
+
+		// fall back to default warning message
+	}
+	
+	useweap_t result = CanUseWeapon(ent, it);
+	int ammo_item = GetItemKeyByIndex(it, ammo) ? FindItem(GetItemKeyByIndex(it, ammo)) : 0;
+
+	switch (result)
+	{
+	case USEWEAP_IS_ACTIVE:
 		return;
-
-	if (GetItemKeyByIndex(it, ammo) && !g_select_empty.intVal && !(GetItemKeyByIndex(it, flags) & IT_AMMO)) {
-		ammo_item = FindItem(GetItemKeyByIndex(it, ammo));
-		ammo_index = ITEM_INDEX(ammo_item);
-
-		if (!ent.client.pers.inventory[ammo_index]) {
-			gi.cprintf(ent, PRINT_HIGH, "No %s for %s.\n", GetItemKeyByIndex(ammo_item, pickup_name), GetItemKeyByIndex(it, pickup_name));
-			return;
-		}
-
-		if (ent.client.pers.inventory[ammo_index] < GetItemKeyByIndex(it, quantity)) {
-			gi.cprintf(ent, PRINT_HIGH, "Not enough %s for %s.\n", GetItemKeyByIndex(ammo_item, pickup_name), GetItemKeyByIndex(it, pickup_name));
-			return;
-		}
+	case USEWEAP_NO_AMMO:
+		gi.cprintf(ent, PRINT_HIGH, "No %s for %s.\n", GetItemKeyByIndex(ammo_item, pickup_name), GetItemKeyByIndex(it, pickup_name));
+		return;
+	case USEWEAP_NOT_ENOUGH_AMMO:
+		gi.cprintf(ent, PRINT_HIGH, "No %s for %s.\n", GetItemKeyByIndex(ammo_item, pickup_name), GetItemKeyByIndex(it, pickup_name));
+		return;
 	}
 
 	// change to this weapon when down
