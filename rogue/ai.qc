@@ -778,7 +778,7 @@ void() InitHintPaths =
 	// check all the hint_paths.
 	field = classname;
 	e = G_Find(null_entity, field, "hint_path");
-	if(e)
+	if (e != null_entity)
 		hint_paths_present = 1;
 	else
 		return;

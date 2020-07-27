@@ -179,6 +179,99 @@ All but the first will have the FL_TEAMSLAVE flag set.
 All but the last will have the teamchain field set to the next one
 ================
 */
+static void PrintTeam(entity e)
+{
+	gi.dprintf("team %s", e.team);
+	
+	for (entity t = e; t; t = t.teamchain)
+		gi.dprintf(" -> %s(%i)", t.classname, t.s.number);
+	
+	gi.dprintf("\n");
+}
+
+// Paril: it took me a while to sus out what exactly this function was for in
+// Ground Zero, but basically it was to fix their mappers' bad teams. Maybe they
+// were broken later on or grouped wrong and it caused issues? Anyways,
+// basically it re-ordered teams with trains so that a train was always
+// at the front and synced up their speeds.
+static void G_FixTeams (void)
+{
+	int c = 0;
+
+	for (int i = 1; i < globals.num_edicts; i++)
+	{
+		entity e = itoe(i);
+
+		if (!e.teammaster)
+			continue;
+		
+		entity master = e.teammaster;
+
+		// already a train, so don't worry about us
+		if (master.classname == "func_train")
+			continue;
+
+		entity first_train = world;
+
+		for (entity e2 = master; e2; e2 = e2.teamchain)
+		{
+			if (e2.classname == "func_train")
+			{
+				first_train = e2;
+				break;
+			}
+		}
+
+		// no train in this team
+		if (!first_train)
+			continue;
+
+		c++;
+		
+		entity prev = world;
+
+		// got one! we have to reposition this train to be the master now.
+		// swap all of the masters out, and store the guy before the train
+		for (entity e2 = master; e2; e2 = e2.teamchain)
+		{
+			entity next = e2.teamchain;
+
+			e2.teammaster = first_train;
+
+			// copy over movetype and speed
+			e2.movetype = MOVETYPE_PUSH;
+			e2.speed = first_train.speed;
+			
+			// reached the guy before first_train
+			if (e2.teamchain == first_train)
+				prev = e2;
+		}
+		
+		// shim us in
+		if (!prev)
+			gi.error("wat");
+
+		// master = old teammaster
+		// prev = guy before first_train
+		// first_train = first.. train
+
+		prev.teamchain = master;
+		entity old_master_next = master.teamchain;
+		master.teamchain = first_train.teamchain;
+		first_train.teamchain = old_master_next;
+		
+		// remove our slave flag
+		first_train.flags &= ~FL_TEAMSLAVE;
+		
+		// give the old master the flag
+		master.flags |= FL_TEAMSLAVE;
+		
+		PrintTeam(first_train);
+	}
+
+	gi.dprintf ("%i teams repaired\n", c);
+}
+
 static void() G_FindTeams =
 {
 	entity	e, e2, chain;
@@ -219,19 +312,15 @@ static void() G_FindTeams =
 				e2.teamchain = 0;
 				chain = e2;
 				e2.flags |= FL_TEAMSLAVE;
-
-#ifdef GROUND_ZERO
-				if (e.classname == "func_train")
-				{
-					e2.movetype = MOVETYPE_PUSH;
-					e2.speed = e.speed;
-				}
-#endif
 			}
 		}
+		
+		PrintTeam(e);
 	}
 
 	gi.dprintf("%i teams with %i entities\n", c, c2);
+	
+	G_FixTeams();
 }
 
 
@@ -307,7 +396,7 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 			else
 			{
 #ifdef GROUND_ZERO
-				if (ent.spawnflags & SPAWNFLAG_NOT_COOP)
+				if (coop.intVal && (ent.spawnflags & SPAWNFLAG_NOT_COOP))
 				{
 					G_FreeEdict (ent);	
 					inhibit++;
