@@ -1732,6 +1732,8 @@ static void(entity self) train_wait =
 }
 
 #ifdef GROUND_ZERO
+static cvar_t g_legacy_trains;
+
 static void(entity self) train_piece_wait =
 {
 }
@@ -1745,10 +1747,8 @@ static void(entity self) train_next =
 
 	first = true;
 again:
-	if (!self.target) {
-//      gi.dprintf ("train_next: no next target\n");
+	if (!self.target)
 		return;
-	}
 
 	ent = G_PickTarget(self.target);
 	if (!ent) {
@@ -1806,7 +1806,7 @@ again:
 	self.spawnflags |= TRAIN_START_ON;
 
 #ifdef GROUND_ZERO
-	if(self.team)
+	if(self.team && !g_legacy_trains.intVal)
 	{
 		entity e;
 		vector dir, dst;
@@ -1895,6 +1895,10 @@ void(entity self, entity other, entity cactivator) train_use =
 
 API_FUNC static void(entity self) SP_func_train =
 {
+#ifdef GROUND_ZERO
+	g_legacy_trains = gi.cvar("g_legacy_trains", "0", CVAR_LATCH);
+#endif
+
 	self.movetype = MOVETYPE_PUSH;
 
 	self.s.angles = vec3_origin;
