@@ -22,6 +22,34 @@ enum : int { PITCH, YAW, ROLL };
 	return length;
 }
 
+/*
+==================
+ClipVelocity
+
+Slide off of the impacting object
+==================
+*/
+
+// This constant is used for how steep a ground plane is for
+// bouncing things.
+const float STOP_EPSILON = 0.1f;
+
+vector ClipVelocity (vector in, vector normal, float overbounce)
+{
+	float backoff = (in * normal) * overbounce;
+	vector out = vec3_origin;
+
+	for (int i = 0; i < 3; i++)
+	{
+		float change = normal[i]*backoff;
+		out[i] = in[i] - change;
+		if (out[i] > -STOP_EPSILON && out[i] < STOP_EPSILON)
+			out[i] = 0;
+	}
+	
+	return out;
+}
+
 void(vector angles, vector *forward, vector *right, vector *up) AngleVectors =
 {
 	float	angle;

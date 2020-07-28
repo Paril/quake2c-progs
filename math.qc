@@ -23,15 +23,6 @@ const float M_PI = 3.14159265358979323846f;
 int() Q_rand = #0:Q_rand;
 int(int) Q_rand_uniform = #0:Q_rand_uniform;
 
-#ifndef USE_RAND_INTRINSICS
-float() frandom = #0:frandom;
-float() crandom = #0:crandom;
-vector() frandomv = #0:frandomv;
-vector() crandomv = #0:crandomv;
-
-#define random frandom
-#define randomv frandomv
-#else
 /*inline*/ float crandom()
 {
 	return random(-1f, 1f);
@@ -41,7 +32,6 @@ vector() crandomv = #0:crandomv;
 {
 	return randomv('-1 -1 -1', '1 1 1');
 }
-#endif
 
 /*inline*/ float(float a) DEG2RAD =
 {

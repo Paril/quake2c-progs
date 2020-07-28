@@ -1157,6 +1157,16 @@ void(entity ent, gitem_id_t it) SpawnItem =
 		}
 #endif
 	}
+#ifdef GROUND_ZERO
+	else
+	{
+		if (ent.classname == "ammo_nuke")
+		{
+			G_FreeEdict(ent);
+			return;
+		}
+	}
+#endif
 
 	PrecacheItem(it);
 

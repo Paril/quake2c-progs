@@ -957,7 +957,7 @@ entity(entity ent) CheckForBadArea =
 	cmins = ent.s.origin + ent.mins;
 	cmaxs = ent.s.origin + ent.maxs;
 
-	entity_list_t entities = gi.BoxEdicts (cmins, cmaxs, MAX_EDICTS, AREA_TRIGGERS);
+	entity_set_t entities = gi.BoxEdicts (cmins, cmaxs, MAX_EDICTS, AREA_TRIGGERS);
 
 	// be careful, it is possible to have an entity in this
 	// list removed before we get to it (killtriggered)
@@ -968,12 +968,12 @@ entity(entity ent) CheckForBadArea =
 			continue;
 		if (hit.touch == badarea_touch)
 		{
-			entity_list_free(entities);
+			entity_set_free(entities);
 			return hit;
 		}
 	}
 	
-	entity_list_free(entities);
+	entity_set_free(entities);
 	return 0;
 }
 

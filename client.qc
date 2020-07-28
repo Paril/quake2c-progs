@@ -1763,7 +1763,11 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 		pm.pointcontents = gi.pointcontents;
 
 		// perform a pmove
+#ifdef QUAKEC_PMOVE
+		Pmove(&pm);
+#else
 		gi.Pmove(&pm);
+#endif
 
 		// save results of pmove
 		memcpy(&ent.client.ps.pmove, &pm.s, sizeof(pm.s));

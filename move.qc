@@ -1,5 +1,3 @@
-const int STEPSIZE	= 18;
-
 #ifdef GROUND_ZERO
 entity	new_bad;
 #endif

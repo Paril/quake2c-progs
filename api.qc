@@ -593,22 +593,20 @@ typedef enum int
 	AREA_TRIGGERS	= 2
 } box_edicts_area_t;
 
-accessor entity_list_t : int;
+accessor entity_set_t : int;
 
-static entity(entity_list_t, int)		entity_list_get = #0:entity_list_get;
-static void(entity_list_t, int, entity)		entity_list_set = #0:entity_list_set;
-static int(entity_list_t)			entity_list_length = #0:entity_list_length;
-void(entity_list_t, entity)		entity_list_add = #0:entity_list_add;
-void(entity_list_t, int)		entity_list_remove = #0:entity_list_remove;
-void(entity_list_t)			entity_list_clear = #0:entity_list_clear;
-void(entity_list_t)			entity_list_free = #0:entity_list_free;
-entity_list_t(optional int reserve)	entity_list_alloc = #0:entity_list_alloc;
+static entity(entity_set_t, int)		entity_set_get = #0:entity_set_get;
+static int(entity_set_t)			entity_set_length = #0:entity_set_length;
+void(entity_set_t, entity)		entity_set_add = #0:entity_set_add;
+void(entity_set_t, entity)		entity_set_remove = #0:entity_set_remove;
+void(entity_set_t)			entity_set_clear = #0:entity_set_clear;
+void(entity_set_t)			entity_set_free = #0:entity_set_free;
+entity_set_t(optional int reserve)	entity_set_alloc = #0:entity_set_alloc;
 
-accessor entity_list_t : int
+accessor entity_set_t : int
 {
-	get entity[int] = entity_list_get;
-	set entity[int] = entity_list_set;
-	get int length = entity_list_length;
+	get entity[int] = entity_set_get;
+	get int length = entity_set_length;
 };
 
 struct cplane_t
@@ -668,6 +666,12 @@ struct usercmd_t
 	int		lightlevel;     // light level the player is standing on
 };
 
+// This constant is used in Q2 for movement
+const int STEPSIZE = 18;
+
+// The max number of planes to clip moves against
+const int MAX_CLIP_PLANES = 5;
+
 // pmove_state_t is the information necessary for client side movement
 // prediction
 typedef enum int
@@ -716,7 +720,7 @@ struct pmove_t
 	
 	// out
 	// DO NOT FREE THIS LIST!!!
-	entity_list_t	touchents;
+	entity_set_t	touchents;
 	
 	vector	viewangles;
 	float	viewheight;

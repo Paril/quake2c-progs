@@ -280,8 +280,6 @@ static void(entity ent, entity other, cplane_t plane, csurface_t surf) prox_land
 		}
 	}
 
-	const float STOP_EPSILON = 0.1f;
-
 	if ((other.svflags & SVF_MONSTER) || other.is_client || (other.svflags & SVF_DAMAGEABLE))
 	{
 		if(other != ent.teammaster)
@@ -293,12 +291,6 @@ static void(entity ent, entity other, cplane_t plane, csurface_t surf) prox_land
 	{
 		//Here we need to check to see if we can stop on this entity.
 		//Note that plane can be NULL
-
-		//PMM - code stolen from g_phys (ClipVelocity)
-		vector out = vec3_origin;
-		float backoff, change;
-		int i;
-
 		if (!plane.normal) // this happens if you hit a point object, maybe other cases
 		{
 			Prox_Explode(ent);
@@ -309,15 +301,8 @@ static void(entity ent, entity other, cplane_t plane, csurface_t surf) prox_land
 			stick_ok = 1;
 		else
 			stick_ok = 0;
-
-		backoff = (ent.velocity * plane.normal) * 1.5;
-		for (i=0 ; i<3 ; i++)
-		{
-			change = plane.normal[i]*backoff;
-			out[i] = ent.velocity[i] - change;
-			if (out[i] > -STOP_EPSILON && out[i] < STOP_EPSILON)
-				out[i] = 0;
-		}
+		
+		vector out = ClipVelocity(ent.velocity, plane.normal, 1.5);
 
 		if (out[2] > 60)
 			return;
@@ -853,7 +838,7 @@ static void(entity self) tesla_think_active =
 	start = self.s.origin;
 	start[2] += 16;
 
-	entity_list_t entities = gi.BoxEdicts(self.teamchain.absmin, self.teamchain.absmax, MAX_EDICTS, AREA_SOLID);
+	entity_set_t entities = gi.BoxEdicts(self.teamchain.absmin, self.teamchain.absmax, MAX_EDICTS, AREA_SOLID);
 	for(i=0;i<entities.length;i++)
 	{
 		// if the tesla died while zapping things, stop zapping.
@@ -900,7 +885,7 @@ static void(entity self) tesla_think_active =
 			gi.multicast (start, MULTICAST_PVS);
 		}
 	}
-	entity_list_free(entities);
+	entity_set_free(entities);
 
 	if(self.inuse)
 	{

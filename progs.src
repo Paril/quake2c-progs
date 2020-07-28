@@ -20,6 +20,7 @@ items.qc
 xatrix/items.qc
 rogue/items.qc
 chase.qc
+pmove.qc
 client.qc
 cmds.qc
 rogue/combat.qc

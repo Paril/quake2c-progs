@@ -110,50 +110,6 @@ static void(entity e1, trace_t *trace) SV_Impact =
 		e2.touch(e2, e1, null_plane, null_surface);
 }
 
-
-/*
-==================
-ClipVelocity
-
-Slide off of the impacting object
-returns the blocked flags (1 = floor, 2 = step / wall)
-==================
-*/
-const float STOP_EPSILON = 0.1f;
-
-static int(vector in, vector normal, __out vector out, float overbounce) ClipVelocity =
-{
-	float	backoff;
-	float	change;
-	int	blocked;
-
-	blocked = 0;
-	if (normal.z > 0)
-		blocked |= 1;       // floor
-	if (!normal.z)
-		blocked |= 2;       // step
-
-	backoff = (in * normal) * overbounce;
-
-	change = normal.x * backoff;
-	out.x = in.x - change;
-	if (out.x > -STOP_EPSILON && out.x < STOP_EPSILON)
-		out.x = 0;
-		
-	change = normal.y * backoff;
-	out.y = in.y - change;
-	if (out.y > -STOP_EPSILON && out.y < STOP_EPSILON)
-		out.y = 0;
-		
-	change = normal.z * backoff;
-	out.z = in[2] - change;
-	if (out.z > -STOP_EPSILON && out.z < STOP_EPSILON)
-		out.z = 0;
-
-	return blocked;
-}
-
-
 /*
 ============
 SV_FlyMove
@@ -165,8 +121,6 @@ Returns the clipflags if the velocity was modified (hit something solid)
 4 = dead stop
 ============
 */
-const int MAX_CLIP_PLANES = 5;
-
 static int(entity ent, float time, int mask) SV_FlyMove =
 {
 	entity	hit;
@@ -250,7 +204,7 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 // modify original_velocity so it parallels all of the clip planes
 //
 		for (i = 0 ; i < numplanes ; i++) {
-			ClipVelocity(original_velocity, planes[i], new_velocity, 1);
+			new_velocity = ClipVelocity(original_velocity, planes[i], 1);
 
 			for (j = 0 ; j < numplanes ; j++)
 				if (j != i && planes[i] != planes[j]) {
@@ -266,8 +220,8 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 			ent.velocity = new_velocity;
 		} else {
 			// go along the crease
-			if (numplanes != 2) {
-//              gi.dprintf ("clip velocity, numplanes == %i\n",numplanes);
+			if (numplanes != 2)
+			{
 				ent.velocity = vec3_origin;
 				return 7;
 			}
@@ -363,7 +317,7 @@ retry:
 }
 
 PROGS_LOCAL_STATIC entity		obstacle;
-PROGS_LOCAL_STATIC entity_list_t	pushed_list;
+PROGS_LOCAL_STATIC entity_set_t	pushed_list;
 
 /*
 ============
@@ -411,7 +365,7 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 	AngleVectors(org, &forward, &right, &up);
 
 // save the pusher's original position
-	entity_list_add(pushed_list, pusher);
+	entity_set_add(pushed_list, pusher);
 
 	pusher.pushed.origin = pusher.s.origin;
 	pusher.pushed.angles = pusher.s.angles;
@@ -466,7 +420,7 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 				check.pushed.deltayaw = check.client.ps.pmove.delta_angles[YAW];
 #endif
 
-			entity_list_add(pushed_list, check);
+			entity_set_add(pushed_list, check);
 
 			// try moving the contacted entity
 			check.s.origin += move;
@@ -504,7 +458,7 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 			check.s.origin = check.s.origin - move;
 			block = SV_TestEntityPosition(check);
 			if (!block) {
-				entity_list_remove(pushed_list, pushed_list.length - 1);
+				entity_set_remove(pushed_list, check);
 				continue;
 			}
 		}
@@ -562,9 +516,9 @@ static void(entity ent) SV_Physics_Pusher =
 	// any moves or calling any think functions
 	// if the move is blocked, all moved objects will be backed out
 	if (!pushed_list)
-		pushed_list = entity_list_alloc(16);
+		pushed_list = entity_set_alloc(16);
 	else
-		entity_list_clear(pushed_list);
+		entity_set_clear(pushed_list);
 
 	for (part = ent ; part ; part = part.teamchain) {
 		if (part.velocity || part.avelocity) {
@@ -715,11 +669,11 @@ static void(entity ent) SV_Physics_Toss =
 		else
 #endif
 		if (ent.movetype == MOVETYPE_BOUNCE)
-			backoff = 1.5f;
+			backoff = 1.5;
 		else
 			backoff = 1f;
 
-		ClipVelocity(ent.velocity, trace.plane.normal, ent.velocity, backoff);
+		ent.velocity = ClipVelocity(ent.velocity, trace.plane.normal, backoff);
 
 #ifdef THE_RECKONING
 		// RAFAEL

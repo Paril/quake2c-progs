@@ -868,6 +868,10 @@ static void(entity self) ai_run_missile =
 	}
 }
 
+// temp
+#ifdef GROUND_ZERO
+const float MAX_SIDESTEP	= 8.0;
+#endif
 
 /*
 =============
