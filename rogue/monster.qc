@@ -460,7 +460,7 @@ void ThrowWidowGibReal (entity self, string gibname, int damage, int type, vecto
 		gib.velocity[0] *= 2;
 		gib.velocity[1] *= 2;
 		ClipGibVelocity (gib);
-		gib.velocity[2] = max(random(350f, 450f), gib.velocity[2]);
+		gib.velocity[2] = maxf(random(350f, 450f), gib.velocity[2]);
 		gib.gravity = 0.25;
 		gib.touch = widow_gib_touch;
 		gib.owner = self;

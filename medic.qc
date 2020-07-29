@@ -494,7 +494,7 @@ static void medic_pain(entity self, entity other, float kick, int damage)
 
 		gi.sound (self, CHAN_VOICE, commander_sound_pain2, 1, ATTN_NORM, 0);
 
-		if (random() < (min(((float)damage * 0.005), 0.5)))		// no more than 50% chance of big pain
+		if (random() < minf(damage * 0.005, 0.5))		// no more than 50% chance of big pain
 			self.monsterinfo.currentmove = &medic_move_pain2;
 		else
 			self.monsterinfo.currentmove = &medic_move_pain1;

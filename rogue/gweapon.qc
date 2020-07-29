@@ -576,9 +576,9 @@ static void(entity inflictor, entity attacker, float damage, entity ignore, floa
 			{
 				dist = realrange (ent, inflictor);
 				if (dist < 2048)
-					ent.client.nuke_framenum = max(ent.client.nuke_framenum, level.framenum + 15);
+					ent.client.nuke_framenum = maxi(ent.client.nuke_framenum, level.framenum + 15);
 				else
-					ent.client.nuke_framenum = max(ent.client.nuke_framenum, level.framenum + 10);
+					ent.client.nuke_framenum = maxi(ent.client.nuke_framenum, level.framenum + 10);
 			}
 			ent = next_ent(ent);
 		}

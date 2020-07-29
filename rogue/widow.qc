@@ -799,7 +799,7 @@ void WidowCalcSlots (entity self)
 			break;
 	}
 	if (coop.intVal)
-		self.monsterinfo.monster_slots = min (6, self.monsterinfo.monster_slots + ((skill.intVal)*(CountPlayers()-1)));
+		self.monsterinfo.monster_slots = mini (6, self.monsterinfo.monster_slots + (skill.intVal*(CountPlayers()-1)));
 }
 
 static void widow_attack (entity self)

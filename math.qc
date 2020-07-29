@@ -49,3 +49,31 @@ const int INT_MAX = 2147483647;
 {
     return (360.0f / 65536) * ((int)(a * (65536 / 360.0f)) & 65535);
 }
+
+/*inline*/ float minf(float a, float b)
+{
+	if (a < b)
+		return a;
+	return b;
+}
+
+/*inline*/ float maxf(float a, float b)
+{
+	if (a > b)
+		return a;
+	return b;
+}
+
+/*inline*/ int mini(int a, int b)
+{
+	if (a < b)
+		return a;
+	return b;
+}
+
+/*inline*/ int maxi(int a, int b)
+{
+	if (a > b)
+		return a;
+	return b;
+}

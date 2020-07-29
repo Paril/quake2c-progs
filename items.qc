@@ -1058,7 +1058,7 @@ void(gitem_id_t it) PrecacheItem =
 		int v_len = strlen(v);
 
 		if (v_len >= MAX_QPATH || v_len < 5)
-			gi.error("PrecacheItem: %s has bad precache string", GetItemKeyByIndex(it, classname));
+			gi.error("PrecacheItem: %s has bad precache string \"%s\"", GetItemKeyByIndex(it, classname), GetItemKeyByIndex(it, precaches));
 		
 		string ext = substr(v, v_len - 3);
 

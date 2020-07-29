@@ -289,7 +289,7 @@ static void(entity self) stalker_reactivate =
 
 static void(entity self) stalker_heal =
 {
-	self.health += max(1, skill.intVal);
+	self.health += maxi(1, skill.intVal);
 
 //	gi.dprintf("stalker_heal: %d\n", self.health);
 

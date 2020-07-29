@@ -1106,7 +1106,7 @@ void SP_monster_carrier (entity self)
 	self.maxs = '56 56 44';
 
 	// 2000 - 4000 health
-	self.health = max (2000, 2000 + 1000*((skill.intVal)-1));
+	self.health = maxi (2000, 2000 + 1000*(skill.intVal-1));
 	// add health in coop (500 * skill)
 	if (coop.intVal)
 		self.health += 500*(skill.intVal);	

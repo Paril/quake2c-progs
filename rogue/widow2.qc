@@ -919,7 +919,7 @@ static void widow2_die (entity self, entity inflictor, entity attacker, int dama
 // check for gib
 	if (self.health <= self.gib_health)
 	{
-		clipped = min (damage, 100);
+		clipped = mini (damage, 100);
 
 		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
 		for (n= 0; n < 2; n++)

@@ -147,17 +147,14 @@ float(vector vec) vectoyaw =
 			v1[0] * v2[1] - v1[1] * v2[0] ];
 }
 
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-
 void AddPointToBounds(vector v, __inout vector mins, __inout vector maxs)
 {
-	mins[0] = min(mins[0], v[0]);
-	maxs[0] = max(maxs[0], v[0]);
-	mins[1] = min(mins[1], v[1]);
-	maxs[1] = max(maxs[1], v[1]);
-	mins[2] = min(mins[2], v[2]);
-	maxs[2] = max(maxs[2], v[2]);
+	mins[0] = minf(mins[0], v[0]);
+	maxs[0] = maxf(maxs[0], v[0]);
+	mins[1] = minf(mins[1], v[1]);
+	maxs[1] = maxf(maxs[1], v[1]);
+	mins[2] = minf(mins[2], v[2]);
+	maxs[2] = maxf(maxs[2], v[2]);
 }
 
 vector(vector p, vector normal) ProjectPointOnPlane =

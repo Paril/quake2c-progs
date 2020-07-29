@@ -891,7 +891,7 @@ static void(entity self, float distance) ai_run_slide =
 		M_ChangeYaw(self);
 
 	if (!(self.flags & FL_FLY))
-		distance = min(distance, MAX_SIDESTEP);
+		distance = minf(distance, MAX_SIDESTEP);
 #endif
 
 	if (self.monsterinfo.lefty)
