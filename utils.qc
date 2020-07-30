@@ -354,12 +354,18 @@ void(entity ent) G_TouchTriggers =
 	if ((ent.is_client || (ent.svflags & SVF_MONSTER)) && (ent.health <= 0))
 		return;
 
-	entity_set_t touches = gi.BoxEdicts(ent.absmin, ent.absmax, MAX_EDICTS, AREA_TRIGGERS);
+	static entity_set_t touches;
+	
+	if (!touches)
+		touches = entity_set_alloc(32);
+
+	gi.BoxEdicts(touches, ent.absmin, ent.absmax, MAX_EDICTS, AREA_TRIGGERS);
 	int num = touches.length;
 
 	// be careful, it is possible to have an entity in this
 	// list removed before we get to it (killtriggered)
-	for (i = 0 ; i < num ; i++) {
+	for (i = 0 ; i < num ; i++)
+	{
 		hit = touches[i];
 		if (!hit.inuse)
 			continue;
@@ -367,8 +373,6 @@ void(entity ent) G_TouchTriggers =
 			continue;
 		hit.touch(hit, ent, null_plane, null_surface);
 	}
-	
-	entity_set_free(touches);
 }
 
 /*

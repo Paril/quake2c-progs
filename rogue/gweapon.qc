@@ -838,7 +838,12 @@ static void(entity self) tesla_think_active =
 	start = self.s.origin;
 	start[2] += 16;
 
-	entity_set_t entities = gi.BoxEdicts(self.teamchain.absmin, self.teamchain.absmax, MAX_EDICTS, AREA_SOLID);
+	static entity_set_t entities;
+	
+	if (!entities)
+		entities = entity_set_alloc(32);
+
+	gi.BoxEdicts(entities, self.teamchain.absmin, self.teamchain.absmax, MAX_EDICTS, AREA_SOLID);
 	for(i=0;i<entities.length;i++)
 	{
 		// if the tesla died while zapping things, stop zapping.

@@ -29,7 +29,7 @@ PROGS_LOCAL var struct {
 	
 	void(entity) linkentity;
 	void(entity) unlinkentity;
-	entity_set_t(vector mins, vector maxs, int maxcount, box_edicts_area_t areatype) BoxEdicts;
+	void(entity_set_t set, vector mins, vector maxs, int maxcount, box_edicts_area_t areatype) BoxEdicts;
 	void(pmove_t *) Pmove;
 	
 	void(vector, multicast_t) multicast;

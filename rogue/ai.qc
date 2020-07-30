@@ -956,8 +956,13 @@ entity(entity ent) CheckForBadArea =
 
 	cmins = ent.s.origin + ent.mins;
 	cmaxs = ent.s.origin + ent.maxs;
+	
+	static entity_set_t entities;
+	
+	if (!entities)
+		entities = entity_set_alloc(32);
 
-	entity_set_t entities = gi.BoxEdicts (cmins, cmaxs, MAX_EDICTS, AREA_TRIGGERS);
+	gi.BoxEdicts (entities, cmins, cmaxs, MAX_EDICTS, AREA_TRIGGERS);
 
 	// be careful, it is possible to have an entity in this
 	// list removed before we get to it (killtriggered)
