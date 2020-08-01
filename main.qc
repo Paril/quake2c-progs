@@ -476,6 +476,9 @@ API_FUNC void(__out game_export_t exports) GetGameAPI =
 	exports.ServerCommand = ServerCommand;
 	
 	exports.PreWriteGame = PreWriteGame;
+	exports.PostWriteGame = PostWriteGame;
+
+	exports.PreReadGame = PreReadGame;
 	exports.PostReadGame = PostReadGame;
 	
 	exports.PreWriteLevel = PreWriteLevel;

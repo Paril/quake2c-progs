@@ -977,8 +977,7 @@ entity(entity ent) CheckForBadArea =
 			return hit;
 		}
 	}
-	
-	entity_set_free(entities);
+
 	return 0;
 }
 

@@ -1,7 +1,7 @@
 void() InitItems =
 {
 	gitem_t *it = itemlist;
-	
+
 	for (int i = 0; i < itemlist.length; i++, it++)
 	{
 		if (it.pickup_str)

@@ -890,7 +890,6 @@ static void(entity self) tesla_think_active =
 			gi.multicast (start, MULTICAST_PVS);
 		}
 	}
-	entity_set_free(entities);
 
 	if(self.inuse)
 	{
