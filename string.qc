@@ -58,7 +58,7 @@ Parse a token out of a string.
 Handles C and C++ comments.
 ==============
 */
-string(string data, __inout int start) strtok =
+API_FUNC string(string data, __inout int start) strtok =
 {
 	int token_start = start, token_end;
 
