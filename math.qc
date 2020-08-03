@@ -5,23 +5,23 @@ typedef enum int
 	true
 } bool;
 
-float(float) fabsf = #0:fabsf;
-float(float) sqrtf = #0:sqrtf;
-float(float) sinf = #0:sinf;
-float(float) cosf = #0:cosf;
-float(float, float) atan2f = #0:atan2f;
-float(float) floorf = #0:floorf;
-float(float) ceilf = #0:ceilf;
-float(float) roundf = #0:roundf;
-float(float) tanf = #0:tanf;
-float(float) atanf = #0:atanf;
-float(float) asinf = #0:asinf;
-bool(float) isnan = #0:isnan;
+float(float) fabsf = #0;
+float(float) sqrtf = #0;
+float(float) sinf = #0;
+float(float) cosf = #0;
+float(float, float) atan2f = #0;
+float(float) floorf = #0;
+float(float) ceilf = #0;
+float(float) roundf = #0;
+float(float) tanf = #0;
+float(float) atanf = #0;
+float(float) asinf = #0;
+bool(float) isnan = #0;
 
 const float M_PI = 3.14159265358979323846f;
 
-int() Q_rand = #0:Q_rand;
-int(int) Q_rand_uniform = #0:Q_rand_uniform;
+int() Q_rand = #0;
+int(int) Q_rand_uniform = #0;
 
 /*inline*/ float crandom()
 {

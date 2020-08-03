@@ -194,9 +194,6 @@ PROGS_LOCAL void(entity ent, bool held) weapon_trap_fire =
 	timer = (ent.client.trap_framenum - level.framenum) * FRAMETIME;
 	speed = (int)(TRAP_MINSPEED + (TRAP_TIMER - timer) * ((TRAP_MAXSPEED - TRAP_MINSPEED) / TRAP_TIMER));
 	fire_trap (ent, start, forward, damage, speed, timer, radius, held);
-	
-// you don't get infinite traps!  ZOID
-//	if (! ( (int)dmflags.value & DF_INFINITE_AMMO ) )
 
 	ent.client.pers.inventory[ent.client.ammo_index]--;
 
@@ -255,19 +252,14 @@ void(entity ent) Weapon_Trap =
 	if (ent.client.weaponstate == WEAPON_FIRING)
 	{
 		if (ent.client.ps.gunframe == 5)
-			// RAFAEL 16-APR-98
-			// gi.sound(ent, CHAN_WEAPON, gi.soundindex("weapons/hgrena1b.wav"), 1, ATTN_NORM, 0);
 			gi.sound(ent, CHAN_WEAPON, gi.soundindex("weapons/trapcock.wav"), 1, ATTN_NORM, 0);
-			// END 16-APR-98
 
 		if (ent.client.ps.gunframe == 11)
 		{
 			if (!ent.client.trap_framenum)
 			{
 				ent.client.trap_framenum = (int)(level.framenum + (TRAP_TIMER + 0.2f) * BASE_FRAMERATE);
-				// RAFAEL 16-APR-98
 				ent.client.weapon_sound = gi.soundindex("weapons/traploop.wav");
-				// END 16-APR-98
 			}
 
 			// they waited too long, detonate it in their hand
@@ -289,9 +281,7 @@ void(entity ent) Weapon_Trap =
 					ent.client.grenade_blew_up = false;
 				}
 				else
-				{
 					return;
-				}
 			}
 		}
 

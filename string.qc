@@ -6,16 +6,16 @@ const int MAX_QPATH		= 64;	// max length of a quake game pathname
 	return (int)(__variant)str[(float)(__variant)offset];
 };
 
-int(string) stoi = #0:stoi;
-float(string) stof = #0:stof;
-int(string, string) stricmp = #0:stricmp;
-int(string, string, int) strncmp = #0:strncmp;
-int(string) strlen = #0:strlen;
-string(string, ...) va = #0:va;
-int(string, string) strstr = #0:strstr;
-int(string, int) strchr = #0:strchr;
-string(string, int start, optional int length) substr = #0:substr;
-string(string...) strconcat = #0:strconcat;
+int(string) stoi = #0;
+float(string) stof = #0;
+int(string, string) stricmp = #0;
+int(string, string, int) strncmp = #0;
+int(string) strlen = #0;
+string(string, ...) va = #0;
+int(string, string) strstr = #0;
+int(string, int) strchr = #0;
+string(string, int start, optional int length) substr = #0;
+string(string...) strconcat = #0;
 
 #define strempty(s) (!(s))
 
@@ -48,7 +48,7 @@ struct time_t
 	int tm_isdst; // daylight savings time flag
 };
 
-void(__out time_t tm) localtime = #0:localtime;
+void(__out time_t tm) localtime = #0;
 
 /*
 ==============

@@ -34,13 +34,13 @@ API_FUNC struct game_locals_t
 	bool	autosaved;
 } game;
 
-entity(int) itoe = #0:itoe;
-int(entity) etoi = #0:etoi;
+entity(int) itoe = #0;
+int(entity) etoi = #0;
 
 #define next_ent(e) itoe(e.s.number + 1)
 
-bool(string, string, string) struct_key_parse = #0:struct_key_parse;
-void(entity, .__variant, string) entity_key_parse = #0:entity_key_parse;
+bool(string, string, string) struct_key_parse = #0;
+void(entity, .__variant, string) entity_key_parse = #0;
 
 // dmflags.value flags
 enumflags : int

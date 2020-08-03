@@ -482,20 +482,20 @@ typedef enumflags int
 
 accessor cvar_t : int;
 
-static string(cvar_t)		cvar_get_name = #0:cvar_get_name;
+static string(cvar_t)		cvar_get_name = #0;
 
-static string(cvar_t)		cvar_get_string = #0:cvar_get_string;
+static string(cvar_t)		cvar_get_string = #0;
 
-static string(cvar_t)		cvar_get_latched_string = #0:cvar_get_latched_string;
+static string(cvar_t)		cvar_get_latched_string = #0;
 
-static cvar_flags_t(cvar_t)	cvar_get_flags = #0:cvar_get_flags;
+static cvar_flags_t(cvar_t)	cvar_get_flags = #0;
 
-static bool(cvar_t)		cvar_get_modified = #0:cvar_get_modified;
-static void(cvar_t, bool)	cvar_set_modified = #0:cvar_set_modified;
+static bool(cvar_t)		cvar_get_modified = #0;
+static void(cvar_t, bool)	cvar_set_modified = #0;
 
-static float(cvar_t)		cvar_get_floatVal = #0:cvar_get_floatVal;
+static float(cvar_t)		cvar_get_floatVal = #0;
 
-static int(cvar_t)		cvar_get_intVal = #0:cvar_get_intVal;
+static int(cvar_t)		cvar_get_intVal = #0;
 
 accessor cvar_t : int
 {
@@ -595,13 +595,13 @@ typedef enum int
 
 accessor entity_set_t : int;
 
-static entity(entity_set_t, int)		entity_set_get = #0:entity_set_get;
-static int(entity_set_t)			entity_set_length = #0:entity_set_length;
-void(entity_set_t, entity)		entity_set_add = #0:entity_set_add;
-void(entity_set_t, entity)		entity_set_remove = #0:entity_set_remove;
-void(entity_set_t)			entity_set_clear = #0:entity_set_clear;
-void(entity_set_t)			entity_set_free = #0:entity_set_free;
-entity_set_t(optional int reserve)	entity_set_alloc = #0:entity_set_alloc;
+static entity(entity_set_t, int)		entity_set_get = #0;
+static int(entity_set_t)			entity_set_length = #0;
+void(entity_set_t, entity)		entity_set_add = #0;
+void(entity_set_t, entity)		entity_set_remove = #0;
+void(entity_set_t)			entity_set_clear = #0;
+void(entity_set_t)			entity_set_free = #0;
+entity_set_t(optional int reserve)	entity_set_alloc = #0;
 
 accessor entity_set_t : int
 {
@@ -620,9 +620,9 @@ const cplane_t null_plane;
 
 accessor csurface_t : int;
 
-static string(csurface_t)		csurface_get_name = #0:csurface_get_name;
-static surface_flags_t(csurface_t)	csurface_get_flags = #0:csurface_get_flags;
-static int(csurface_t)			csurface_get_value = #0:csurface_get_value;
+static string(csurface_t)		csurface_get_name = #0;
+static surface_flags_t(csurface_t)	csurface_get_flags = #0;
+static int(csurface_t)			csurface_get_value = #0;
 
 accessor csurface_t : int
 {

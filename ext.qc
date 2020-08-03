@@ -6,9 +6,9 @@
 #pragma warning disable F306
 #pragma target fte_9999
 
-int(int, int) ModInt = #0:ModInt;
+int(int, int) ModInt = #0;
 
-__variant(string) func_get = #0:func_get;
+__variant(string) func_get = #0;
 
 // function is visible to func_get and to the game code
 #define API_FUNC __used
