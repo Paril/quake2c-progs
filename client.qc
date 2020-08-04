@@ -1115,8 +1115,9 @@ static void(entity ent) CopyToBodyQue =
 	}
 	
 	gi.unlinkentity(body);
+	int num = body.s.number;
 	memcpy(&body.s, &ent.s, sizeof(ent.s));
-	body.s.number = etoi(body);
+	body.s.number = num;
 	body.s.event = EV_OTHER_TELEPORT;
 	
 	body.svflags = ent.svflags;
