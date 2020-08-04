@@ -2,6 +2,11 @@ accessor cvar_t : int;
 accessor entity_set_t : int;
 
 PROGS_LOCAL var struct {
+	// QC-specific imports
+	void(int)	SetNumEdicts;
+	void(entity)	ClearEntity;
+
+	// Quake II game imports
 	void(print_level_t, string fmt, ...) bprintf;
 	void(string fmt, ...) dprintf;
 	void(entity, print_level_t, string fmt, ...) cprintf;
@@ -55,12 +60,10 @@ PROGS_LOCAL var struct {
 	void(string)	AddCommandString;
 	
 	void(float, int color)	DebugGraph;
-	
-	// QC-specific imports
-	void(int)	SetNumEdicts;
-	void(entity)	ClearEntity;
-	void(entity)	SyncPlayerState;
-} gi = {
+} gi = {	
+	#0:SetNumEdicts,
+	#0:ClearEntity,
+
 	#0:bprintf,
 	#0:dprintf,
 	#0:cprintf,
@@ -112,9 +115,5 @@ PROGS_LOCAL var struct {
 	
 	#0:AddCommandString,
 	
-	#0:DebugGraph,
-	
-	#0:SetNumEdicts,
-	#0:ClearEntity,
-	#0:SyncPlayerState
+	#0:DebugGraph
 };
