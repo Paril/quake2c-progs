@@ -1061,7 +1061,7 @@ static void(entity ent, __out vector origin, __out vector angles) SelectSpawnPoi
 			}
 			if (spot == null_entity)
 			{
-				gi.dprintf("Couldn't find spawn point %s", game.spawnpoint);
+				gi.dprintf("Couldn't find spawn point \"%s\"\n", game.spawnpoint);
 				return;
 			}
 		}

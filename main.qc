@@ -450,10 +450,15 @@ struct game_export_t {
 	void(int num_edicts)	PostReadLevel;
 };
 
+API_FUNC void() Test =
+{
+	world.s.solid = SOLID_BSP;
+};
+
 // Main entry point; if you need to do any global stuff, this is where
 // ya do it.
 API_FUNC void(__out game_export_t exports) GetGameAPI =
-{	
+{
 	exports.apiversion = GAMEC_API_VERSION;
 	exports.clientsize = sizeof(gclient_t);
 

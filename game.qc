@@ -40,7 +40,7 @@ int(entity) etoi = #0;
 #define next_ent(e) itoe(e.s.number + 1)
 
 bool(string, string, string) struct_key_parse = #0;
-void(entity, .__variant, string) entity_key_parse = #0;
+void(entity, string, string) entity_key_parse = #0;
 
 // dmflags.value flags
 enumflags : int
