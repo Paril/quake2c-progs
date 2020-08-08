@@ -60,7 +60,7 @@ PROGS_LOCAL var struct {
 	void(string)	AddCommandString;
 	
 	void(float, int color)	DebugGraph;
-} gi = {	
+} gi = {
 	#0:SetNumEdicts,
 	#0:ClearEntity,
 

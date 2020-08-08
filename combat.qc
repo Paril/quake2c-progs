@@ -297,9 +297,9 @@ static int(entity ent, vector point, vector normal, int damage, int te_sparks, d
 	armor = GetItemByIndex(index);
 
 	if (dflags & DAMAGE_ENERGY)
-		save = (int)ceilf(GetArmorInfoKeyByIndex(GetItemKeyByIndex(armor, info), energy_protection) * damage);
+		save = (int)ceil(GetArmorInfoKeyByIndex(GetItemKeyByIndex(armor, info), energy_protection) * damage);
 	else
-		save = (int)ceilf(GetArmorInfoKeyByIndex(GetItemKeyByIndex(armor, info), normal_protection) * damage);
+		save = (int)ceil(GetArmorInfoKeyByIndex(GetItemKeyByIndex(armor, info), normal_protection) * damage);
 
 	if (save >= ent.client.pers.inventory[index])
 		save = ent.client.pers.inventory[index];

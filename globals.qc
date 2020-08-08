@@ -7,7 +7,7 @@ struct
 } globals;
 
 const entity world;
-const entity null_entity = (entity)(__variant)1;
+const entity null_entity = (entity)(__variant)-1;
 
 int snd_fry;
 int sm_meat_index;

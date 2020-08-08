@@ -53,7 +53,7 @@ void(entity self, vector start, vector dir, vector offset, int damage, int kick,
 //
 // CreateMonster
 //
-/*inline*/ entity CreateMonster(vector origin, vector angles, string cclassname)
+INLINE entity CreateMonster(vector origin, vector angles, string cclassname)
 {
 	entity newEnt = G_Spawn();
 
@@ -69,7 +69,7 @@ void(entity self, vector start, vector dir, vector offset, int damage, int kick,
 	return newEnt;
 }
 
-static /*inline*/ void DetermineBBox (string cclassname, vector *cmins, vector *cmaxs)
+static INLINE void DetermineBBox (string cclassname, vector *cmins, vector *cmaxs)
 {
 	entity newEnt = G_Spawn();
 

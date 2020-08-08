@@ -123,7 +123,7 @@ void(entity self) monster_dabeam =
 		last_movedir = self.movedir;
 		point = self.enemy.absmin + (self.enemy.size * 0.5);
 		if (self.owner.monsterinfo.aiflags & AI_MEDIC)
-			point[0] += sinf (level.time) * 8;
+			point[0] += sin(level.time) * 8;
 		self.movedir = point - self.s.origin;
 		VectorNormalize (self.movedir);
 		if (self.movedir != last_movedir)

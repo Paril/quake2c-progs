@@ -9,7 +9,7 @@ static int	sound_punch_hit1;
 static int	sound_punch_hit2;
 static int	sound_idle;
 
-/*inline*/ bool(entity ent) STALKER_ON_CEILING =
+INLINE bool(entity ent) STALKER_ON_CEILING =
 {
 	return ent.gravityVector[2] > 0;
 }
@@ -71,7 +71,7 @@ static bool(entity self) stalker_ok_to_transition =
 	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 		return false;
 
-	if(fabsf(end_height + margin - trace.endpos[2]) > 8)
+	if(fabs(end_height + margin - trace.endpos[2]) > 8)
 		return false;
 
 	pt[0] = self.absmax[0];
@@ -82,7 +82,7 @@ static bool(entity self) stalker_ok_to_transition =
 	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 		return false;
 
-	if(fabsf(end_height + margin - trace.endpos[2]) > 8)
+	if(fabs(end_height + margin - trace.endpos[2]) > 8)
 		return false;
 
 	pt[0] = self.absmax[0];
@@ -93,7 +93,7 @@ static bool(entity self) stalker_ok_to_transition =
 	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 		return false;
 
-	if(fabsf(end_height + margin - trace.endpos[2]) > 8)
+	if(fabs(end_height + margin - trace.endpos[2]) > 8)
 		return false;
 
 	pt[0] = self.absmin[0];
@@ -104,7 +104,7 @@ static bool(entity self) stalker_ok_to_transition =
 	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 		return false;
 
-	if(fabsf(end_height + margin - trace.endpos[2]) > 8)
+	if(fabs(end_height + margin - trace.endpos[2]) > 8)
 		return false;
 
 	return true;
@@ -571,25 +571,25 @@ static vector(vector start, vector end, float velocity) calcJumpAngle =
 	vector	angles;
 
 	dist = end - start;
-	distH = sqrtf(dist[0]*dist[0] + dist[1]*dist[1]);
+	distH = sqrt(dist[0]*dist[0] + dist[1]*dist[1]);
 	distV = dist[2];
 	if(distV < 0)
 		distV = 0 - distV;
 
 	if(distV)
 	{
-		l = sqrtf(distH*distH + distV*distV);
-		U = atanf(distV / distH);
+		l = sqrt(distH*distH + distV*distV);
+		U = atan(distV / distH);
 		if(dist[2] > 0)
 			U = 0.0f - U;
 
 		angles[2] = 0.0f;
 
-		cosU = cosf(U);
+		cosU = cos(U);
 		one = l * FAUX_GRAVITY * (cosU * cosU);
 		one = one / (velocity * velocity);
-		one = one - sinf(U);
-		angles[0] = asinf(one);
+		one = one - sin(U);
+		angles[0] = asin(one);
 		if(isnan(angles[0]))
 			angles[2] = 1.0;
 		angles[1] = M_PI - angles[0];
@@ -601,13 +601,13 @@ static vector(vector start, vector end, float velocity) calcJumpAngle =
 	}
 	else
 	{
-		l = sqrtf(distH*distH + distV*distV);
+		l = sqrt(distH*distH + distV*distV);
 
 		angles[2] = 0.0f;
 
 		one = l * FAUX_GRAVITY;
 		one = one / (velocity * velocity);
-		angles[0] = asinf(one);
+		angles[0] = asin(one);
 		if(isnan(angles[0]))
 			angles[2] = 1.0;
 		angles[1] = M_PI - angles[0];
@@ -682,7 +682,7 @@ static bool(entity self, vector dest) stalker_do_pounce =
 	
 	// make sure we're pointing in that direction 15deg margin of error.
 	jumpAngles = vectoangles (dist);
-	if (fabsf(jumpAngles[YAW] - self.s.angles[YAW]) > 45)
+	if (fabs(jumpAngles[YAW] - self.s.angles[YAW]) > 45)
 		return false;			// not facing the player...
 
 	self.ideal_yaw = jumpAngles[YAW];
@@ -724,8 +724,8 @@ static bool(entity self, vector dest) stalker_do_pounce =
 		AngleVectors (self.s.angles, &forward, &right, 0);
 		VectorNormalize(forward) ;
 
-		self.velocity = forward * (cvelocity * cosf(DEG2RAD(jumpAngles[0])));
-		self.velocity[2] = cvelocity * sinf(DEG2RAD(jumpAngles[0])) + (0.5 * sv_gravity.floatVal * FRAMETIME);
+		self.velocity = forward * (cvelocity * cos(DEG2RAD(jumpAngles[0])));
+		self.velocity[2] = cvelocity * sin(DEG2RAD(jumpAngles[0])) + (0.5 * sv_gravity.floatVal * FRAMETIME);
 
 		return true;
 	}
@@ -735,8 +735,8 @@ static bool(entity self, vector dest) stalker_do_pounce =
 		AngleVectors (self.s.angles, &forward, &right, 0);
 		VectorNormalize(forward) ;
 
-		self.velocity = forward * (cvelocity * cosf(DEG2RAD(jumpAngles[1])));
-		self.velocity[2] = cvelocity * sinf(DEG2RAD(jumpAngles[1])) + (0.5 * sv_gravity.floatVal * FRAMETIME);
+		self.velocity = forward * (cvelocity * cos(DEG2RAD(jumpAngles[1])));
+		self.velocity[2] = cvelocity * sin(DEG2RAD(jumpAngles[1])) + (0.5 * sv_gravity.floatVal * FRAMETIME);
 
 		return true;
 	}

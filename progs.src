@@ -2,6 +2,7 @@
 
 ext.qc
 math.qc
+random.qc
 debug.qc
 mem.qc
 vector.qc
@@ -12,6 +13,7 @@ game.qc
 globals.qc
 level.qc
 import.qc
+kmq2_import.qc
 itemlist.qc
 entity.qc
 utils.qc

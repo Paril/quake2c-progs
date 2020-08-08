@@ -338,7 +338,7 @@ static void PM_AddCurrents (__inout vector wishvel)
 	// account for ladders
 	//
 
-	if (pml.ladder && fabsf(pml.velocity[2]) <= 200)
+	if (pml.ladder && fabs(pml.velocity[2]) <= 200)
 	{
 		if ((pm->viewangles[PITCH] <= -15) && (pm->cmd.forwardmove > 0))
 			wishvel[2] = 200f;

@@ -824,7 +824,7 @@ static void medic_cable_attack(entity self)
 	angles = vectoangles(dir);
 	if (angles[0] < -180)
 		angles[0] += 360;
-	if (fabsf(angles[0]) > 45)
+	if (fabs(angles[0]) > 45)
 		return;
 #endif
 
@@ -1180,7 +1180,7 @@ static void medic_spawngrows (entity self)
 	if (self.monsterinfo.aiflags & AI_MANUAL_STEERING)
 	{
 		current_yaw = anglemod(self.s.angles[YAW]);
-		if (fabsf(current_yaw - self.ideal_yaw) > 0.1)
+		if (fabs(current_yaw - self.ideal_yaw) > 0.1)
 		{
 			self.monsterinfo.aiflags |= AI_HOLD_FRAME;
 			return;

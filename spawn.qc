@@ -65,7 +65,7 @@ static bool(string key, string value) ED_ParseSpawnTemp =
 	return struct_key_parse("st", key, value);
 };
 
-static /*inline*/ void() ClearSpawnTemp =
+static INLINE void() ClearSpawnTemp =
 {
 	memclear(&st, sizeof(st));
 }

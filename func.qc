@@ -75,7 +75,7 @@ static void(entity ent) Move_Begin =
 		return;
 	}
 	ent.velocity = ent.moveinfo.dir * ent.moveinfo.speed;
-	frames = floorf((ent.moveinfo.remaining_distance / ent.moveinfo.speed) / FRAMETIME);
+	frames = floor((ent.moveinfo.remaining_distance / ent.moveinfo.speed) / FRAMETIME);
 	ent.moveinfo.remaining_distance -= frames * ent.moveinfo.speed * FRAMETIME;
 	ent.nextthink = level.framenum + (int)frames;
 	ent.think = Move_Final;
@@ -174,7 +174,7 @@ static void(entity ent) AngleMove_Begin =
 		return;
 	}
 
-	frames = floorf(traveltime / FRAMETIME);
+	frames = floor(traveltime / FRAMETIME);
 
 	// scale the destdelta vector by the time spent traveling to get velocity
 	ent.avelocity = destdelta * (1.0f / traveltime);
@@ -247,7 +247,7 @@ static void(entity ent) plat_CalcAcceleratedMove =
 		float   f;
 
 		f = (ent.moveinfo.accel + ent.moveinfo.decel) / (ent.moveinfo.accel * ent.moveinfo.decel);
-		ent.moveinfo.move_speed = (-2 + sqrtf(4 - 4 * f * (-2 * ent.moveinfo.remaining_distance))) / (2 * f);
+		ent.moveinfo.move_speed = (-2 + sqrt(4 - 4 * f * (-2 * ent.moveinfo.remaining_distance))) / (2 * f);
 		decel_dist = AccelerationDistance(ent.moveinfo.move_speed, ent.moveinfo.decel);
 	}
 
@@ -871,9 +871,9 @@ API_FUNC static void(entity ent) SP_func_button =
 		st.lip = 4;
 
 	ent.pos1 = ent.s.origin;
-	abs_movedir.x = fabsf(ent.movedir.x);
-	abs_movedir.y = fabsf(ent.movedir.y);
-	abs_movedir.z = fabsf(ent.movedir.z);
+	abs_movedir.x = fabs(ent.movedir.x);
+	abs_movedir.y = fabs(ent.movedir.y);
+	abs_movedir.z = fabs(ent.movedir.z);
 	dist = abs_movedir.x * ent.size.x + abs_movedir.y * ent.size.y + abs_movedir.z * ent.size.z - st.lip;
 	ent.pos2 = ent.pos1 + (dist * ent.movedir);
 
@@ -1179,9 +1179,9 @@ static void(entity self) Think_CalcMoveSpeed =
 		return;     // only the team master does this
 
 	// find the smallest distance any member of the team will be moving
-	min = fabsf(self.moveinfo.distance);
+	min = fabs(self.moveinfo.distance);
 	for (ent = self.teamchain; ent; ent = ent.teamchain) {
-		dist = fabsf(ent.moveinfo.distance);
+		dist = fabs(ent.moveinfo.distance);
 		if (dist < min)
 			min = dist;
 	}
@@ -1190,7 +1190,7 @@ static void(entity self) Think_CalcMoveSpeed =
 
 	// adjust speeds so they will all complete at the same time
 	for (ent = self; ent; ent = ent.teamchain) {
-		newspeed = fabsf(ent.moveinfo.distance) / time;
+		newspeed = fabs(ent.moveinfo.distance) / time;
 		ratio = newspeed / ent.moveinfo.speed;
 		if (ent.moveinfo.accel == ent.moveinfo.speed)
 			ent.moveinfo.accel = newspeed;
@@ -1334,9 +1334,9 @@ API_FUNC static void(entity ent) SP_func_door =
 
 	// calculate second position
 	ent.pos1 = ent.s.origin;
-	abs_movedir.x = fabsf(ent.movedir.x);
-	abs_movedir.y = fabsf(ent.movedir.y);
-	abs_movedir.z = fabsf(ent.movedir.z);
+	abs_movedir.x = fabs(ent.movedir.x);
+	abs_movedir.y = fabs(ent.movedir.y);
+	abs_movedir.z = fabs(ent.movedir.z);
 	ent.moveinfo.distance = abs_movedir.x * ent.size.x + abs_movedir.y * ent.size.y + abs_movedir.z * ent.size.z - st.lip;
 	ent.pos2 = ent.pos1 + (ent.moveinfo.distance * ent.movedir);
 
@@ -1602,9 +1602,9 @@ API_FUNC static void(entity self) SP_func_water =
 
 	// calculate second position
 	self.pos1 = self.s.origin;
-	abs_movedir.x = fabsf(self.movedir.x);
-	abs_movedir.y = fabsf(self.movedir.y);
-	abs_movedir.z = fabsf(self.movedir.z);
+	abs_movedir.x = fabs(self.movedir.x);
+	abs_movedir.y = fabs(self.movedir.y);
+	abs_movedir.z = fabs(self.movedir.z);
 	self.moveinfo.distance = abs_movedir.x * self.size.x + abs_movedir.y * self.size.y + abs_movedir.z * self.size.z - st.lip;
 	self.pos2 = self.pos1 + (self.moveinfo.distance * self.movedir);
 
@@ -2229,10 +2229,10 @@ API_FUNC static void(entity ent) SP_func_door_secret =
 	ent.s.angles = vec3_origin;
 	side = 1.0f - (ent.spawnflags & SECRET_1ST_LEFT);
 	if (ent.spawnflags & SECRET_1ST_DOWN)
-		width = fabsf(up * ent.size);
+		width = fabs(up * ent.size);
 	else
-		width = fabsf(right * ent.size);
-	length = fabsf(forward * ent.size);
+		width = fabs(right * ent.size);
+	length = fabs(forward * ent.size);
 	if (ent.spawnflags & SECRET_1ST_DOWN)
 		ent.pos1 = ent.s.origin + ((-1 * width) * up);
 	else

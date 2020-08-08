@@ -1051,9 +1051,9 @@ PROGS_LOCAL_STATIC void(entity ent) Weapon_HyperBlaster_Fire =
 			NoAmmoWeaponChange(ent);
 		} else {
 			rotation = (ent.client.ps.gunframe - 5) * (M_PI / 3);
-			offset.x = -4f * sinf(rotation);
+			offset.x = -4f * sin(rotation);
 			offset.y = 0;
-			offset.z = 4f * cosf(rotation);
+			offset.z = 4f * cos(rotation);
 
 			if ((ent.client.ps.gunframe == 6) || (ent.client.ps.gunframe == 9))
 				effect = EF_HYPERBLASTER;

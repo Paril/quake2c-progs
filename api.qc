@@ -5,11 +5,18 @@ const int GAMEC_API_VERSION	= 1;
 // per-level limits
 //
 const int MAX_CLIENTS		= 256;	// absolute limit
-const int MAX_EDICTS		= 1024;	// must change protocol to increase more
 const int MAX_LIGHTSTYLES	= 256;
+#ifdef KMQUAKE2_EXTENSIONS
+const int MAX_EDICTS		= 8192;	// must change protocol to increase more
+const int MAX_MODELS		= 8192;	// these are sent over the net as bytes
+const int MAX_SOUNDS		= 8192;	// so they cannot be blindly increased
+const int MAX_IMAGES		= 2048;
+#else
+const int MAX_EDICTS		= 1024;	// must change protocol to increase more
 const int MAX_MODELS		= 256;	// these are sent over the net as bytes
 const int MAX_SOUNDS		= 256;	// so they cannot be blindly increased
 const int MAX_IMAGES		= 256;
+#endif
 const int MAX_ITEMS		= 256;
 const int MAX_GENERAL		= (MAX_CLIENTS * 2); // general config strings
 

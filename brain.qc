@@ -409,7 +409,7 @@ static bool(vector start, vector end) brain_tounge_attack_ok =
 	angles = vectoangles (dir);
 	if (angles[0] < -180)
 		angles[0] += 360;
-	if (fabsf(angles[0]) > 30)
+	if (fabs(angles[0]) > 30)
 		return false;
 
 	return true;

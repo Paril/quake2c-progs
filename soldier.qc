@@ -1415,7 +1415,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 	else // (self.s.skinnum == 5)
 		gi.sound(self, CHAN_VOICE, sound_death_ss, 1, ATTN_NORM, 0);
 
-	if (fabsf((self.s.origin[2] + self.viewheight) - point[2]) <= 4) {
+	if (fabs((self.s.origin[2] + self.viewheight) - point[2]) <= 4) {
 		// head shot
 		self.monsterinfo.currentmove = &soldier_move_death3;
 		return;

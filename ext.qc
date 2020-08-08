@@ -6,6 +6,15 @@
 #pragma warning disable F306
 #pragma target fte_9999
 
+#define INLINE /*inline*/
+
+// not strictly math, but...
+typedef enum : int
+{
+	false,
+	true
+} bool;
+
 int(int, int) ModInt = #0;
 
 __variant(string) func_get = #0;
@@ -19,3 +28,20 @@ __variant(string) func_get = #0;
 // define for mission pack support
 #define GROUND_ZERO
 #define THE_RECKONING
+
+// if you want to make a mod using *optional* KMQuake2-specific features, enable this.
+#define KMQUAKE2_SUPPORT
+
+// if you want to make a mod that uses *non-compatible* KMQuake2-specific features, enable this.
+// Note that your progs will not work with other engines! 
+//#define KMQUAKE2_EXTENSIONS
+
+#ifdef KMQUAKE2_EXTENSIONS
+// signals to the engine that this progs is kmq2-specific
+API_FUNC bool __ext_kmq2 = true;
+#endif
+
+// if you want to use your own PMove function or you're
+// using an engine that needs custom PMove, you can
+// uncomment this and edit pmove.qc
+//#define QUAKEC_PMOVE

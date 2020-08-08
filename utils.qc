@@ -1,4 +1,4 @@
-/*inline*/ vector G_ProjectSource(vector point, vector distance, vector forward, vector right)
+INLINE vector G_ProjectSource(vector point, vector distance, vector forward, vector right)
 {
 	return point + (forward * distance.x) + (right * distance.y) + [ 0, 0, distance.z ];
 }

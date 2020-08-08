@@ -490,8 +490,8 @@ static bool(entity ent, float yaw, float dist) SV_StepDirection =
 	M_ChangeYaw(ent);
 
 	yaw = DEG2RAD(yaw);
-	move.x = cosf(yaw) * dist;
-	move.y = sinf(yaw) * dist;
+	move.x = cos(yaw) * dist;
+	move.y = sin(yaw) * dist;
 	move.z = 0;
 
 	oldorigin = ent.s.origin;
@@ -584,7 +584,7 @@ void(entity actor, entity enemy, float dist) SV_NewChaseDir =
 	}
 
 // try other directions
-	if (((Q_rand() & 3) & 1) || fabsf(deltay) > fabsf(deltax)) {
+	if (((Q_rand() & 3) & 1) || fabs(deltay) > fabs(deltax)) {
 		tdir = d.y;
 		d.y = d.z;
 		d.z = tdir;
@@ -708,8 +708,8 @@ bool(entity ent, float yaw, float dist) M_walkmove =
 		return false;
 
 	yaw = DEG2RAD(yaw);
-	move.x = cosf(yaw) * dist;
-	move.y = sinf(yaw) * dist;
+	move.x = cos(yaw) * dist;
+	move.y = sin(yaw) * dist;
 	move.z = 0;
 
 #ifdef GROUND_ZERO

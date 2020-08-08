@@ -170,7 +170,7 @@ static float(vector angles, vector velocity) SV_CalcRoll =
 
 	side = velocity * right;
 	sign = side < 0f ? -1f : 1f;
-	side = fabsf(side);
+	side = fabs(side);
 
 	value = sv_rollangle.floatVal;
 
@@ -351,7 +351,7 @@ static void(entity player) P_DamageFeedback =
 	//
 	// calculate view angle kicks
 	//
-	kick = fabsf(player.client.damage_knockback);
+	kick = fabs(player.client.damage_knockback);
 	if (kick && player.health > 0) { // kick of 0 means no view adjust at all
 		kick = kick * 100 / player.health;
 
@@ -979,7 +979,7 @@ void(entity ent) ClientEndServerFrame =
 	// calculate speed and cycle to be used for
 	// all cyclic walking effects
 	//
-	xyspeed = sqrtf(ent.velocity.x * ent.velocity.x + ent.velocity.y * ent.velocity.y);
+	xyspeed = sqrt(ent.velocity.x * ent.velocity.x + ent.velocity.y * ent.velocity.y);
 
 	if (xyspeed < 5) {
 		bobmove = 0;
@@ -1000,7 +1000,7 @@ void(entity ent) ClientEndServerFrame =
 		bobtime *= 4;
 
 	bobcycle = (int)bobtime;
-	bobfracsin = fabsf(sinf(bobtime * M_PI));
+	bobfracsin = fabs(sin(bobtime * M_PI));
 
 	// detect hitting the floor
 	P_FallingDamage(ent);

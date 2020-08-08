@@ -253,7 +253,7 @@ bool parasite_drain_attack_ok(vector start, vector end)
 	angles = vectoangles(dir);
 	if (angles.x < -180)
 		angles.x += 360;
-	if (fabsf(angles.x) > 30)
+	if (fabs(angles.x) > 30)
 		return false;
 
 	return true;

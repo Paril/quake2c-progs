@@ -698,7 +698,7 @@ static void(entity self) bfg_explode =
 			v = ent.s.origin + (0.5f * v);
 			v = self.s.origin - v;
 			dist = VectorLength(v);
-			points = self.radius_dmg * (1.0f - sqrtf(dist / self.dmg_radius));
+			points = self.radius_dmg * (1.0f - sqrt(dist / self.dmg_radius));
 			if (ent == self.owner)
 				points *= 0.5f;
 

@@ -1,6 +1,6 @@
 #ifdef GROUND_ZERO
 
-/*inline*/ float(entity self, entity other) realrange =
+INLINE float(entity self, entity other) realrange =
 {
 	return VectorLength(self.s.origin - other.s.origin);
 }
@@ -1325,12 +1325,12 @@ int CountPlayers (void)
 // JUMPING AIDS
 //*******************
 
-/*inline*/ void(entity self) monster_jump_start =
+INLINE void(entity self) monster_jump_start =
 {
 	self.timestamp = level.framenum;
 }
 
-/*inline*/ bool(entity self) monster_jump_finished =
+INLINE bool(entity self) monster_jump_finished =
 {
 	return (level.framenum - self.timestamp) > (3 * BASE_FRAMERATE);
 }

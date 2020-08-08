@@ -401,7 +401,7 @@ static void carrier_ready_spawn (entity self)
 
 	current_yaw = anglemod(self.s.angles[YAW]);
 
-	if (fabsf(current_yaw - self.ideal_yaw) > 0.1)
+	if (fabs(current_yaw - self.ideal_yaw) > 0.1)
 	{
 		self.monsterinfo.aiflags |= AI_HOLD_FRAME;
 		self.timestamp += 1;

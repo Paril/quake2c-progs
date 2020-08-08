@@ -380,7 +380,7 @@ static bool widow2_tongue_attack_ok (vector start, vector end, float range)
 	angles = vectoangles (dir);
 	if (angles[0] < -180)
 		angles[0] += 360;
-	if (fabsf(angles[0]) > 30)
+	if (fabs(angles[0]) > 30)
 		return false;
 
 	return true;

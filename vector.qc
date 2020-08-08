@@ -2,17 +2,17 @@ const vector vec3_origin = '0 0 0';
 
 enum : int { PITCH, YAW, ROLL };
 
-/*inline*/ float VectorLengthSquared(vector v)
+INLINE float VectorLengthSquared(vector v)
 {
 	return v * v;
 }
 
-/*inline*/ float VectorLength(vector v)
+INLINE float VectorLength(vector v)
 {
-	return sqrtf(VectorLengthSquared(v));
+	return sqrt(VectorLengthSquared(v));
 }
 
-/*inline*/ float VectorNormalize(__inout vector v)
+INLINE float VectorNormalize(__inout vector v)
 {
 	float length = VectorLength(v);
 	
@@ -56,11 +56,11 @@ void(vector angles, vector *forward, vector *right, vector *up) AngleVectors =
 	float	sp, sy, cp, cy;
 
 	angle = DEG2RAD(angles[YAW]);
-	sy = sinf(angle);
-	cy = cosf(angle);
+	sy = sin(angle);
+	cy = cos(angle);
 	angle = DEG2RAD(angles[PITCH]);
-	sp = sinf(angle);
-	cp = cosf(angle);
+	sp = sin(angle);
+	cp = cos(angle);
 
 	if (forward)
 		*forward = [ cp * cy, cp * sy, -sp ];
@@ -68,8 +68,8 @@ void(vector angles, vector *forward, vector *right, vector *up) AngleVectors =
 	if (right || up)
 	{
 		angle = DEG2RAD(angles[ROLL]);
-		float sr = sinf(angle);
-		float cr = cosf(angle);
+		float sr = sin(angle);
+		float cr = cos(angle);
 
 		if (right)
 			*right = [
@@ -102,7 +102,7 @@ vector vectoangles(vector value1)
 	{
 		if (value1[0])
 		{
-			yaw = RAD2DEG(atan2f(value1[1], value1[0]));
+			yaw = RAD2DEG(atan2(value1[1], value1[0]));
 
 			if (yaw < 0)
 				yaw += 360;
@@ -112,8 +112,8 @@ vector vectoangles(vector value1)
 		else
 			yaw = 270f;
 
-		const float forward = sqrtf(value1[0]*value1[0] + value1[1]*value1[1]);
-		pitch = RAD2DEG(atan2f(value1[2], forward));
+		const float forward = sqrt(value1[0]*value1[0] + value1[1]*value1[1]);
+		pitch = RAD2DEG(atan2(value1[2], forward));
 		if (pitch < 0)
 			pitch += 360;
 	}
@@ -132,7 +132,7 @@ float(vector vec) vectoyaw =
 		else if (vec.y < 0)
 			yaw = -90f;
 	} else {
-		yaw = RAD2DEG(atan2f(vec.y, vec.x));
+		yaw = RAD2DEG(atan2(vec.y, vec.x));
 		if (yaw < 0)
 			yaw += 360f;
 	}
@@ -140,7 +140,7 @@ float(vector vec) vectoyaw =
 	return yaw;
 }
 
-/*inline*/ vector(vector v1, vector v2) CrossProduct =
+INLINE vector(vector v1, vector v2) CrossProduct =
 {
 	return [	v1[1] * v2[2] - v1[2] * v2[1],
 			v1[2] * v2[0] - v1[0] * v2[2],
@@ -185,12 +185,12 @@ vector(vector src) PerpendicularVector =
 	/*
 	** find the smallest magnitude axially aligned vector
 	*/
-	for ( pos = 0, i = 0; i < 3; i++ )
+	for (pos = 0, i = 0; i < 3; i++)
 	{
-		if ( fabsf( src[i] ) < minelem )
+		if (fabs(src[i]) < minelem)
 		{
 			pos = i;
-			minelem = fabsf( src[i] );
+			minelem = fabs(src[i]);
 		}
 	}
 	tempvec[pos] = 1.0f;
@@ -274,10 +274,10 @@ vector(vector dir, vector point, float degrees) RotatePointAroundVector =
 
 	zrot[0][0] = zrot[1][1] = zrot[2][2] = 1.0f;
 
-	zrot[0][0] = cosf( DEG2RAD( degrees ) );
-	zrot[0][1] = sinf( DEG2RAD( degrees ) );
-	zrot[1][0] = -sinf( DEG2RAD( degrees ) );
-	zrot[1][1] = cosf( DEG2RAD( degrees ) );
+	zrot[0][0] = cos( DEG2RAD( degrees ) );
+	zrot[0][1] = sin( DEG2RAD( degrees ) );
+	zrot[1][0] = -sin( DEG2RAD( degrees ) );
+	zrot[1][1] = cos( DEG2RAD( degrees ) );
 
 	R_ConcatRotations( m, zrot, tmpmat );
 	R_ConcatRotations( tmpmat, im, rot );

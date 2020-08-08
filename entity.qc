@@ -49,12 +49,22 @@ struct entity_state_t
 	int			modelindex2;
 	int			modelindex3;
 	int			modelindex4;
+#ifdef KMQUAKE2_EXTENSIONS
+	int			modelindex5;
+	int			modelindex6;
+#endif
 	int			frame;
 	int			skinnum;
+#ifdef KMQUAKE2_EXTENSIONS
+	float			alpha;
+#endif
 	entity_effects_t	effects;
 	render_effects_t	renderfx;
 	int			solid;
 	int			sound;
+#ifdef KMQUAKE2_EXTENSIONS
+	float			attenuation;
+#endif
 	entity_event_t		event;
 };
 
@@ -468,12 +478,12 @@ struct monsterinfo_t
 const float DUCK_INTERVAL	= 0.5;
 
 // this is for the count of monsters
-/*inline*/ int(entity ent) ENT_SLOTS_LEFT =
+INLINE int(entity ent) ENT_SLOTS_LEFT =
 {
 	return (ent.monsterinfo.monster_slots - ent.monsterinfo.monster_used);
 };
 
-/*inline*/ int(entity self) SELF_SLOTS_LEFT =
+INLINE int(entity self) SELF_SLOTS_LEFT =
 {
 	return (self.monsterinfo.monster_slots - self.monsterinfo.monster_used);
 };
@@ -520,7 +530,11 @@ typedef enum : int
 	STAT_SPECTATOR,
 	// Bits from here to 31 are free for mods
 
+#ifdef KMQUAKE2_EXTENSIONS
+	MAX_STATS	= (int)256
+#else
 	MAX_STATS	= (int)32
+#endif
 } player_stat_t;
 
 struct player_state_t
@@ -535,6 +549,20 @@ struct player_state_t
 	vector	gunoffset;
 	int	gunindex;
 	int	gunframe;
+
+#ifdef KMQUAKE2_EXTENSIONS
+	int	gunskin;		// for animated weapon skins
+	int	gunindex2;		// for a second weapon model (boot)
+	int	gunframe2;
+	int	gunskin2;
+
+	// server-side speed control!
+	int	maxspeed;
+	int	duckspeed;
+	int	waterspeed;
+	int	accel;
+	int	stopspeed;
+#endif
 	
 	float	blend[4];
 	
