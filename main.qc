@@ -459,6 +459,15 @@ API_FUNC void() Test =
 // ya do it.
 API_FUNC void(__out game_export_t exports) GetGameAPI =
 {
+	// set up constants for configstrings
+	CS_SOUNDS		= CS_MODELS + MAX_MODELS;
+	CS_IMAGES		= CS_SOUNDS + MAX_SOUNDS;
+	CS_LIGHTS		= CS_IMAGES + MAX_IMAGES;
+	CS_ITEMS		= CS_LIGHTS + MAX_LIGHTSTYLES;
+	CS_PLAYERSKINS		= CS_ITEMS + MAX_ITEMS;
+	CS_GENERAL		= CS_PLAYERSKINS + MAX_CLIENTS;
+	MAX_CONFIGSTRINGS	= CS_GENERAL + MAX_GENERAL;
+	
 	exports.apiversion = GAMEC_API_VERSION;
 	exports.clientsize = sizeof(gclient_t);
 

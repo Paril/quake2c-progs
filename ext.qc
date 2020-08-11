@@ -15,6 +15,13 @@ typedef enum : int
 	true
 } bool;
 
+typedef enum : vector { null_pointer = [ 0, 0, 0 ] } pointer;
+
+inline bool handle_empty(__variant p)
+{
+	return (pointer)p == null_pointer;
+}
+
 int(int, int) ModInt = #0;
 
 __variant(string) func_get = #0;
@@ -33,13 +40,8 @@ __variant(string) func_get = #0;
 #define KMQUAKE2_SUPPORT
 
 // if you want to make a mod that uses *non-compatible* KMQuake2-specific features, enable this.
-// Note that your progs will not work with other engines! 
-//#define KMQUAKE2_EXTENSIONS
-
-#ifdef KMQUAKE2_EXTENSIONS
-// signals to the engine that this progs is kmq2-specific
-API_FUNC bool __ext_kmq2 = true;
-#endif
+// Note that these features will not work with other engines
+#define KMQUAKE2_EXTENSIONS
 
 // if you want to use your own PMove function or you're
 // using an engine that needs custom PMove, you can

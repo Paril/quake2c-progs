@@ -92,9 +92,9 @@ const float M_SQRT1_2	= 0.707106781186547524401;
 
 // float constants
 // these are set by the QCVM
-API_FUNC const var float FLT_MAX;
-API_FUNC const var float FLT_EPSILON;
-API_FUNC const var float FLT_MIN;
+API_FUNC var float FLT_MAX;
+API_FUNC var float FLT_EPSILON;
+API_FUNC var float FLT_MIN;
 
 // limits
 const int INT_MIN	= -2147483648;

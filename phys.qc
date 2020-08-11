@@ -316,7 +316,7 @@ retry:
 		G_TouchTriggers(ent);
 }
 
-PROGS_LOCAL_STATIC entity		obstacle;
+PROGS_LOCAL_STATIC entity	obstacle;
 PROGS_LOCAL_STATIC entity_set_t	pushed_list;
 
 /*
@@ -391,7 +391,7 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 			|| check.movetype == MOVETYPE_NOCLIP)
 			continue;
 
-		if (!check.area.prev)
+		if (!gi.entitylinked(check))
 			continue;       // not linked in anywhere
 
 		// if the entity is standing on the pusher, it will definitely be moved
@@ -515,7 +515,7 @@ static void(entity ent) SV_Physics_Pusher =
 	// make sure all team slaves can move before commiting
 	// any moves or calling any think functions
 	// if the move is blocked, all moved objects will be backed out
-	if (!pushed_list)
+	if (handle_empty(pushed_list))
 		pushed_list = entity_set_alloc(16);
 	else
 		entity_set_clear(pushed_list);

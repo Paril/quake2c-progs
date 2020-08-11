@@ -1,10 +1,11 @@
-accessor cvar_t : int;
-accessor entity_set_t : int;
+accessor cvar_t : pointer;
+accessor entity_set_t : pointer;
 
 PROGS_LOCAL var struct {
 	// QC-specific imports
 	void(int)	SetNumEdicts;
 	void(entity)	ClearEntity;
+	bool(entity)	entitylinked;
 
 	// Quake II game imports
 	void(print_level_t, string fmt, ...) bprintf;
@@ -63,6 +64,7 @@ PROGS_LOCAL var struct {
 } gi = {
 	#0:SetNumEdicts,
 	#0:ClearEntity,
+	#0:entitylinked,
 
 	#0:bprintf,
 	#0:dprintf,

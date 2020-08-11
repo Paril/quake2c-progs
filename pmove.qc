@@ -1051,7 +1051,7 @@ Can be called by either the server or the client
 */
 static void Pmove_ (pmove_t *pmove)
 {
-	if (!pm_entity_list)
+	if (handle_empty(pm_entity_list))
 		pm_entity_list = entity_set_alloc(16);
 	else
 		entity_set_clear(pm_entity_list);

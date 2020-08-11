@@ -12,7 +12,6 @@ the matching string at fieldofs (use the FOFS() macro) in the structure.
 
 Searches beginning at the edict after from, or the beginning if NULL
 NULL will be returned if the end of the list is reached.
-
 =============
 */
 entity(entity from, .string fieldofs, string match) G_Find =
@@ -20,19 +19,17 @@ entity(entity from, .string fieldofs, string match) G_Find =
 	string str;
 
 	if (from == null_entity)
-		from = world;
+		from = itoe(game.maxclients + 1);
 	else
 		from = next_ent(from);
 
 	for (; etoi(from) < globals.num_edicts; from = next_ent(from))
 	{
-		if (!from.inuse)
-			continue;
 		str = from.fieldofs;
-		if (!str)
+		if (stricmp(str, match))
 			continue;
-		if (!stricmp(str, match))
-			return from;
+
+		return from;
 	}
 
 	return null_entity;
@@ -356,7 +353,7 @@ void(entity ent) G_TouchTriggers =
 
 	static entity_set_t touches;
 	
-	if (!touches)
+	if (handle_empty(touches))
 		touches = entity_set_alloc(32);
 
 	gi.BoxEdicts(touches, ent.absmin, ent.absmax, MAX_EDICTS, AREA_TRIGGERS);

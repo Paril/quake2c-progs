@@ -6,17 +6,11 @@ const int GAMEC_API_VERSION	= 1;
 //
 const int MAX_CLIENTS		= 256;	// absolute limit
 const int MAX_LIGHTSTYLES	= 256;
-#ifdef KMQUAKE2_EXTENSIONS
-const int MAX_EDICTS		= 8192;	// must change protocol to increase more
-const int MAX_MODELS		= 8192;	// these are sent over the net as bytes
-const int MAX_SOUNDS		= 8192;	// so they cannot be blindly increased
-const int MAX_IMAGES		= 2048;
-#else
-const int MAX_EDICTS		= 1024;	// must change protocol to increase more
-const int MAX_MODELS		= 256;	// these are sent over the net as bytes
-const int MAX_SOUNDS		= 256;	// so they cannot be blindly increased
-const int MAX_IMAGES		= 256;
-#endif
+// These may be set to larger values by other engines.
+API_FUNC var int MAX_EDICTS	= 1024;	// must change protocol to increase more
+API_FUNC var int MAX_MODELS	= 256;	// these are sent over the net as bytes
+API_FUNC var int MAX_SOUNDS	= 256;	// so they cannot be blindly increased
+API_FUNC var int MAX_IMAGES	= 256;
 const int MAX_ITEMS		= 256;
 const int MAX_GENERAL		= (MAX_CLIENTS * 2); // general config strings
 
@@ -436,7 +430,7 @@ typedef enum : float
 // the server to all connected clients.
 // Each config string can be at most MAX_QPATH characters.
 //
-typedef enum int
+typedef enum : int
 {
 	CS_NAME,
 	CS_CDTRACK,
@@ -449,15 +443,18 @@ typedef enum int
 	CS_MAXCLIENTS,
 	CS_MAPCHECKSUM,			// for catching cheater maps
 	
-	CS_MODELS,
-	CS_SOUNDS		= CS_MODELS + MAX_MODELS,
-	CS_IMAGES		= CS_SOUNDS + MAX_SOUNDS,
-	CS_LIGHTS		= CS_IMAGES + MAX_IMAGES,
-	CS_ITEMS		= CS_LIGHTS + MAX_LIGHTSTYLES,
-	CS_PLAYERSKINS		= CS_ITEMS + MAX_ITEMS,
-	CS_GENERAL		= CS_PLAYERSKINS + MAX_CLIENTS,
-	MAX_CONFIGSTRINGS	= CS_GENERAL + MAX_GENERAL
+	CS_MODELS
 } config_string_t;
+
+// These are non-constant because some engines (KMQ2)
+// may support larger values.
+var config_string_t CS_SOUNDS;
+var config_string_t CS_IMAGES;
+var config_string_t CS_LIGHTS;
+var config_string_t CS_ITEMS;
+var config_string_t CS_PLAYERSKINS;
+var config_string_t CS_GENERAL;
+var config_string_t MAX_CONFIGSTRINGS;
 
 // Some mods actually exploit CS_STATUSBAR to take space up to CS_AIRACCEL
 int CS_SIZE(config_string_t cs)
@@ -487,7 +484,7 @@ typedef enumflags int
 	CVAR_LATCH		// save changes until server restart
 } cvar_flags_t;
 
-accessor cvar_t : int;
+accessor cvar_t : pointer;
 
 static string(cvar_t)		cvar_get_name = #0;
 
@@ -504,7 +501,7 @@ static float(cvar_t)		cvar_get_floatVal = #0;
 
 static int(cvar_t)		cvar_get_intVal = #0;
 
-accessor cvar_t : int
+accessor cvar_t : pointer
 {
 	get string name = cvar_get_name;
 	
@@ -600,7 +597,7 @@ typedef enum int
 	AREA_TRIGGERS	= 2
 } box_edicts_area_t;
 
-accessor entity_set_t : int;
+accessor entity_set_t : pointer;
 
 static entity(entity_set_t, int)		entity_set_get = #0;
 static int(entity_set_t)			entity_set_length = #0;
@@ -610,7 +607,7 @@ void(entity_set_t)			entity_set_clear = #0;
 void(entity_set_t)			entity_set_free = #0;
 entity_set_t(optional int reserve)	entity_set_alloc = #0;
 
-accessor entity_set_t : int
+accessor entity_set_t : pointer
 {
 	get entity[int] = entity_set_get;
 	get int length = entity_set_length;
@@ -625,13 +622,13 @@ struct cplane_t
 
 const cplane_t null_plane;
 
-accessor csurface_t : int;
+accessor csurface_t : pointer;
 
 static string(csurface_t)		csurface_get_name = #0;
 static surface_flags_t(csurface_t)	csurface_get_flags = #0;
 static int(csurface_t)			csurface_get_value = #0;
 
-accessor csurface_t : int
+accessor csurface_t : pointer
 {
 	get string name = csurface_get_name;
 	get surface_flags_t flags = csurface_get_flags;

@@ -959,7 +959,7 @@ entity(entity ent) CheckForBadArea =
 	
 	static entity_set_t entities;
 	
-	if (!entities)
+	if (handle_empty(entities))
 		entities = entity_set_alloc(32);
 
 	gi.BoxEdicts (entities, cmins, cmaxs, MAX_EDICTS, AREA_TRIGGERS);
@@ -969,13 +969,10 @@ entity(entity ent) CheckForBadArea =
 	for (i = 0; i < entities.length; i++)
 	{
 		hit = entities[i];
-		if (!hit.inuse)
+		if !(hit.inuse)
 			continue;
 		if (hit.touch == badarea_touch)
-		{
-			entity_set_free(entities);
 			return hit;
-		}
 	}
 
 	return 0;

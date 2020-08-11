@@ -840,7 +840,7 @@ static void(entity self) tesla_think_active =
 
 	static entity_set_t entities;
 	
-	if (!entities)
+	if (handle_empty(entities))
 		entities = entity_set_alloc(32);
 
 	gi.BoxEdicts(entities, self.teamchain.absmin, self.teamchain.absmax, MAX_EDICTS, AREA_SOLID);

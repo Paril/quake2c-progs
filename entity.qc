@@ -70,21 +70,11 @@ struct entity_state_t
 
 const int MAX_ENT_CLUSTERS = 16;
 
-// WARNING:
-// These members must be bit accurate!!!
+// Best not to touch most of these, as they are mapped into Q2's structures.
 .entity_state_t	s;
-.bool		is_client; // this is actually a ptr, managed by the engine
 .bool		inuse;
 .int		linkcount;
 
-.struct link_t
-{
-	int	prev, next;
-}		area;
-
-.int		num_clusters;
-.int		clusternums[MAX_ENT_CLUSTERS];
-.int		headnode;
 .int		areanum, areanum2;
 
 // edict.svflags
@@ -760,6 +750,7 @@ struct gclient_t
 };
 
 .gclient_t	client;
+.bool		is_client;	// read-only, set by the engine
 
 .struct
 {

@@ -15,9 +15,9 @@ const server_flags_t SFL_CROSS_TRIGGER_MASK	= 0x000000ff;
 
 API_FUNC struct game_locals_t
 {
-	string		helpmessage1;
-	string		helpmessage2;
-	int		helpchanged;	// flash F1 icon if non 0, play sound
+	string	helpmessage1;
+	string	helpmessage2;
+	int	helpchanged;	// flash F1 icon if non 0, play sound
 					// and increment only if 1, 2, or 3
 	
 	// can't store spawnpoint in level, because
@@ -34,8 +34,8 @@ API_FUNC struct game_locals_t
 	bool	autosaved;
 } game;
 
-entity(int) itoe = #0;
-int(entity) etoi = #0;
+#define itoe(num) ((entity)(__variant)(num))
+#define etoi(e) (e.s.number)
 
 #define next_ent(e) itoe(e.s.number + 1)
 

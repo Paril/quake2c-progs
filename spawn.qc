@@ -2,6 +2,7 @@ struct spawn_field_t
 {
 	string		key;
 	string		field;
+	bool		ignore;
 };
 
 API_FUNC static spawn_field_t spawn_fields[] =
@@ -29,14 +30,15 @@ API_FUNC static spawn_field_t spawn_fields[] =
 	{ "count" },
 	{ "health" },
 	{ "sounds" },
-	{ "light", (string)(__variant)-1 },
 	{ "dmg" },
 	{ "mass" },
 	{ "volume" },
 	{ "attenuation" },
 	{ "map" },
 	{ "origin", "s.origin" },
-	{ "angles", "s.angles" }
+	{ "angles", "s.angles" },
+	
+	{ "light", "", true },
 };
 
 API_FUNC static void(entity ent) SP_func_group = 
@@ -51,7 +53,7 @@ static bool(string key, string value, entity ent) ED_ParseField =
 		if (stricmp(spawn_fields[i].key, key))
 			continue;
 		
-		if (spawn_fields[i].field != (string)(__variant)-1)
+		if (!spawn_fields[i].ignore)
 			entity_key_parse(ent, spawn_fields[i].field ?: spawn_fields[i].key, value);
 
 		return true;
