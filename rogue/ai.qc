@@ -1,6 +1,6 @@
 #ifdef GROUND_ZERO
 
-INLINE float(entity self, entity other) realrange =
+inline float(entity self, entity other) realrange =
 {
 	return VectorLength(self.s.origin - other.s.origin);
 }
@@ -205,7 +205,7 @@ bool(entity self, float dist, float maxDown, float maxUp) blocked_checkjump =
 				if ((self.enemy.absmin[2] - trace.endpos[2]) > 32)
 					return false;
 
-				if(trace.plane.normal[2] < 0.9)
+				if(trace.normal[2] < 0.9)
 					return false;
 
 				return true;
@@ -676,7 +676,7 @@ bool(entity self) monsterlost_checkhint =
 // =============
 // hint_path_touch - someone's touched the hint_path
 // =============
-static void(entity self, entity other, cplane_t plane, csurface_t surf) hint_path_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) hint_path_touch =
 {
 	entity	e, goal, next = 0;
 	bool	goalFound = false;
@@ -893,7 +893,7 @@ bool(entity self) face_wall =
 	gi.trace(&tr, self.s.origin, vec3_origin, vec3_origin, pt, self, MASK_MONSTERSOLID);
 	if(tr.fraction < 1 && !tr.allsolid && !tr.startsolid)
 	{
-		ang = vectoangles(tr.plane.normal);
+		ang = vectoangles(tr.normal);
 		self.ideal_yaw = ang[YAW] + 180f;
 		if(self.ideal_yaw > 360)
 			self.ideal_yaw -= 360;
@@ -908,7 +908,7 @@ bool(entity self) face_wall =
 //
 // Monster "Bad" Areas
 // 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) badarea_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) badarea_touch =
 {
 };
 
@@ -1327,7 +1327,7 @@ INLINE void(entity self) monster_jump_start =
 	self.timestamp = level.framenum;
 }
 
-INLINE bool(entity self) monster_jump_finished =
+inline bool(entity self) monster_jump_finished =
 {
 	return (level.framenum - self.timestamp) > (3 * BASE_FRAMERATE);
 }

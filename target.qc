@@ -152,7 +152,7 @@ API_FUNC static void(entity ent) SP_target_secret =
 	ent.svflags = SVF_NOCLIENT;
 	level.total_secrets++;
 	// map bug hack
-	if (!stricmp(level.mapname, "mine3") && ent.s.origin[0] == 280 && ent.s.origin[1] == -2048 && ent.s.origin[2] == -624)
+	if (striequals(level.mapname, "mine3") && ent.s.origin[0] == 280 && ent.s.origin[1] == -2048 && ent.s.origin[2] == -624)
 		ent.message = "You have found a secret area.";
 }
 
@@ -280,7 +280,7 @@ API_FUNC static void(entity ent) SP_target_changelevel =
 	}
 
 	// ugly hack because *SOMEBODY* screwed up their map
-	if ((stricmp(level.mapname, "fact1") == 0) && (stricmp(ent.map, "fact3") == 0))
+	if (striequals(level.mapname, "fact1") && striequals(ent.map, "fact3"))
 		ent.map = "fact3$secret1";
 
 	ent.use = use_target_changelevel;
@@ -530,7 +530,7 @@ void(entity self) target_laser_think =
 				gi.WriteByte(TE_LASER_SPARKS);
 				gi.WriteByte(count);
 				gi.WritePosition(tr.endpos);
-				gi.WriteDir(tr.plane.normal);
+				gi.WriteDir(tr.normal);
 				gi.WriteByte(self.s.skinnum);
 				gi.multicast(tr.endpos, MULTICAST_PVS);
 			}

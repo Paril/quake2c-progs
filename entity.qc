@@ -185,7 +185,7 @@ const int MAX_ENT_CLUSTERS = 16;
 .void(entity)	prethink;
 .void(entity)	think;
 .void(entity, entity) blocked;
-.void(entity, entity, cplane_t, csurface_t) touch;
+.void(entity, entity, vector, csurface_t) touch;
 .void(entity, entity, entity) use;
 .void(entity, entity, float, int) pain;
 .void(entity, entity, entity, int, vector) die;
@@ -468,12 +468,12 @@ struct monsterinfo_t
 const float DUCK_INTERVAL	= 0.5;
 
 // this is for the count of monsters
-INLINE int(entity ent) ENT_SLOTS_LEFT =
+inline int(entity ent) ENT_SLOTS_LEFT =
 {
 	return (ent.monsterinfo.monster_slots - ent.monsterinfo.monster_used);
 };
 
-INLINE int(entity self) SELF_SLOTS_LEFT =
+inline int(entity self) SELF_SLOTS_LEFT =
 {
 	return (self.monsterinfo.monster_slots - self.monsterinfo.monster_used);
 };

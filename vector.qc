@@ -2,17 +2,17 @@ const vector vec3_origin = '0 0 0';
 
 enum : int { PITCH, YAW, ROLL };
 
-INLINE float VectorLengthSquared(vector v)
+inline float VectorLengthSquared(vector v)
 {
 	return v * v;
 }
 
-INLINE float VectorLength(vector v)
+inline float VectorLength(vector v)
 {
 	return sqrt(VectorLengthSquared(v));
 }
 
-INLINE float VectorNormalize(__inout vector v)
+inline float VectorNormalize(__inout vector v)
 {
 	float length = VectorLength(v);
 	
@@ -140,11 +140,9 @@ float(vector vec) vectoyaw =
 	return yaw;
 }
 
-INLINE vector(vector v1, vector v2) CrossProduct =
+inline vector(vector v1, vector v2) CrossProduct =
 {
-	return [	v1[1] * v2[2] - v1[2] * v2[1],
-			v1[2] * v2[0] - v1[0] * v2[2],
-			v1[0] * v2[1] - v1[1] * v2[0] ];
+	return v1 >< v2;
 }
 
 void AddPointToBounds(vector v, __inout vector mins, __inout vector maxs)

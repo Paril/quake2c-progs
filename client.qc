@@ -14,22 +14,20 @@
 
 static void(entity self) SP_FixCoopSpots =
 {
-	entity	spot;
-	vector	d;
+	entity spot = null_entity;
 
-	spot = null_entity;
-
-	while (1) {
+	while (1)
+	{
 		spot = G_Find(spot, classname, "info_player_start");
 		if (spot == null_entity)
 			return;
 		if (!spot.targetname)
 			continue;
-		d = self.s.origin - spot.s.origin;
-		if (VectorLength(d) < 384) {
-			if ((!self.targetname) || stricmp(self.targetname, spot.targetname) != 0) {
+		vector d = self.s.origin - spot.s.origin;
+		if (VectorLength(d) < 384)
+		{
+			if (!striequals(self.targetname, spot.targetname))
 				self.targetname = spot.targetname;
-			}
 			return;
 		}
 	}
@@ -41,35 +39,35 @@ static void(entity self) SP_FixCoopSpots =
 
 static void(entity self) SP_CreateCoopSpots =
 {
-    entity spot;
+	entity spot;
 
-    if (level.mapname == "security") {
-        spot = G_Spawn();
-        spot.classname = "info_player_coop";
-        spot.s.origin[0] = 188f - 64f;
-        spot.s.origin[1] = -164f;
-        spot.s.origin[2] = 80f;
-        spot.targetname = "jail3";
-        spot.s.angles[1] = 90f;
+	if (level.mapname == "security") {
+		spot = G_Spawn();
+		spot.classname = "info_player_coop";
+		spot.s.origin[0] = 188f - 64f;
+		spot.s.origin[1] = -164f;
+		spot.s.origin[2] = 80f;
+		spot.targetname = "jail3";
+		spot.s.angles[1] = 90f;
 
-        spot = G_Spawn();
-        spot.classname = "info_player_coop";
-        spot.s.origin[0] = 188f + 64f;
-        spot.s.origin[1] = -164f;
-        spot.s.origin[2] = 80f;
-        spot.targetname = "jail3";
-        spot.s.angles[1] = 90f;
+		spot = G_Spawn();
+		spot.classname = "info_player_coop";
+		spot.s.origin[0] = 188f + 64f;
+		spot.s.origin[1] = -164f;
+		spot.s.origin[2] = 80f;
+		spot.targetname = "jail3";
+		spot.s.angles[1] = 90f;
 
-        spot = G_Spawn();
-        spot.classname = "info_player_coop";
-        spot.s.origin[0] = 188f + 128f;
-        spot.s.origin[1] = -164f;
-        spot.s.origin[2] = 80f;
-        spot.targetname = "jail3";
-        spot.s.angles[1] = 90f;
+		spot = G_Spawn();
+		spot.classname = "info_player_coop";
+		spot.s.origin[0] = 188f + 128f;
+		spot.s.origin[1] = -164f;
+		spot.s.origin[2] = 80f;
+		spot.targetname = "jail3";
+		spot.s.angles[1] = 90f;
 
-        return;
-    }
+		return;
+	}
 }
 
 
@@ -78,13 +76,14 @@ The normal starting point for a level.
 */
 API_FUNC static void(entity self) SP_info_player_start =
 {
-    if (!coop.intVal)
-        return;
-    if (stricmp(level.mapname, "security") == 0) {
-        // invoke one of our gross, ugly, disgusting hacks
-        self.think = SP_CreateCoopSpots;
-        self.nextthink = level.framenum + 1;
-    }
+	if (!coop.intVal)
+		return;
+	if (striequals(level.mapname, "security"))
+	{
+		// invoke one of our gross, ugly, disgusting hacks
+		self.think = SP_CreateCoopSpots;
+		self.nextthink = level.framenum + 1;
+	}
 }
 
 void(entity) SP_misc_teleporter_dest;
@@ -94,11 +93,11 @@ potential spawning position for deathmatch games
 */
 API_FUNC static void(entity self) SP_info_player_deathmatch =
 {
-    if (!deathmatch.intVal) {
-        G_FreeEdict(self);
-        return;
-    }
-    SP_misc_teleporter_dest(self);
+	if (!deathmatch.intVal) {
+		G_FreeEdict(self);
+		return;
+	}
+	SP_misc_teleporter_dest(self);
 }
 
 /*QUAKED info_player_coop (1 0 1) (-16 -16 -24) (16 16 32)
@@ -106,29 +105,29 @@ potential spawning position for coop games
 */
 API_FUNC static void(entity self) SP_info_player_coop =
 {
-    if (!coop.intVal) {
-        G_FreeEdict(self);
-        return;
-    }
+	if (!coop.intVal) {
+		G_FreeEdict(self);
+		return;
+	}
 
-    if ((stricmp(level.mapname, "jail2") == 0)   ||
-        (stricmp(level.mapname, "jail4") == 0)   ||
-        (stricmp(level.mapname, "mine1") == 0)   ||
-        (stricmp(level.mapname, "mine2") == 0)   ||
-        (stricmp(level.mapname, "mine3") == 0)   ||
-        (stricmp(level.mapname, "mine4") == 0)   ||
-        (stricmp(level.mapname, "lab") == 0)     ||
-        (stricmp(level.mapname, "boss1") == 0)   ||
-        (stricmp(level.mapname, "fact3") == 0)   ||
-        (stricmp(level.mapname, "biggun") == 0)  ||
-        (stricmp(level.mapname, "space") == 0)   ||
-        (stricmp(level.mapname, "command") == 0) ||
-        (stricmp(level.mapname, "power2") == 0) ||
-        (stricmp(level.mapname, "strike") == 0)) {
-        // invoke one of our gross, ugly, disgusting hacks
-        self.think = SP_FixCoopSpots;
-        self.nextthink = level.framenum + 1;
-    }
+	if ((striequals(level.mapname, "jail2"))   ||
+		(striequals(level.mapname, "jail4"))   ||
+		(striequals(level.mapname, "mine1"))   ||
+		(striequals(level.mapname, "mine2"))   ||
+		(striequals(level.mapname, "mine3"))   ||
+		(striequals(level.mapname, "mine4"))   ||
+		(striequals(level.mapname, "lab"))     ||
+		(striequals(level.mapname, "boss1"))   ||
+		(striequals(level.mapname, "fact3"))   ||
+		(striequals(level.mapname, "biggun"))  ||
+		(striequals(level.mapname, "space"))   ||
+		(striequals(level.mapname, "command")) ||
+		(striequals(level.mapname, "power2")) ||
+		(striequals(level.mapname, "strike"))) {
+		// invoke one of our gross, ugly, disgusting hacks
+		self.think = SP_FixCoopSpots;
+		self.nextthink = level.framenum + 1;
+	}
 }
 
 
@@ -160,7 +159,7 @@ API_FUNC static void(entity self) SP_info_player_coop_lava =
 
 static void(entity self, entity other, float kick, int damage) player_pain =
 {
-    // player pain is handled at the end of the frame in P_DamageFeedback
+	// player pain is handled at the end of the frame in P_DamageFeedback
 }
 
 
@@ -177,13 +176,13 @@ static bool(entity ent) IsFemale =
 
 static bool(entity ent) IsNeutral =
 {
-    if (!ent.is_client)
-        return false;
+	if (!ent.is_client)
+		return false;
 
-    string info = Info_ValueForKey(ent.client.pers.userinfo, "gender");
-    if (strat(info, 0) != 'f' && strat(info, 0) != 'F' && strat(info, 0) != 'm' && strat(info, 0) != 'M')
-        return true;
-    return false;
+	string info = Info_ValueForKey(ent.client.pers.userinfo, "gender");
+	if (strat(info, 0) != 'f' && strat(info, 0) != 'F' && strat(info, 0) != 'm' && strat(info, 0) != 'M')
+		return true;
+	return false;
 }
 
 PROGS_LOCAL means_of_death_t meansOfDeath;
@@ -1692,10 +1691,10 @@ PROGS_LOCAL static entity pm_passent;
 // pmove doesn't need to know about passent and contentmask
 static void(trace_t *tr, vector start, vector mins, vector maxs, vector end) PM_trace =
 {
-    if (pm_passent.health > 0)
-        gi.trace(tr, start, mins, maxs, end, pm_passent, MASK_PLAYERSOLID);
-    else
-        gi.trace(tr, start, mins, maxs, end, pm_passent, MASK_DEADSOLID);
+	if (pm_passent.health > 0)
+		gi.trace(tr, start, mins, maxs, end, pm_passent, MASK_PLAYERSOLID);
+	else
+		gi.trace(tr, start, mins, maxs, end, pm_passent, MASK_DEADSOLID);
 }
 
 entity() PlayerTrail_LastSpot;
@@ -1818,7 +1817,7 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 			entity other = pm.touchents[i];
 			if (!other.touch)
 				continue;
-			other.touch(other, ent, null_plane, null_surface);
+			other.touch(other, ent, vec3_origin, null_surface);
 		}
 
 	}

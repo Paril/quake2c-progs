@@ -180,7 +180,6 @@ static float(vector angles, vector velocity) SV_CalcRoll =
 		side = value;
 
 	return side * sign;
-
 }
 
 /*
@@ -561,14 +560,10 @@ static void(entity ent) SV_CalcGunOffset =
 SV_AddBlend
 =============
 */
-static void(vector rgb, float a, float *v_blend) SV_AddBlend =
+static INLINE void(vector rgb, float a, float *v_blend) SV_AddBlend =
 {
-	float   a2, a3;
-
-	if (a <= 0)
-		return;
-	a2 = v_blend[3] + (1 - v_blend[3]) * a; // new total alpha
-	a3 = v_blend[3] / a2;   // fraction of color from old
+	float a2 = v_blend[3] + (1 - v_blend[3]) * a; // new total alpha
+	float a3 = v_blend[3] / a2;   // fraction of color from old
 	
 	*((vector *)v_blend) = (*((vector *)v_blend) * a3) + (rgb * (1 - a3));
 

@@ -171,7 +171,7 @@ static void(entity self) gekk_swing =
 // ATTACK
 //
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) gekk_jump_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) gekk_jump_touch =
 {
 	if (self.health <= 0)
 	{
@@ -720,7 +720,7 @@ static void(entity self) gekk_run_start =
 // MELEE
 //
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) loogie_touch =
+static void(entity self, entity other, vector normal, csurface_t surf) loogie_touch =
 {
 
 	if (other == self.owner)
@@ -736,7 +736,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) loogie_t
 		PlayerNoise(self.owner, self.s.origin, PNOISE_IMPACT);
 
 	if (other.takedamage)
-		T_Damage (other, self, self.owner, self.velocity, self.s.origin, plane.normal, self.dmg, 1, DAMAGE_ENERGY, MOD_GEKK);
+		T_Damage (other, self, self.owner, self.velocity, self.s.origin, normal, self.dmg, 1, DAMAGE_ENERGY, MOD_GEKK);
 	
 	G_FreeEdict (self);
 };
@@ -771,7 +771,7 @@ static void(entity self, vector start, vector dir, int damage, int speed) fire_l
 	if (tr.fraction < 1.0)
 	{
 		loogie.s.origin += dir * -10;
-		loogie.touch (loogie, tr.ent, null_plane, null_surface);
+		loogie.touch (loogie, tr.ent, vec3_origin, null_surface);
 	}
 
 }	

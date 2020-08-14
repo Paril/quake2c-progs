@@ -484,7 +484,7 @@ typedef enumflags int
 	CVAR_LATCH		// save changes until server restart
 } cvar_flags_t;
 
-accessor cvar_t : pointer;
+accessor cvar_t : handle;
 
 static string(cvar_t)		cvar_get_name = #0;
 
@@ -501,7 +501,7 @@ static float(cvar_t)		cvar_get_floatVal = #0;
 
 static int(cvar_t)		cvar_get_intVal = #0;
 
-accessor cvar_t : pointer
+accessor cvar_t : handle
 {
 	get string name = cvar_get_name;
 	
@@ -597,45 +597,29 @@ typedef enum int
 	AREA_TRIGGERS	= 2
 } box_edicts_area_t;
 
-accessor entity_set_t : pointer;
+accessor entity_set_t : handle;
 
 static entity(entity_set_t, int)		entity_set_get = #0;
 static int(entity_set_t)			entity_set_length = #0;
 void(entity_set_t, entity)		entity_set_add = #0;
 void(entity_set_t, entity)		entity_set_remove = #0;
 void(entity_set_t)			entity_set_clear = #0;
-void(entity_set_t)			entity_set_free = #0;
 entity_set_t(optional int reserve)	entity_set_alloc = #0;
 
-accessor entity_set_t : pointer
+accessor entity_set_t : handle
 {
 	get entity[int] = entity_set_get;
 	get int length = entity_set_length;
 };
 
-struct cplane_t
+struct csurface_t
 {
-	vector	normal;
-	float	dist;
-	int	extra; // FIXME?
+	string name;
+	surface_flags_t flags;
+	int value;
 };
 
-const cplane_t null_plane;
-
-accessor csurface_t : pointer;
-
-static string(csurface_t)		csurface_get_name = #0;
-static surface_flags_t(csurface_t)	csurface_get_flags = #0;
-static int(csurface_t)			csurface_get_value = #0;
-
-accessor csurface_t : pointer
-{
-	get string name = csurface_get_name;
-	get surface_flags_t flags = csurface_get_flags;
-	get int value = csurface_get_value;
-};
-
-const csurface_t null_surface = 0;
+const csurface_t null_surface = { 0, 0, 0 };
 
 struct trace_t
 {
@@ -643,7 +627,7 @@ struct trace_t
 	int		startsolid;
 	float		fraction;
 	vector		endpos;
-	cplane_t	plane;
+	vector		normal;
 	csurface_t	surface;
 	content_flags_t	contents;
 	entity		ent;

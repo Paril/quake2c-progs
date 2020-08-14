@@ -32,7 +32,7 @@ static struct
 
 
 	csurface_t	groundsurface;
-	cplane_t	groundplane;
+	vector		groundnormal;
 	int		groundcontents;
 
 	vector		previous_origin;
@@ -130,7 +130,7 @@ static void PM_StepSlideMove_ (void)
 			break;
 		}
 
-		planes[numplanes] = trace.plane.normal;
+		planes[numplanes] = trace.normal;
 		numplanes++;
 
 //
@@ -227,7 +227,7 @@ static void PM_StepSlideMove (void)
 	up_dist = (up[0] - start_o[0])*(up[0] - start_o[0])
 		+ (up[1] - start_o[1])*(up[1] - start_o[1]);
 
-	if (down_dist > up_dist || trace.plane.normal[2] < MIN_STEP_NORMAL)
+	if (down_dist > up_dist || trace.normal[2] < MIN_STEP_NORMAL)
 	{
 		pml.origin = down_o;
 		pml.velocity = down_v;
@@ -571,11 +571,11 @@ static void PM_CatagorizePosition (void)
 	else
 	{
 		pm->trace (&trace, pml.origin, pm->mins, pm->maxs, point);
-		pml.groundplane = trace.plane;
+		pml.groundnormal = trace.normal;
 		pml.groundsurface = trace.surface;
 		pml.groundcontents = trace.contents;
 
-		if (trace.ent == null_entity || (trace.plane.normal[2] < 0.7 && !trace.startsolid))
+		if (trace.ent == null_entity || (trace.normal[2] < 0.7 && !trace.startsolid))
 		{
 			pm->groundentity = null_entity;
 			pm->s.pm_flags &= ~PMF_ON_GROUND;

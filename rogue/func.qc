@@ -121,7 +121,7 @@ secret_touch
 Prints messages
 ================
 */
-static void(entity self, entity other, cplane_t plane, csurface_t surf) secret_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) secret_touch =
 {
 	if (other.health <= 0)
 		return;
@@ -544,7 +544,7 @@ static void(entity ent, entity other) plat2_operate =
 	ent.nextthink = level.framenum + (int)(pauseTime * BASE_FRAMERATE);
 }
 
-static void(entity ent, entity other, cplane_t plane, csurface_t surf) Touch_Plat_Center2 =
+static void(entity ent, entity other, vector plane, csurface_t surf) Touch_Plat_Center2 =
 {
 	if (other.health <= 0)
 		return;

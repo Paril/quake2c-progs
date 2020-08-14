@@ -366,7 +366,7 @@ static vector WidowVelocityForDamage (int damage)
 	return [ damage * crandom(), damage * crandom(), damage * crandom() + 200.0 ];
 }
 
-static void widow_gib_touch (entity self, entity other, cplane_t plane, csurface_t surf)
+static void widow_gib_touch (entity self, entity other, vector plane, csurface_t surf)
 {
 	self.solid = SOLID_NOT;
 	self.touch = 0;
@@ -380,7 +380,7 @@ static void widow_gib_touch (entity self, entity other, cplane_t plane, csurface
 
 // from misc.qc
 void(entity self, entity inflictor, entity attacker, int damage, vector point) gib_die;
-void(entity self, entity other, cplane_t plane, csurface_t surf) gib_touch;
+void(entity self, entity other, vector plane, csurface_t surf) gib_touch;
 PROGS_LOCAL void(entity ent) ClipGibVelocity;
 
 void ThrowWidowGibReal (entity self, string gibname, int damage, int type, vector startpos, bool sized, int hitsound, bool fade)

@@ -73,7 +73,7 @@ gitem_id_t(string cclassname) FindItemByClassname =
 	for (i = 0 ; i < itemlist.length; i++) {
 		if (!GetItemKeyByIndex(i, classname))
 			continue;
-		if (!stricmp(GetItemKeyByIndex(i, classname), cclassname))
+		if (striequals(GetItemKeyByIndex(i, classname), cclassname))
 			return i;
 	}
 
@@ -92,7 +92,7 @@ gitem_id_t(string pickup_name) FindItem =
 	for (i = 0 ; i < itemlist.length; i++) {
 		if (!GetItemKeyByIndex(i, pickup_name))
 			continue;
-		if (!stricmp(GetItemKeyByIndex(i, pickup_name), pickup_name))
+		if (striequals(GetItemKeyByIndex(i, pickup_name), pickup_name))
 			return i;
 	}
 
@@ -790,7 +790,7 @@ static void(entity ent, gitem_id_t itemid) Drop_PowerArmor =
 Touch_Item
 ===============
 */
-void(entity ent, entity other, cplane_t plane, csurface_t surf) Touch_Item =
+void(entity ent, entity other, vector plane, csurface_t surf) Touch_Item =
 {
 	bool    taken;
 
@@ -848,7 +848,7 @@ void(entity ent, entity other, cplane_t plane, csurface_t surf) Touch_Item =
 
 //======================================================================
 
-static void(entity ent, entity other, cplane_t plane, csurface_t surf) drop_temp_touch =
+static void(entity ent, entity other, vector plane, csurface_t surf) drop_temp_touch =
 {
 	if (other == ent.owner)
 		return;

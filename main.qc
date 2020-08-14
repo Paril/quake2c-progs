@@ -161,7 +161,7 @@ static void() EndDMLevel =
 		int s_offset = 0;
 		string t = strtok(st, s_offset);
 		while (t) {
-			if (stricmp(t, level.mapname) == 0)
+			if (striequals(t, level.mapname))
 			{
 				// it's in the list, go to the next one
 				t = strtok(st, s_offset);
@@ -214,9 +214,9 @@ static void() CheckNeedPass =
 
 		need = 0;
 
-		if (password.str && stricmp(password.str, "none"))
+		if (password.str && !striequals(password.str, "none"))
 			need |= 1;
-		if (spectator_password.str && stricmp(spectator_password.str, "none"))
+		if (spectator_password.str && !striequals(spectator_password.str, "none"))
 			need |= 2;
 
 		gi.cvar_set("needpass", va("%d", need));

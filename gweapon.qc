@@ -163,7 +163,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 					gi.WriteByte(TE_SPLASH);
 					gi.WriteByte(8);
 					gi.WritePosition(tr.endpos);
-					gi.WriteDir(tr.plane.normal);
+					gi.WriteDir(tr.normal);
 					gi.WriteByte(color);
 					gi.multicast(tr.endpos, MULTICAST_PVS);
 				}
@@ -188,13 +188,13 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 	if (!((tr.surface) && (tr.surface.flags & SURF_SKY))) {
 		if (tr.fraction < 1.0f) {
 			if (tr.ent.takedamage) {
-				T_Damage(tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal, damage, kick, DAMAGE_BULLET, mod);
+				T_Damage(tr.ent, self, self, aimdir, tr.endpos, tr.normal, damage, kick, DAMAGE_BULLET, mod);
 			} else {
 				if (strncmp(tr.surface.name, "sky", 3) != 0) {
 					gi.WriteByte(svc_temp_entity);
 					gi.WriteByte(te_impact);
 					gi.WritePosition(tr.endpos);
-					gi.WriteDir(tr.plane.normal);
+					gi.WriteDir(tr.normal);
 					gi.multicast(tr.endpos, MULTICAST_PVS);
 
 					if (self.is_client)
@@ -265,7 +265,7 @@ fire_blaster
 Fires a single blaster bolt.  Used by the blaster and hyper blaster.
 =================
 */
-static void(entity self, entity other, cplane_t plane, csurface_t surf) blaster_touch =
+static void(entity self, entity other, vector normal, csurface_t surf) blaster_touch =
 {
 	int     mod;
 
@@ -285,7 +285,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) blaster_
 			mod = MOD_HYPERBLASTER;
 		else
 			mod = MOD_BLASTER;
-		T_Damage(other, self, self.owner, self.velocity, self.s.origin, plane.normal, self.dmg, 1, DAMAGE_ENERGY, mod);
+		T_Damage(other, self, self.owner, self.velocity, self.s.origin, normal, self.dmg, 1, DAMAGE_ENERGY, mod);
 	} else {
 		gi.WriteByte(svc_temp_entity);
 #ifdef THE_RECKONING
@@ -296,7 +296,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) blaster_
 #endif
 			gi.WriteByte(TE_BLASTER);
 		gi.WritePosition(self.s.origin);
-		gi.WriteDir(plane.normal);
+		gi.WriteDir(normal);
 		gi.multicast(self.s.origin, MULTICAST_PVS);
 	}
 
@@ -351,7 +351,7 @@ void(entity self, vector start, vector dir, int damage, int speed, int effect, b
 	
 	if (tr.fraction < 1.0f) {
 		bolt.s.origin += (-10 * dir);
-		bolt.touch(bolt, tr.ent, null_plane, null_surface);
+		bolt.touch(bolt, tr.ent, vec3_origin, null_surface);
 	}
 }
 
@@ -414,7 +414,7 @@ void(entity ent) Grenade_Explode =
 	G_FreeEdict(ent);
 }
 
-static void(entity ent, entity other, cplane_t plane, csurface_t surf) Grenade_Touch =
+static void(entity ent, entity other, vector plane, csurface_t surf) Grenade_Touch =
 {
 	if (other == ent.owner)
 		return;
@@ -530,7 +530,7 @@ void(entity self, string modelname, float speed, vector origin) ThrowDebris;
 fire_rocket
 =================
 */
-static void(entity ent, entity other, cplane_t plane, csurface_t surf) rocket_touch =
+static void(entity ent, entity other, vector normal, csurface_t surf) rocket_touch =
 {
 	vector	origin;
 	int	n;
@@ -550,7 +550,7 @@ static void(entity ent, entity other, cplane_t plane, csurface_t surf) rocket_to
 	origin = ent.s.origin + (-0.02f * ent.velocity);
 
 	if (other.takedamage) {
-		T_Damage(other, ent, ent.owner, ent.velocity, ent.s.origin, plane.normal, ent.dmg, 0, 0, MOD_ROCKET);
+		T_Damage(other, ent, ent.owner, ent.velocity, ent.s.origin, normal, ent.dmg, 0, 0, MOD_ROCKET);
 	} else {
 		// don't throw any debris in net games
 		if (!deathmatch.intVal && !coop.intVal) {
@@ -643,7 +643,7 @@ void(entity self, vector start, vector aimdir, int damage, int kick) fire_rail =
 				ignore = null_entity;
 
 			if ((tr.ent != self) && (tr.ent.takedamage))
-				T_Damage(tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal, damage, kick, 0, MOD_RAILGUN);
+				T_Damage(tr.ent, self, self, aimdir, tr.endpos, tr.normal, damage, kick, 0, MOD_RAILGUN);
 		}
 
 		from = tr.endpos;
@@ -716,7 +716,7 @@ static void(entity self) bfg_explode =
 		self.think = G_FreeEdict;
 }
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) bfg_touch =
+static void(entity self, entity other, vector normal, csurface_t surf) bfg_touch =
 {
 	if (other == self.owner)
 		return;
@@ -731,7 +731,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) bfg_touc
 
 	// core explosion - prevents firing it into the wall/floor
 	if (other.takedamage)
-		T_Damage(other, self, self.owner, self.velocity, self.s.origin, plane.normal, 200, 0, 0, MOD_BFG_BLAST);
+		T_Damage(other, self, self.owner, self.velocity, self.s.origin, normal, 200, 0, 0, MOD_BFG_BLAST);
 	T_RadiusDamage(self, self.owner, 200, other, 100, MOD_BFG_BLAST);
 
 	gi.sound(self, CHAN_VOICE, gi.soundindex("weapons/bfg_.x1b.wav"), 1, ATTN_NORM, 0);
@@ -816,7 +816,7 @@ static void(entity self) bfg_think =
 				gi.WriteByte(TE_LASER_SPARKS);
 				gi.WriteByte(4);
 				gi.WritePosition(tr.endpos);
-				gi.WriteDir(tr.plane.normal);
+				gi.WriteDir(tr.normal);
 				gi.WriteByte(self.s.skinnum);
 				gi.multicast(tr.endpos, MULTICAST_PVS);
 				break;

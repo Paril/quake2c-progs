@@ -13,7 +13,7 @@ static void(entity self) ionripper_sparks =
 	G_FreeEdict (self);
 }
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) ionripper_touch =
+static void(entity self, entity other, vector normal, csurface_t surf) ionripper_touch =
 {
 	if (other == self.owner)
 		return;
@@ -29,7 +29,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) ionrippe
 
 	if (other.takedamage)
 	{
-		T_Damage (other, self, self.owner, self.velocity, self.s.origin, plane.normal, self.dmg, 1, DAMAGE_ENERGY, MOD_RIPPER);
+		T_Damage (other, self, self.owner, self.velocity, self.s.origin, normal, self.dmg, 1, DAMAGE_ENERGY, MOD_RIPPER);
 		G_FreeEdict (self);
 	}
 }
@@ -70,7 +70,7 @@ PROGS_LOCAL void(entity self, vector start, vector dir, int damage, int speed, e
 	if (tr.fraction < 1.0)
 	{
 		ion.s.origin += dir * -10;
-		ion.touch (ion, tr.ent, null_plane, null_surface);
+		ion.touch (ion, tr.ent, vec3_origin, null_surface);
 	}
 
 }
@@ -150,7 +150,7 @@ void(entity self, vector start, vector dir, int damage, int speed, float damage_
 	heat.think = heat_think;
 }
 
-static void(entity ent, entity other, cplane_t plane, csurface_t surf) plasma_touch =
+static void(entity ent, entity other, vector normal, csurface_t surf) plasma_touch =
 {
 	vector	origin;
 
@@ -170,7 +170,7 @@ static void(entity ent, entity other, cplane_t plane, csurface_t surf) plasma_to
 	origin = ent.s.origin + (ent.velocity * -0.02);
 
 	if (other.takedamage)
-		T_Damage (other, ent, ent.owner, ent.velocity, ent.s.origin, plane.normal, ent.dmg, 0, 0, MOD_PHALANX);
+		T_Damage (other, ent, ent.owner, ent.velocity, ent.s.origin, normal, ent.dmg, 0, 0, MOD_PHALANX);
 	
 	T_RadiusDamage(ent, ent.owner, ent.radius_dmg, other, ent.dmg_radius, MOD_PHALANX);
 

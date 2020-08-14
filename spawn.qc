@@ -50,7 +50,7 @@ static bool(string key, string value, entity ent) ED_ParseField =
 {
 	for (int i = 0; i < spawn_fields.length; i++)
 	{
-		if (stricmp(spawn_fields[i].key, key))
+		if (!striequals(spawn_fields[i].key, key))
 			continue;
 		
 		if (!spawn_fields[i].ignore)
@@ -67,7 +67,7 @@ static bool(string key, string value) ED_ParseSpawnTemp =
 	return struct_key_parse("st", key, value);
 };
 
-static INLINE void() ClearSpawnTemp =
+static inline void() ClearSpawnTemp =
 {
 	memclear(&st, sizeof(st));
 }
@@ -366,7 +366,7 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 		ED_ParseEdict(entities, entities_offset, ent);
 
 		// yet another map hack
-		if (!stricmp(level.mapname, "command") && !stricmp(ent.classname, "trigger_once") && !stricmp(ent.model, "*27"))
+		if (striequals(level.mapname, "command") && striequals(ent.classname, "trigger_once") && striequals(ent.model, "*27"))
 			ent.spawnflags &= ~SPAWNFLAG_NOT_HARD;
 			
 		// remove things (except the world) from different skill levels or deathmatch

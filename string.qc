@@ -1,14 +1,22 @@
 const int MAX_TOKEN_CHARS	= 1024;	// max length of an individual token
 const int MAX_QPATH		= 64;	// max length of a quake game pathname
 
-INLINE int(string str, int offset) strat =
+// this is a special boolean that an engine must support
+// that changes how string functions/opcodes work.
+// this changes:
+// == and != become case-insensitive if false
+// strcmp will call stricmp internally if false
+// strncmp will call strnicmp internally if false
+API_FUNC var bool strcasesensitive = true;
+
+inline int(string str, int offset) strat =
 {
 	return (int)(__variant)str[(float)(__variant)offset];
 };
 
 int(string) stoi = #0;
 float(string) stof = #0;
-int(string, string) stricmp = #0;
+int(string, string) strcmp = #0;
 int(string, string, int) strncmp = #0;
 int(string) strlen = #0;
 string(string, ...) va = #0;
@@ -17,19 +25,43 @@ int(string, int) strchr = #0;
 string(string, int start, optional int length) substr = #0;
 string(string...) strconcat = #0;
 
+INLINE bool(string a, string b) stricmp =
+{
+	strcasesensitive = false;
+	bool result = strcmp(a, b);
+	strcasesensitive = true;
+	return result;
+}
+
+INLINE bool(string a, string b, int len) strnicmp =
+{
+	strcasesensitive = false;
+	bool result = strncmp(a, b, len);
+	strcasesensitive = true;
+	return result;
+}
+
+INLINE bool(string a, string b) striequals =
+{
+	strcasesensitive = false;
+	bool result = (a == b) != 0;
+	strcasesensitive = true;
+	return result;
+}
+
 #define strempty(s) (!(s))
 
-INLINE string(int v) itos =
+inline string(int v) itos =
 {
 	return va("%i", v);
 };
 
-INLINE string(float v) ftos =
+inline string(float v) ftos =
 {
 	return va("%f", v);
 };
 
-INLINE string(vector v) vtos =
+inline string(vector v) vtos =
 {
 	return va("%f %f %f", v[0], v[1], v[2]);
 };

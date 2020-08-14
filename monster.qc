@@ -148,9 +148,9 @@ void(entity ent) M_CheckGround =
 
 	// check steepness
 #ifdef GROUND_ZERO
-	if ((ent.gravityVector[2] < 0 ? (trace.plane.normal[2] < 0.7f) : (trace.plane.normal[2] > -0.7f)) && !trace.startsolid)
+	if ((ent.gravityVector[2] < 0 ? (trace.normal[2] < 0.7f) : (trace.normal[2] > -0.7f)) && !trace.startsolid)
 #else
-	if (trace.plane.normal[2] < 0.7f && !trace.startsolid)
+	if (trace.normal[2] < 0.7f && !trace.startsolid)
 #endif
 	{
 		ent.groundentity = null_entity;

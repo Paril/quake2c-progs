@@ -565,7 +565,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 					gi.WriteByte (TE_SPLASH);
 					gi.WriteByte (8);
 					gi.WritePosition (tr.endpos);
-					gi.WriteDir (tr.plane.normal);
+					gi.WriteDir (tr.normal);
 					gi.WriteByte (color);
 					gi.multicast (tr.endpos, MULTICAST_PVS);
 				}
@@ -593,7 +593,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 		{
 			if (tr.ent.takedamage)
 			{
-				T_Damage (tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal, damage, kick, DAMAGE_BULLET, MOD_BLASTOFF);
+				T_Damage (tr.ent, self, self, aimdir, tr.endpos, tr.normal, damage, kick, DAMAGE_BULLET, MOD_BLASTOFF);
 			}
 			else
 			{
@@ -602,7 +602,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 					gi.WriteByte (svc_temp_entity);
 					gi.WriteByte (te_impact);
 					gi.WritePosition (tr.endpos);
-					gi.WriteDir (tr.plane.normal);
+					gi.WriteDir (tr.normal);
 					gi.multicast (tr.endpos, MULTICAST_PVS);
 
 					if (self.is_client)

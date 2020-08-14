@@ -68,7 +68,7 @@ static void(entity ent, entity other, entity cactivator) Use_Multi =
 #endif
 }
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) Touch_Multi =
+static void(entity self, entity other, vector plane, csurface_t surf) Touch_Multi =
 {
 	if (other.is_client) {
 		if (self.spawnflags & 2)
@@ -375,7 +375,7 @@ enumflags : int
 
 PROGS_LOCAL_STATIC int windsound;
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) trigger_push_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) trigger_push_touch =
 {
 	if (other.classname == "grenade") {
 		other.velocity = self.movedir * (self.speed * 10);
@@ -539,7 +539,7 @@ static void(entity self, entity other, entity cactivator) hurt_use =
 }
 
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) hurt_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) hurt_touch =
 {
 	int     dflags;
 
@@ -613,7 +613,7 @@ static void(entity self, entity other, entity cactivator) trigger_gravity_use =
 }
 #endif
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) trigger_gravity_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) trigger_gravity_touch =
 {
 	other.gravity = self.gravity;
 }
@@ -659,7 +659,7 @@ Walking monsters that touch this will jump in the direction of the trigger's ang
 "height" default to 200, the speed thrown upwards
 */
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) trigger_monsterjump_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) trigger_monsterjump_touch =
 {
 	if (other.flags & (FL_FLY | FL_SWIM))
 		return;

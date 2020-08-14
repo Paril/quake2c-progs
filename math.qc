@@ -132,7 +132,7 @@ const int INT_MAX	= 2147483647;
 
 // Quake-specific math functions below
 
-INLINE float(float a) anglemod =
+inline float(float a) anglemod =
 {
     return (360.0f / 65536) * ((int)(a * (65536 / 360.0f)) & 65535);
 }

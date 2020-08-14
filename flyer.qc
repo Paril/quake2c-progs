@@ -599,7 +599,7 @@ API_FUNC static void(entity self) SP_monster_flyer =
 	}
 
 	// fix a map bug in jail5.bsp
-	if (!stricmp(level.mapname, "jail5") && (self.s.origin[2] == -104)) {
+	if (striequals(level.mapname, "jail5") && (self.s.origin[2] == -104)) {
 		self.targetname = self.target;
 		self.target = 0;
 	}

@@ -9,7 +9,7 @@ static int	sound_punch_hit1;
 static int	sound_punch_hit2;
 static int	sound_idle;
 
-INLINE bool(entity ent) STALKER_ON_CEILING =
+inline bool(entity ent) STALKER_ON_CEILING =
 {
 	return ent.gravityVector[2] > 0;
 }
@@ -49,12 +49,12 @@ static bool(entity self) stalker_ok_to_transition =
 	{
 		if(STALKER_ON_CEILING(self))
 		{
-			if(trace.plane.normal[2] < 0.9)
+			if (trace.normal[2] < 0.9)
 				return false;
 		}
 		else
 		{
-			if(trace.plane.normal[2] > -0.9)
+			if (trace.normal[2] > -0.9)
 				return false;
 		}
 	}

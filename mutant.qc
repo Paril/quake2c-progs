@@ -263,7 +263,7 @@ static void mutant_melee(entity self)
 // ATTACK
 //
 
-static void mutant_jump_touch(entity self, entity other, cplane_t plane, csurface_t surf)
+static void mutant_jump_touch(entity self, entity other, vector plane, csurface_t surf)
 {
 	if (self.health <= 0) {
 		self.touch = 0;

@@ -1,9 +1,15 @@
 #pragma warning disable Q208 // we're valid darn you >:(
-#pragma warning enable F302
+#pragma warning enable F302 // uninitialised locals
 #pragma warning disable Q205
 #pragma warning disable F322
 #pragma warning disable Q207
 #pragma warning disable F306
+
+#pragma warning error Q101 /*too many parms. The vanilla qcc didn't validate properly, hence why fteqcc normally treats it as a warning.*/
+#pragma warning error Q105 /*too few parms. The vanilla qcc didn't validate properly, hence why fteqcc normally treats it as a warning.*/
+#pragma warning error Q106 /*assignment to constant/lvalue. Define them as var if you want to initialise something.*/
+#pragma warning enable F301 /*non-utf-8 strings. Think of the foreigners! Also think of text editors that insist on screwing up your char encodings.*/
+
 #pragma target fte_9999
 
 #define INLINE /*inline*/
@@ -15,12 +21,16 @@ typedef enum : int
 	true
 } bool;
 
-typedef enum : vector { null_pointer = [ 0, 0, 0 ] } pointer;
+accessor handle : int;
+
+const handle null_handle = 0;
 
 inline bool handle_empty(__variant p)
 {
-	return (pointer)p == null_pointer;
+	return !(handle)p;
 }
+
+void(handle) handle_free = #0;
 
 int(int, int) ModInt = #0;
 

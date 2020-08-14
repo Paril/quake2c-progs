@@ -179,13 +179,13 @@ static void(entity ent) Cmd_Give_f =
 			return;
 	}
 
-	if (give_all || stricmp(name, "Power Shield") == 0)
+	if (give_all || striequals(name, "Power Shield"))
 	{
 		it = FindItem("Power Shield");
 		it_ent = G_Spawn();
 		it_ent.classname = GetItemKeyByIndex(it, classname);
 		SpawnItem (it_ent, it);
-		Touch_Item (it_ent, ent, null_plane, null_surface);
+		Touch_Item (it_ent, ent, vec3_origin, null_surface);
 		if (it_ent.inuse)
 			G_FreeEdict(it_ent);
 
@@ -239,7 +239,7 @@ static void(entity ent) Cmd_Give_f =
 		it_ent = G_Spawn();
 		it_ent.classname = GetItemKeyByIndex(it, classname);
 		SpawnItem (it_ent, it);
-		Touch_Item (it_ent, ent, null_plane, null_surface);
+		Touch_Item (it_ent, ent, vec3_origin, null_surface);
 		if (it_ent.inuse)
 			G_FreeEdict(it_ent);
 	}
@@ -872,80 +872,65 @@ void(entity ent) ClientCommand =
 
 	cmd = gi.argv(0);
 
-	if (stricmp (cmd, "players") == 0)
-	{
+	// allowed any time
+	if (striequals(cmd, "players"))
 		Cmd_Players_f (ent);
-		return;
-	}
-	if (stricmp (cmd, "say") == 0)
-	{
+	else if (striequals(cmd, "say"))
 		Cmd_Say_f (ent, false, false);
-		return;
-	}
-	if (stricmp (cmd, "say_team") == 0)
-	{
+	else if (striequals(cmd, "say_team"))
 		Cmd_Say_f (ent, true, false);
-		return;
-	}
-	if (stricmp (cmd, "score") == 0)
-	{
+	else if (striequals(cmd, "score"))
 		Cmd_Score_f (ent);
-		return;
-	}
-	if (stricmp (cmd, "help") == 0)
-	{
+	else if (striequals(cmd, "help"))
 		Cmd_Help_f (ent);
+	else if (level.intermission_framenum)
 		return;
-	}
-
-	if (level.intermission_framenum)
-		return;
-
-	if (stricmp (cmd, "spawn") == 0)
+	// in-game commands only
+	else if (striequals(cmd, "spawn"))
 		Cmd_Spawn_f (ent);
-	else if (stricmp (cmd, "use") == 0)
+	else if (striequals(cmd, "use"))
 		Cmd_Use_f (ent);
-	else if (stricmp (cmd, "drop") == 0)
+	else if (striequals(cmd, "drop"))
 		Cmd_Drop_f (ent);
-	else if (stricmp (cmd, "give") == 0)
+	else if (striequals(cmd, "give"))
 		Cmd_Give_f (ent);
-	else if (stricmp (cmd, "god") == 0)
+	else if (striequals(cmd, "god"))
 		Cmd_God_f (ent);
-	else if (stricmp (cmd, "notarget") == 0)
+	else if (striequals(cmd, "notarget"))
 		Cmd_Notarget_f (ent);
-	else if (stricmp (cmd, "noclip") == 0)
+	else if (striequals(cmd, "noclip"))
 		Cmd_Noclip_f (ent);
-	else if (stricmp (cmd, "inven") == 0)
+	else if (striequals(cmd, "inven"))
 		Cmd_Inven_f (ent);
-	else if (stricmp (cmd, "invnext") == 0)
+	else if (striequals(cmd, "invnext"))
 		SelectNextItem (ent, -1);
-	else if (stricmp (cmd, "invprev") == 0)
+	else if (striequals(cmd, "invprev"))
 		SelectPrevItem (ent, -1);
-	else if (stricmp (cmd, "invnextw") == 0)
+	else if (striequals(cmd, "invnextw"))
 		SelectNextItem (ent, IT_WEAPON);
-	else if (stricmp (cmd, "invprevw") == 0)
+	else if (striequals(cmd, "invprevw"))
 		SelectPrevItem (ent, IT_WEAPON);
-	else if (stricmp (cmd, "invnextp") == 0)
+	else if (striequals(cmd, "invnextp"))
 		SelectNextItem (ent, IT_POWERUP);
-	else if (stricmp (cmd, "invprevp") == 0)
+	else if (striequals(cmd, "invprevp"))
 		SelectPrevItem (ent, IT_POWERUP);
-	else if (stricmp (cmd, "invuse") == 0)
+	else if (striequals(cmd, "invuse"))
 		Cmd_InvUse_f (ent);
-	else if (stricmp (cmd, "invdrop") == 0)
+	else if (striequals(cmd, "invdrop"))
 		Cmd_InvDrop_f (ent);
-	else if (stricmp (cmd, "weapprev") == 0)
+	else if (striequals(cmd, "weapprev"))
 		Cmd_WeapPrev_f (ent);
-	else if (stricmp (cmd, "weapnext") == 0)
+	else if (striequals(cmd, "weapnext"))
 		Cmd_WeapNext_f (ent);
-	else if (stricmp (cmd, "weaplast") == 0)
+	else if (striequals(cmd, "weaplast"))
 		Cmd_WeapLast_f (ent);
-	else if (stricmp (cmd, "kill") == 0)
+	else if (striequals(cmd, "kill"))
 		Cmd_Kill_f (ent);
-	else if (stricmp (cmd, "putaway") == 0)
+	else if (striequals(cmd, "putaway"))
 		Cmd_PutAway_f (ent);
-	else if (stricmp (cmd, "wave") == 0)
+	else if (striequals(cmd, "wave"))
 		Cmd_Wave_f (ent);
-	else if (stricmp(cmd, "playerlist") == 0)
+	else if (striequals(cmd, "playerlist"))
 		Cmd_PlayerList_f(ent);
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);

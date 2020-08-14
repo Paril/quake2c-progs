@@ -28,7 +28,7 @@ silent: <not used right now>
 ctf_only: <not used right now>
 start_on: when trigger has targetname, start active, deactivate when used.
 */
-static void(entity self, entity other, cplane_t plane, csurface_t surf) trigger_teleport_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) trigger_teleport_touch =
 {
 	entity	dest;
 
@@ -131,7 +131,7 @@ START_ON - field is active when spawned.
 REMOVE - field removes the disguise
 */
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) trigger_disguise_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) trigger_disguise_touch =
 {
 	if (other.is_client)
 	{

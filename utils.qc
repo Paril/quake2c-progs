@@ -1,4 +1,4 @@
-INLINE vector G_ProjectSource(vector point, vector distance, vector forward, vector right)
+inline vector G_ProjectSource(vector point, vector distance, vector forward, vector right)
 {
 	return point + (forward * distance.x) + (right * distance.y) + [ 0, 0, distance.z ];
 }
@@ -16,7 +16,7 @@ NULL will be returned if the end of the list is reached.
 */
 entity(entity from, .string fieldofs, string match) G_Find =
 {
-	string str;
+	strcasesensitive = false;
 
 	if (from == null_entity)
 		from = itoe(game.maxclients + 1);
@@ -25,13 +25,15 @@ entity(entity from, .string fieldofs, string match) G_Find =
 
 	for (; etoi(from) < globals.num_edicts; from = next_ent(from))
 	{
-		str = from.fieldofs;
-		if (stricmp(str, match))
+		string str = from.fieldofs;
+		if (str != match)
 			continue;
 
+		strcasesensitive = true;
 		return from;
 	}
 
+	strcasesensitive = true;
 	return null_entity;
 }
 
@@ -221,8 +223,8 @@ void(entity ent, entity cactivator) G_UseTargets =
 		t = null_entity;
 		while ((t = G_Find(t, targetname, ent.target)) != null_entity) {
 			// doors fire area portals in a specific way
-			if (!stricmp(t.classname, "func_areaportal") &&
-				(!stricmp(ent.classname, "func_door") || !stricmp(ent.classname, "func_door_rotating")))
+			if (striequals(t.classname, "func_areaportal") &&
+				(striequals(ent.classname, "func_door") || striequals(ent.classname, "func_door_rotating")))
 				continue;
 
 			if (t == ent) {
@@ -368,7 +370,7 @@ void(entity ent) G_TouchTriggers =
 			continue;
 		if (!hit.touch)
 			continue;
-		hit.touch(hit, ent, null_plane, null_surface);
+		hit.touch(hit, ent, vec3_origin, null_surface);
 	}
 }
 

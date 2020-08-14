@@ -5,7 +5,7 @@
 fire_flechette
 ========================
 */
-static void(entity self, entity other, cplane_t plane, csurface_t surf) flechette_touch =
+static void(entity self, entity other, vector normal, csurface_t surf) flechette_touch =
 {
 	vector		dir;
 
@@ -23,15 +23,15 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) flechett
 
 	if (other.takedamage)
 	{
-		T_Damage (other, self, self.owner, self.velocity, self.s.origin, plane.normal,
+		T_Damage (other, self, self.owner, self.velocity, self.s.origin, normal,
 			self.dmg, self.dmg_radius, DAMAGE_NO_REG_ARMOR, MOD_ETF_RIFLE);
 	}
 	else
 	{
-		if (!plane.normal)
+		if (!normal)
 			dir = vec3_origin;
 		else
-			dir = (plane.normal * 256);
+			dir = (normal * 256);
 		gi.WriteByte (svc_temp_entity);
 		gi.WriteByte (TE_FLECHETTE);
 		gi.WritePosition (self.s.origin);
@@ -138,7 +138,7 @@ static void(entity self, entity inflictor, entity cattacker, int damage, vector 
 
 //===============
 //===============
-static void(entity ent, entity other, cplane_t plane, csurface_t surf) Prox_Field_Touch =
+static void(entity ent, entity other, vector plane, csurface_t surf) Prox_Field_Touch =
 {
 	entity	prox;
 
@@ -253,7 +253,7 @@ static void(entity ent) prox_open =
 
 //===============
 //===============
-static void(entity ent, entity other, cplane_t plane, csurface_t surf) prox_land =
+static void(entity ent, entity other, vector normal, csurface_t surf) prox_land =
 {
 	entity	field;
 	vector	dir;
@@ -269,9 +269,9 @@ static void(entity ent, entity other, cplane_t plane, csurface_t surf) prox_land
 		return;
 	}
 
-	if (plane.normal)
+	if (normal)
 	{
-		land_point = ent.s.origin + (plane.normal * -10.0);
+		land_point = ent.s.origin + (normal * -10.0);
 
 		if (gi.pointcontents (land_point) & (CONTENTS_SLIME|CONTENTS_LAVA))
 		{
@@ -291,18 +291,18 @@ static void(entity ent, entity other, cplane_t plane, csurface_t surf) prox_land
 	{
 		//Here we need to check to see if we can stop on this entity.
 		//Note that plane can be NULL
-		if (!plane.normal) // this happens if you hit a point object, maybe other cases
+		if (!normal) // this happens if you hit a point object, maybe other cases
 		{
 			Prox_Explode(ent);
 			return;
 		}
 
-		if ((other.movetype == MOVETYPE_PUSH) && (plane.normal[2] > 0.7))
+		if (other.movetype == MOVETYPE_PUSH && normal[2] > 0.7)
 			stick_ok = 1;
 		else
 			stick_ok = 0;
 		
-		vector out = ClipVelocity(ent.velocity, plane.normal, 1.5);
+		vector out = ClipVelocity(ent.velocity, normal, 1.5);
 
 		if (out[2] > 60)
 			return;
@@ -315,7 +315,7 @@ static void(entity ent, entity other, cplane_t plane, csurface_t surf) prox_land
 			ent.velocity = ent.avelocity = vec3_origin;
 		else // no-stick.  teflon time
 		{
-			if (plane.normal[2] > 0.7)
+			if (normal[2] > 0.7)
 			{
 				Prox_Explode(ent);
 				return;
@@ -326,7 +326,7 @@ static void(entity ent, entity other, cplane_t plane, csurface_t surf) prox_land
 	else if (other.s.modelindex != 1)
 		return;
 
-	dir = vectoangles (plane.normal);
+	dir = vectoangles (normal);
 	AngleVectors (dir, &forward, &right, &up);
 
 	if (gi.pointcontents (ent.s.origin) & (CONTENTS_LAVA|CONTENTS_SLIME))
@@ -451,7 +451,7 @@ void(entity self, vector start, vector aim, int reach, int damage, int kick, boo
 		if(!quiet)
 			gi.sound (self, CHAN_WEAPON, gi.soundindex ("weapons/tink1.wav"), 1, ATTN_NORM, 0);
 
-		point = tr.plane.normal * 256;
+		point = tr.normal * 256;
 		gi.WriteByte (svc_temp_entity);
 		gi.WriteByte (TE_GUNSHOT);
 		gi.WritePosition (tr.endpos);
@@ -709,7 +709,7 @@ static void(entity ent) Nuke_Think =
 	}
 }
 
-static void(entity ent, entity other, cplane_t plane, csurface_t surf) nuke_bounce =
+static void(entity ent, entity other, vector plane, csurface_t surf) nuke_bounce =
 {
 	if (random() > 0.5)
 		gi.sound (ent, CHAN_VOICE, gi.soundindex ("weapons/hgrenb1a.wav"), 1, ATTN_NORM, 0);
@@ -875,10 +875,10 @@ static void(entity self) tesla_think_active =
 
 			// PGM - don't do knockback to walking monsters
 			if((hit.svflags & SVF_MONSTER) && !(hit.flags & (FL_FLY|FL_SWIM)))
-				T_Damage (hit, self, self.teammaster, dir, tr.endpos, tr.plane.normal,
+				T_Damage (hit, self, self.teammaster, dir, tr.endpos, tr.normal,
 					self.dmg, 0, 0, MOD_TESLA);
 			else
-				T_Damage (hit, self, self.teammaster, dir, tr.endpos, tr.plane.normal,
+				T_Damage (hit, self, self.teammaster, dir, tr.endpos, tr.normal,
 					self.dmg, TESLA_KNOCKBACK, 0, MOD_TESLA);
 
 			gi.WriteByte (svc_temp_entity);
@@ -1000,19 +1000,20 @@ static void(entity ent) tesla_think =
 	}
 }
 
-static void(entity ent, entity other, cplane_t plane, csurface_t surf) tesla_lava =
+static void(entity ent, entity other, vector normal, csurface_t surf) tesla_lava =
 {
 	vector	land_point;
 
-	if (plane.normal)
+	if (normal)
 	{
-		land_point = ent.s.origin + (plane.normal * -20.0f);
+		land_point = ent.s.origin + (normal * -20.0f);
 		if (gi.pointcontents (land_point) & (CONTENTS_SLIME|CONTENTS_LAVA))
 		{
 			tesla_blow (ent);
 			return;
 		}
 	}
+
 	if (random() > 0.5)
 		gi.sound (ent, CHAN_VOICE, gi.soundindex ("weapons/hgrenb1a.wav"), 1, ATTN_NORM, 0);
 	else
@@ -1109,7 +1110,7 @@ static void(entity self, vector start, vector aimdir, vector offset, int damage,
 			gi.WriteByte (svc_temp_entity);
 			gi.WriteByte (TE_HEATBEAM_SPARKS);
 			gi.WritePosition (water_start);
-			gi.WriteDir (tr.plane.normal);
+			gi.WriteDir (tr.normal);
 			gi.multicast (tr.endpos, MULTICAST_PVS);
 		}
 		// re-trace ignoring water this time
@@ -1128,7 +1129,7 @@ static void(entity self, vector start, vector aimdir, vector offset, int damage,
 		{
 			if (tr.ent.takedamage)
 			{
-				T_Damage (tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal, damage, kick, DAMAGE_ENERGY, mod);
+				T_Damage (tr.ent, self, self, aimdir, tr.endpos, tr.normal, damage, kick, DAMAGE_ENERGY, mod);
 			}
 			else
 			{
@@ -1138,7 +1139,7 @@ static void(entity self, vector start, vector aimdir, vector offset, int damage,
 					gi.WriteByte (svc_temp_entity);
 					gi.WriteByte (TE_HEATBEAM_STEAM);
 					gi.WritePosition (tr.endpos);
-					gi.WriteDir (tr.plane.normal);
+					gi.WriteDir (tr.normal);
 					gi.multicast (tr.endpos, MULTICAST_PVS);
 
 					if (self.is_client)
@@ -1217,7 +1218,7 @@ fire_blaster2
 Fires a single green blaster bolt.  Used by monsters, generally.
 =================
 */
-static void(entity self, entity other, cplane_t plane, csurface_t surf) blaster2_touch =
+static void(entity self, entity other, vector normal, csurface_t surf) blaster2_touch =
 {
 	int		mod;
 	int		damagestat;
@@ -1244,14 +1245,14 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) blaster2
 			self.owner.takedamage = DAMAGE_NO;
 			if (self.dmg >= 5)
 				T_RadiusDamage(self, self.owner, self.dmg*3, other, self.dmg_radius, 0);
-			T_Damage (other, self, self.owner, self.velocity, self.s.origin, plane.normal, self.dmg, 1, DAMAGE_ENERGY, mod);
+			T_Damage (other, self, self.owner, self.velocity, self.s.origin, normal, self.dmg, 1, DAMAGE_ENERGY, mod);
 			self.owner.takedamage = damagestat;
 		}
 		else
 		{
 			if (self.dmg >= 5)
 				T_RadiusDamage(self, self.owner, self.dmg*3, other, self.dmg_radius, 0);
-			T_Damage (other, self, self.owner, self.velocity, self.s.origin, plane.normal, self.dmg, 1, DAMAGE_ENERGY, mod);
+			T_Damage (other, self, self.owner, self.velocity, self.s.origin, normal, self.dmg, 1, DAMAGE_ENERGY, mod);
 		}
 	}
 	else
@@ -1263,7 +1264,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) blaster2
 		gi.WriteByte (svc_temp_entity);
 		gi.WriteByte (TE_BLASTER2);
 		gi.WritePosition (self.s.origin);
-		gi.WriteDir (plane.normal);
+		gi.WriteDir (normal);
 		gi.multicast (self.s.origin, MULTICAST_PVS);
 	}
 
@@ -1306,7 +1307,7 @@ void(entity self, vector start, vector dir, int damage, int speed, int effect, b
 	if (tr.fraction < 1.0)
 	{
 		bolt.s.origin += dir * -10;
-		bolt.touch (bolt, tr.ent, null_plane, null_surface);
+		bolt.touch (bolt, tr.ent, vec3_origin, null_surface);
 	}
 }	
 
@@ -1382,12 +1383,12 @@ static void(entity cowner, entity cenemy, int damage) tracker_pain_daemon_spawn 
 	daemon.dmg = damage;
 }
 
-static void(entity self, cplane_t plane) tracker_explode =
+static void(entity self, vector normal) tracker_explode =
 {
 	vector	dir = vec3_origin;
 
-	if (plane.normal)
-		dir = plane.normal * 256;
+	if (normal)
+		dir = normal * 256;
 
 	gi.WriteByte (svc_temp_entity);
 	gi.WriteByte (TE_TRACKER_EXPLOSION);
@@ -1397,7 +1398,7 @@ static void(entity self, cplane_t plane) tracker_explode =
 	G_FreeEdict (self);
 }
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) tracker_touch =
+static void(entity self, entity other, vector normal, csurface_t surf) tracker_touch =
 {
 	float	damagetime;
 
@@ -1421,7 +1422,7 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) tracker_
 			{
 				// PMM - kickback was times 4 .. reduced to 3
 				// now this does no damage, just knockback
-				T_Damage (other, self, self.owner, self.velocity, self.s.origin, plane.normal,
+				T_Damage (other, self, self.owner, self.velocity, self.s.origin, normal,
 							/* self.dmg */ 0, (self.dmg*3), TRACKER_IMPACT_FLAGS, MOD_TRACKER);
 				
 				if (!(other.flags & (FL_FLY|FL_SWIM)))
@@ -1435,18 +1436,18 @@ static void(entity self, entity other, cplane_t plane, csurface_t surf) tracker_
 			}
 			else						// lots of damage (almost autogib) for dead bodies
 			{
-				T_Damage (other, self, self.owner, self.velocity, self.s.origin, plane.normal,
+				T_Damage (other, self, self.owner, self.velocity, self.s.origin, normal,
 							self.dmg*4, (self.dmg*3), TRACKER_IMPACT_FLAGS, MOD_TRACKER);
 			}
 		}
 		else	// full damage in one shot for inanimate objects
 		{
-			T_Damage (other, self, self.owner, self.velocity, self.s.origin, plane.normal,
+			T_Damage (other, self, self.owner, self.velocity, self.s.origin, normal,
 						self.dmg, (self.dmg*3), TRACKER_IMPACT_FLAGS, MOD_TRACKER);
 		}
 	}
 
-	tracker_explode (self, plane);
+	tracker_explode (self, normal);
 }
 
 static void(entity self) tracker_fly =
@@ -1457,7 +1458,7 @@ static void(entity self) tracker_fly =
 
 	if ((!self.enemy) || (!self.enemy.inuse) || (self.enemy.health < 1))
 	{
-		tracker_explode (self, null_plane);
+		tracker_explode (self, vec3_origin);
 		return;
 	}
 /*
@@ -1536,7 +1537,7 @@ void(entity self, vector start, vector dir, int damage, int cspeed, entity cenem
 	if (tr.fraction < 1.0)
 	{
 		bolt.s.origin += dir * -10;
-		bolt.touch (bolt, tr.ent, null_plane, null_surface);
+		bolt.touch (bolt, tr.ent, vec3_origin, null_surface);
 	}
 }	
 

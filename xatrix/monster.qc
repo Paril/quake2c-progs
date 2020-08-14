@@ -82,7 +82,7 @@ void(entity self) dabeam_hit =
 				gi.WriteByte (TE_LASER_SPARKS);
 				gi.WriteByte (10);
 				gi.WritePosition (tr.endpos);
-				gi.WriteDir (tr.plane.normal);
+				gi.WriteDir (tr.normal);
 				gi.WriteByte (self.s.skinnum);
 				gi.multicast (tr.endpos, MULTICAST_PVS);
 			}

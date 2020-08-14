@@ -1,5 +1,5 @@
-accessor cvar_t : pointer;
-accessor entity_set_t : pointer;
+accessor cvar_t : handle;
+accessor entity_set_t : handle;
 
 PROGS_LOCAL var struct {
 	// QC-specific imports

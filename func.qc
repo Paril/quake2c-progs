@@ -446,7 +446,7 @@ static void(entity ent, entity other, entity cactivator) Use_Plat =
 }
 
 
-static void(entity ent, entity other, cplane_t plane, csurface_t surf) Touch_Plat_Center =
+static void(entity ent, entity other, vector plane, csurface_t surf) Touch_Plat_Center =
 {
 	if (!other.is_client)
 		return;
@@ -647,7 +647,7 @@ static void(entity self, entity other) rotating_blocked =
 	T_Damage(other, self, self, vec3_origin, other.s.origin, vec3_origin, self.dmg, 1, 0, MOD_CRUSH);
 }
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) rotating_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) rotating_touch =
 {
 	if (self.avelocity)
 		T_Damage(other, self, self, vec3_origin, other.s.origin, vec3_origin, self.dmg, 1, 0, MOD_CRUSH);
@@ -825,7 +825,7 @@ static void(entity self, entity other, entity cactivator) button_use =
 	button_fire(self);
 }
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) button_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) button_touch =
 {
 	if (!other.is_client)
 		return;
@@ -939,11 +939,9 @@ static void(entity self, bool open) door_use_areaportals =
 	if (!self.target)
 		return;
 
-	while ((t = G_Find(t, targetname, self.target)) != null_entity) {
-		if (stricmp(t.classname, "func_areaportal") == 0) {
+	while ((t = G_Find(t, targetname, self.target)) != null_entity)
+		if (striequals(t.classname, "func_areaportal"))
 			gi.SetAreaPortalState(t.style, open);
-		}
-	}
 }
 
 static void(entity self) door_go_down;
@@ -1148,7 +1146,7 @@ static void(entity self, entity other, entity cactivator) door_use =
 	}
 }
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) Touch_DoorTrigger =
+static void(entity self, entity other, vector plane, csurface_t surf) Touch_DoorTrigger =
 {
 	if (other.health <= 0)
 		return;
@@ -1284,7 +1282,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 	door_use(self.teammaster, attacker, attacker);
 }
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) door_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) door_touch =
 {
 	if (!other.is_client)
 		return;

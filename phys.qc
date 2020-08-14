@@ -99,15 +99,13 @@ Two entities have touched, so run their touch functions
 */
 static void(entity e1, trace_t *trace) SV_Impact =
 {
-	entity	e2;
-
-	e2 = trace.ent;
+	entity	e2 = trace.ent;
 
 	if (e1.touch && e1.solid != SOLID_NOT)
-		e1.touch(e1, e2, (*trace).plane, (*trace).surface);
+		e1.touch(e1, e2, trace->normal, trace->surface);
 
 	if (e2.touch && e2.solid != SOLID_NOT)
-		e2.touch(e2, e1, null_plane, null_surface);
+		e2.touch(e2, e1, vec3_origin, null_surface);
 }
 
 /*
@@ -169,14 +167,14 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 
 		hit = trace.ent;
 
-		if (trace.plane.normal[2] > 0.7f) {
+		if (trace.normal[2] > 0.7f) {
 			blocked |= 1;       // floor
 			if (hit.solid == SOLID_BSP) {
 				ent.groundentity = hit;
 				ent.groundentity_linkcount = hit.linkcount;
 			}
 		}
-		if (!trace.plane.normal[2]) {
+		if (!trace.normal[2]) {
 			blocked |= 2;       // step
 		}
 
@@ -197,7 +195,7 @@ static int(entity ent, float time, int mask) SV_FlyMove =
 			return 3;
 		}
 
-		planes[numplanes] = trace.plane.normal;
+		planes[numplanes] = trace.normal;
 		numplanes++;
 
 //
@@ -292,7 +290,7 @@ retry:
 
 	gi.trace(trace, start, ent.mins, ent.maxs, end, ent, mask);
 	
-	ent.s.origin = (*trace).endpos;
+	ent.s.origin = trace->endpos;
 	gi.linkentity(ent);
 
 	if (trace.fraction != 1.0f)
@@ -300,7 +298,7 @@ retry:
 		SV_Impact(ent, trace);
 
 		// if the pushed entity went away and the pusher is still there
-		if (!(*trace).ent.inuse && ent.inuse) {
+		if (!trace->ent.inuse && ent.inuse) {
 			// move the pusher back and try again
 			ent.s.origin = start;
 			gi.linkentity(ent);
@@ -673,7 +671,7 @@ static void(entity ent) SV_Physics_Toss =
 		else
 			backoff = 1f;
 
-		ent.velocity = ClipVelocity(ent.velocity, trace.plane.normal, backoff);
+		ent.velocity = ClipVelocity(ent.velocity, trace.normal, backoff);
 
 #ifdef THE_RECKONING
 		// RAFAEL
@@ -682,7 +680,7 @@ static void(entity ent) SV_Physics_Toss =
 #endif
 
 		// stop if on ground
-		if (trace.plane.normal[2] > 0.7f
+		if (trace.normal[2] > 0.7f
 #ifdef THE_RECKONING
 			 && ent.movetype != MOVETYPE_WALLBOUNCE
 #endif

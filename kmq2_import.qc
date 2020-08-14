@@ -1,19 +1,18 @@
 #ifdef KMQUAKE2_SUPPORT
 // KMQ2 DLL imports.
 // Note that these may be emulated by non-KMQ2 engines.
-accessor file_list_t : pointer;
+accessor file_list_t : handle;
 
 static entity(file_list_t, int)		file_list_get = #0;
 static int(file_list_t)			file_list_length = #0;
-void(file_list_t)			file_list_free = #0;
 
-accessor file_list_t : pointer
+accessor file_list_t : handle
 {
 	get entity[int] = file_list_get;
 	get int length = file_list_length;
 };
 
-accessor file_handle_t : pointer;
+accessor file_handle_t : handle;
 
 typedef enum : int
 {
@@ -29,7 +28,6 @@ PROGS_LOCAL var struct {
 	
 	int(string name, __out file_handle_t f, fs_mode_t mode)				OpenFile;
 	int(string zipName, string name, __out file_handle_t f, fs_mode_t mode)		OpenCompressedFile;
-	void(file_handle_t)								CloseFile;
 	
 	int(__variant *buffer, int size, file_handle_t f)	FRead;
 	int(__variant *buffer, int size, file_handle_t f)	FWrite;
@@ -45,7 +43,6 @@ PROGS_LOCAL var struct {
 
 	#0:OpenFile,
 	#0:OpenCompressedFile,
-	#0:CloseFile,
 
 	#0:FRead,
 	#0:FWrite,

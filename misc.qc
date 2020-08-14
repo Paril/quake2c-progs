@@ -73,7 +73,7 @@ static void(entity self) gib_think =
 	}
 }
 
-void(entity self, entity other, cplane_t plane, csurface_t surf) gib_touch =
+void(entity self, entity other, vector normal, csurface_t surf) gib_touch =
 {
 	vector	normal_angles, right;
 
@@ -82,10 +82,10 @@ void(entity self, entity other, cplane_t plane, csurface_t surf) gib_touch =
 
 	self.touch = 0;
 
-	if (plane.normal) {
+	if (normal) {
 		gi.sound(self, CHAN_VOICE, gi.soundindex("misc/fhit3.wav"), 1, ATTN_NORM, 0);
 
-		normal_angles = vectoangles(plane.normal);
+		normal_angles = vectoangles(normal);
 		AngleVectors(normal_angles, 0, &right, 0);
 		self.s.angles = vectoangles(right);
 
@@ -289,7 +289,7 @@ Pathtarget: gets used when an entity that has
 	this path_corner targeted touches it
 */
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) path_corner_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) path_corner_touch =
 {
 	vector	v;
 	entity	next;
@@ -361,7 +361,7 @@ Makes this the target of a monster and it will head here
 when first activated before going after the activator.  If
 hold is selected, it will stay here.
 */
-static void(entity self, entity other, cplane_t plane, csurface_t surf) point_combat_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) point_combat_touch =
 {
 	entity cactivator;
 
@@ -551,12 +551,12 @@ API_FUNC static void(entity self) SP_func_wall =
 This is solid bmodel that will fall if it's support it removed.
 */
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) func_object_touch =
+static void(entity self, entity other, vector normal, csurface_t surf) func_object_touch =
 {
 	// only squash thing we fall on top of
-	if (!plane.normal)
+	if (!normal)
 		return;
-	if (plane.normal[2] < 1.0f)
+	if (normal[2] < 1.0f)
 		return;
 	if (other.takedamage == DAMAGE_NO)
 		return;
@@ -811,7 +811,7 @@ Large exploding box.  You can override its mass (100),
 health (80), and dmg (150).
 */
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) barrel_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) barrel_touch =
 {
 	float	ratio;
 	vector	v;
@@ -1266,7 +1266,7 @@ API_FUNC static void(entity ent) SP_misc_bigviper =
 /*QUAKED misc_viper_bomb (1 0 0) (-8 -8 -8) (8 8 8)
 "dmg"   how much boom should the bomb make?
 */
-static void(entity self, entity other, cplane_t plane, csurface_t surf) misc_viper_bomb_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) misc_viper_bomb_touch =
 {
 	G_UseTargets(self, self.activator);
 
@@ -1668,7 +1668,7 @@ API_FUNC static void(entity self) SP_func_clock =
 
 //=================================================================================
 
-static void(entity self, entity other, cplane_t plane, csurface_t surf) teleporter_touch =
+static void(entity self, entity other, vector plane, csurface_t surf) teleporter_touch =
 {
 	entity	dest;
 
