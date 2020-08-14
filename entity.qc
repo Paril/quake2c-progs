@@ -468,11 +468,6 @@ struct monsterinfo_t
 const float DUCK_INTERVAL	= 0.5;
 
 // this is for the count of monsters
-inline int(entity ent) ENT_SLOTS_LEFT =
-{
-	return (ent.monsterinfo.monster_slots - ent.monsterinfo.monster_used);
-};
-
 inline int(entity self) SELF_SLOTS_LEFT =
 {
 	return (self.monsterinfo.monster_slots - self.monsterinfo.monster_used);
