@@ -115,8 +115,8 @@ bool(entity self, float dist) blocked_checkplat =
 	plat = world;
 
 	// see if we're already standing on a plat.
-	if (self.groundentity != null_entity && self.groundentity != world)
-		if(!strncmp(self.groundentity.classname, "func_plat", 8))
+	if (self.groundentity != null_entity && self.groundentity)
+		if (!strncmp(self.groundentity.classname, "func_plat", 8))
 			plat = self.groundentity;
 
 	// if we're not, check to see if we'll step onto one with this move
@@ -253,30 +253,30 @@ static entity(entity ent) hintpath_other_end =
 	entity	last;
 	.string	field;
 
-	if(ent.target)		// starting point
+	if (ent.target)		// starting point
 	{
 		last = world;
 		field = targetname;
-		e = G_Find(null_entity, field, ent.target);
-		while (e != null_entity)
+		e = G_Find(world, field, ent.target);
+		while (e)
 		{
 			last = e;
 			if(!e.target)
 				break;
-			e = G_Find(null_entity, field, e.target);
+			e = G_Find(world, field, e.target);
 		}
 	}
 	else				// end point
 	{
 		last = world;
 		field = target;
-		e = G_Find(null_entity, field, ent.targetname);
-		while(e != null_entity)
+		e = G_Find(world, field, ent.targetname);
+		while(e)
 		{
 			last = e;
 			if(!e.targetname)
 				break;
-			e = G_Find(null_entity, field, e.targetname);
+			e = G_Find(world, field, e.targetname);
 		}
 	}
 
@@ -777,15 +777,15 @@ void() InitHintPaths =
 	
 	// check all the hint_paths.
 	field = classname;
-	e = G_Find(null_entity, field, "hint_path");
-	if (e != null_entity)
+	e = G_Find(world, field, "hint_path");
+	if (e)
 		hint_paths_present = 1;
 	else
 		return;
 
 	memclear (hint_path_start, MAX_HINT_CHAINS*sizeof(entity));
 	num_hint_paths = 0;
-	while(e != null_entity)
+	while(e)
 	{
 		if(e.spawnflags & HINT_ENDPOINT)
 		{
@@ -816,8 +816,8 @@ void() InitHintPaths =
 		current = hint_path_start[i];
 		current.hint_chain_id = i;
 
-		e = G_Find(null_entity, field, current.target);
-		if (G_Find(e, field, current.target) != null_entity)
+		e = G_Find(world, field, current.target);
+		if (G_Find(e, field, current.target))
 		{
 			gi.dprintf ("\nForked hint path at %s detected for chain %d, target %s\n", 
 				vtos (current.s.origin), num_hint_paths, current.target);
@@ -844,8 +844,8 @@ void() InitHintPaths =
 
 			if (!current.target)
 				break;
-			e = G_Find(null_entity, field, current.target);
-			if (G_Find(e, field, current.target) != null_entity)
+			e = G_Find(world, field, current.target);
+			if (G_Find(e, field, current.target))
 			{
 				gi.dprintf ("\nForked hint path at %s detected for chain %d, target %s\n", 
 					vtos (current.s.origin), num_hint_paths, current.target);
@@ -1322,7 +1322,7 @@ int CountPlayers (void)
 // JUMPING AIDS
 //*******************
 
-INLINE void(entity self) monster_jump_start =
+inline void(entity self) monster_jump_start =
 {
 	self.timestamp = level.framenum;
 }

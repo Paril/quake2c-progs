@@ -144,7 +144,7 @@ static void(entity self, entity other, entity cactivator) misc_viper_missile_use
 	
 	AngleVectors (self.s.angles, &forward, &right, &up);
 	
-	self.enemy = G_Find (null_entity, targetname, self.target);
+	self.enemy = G_Find(world, targetname, self.target);
 	
 	vec = self.enemy.s.origin;
 	vec[2] += 16;	// Knightmare fixed

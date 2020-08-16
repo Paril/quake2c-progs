@@ -25,7 +25,7 @@ accessor handle : int;
 
 const handle null_handle = 0;
 
-inline bool handle_empty(__variant p)
+inline bool(__variant p) handle_empty =
 {
 	return !(handle)p;
 }

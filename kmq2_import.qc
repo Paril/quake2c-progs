@@ -4,7 +4,7 @@
 accessor file_list_t : handle;
 
 static entity(file_list_t, int)		file_list_get = #0;
-static int(file_list_t)			file_list_length = #0;
+static int(file_list_t)				file_list_length = #0;
 
 accessor file_list_t : handle
 {
@@ -26,8 +26,8 @@ PROGS_LOCAL var struct {
 	
 	file_list_t(string path, optional string extension = "")	GetFileList;
 	
-	int(string name, __out file_handle_t f, fs_mode_t mode)				OpenFile;
-	int(string zipName, string name, __out file_handle_t f, fs_mode_t mode)		OpenCompressedFile;
+	int(string name, __out file_handle_t f, fs_mode_t mode)					OpenFile;
+	int(string zipName, string name, __out file_handle_t f, fs_mode_t mode)	OpenCompressedFile;
 	
 	int(__variant *buffer, int size, file_handle_t f)	FRead;
 	int(__variant *buffer, int size, file_handle_t f)	FWrite;

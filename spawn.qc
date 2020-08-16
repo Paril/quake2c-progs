@@ -140,15 +140,15 @@ bool(entity ent) ED_CallSpawn =
 	ent.gravityVector = '0 0 -1';
 
 	if (ent.classname == "weapon_nailgun")
-		ent.classname = GetItemKeyByIndex(FindItem("ETF Rifle"), classname);
+		ent.classname = FindItem("ETF Rifle")->classname;
 	if (ent.classname == "ammo_nails")
-		ent.classname = GetItemKeyByIndex(FindItem("Flechettes"), classname);
+		ent.classname = FindItem("Flechettes")->classname;
 	if (ent.classname == "weapon_heatbeam")
-		ent.classname = GetItemKeyByIndex(FindItem("Plasma Beam"), classname);
+		ent.classname = FindItem("Plasma Beam")->classname;
 #endif
 	
 	// check item spawn functions
-	gitem_id_t itemid = FindItemByClassname(ent.classname);
+	gitem_t *itemid = FindItemByClassname(ent.classname);
 	
 	if (itemid)
 	{

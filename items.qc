@@ -4,18 +4,23 @@ void() InitItems =
 
 	for (int i = 0; i < itemlist.length; i++, it++)
 	{
-		if (it.pickup_str)
-			if (!(it.pickup = (pickup_func)func_get(it.pickup_str)))
-				gi.dprintf("missing pickup func %s\n", it.pickup_str);
-		if (it.use_str)
-			if (!(it.use = (use_func)func_get(it.use_str)))
-				gi.dprintf("missing use func %s\n", it.use_str);
-		if (it.drop_str)
-			if (!(it.drop = (drop_func)func_get(it.drop_str)))
-				gi.dprintf("missing drop func %s\n", it.drop_str);
-		if (it.weaponthink_str)
-			if (!(it.weaponthink = (weaponthink_func)func_get(it.weaponthink_str)))
-				gi.dprintf("missing weaponthink func %s\n", it.weaponthink_str);
+		if (it->pickup_str)
+			if (!(it->pickup = (pickup_func)func_get(it->pickup_str)))
+				gi.dprintf("missing pickup func %s\n", it->pickup_str);
+		if (it->use_str)
+			if (!(it->use = (use_func)func_get(it->use_str)))
+				gi.dprintf("missing use func %s\n", it->use_str);
+		if (it->drop_str)
+			if (!(it->drop = (drop_func)func_get(it->drop_str)))
+				gi.dprintf("missing drop func %s\n", it->drop_str);
+		if (it->weaponthink_str)
+			if (!(it->weaponthink = (weaponthink_func)func_get(it->weaponthink_str)))
+				gi.dprintf("missing weaponthink func %s\n", it->weaponthink_str);
+
+		if (it->info_id)
+			it->info = &armor_infos[it->info_id];
+
+		it->id = i;
 	}
 };
 
@@ -35,7 +40,7 @@ PROGS_LOCAL static int power_screen_index;
 PROGS_LOCAL static int power_shield_index;
 
 // special values for health styles
-enum int
+enum : int
 {
 	HEALTH_IGNORE_MAX	= 1,
 	HEALTH_TIMED		= 2
@@ -54,12 +59,11 @@ PROGS_LOCAL int	quad_fire_drop_timeout_hack;
 ===============
 GetItemByIndex
 ===============
-*/
-#define GetItemKeyByIndex(index, key) (itemlist[index].key)
-
-#define ITEM_INDEX(item) item
-	
-#define GetItemByIndex(index) index
+*/	
+inline gitem_t *GetItemByIndex(int index)
+{
+	return &itemlist[index];
+}
 
 /*
 ===============
@@ -67,15 +71,13 @@ FindItemByClassname
 
 ===============
 */
-gitem_id_t(string cclassname) FindItemByClassname =
+gitem_t *(string cclassname) FindItemByClassname =
 {
-	int     i;
-	for (i = 0 ; i < itemlist.length; i++) {
-		if (!GetItemKeyByIndex(i, classname))
-			continue;
-		if (striequals(GetItemKeyByIndex(i, classname), cclassname))
-			return i;
-	}
+	gitem_t *it = itemlist;
+	
+	for (int i = 0; i < itemlist.length; i++, it++)
+		if (striequals(it->classname, cclassname))
+			return it;
 
 	return 0;
 }
@@ -86,15 +88,13 @@ FindItem
 
 ===============
 */
-gitem_id_t(string pickup_name) FindItem =
+gitem_t *(string pickup_name) FindItem =
 {
-	int     i;
-	for (i = 0 ; i < itemlist.length; i++) {
-		if (!GetItemKeyByIndex(i, pickup_name))
-			continue;
-		if (striequals(GetItemKeyByIndex(i, pickup_name), pickup_name))
-			return i;
-	}
+	gitem_t *it = itemlist;
+	
+	for (int i = 0; i < itemlist.length; i++, it++)
+		if (striequals(it->pickup_name, pickup_name))
+			return it;
 
 	return 0;
 }
@@ -141,42 +141,40 @@ void(entity ent, int delay) SetRespawn =
 
 //======================================================================
 // from items.qc
-API_FUNC static void(entity ent, gitem_id_t item) Use_Quad;
+API_FUNC static void(entity ent, gitem_t *it) Use_Quad;
 
 #ifdef THE_RECKONING
-API_FUNC void(entity ent, gitem_id_t it) Use_QuadFire;
+API_FUNC void(entity ent, gitem_t *it) Use_QuadFire;
 #endif
 
 API_FUNC static bool(entity ent, entity other) Pickup_Powerup =
 {
-	int     quantity;
-
-	quantity = other.client.pers.inventory[ITEM_INDEX(ent.item)];
+	int	quantity = other.client.pers.inventory[ent.item->id];
 	if ((skill.intVal == 1 && quantity >= 2) || (skill.intVal >= 2 && quantity >= 1))
 		return false;
 
-	if ((coop.intVal) && (GetItemKeyByIndex(ent.item, flags) & IT_STAY_COOP) && (quantity > 0))
+	if (coop.intVal && (ent.item->flags & IT_STAY_COOP) && quantity > 0)
 		return false;
 
-	other.client.pers.inventory[ITEM_INDEX(ent.item)]++;
+	other.client.pers.inventory[ent.item->id]++;
 
 	if (deathmatch.intVal) {
 		if (!(ent.spawnflags & DROPPED_ITEM))
-			SetRespawn(ent, GetItemKeyByIndex(ent.item, quantity));
-		if ((dmflags.intVal & DF_INSTANT_ITEMS) || ((GetItemKeyByIndex(ent.item, use) == Use_Quad
+			SetRespawn(ent, ent.item->quantity);
+		if ((dmflags.intVal & DF_INSTANT_ITEMS) || ((ent.item->use == Use_Quad
 #ifdef THE_RECKONING
-			|| GetItemKeyByIndex(ent.item, use) == Use_QuadFire
+			|| ent.item->use == Use_QuadFire
 #endif
 			) && (ent.spawnflags & DROPPED_PLAYER_ITEM)))
 		{
-			if ((GetItemKeyByIndex(ent.item, use) == Use_Quad) && (ent.spawnflags & DROPPED_PLAYER_ITEM))
+			if ((ent.item->use == Use_Quad) && (ent.spawnflags & DROPPED_PLAYER_ITEM))
 				quad_drop_timeout_hack = ent.nextthink - level.framenum;
 #ifdef THE_RECKONING
-			else if ((GetItemKeyByIndex(ent.item, use) == Use_QuadFire) && (ent.spawnflags & DROPPED_PLAYER_ITEM))
+			else if ((ent.item->use == Use_QuadFire) && (ent.spawnflags & DROPPED_PLAYER_ITEM))
 				quad_drop_timeout_hack = ent.nextthink - level.framenum;
 #endif
-			if (GetItemKeyByIndex(ent.item, use))
-				GetItemKeyByIndex(ent.item, use)(other, ent.item);
+			if (ent.item->use)
+				ent.item->use(other, ent.item);
 		}
 	}
 
@@ -184,15 +182,15 @@ API_FUNC static bool(entity ent, entity other) Pickup_Powerup =
 }
 
 // from items.qc
-entity(entity, gitem_id_t) Drop_Item;
+entity(entity, gitem_t *) Drop_Item;
 
 // from cmds.qc
 void(entity) ValidateSelectedItem;
 
-static void(entity ent, gitem_id_t item) Drop_General =
+static void(entity ent, gitem_t *it) Drop_General =
 {
-	Drop_Item(ent, item);
-	ent.client.pers.inventory[ITEM_INDEX(item)]--;
+	Drop_Item(ent, it);
+	ent.client.pers.inventory[it->id]--;
 	ValidateSelectedItem(ent);
 }
 
@@ -208,7 +206,7 @@ static bool(entity ent, entity other) Pickup_Adrenaline
 		other.health = other.max_health;
 
 	if (!(ent.spawnflags & DROPPED_ITEM) && (deathmatch.intVal))
-		SetRespawn(ent, GetItemKeyByIndex(ent.item, quantity));
+		SetRespawn(ent, ent.item->quantity);
 
 	return true;
 }
@@ -218,16 +216,13 @@ API_FUNC static bool(entity ent, entity other) Pickup_AncientHead =
 	other.max_health += 2;
 
 	if (!(ent.spawnflags & DROPPED_ITEM) && (deathmatch.intVal))
-		SetRespawn(ent, GetItemKeyByIndex(ent.item, quantity));
+		SetRespawn(ent, ent.item->quantity);
 
 	return true;
 }
 
 API_FUNC static bool(entity ent, entity other) Pickup_Bandolier =
 {
-	gitem_id_t	itemid;
-	int		index;
-
 	if (other.client.pers.max_bullets < 250)
 		other.client.pers.max_bullets = 250;
 	if (other.client.pers.max_shells < 150)
@@ -247,33 +242,32 @@ API_FUNC static bool(entity ent, entity other) Pickup_Bandolier =
 		other.client.pers.max_rounds = 150;
 #endif
 
-	itemid = FindItem("Bullets");
-	if (itemid) {
-		index = ITEM_INDEX(itemid);
-		other.client.pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
+	gitem_t *it = FindItem("Bullets");
+	if (it)
+	{
+		int index = it->id;
+		other.client.pers.inventory[index] += it->quantity;
 		if (other.client.pers.inventory[index] > other.client.pers.max_bullets)
 			other.client.pers.inventory[index] = other.client.pers.max_bullets;
 	}
 
-	itemid = FindItem("Shells");
-	if (itemid) {
-		index = ITEM_INDEX(itemid);
-		other.client.pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
+	it = FindItem("Shells");
+	if (it)
+	{
+		int index = it->id;
+		other.client.pers.inventory[index] += it->quantity;
 		if (other.client.pers.inventory[index] > other.client.pers.max_shells)
 			other.client.pers.inventory[index] = other.client.pers.max_shells;
 	}
 
 	if (!(ent.spawnflags & DROPPED_ITEM) && (deathmatch.intVal))
-		SetRespawn(ent, GetItemKeyByIndex(ent.item, quantity));
+		SetRespawn(ent, ent.item->quantity);
 
 	return true;
 }
 
 API_FUNC static bool(entity ent, entity other) Pickup_Pack =
 {
-	gitem_id_t	itemid;
-	int		index;
-
 	if (other.client.pers.max_bullets < 300)
 		other.client.pers.max_bullets = 300;
 	if (other.client.pers.max_shells < 200)
@@ -297,105 +291,112 @@ API_FUNC static bool(entity ent, entity other) Pickup_Pack =
 		other.client.pers.max_rounds = 200;
 #endif
 
-	itemid = FindItem("Bullets");
-	if (itemid) {
-		index = ITEM_INDEX(itemid);
-		other.client.pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
+	gitem_t *it = FindItem("Bullets");
+	if (it)
+	{
+		int index = it->id;
+		other.client.pers.inventory[index] += it->quantity;
 		if (other.client.pers.inventory[index] > other.client.pers.max_bullets)
 			other.client.pers.inventory[index] = other.client.pers.max_bullets;
 	}
 
-	itemid = FindItem("Shells");
-	if (itemid) {
-		index = ITEM_INDEX(itemid);
-		other.client.pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
+	it = FindItem("Shells");
+	if (it)
+	{
+		int index = it->id;
+		other.client.pers.inventory[index] += it->quantity;
 		if (other.client.pers.inventory[index] > other.client.pers.max_shells)
 			other.client.pers.inventory[index] = other.client.pers.max_shells;
 	}
 
-	itemid = FindItem("Cells");
-	if (itemid) {
-		index = ITEM_INDEX(itemid);
-		other.client.pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
+	it = FindItem("Cells");
+	if (it)
+	{
+		int index = it->id;
+		other.client.pers.inventory[index] += it->quantity;
 		if (other.client.pers.inventory[index] > other.client.pers.max_cells)
 			other.client.pers.inventory[index] = other.client.pers.max_cells;
 	}
 
-	itemid = FindItem("Grenades");
-	if (itemid) {
-		index = ITEM_INDEX(itemid);
-		other.client.pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
+	it = FindItem("Grenades");
+	if (it)
+	{
+		int index = it->id;
+		other.client.pers.inventory[index] += it->quantity;
 		if (other.client.pers.inventory[index] > other.client.pers.max_grenades)
 			other.client.pers.inventory[index] = other.client.pers.max_grenades;
 	}
 
-	itemid = FindItem("Rockets");
-	if (itemid) {
-		index = ITEM_INDEX(itemid);
-		other.client.pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
+	it = FindItem("Rockets");
+	if (it)
+	{
+		int index = it->id;
+		other.client.pers.inventory[index] += it->quantity;
 		if (other.client.pers.inventory[index] > other.client.pers.max_rockets)
 			other.client.pers.inventory[index] = other.client.pers.max_rockets;
 	}
 
-	itemid = FindItem("Slugs");
-	if (itemid) {
-		index = ITEM_INDEX(itemid);
-		other.client.pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
+	it = FindItem("Slugs");
+	if (it)
+	{
+		int index = it->id;
+		other.client.pers.inventory[index] += it->quantity;
 		if (other.client.pers.inventory[index] > other.client.pers.max_slugs)
 			other.client.pers.inventory[index] = other.client.pers.max_slugs;
 	}
 	
 #ifdef THE_RECKONING
 	// RAFAEL
-	itemid = FindItem ("Mag Slug");
-	if (itemid)
+	it = FindItem ("Mag Slug");
+	if (it)
 	{
-		index = ITEM_INDEX(itemid);
-		other.client.pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
+		int index = it->id;
+		other.client.pers.inventory[index] += it->quantity;
 		if (other.client.pers.inventory[index] > other.client.pers.max_magslug)
 			other.client.pers.inventory[index] = other.client.pers.max_magslug;
 	}
 #endif
 #ifdef GROUND_ZERO
-	itemid = FindItem("Flechettes");
-	if (itemid)
+	it = FindItem("Flechettes");
+	if (it)
 	{
-		index = ITEM_INDEX(itemid);
-		other.client.pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
+		int index = it->id;
+		other.client.pers.inventory[index] += it->quantity;
 		if (other.client.pers.inventory[index] > other.client.pers.max_flechettes)
 			other.client.pers.inventory[index] = other.client.pers.max_flechettes;
 	}
-	itemid = FindItem("Rounds");
-	if (itemid)
+	it = FindItem("Rounds");
+	if (it)
 	{
-		index = ITEM_INDEX(itemid);
-		other.client.pers.inventory[index] += GetItemKeyByIndex(itemid, quantity);
+		int index = it->id;
+		other.client.pers.inventory[index] += it->quantity;
 		if (other.client.pers.inventory[index] > other.client.pers.max_rounds)
 			other.client.pers.inventory[index] = other.client.pers.max_rounds;
 	}
 #endif
 
 	if (!(ent.spawnflags & DROPPED_ITEM) && (deathmatch.intVal))
-		SetRespawn(ent, GetItemKeyByIndex(ent.item, quantity));
+		SetRespawn(ent, ent.item->quantity);
 
 	return true;
 }
 
 //======================================================================
 
-API_FUNC static void(entity ent, gitem_id_t item) Use_Quad =
+API_FUNC static void(entity ent, gitem_t *it) Use_Quad =
 {
 	int     timeout;
 
-	ent.client.pers.inventory[ITEM_INDEX(item)]--;
+	ent.client.pers.inventory[it->id]--;
 	ValidateSelectedItem(ent);
 
-	if (quad_drop_timeout_hack) {
+	if (quad_drop_timeout_hack)
+	{
 		timeout = quad_drop_timeout_hack;
 		quad_drop_timeout_hack = 0;
-	} else {
-		timeout = 300;
 	}
+	else
+		timeout = 300;
 
 	if (ent.client.quad_framenum > level.framenum)
 		ent.client.quad_framenum += timeout;
@@ -407,9 +408,9 @@ API_FUNC static void(entity ent, gitem_id_t item) Use_Quad =
 
 //======================================================================
 
-API_FUNC static void(entity ent, gitem_id_t item) Use_Breather =
+API_FUNC static void(entity ent, gitem_t *it) Use_Breather =
 {
-	ent.client.pers.inventory[ITEM_INDEX(item)]--;
+	ent.client.pers.inventory[it->id]--;
 	ValidateSelectedItem(ent);
 
 	if (ent.client.breather_framenum > level.framenum)
@@ -420,9 +421,9 @@ API_FUNC static void(entity ent, gitem_id_t item) Use_Breather =
 
 //======================================================================
 
-API_FUNC static void(entity ent, gitem_id_t item) Use_Envirosuit =
+API_FUNC static void(entity ent, gitem_t *it) Use_Envirosuit =
 {
-	ent.client.pers.inventory[ITEM_INDEX(item)]--;
+	ent.client.pers.inventory[it->id]--;
 	ValidateSelectedItem(ent);
 
 	if (ent.client.enviro_framenum > level.framenum)
@@ -433,9 +434,9 @@ API_FUNC static void(entity ent, gitem_id_t item) Use_Envirosuit =
 
 //======================================================================
 
-API_FUNC static void(entity ent, gitem_id_t item) Use_Invulnerability =
+API_FUNC static void(entity ent, gitem_t *it) Use_Invulnerability =
 {
-	ent.client.pers.inventory[ITEM_INDEX(item)]--;
+	ent.client.pers.inventory[it->id]--;
 	ValidateSelectedItem(ent);
 
 	if (ent.client.invincible_framenum > level.framenum)
@@ -448,9 +449,9 @@ API_FUNC static void(entity ent, gitem_id_t item) Use_Invulnerability =
 
 //======================================================================
 
-API_FUNC static void(entity ent, gitem_id_t item) Use_Silencer =
+API_FUNC static void(entity ent, gitem_t *it) Use_Silencer =
 {
-	ent.client.pers.inventory[ITEM_INDEX(item)]--;
+	ent.client.pers.inventory[it->id]--;
 	ValidateSelectedItem(ent);
 	ent.client.silencer_shots += 30;
 }
@@ -463,22 +464,22 @@ API_FUNC static bool(entity ent, entity other) Pickup_Key =
 		if (ent.classname == "key_power_cube") {
 			if (other.client.pers.power_cubes & ((ent.spawnflags & 0x0000ff00) >> 8))
 				return false;
-			other.client.pers.inventory[ITEM_INDEX(ent.item)]++;
+			other.client.pers.inventory[ent.item->id]++;
 			other.client.pers.power_cubes |= ((ent.spawnflags & 0x0000ff00) >> 8);
 		} else {
-			if (other.client.pers.inventory[ITEM_INDEX(ent.item)])
+			if (other.client.pers.inventory[ent.item->id])
 				return false;
-			other.client.pers.inventory[ITEM_INDEX(ent.item)] = 1;
+			other.client.pers.inventory[ent.item->id] = 1;
 		}
 		return true;
 	}
-	other.client.pers.inventory[ITEM_INDEX(ent.item)]++;
+	other.client.pers.inventory[ent.item->id]++;
 	return true;
 }
 
 //======================================================================
 
-bool(entity ent, gitem_id_t itemid, int count) Add_Ammo =
+bool(entity ent, gitem_t *it, int count) Add_Ammo =
 {
 	int         index;
 	int         max;
@@ -486,7 +487,7 @@ bool(entity ent, gitem_id_t itemid, int count) Add_Ammo =
 	if (!ent.is_client)
 		return false;
 	
-	int	tag = GetItemKeyByIndex(itemid, tag);
+	int	tag = it->tag;
 
 	if (tag == AMMO_BULLETS)
 		max = ent.client.pers.max_bullets;
@@ -519,7 +520,7 @@ bool(entity ent, gitem_id_t itemid, int count) Add_Ammo =
 	else
 		return false;
 
-	index = ITEM_INDEX(itemid);
+	index = it->id;
 
 	if (ent.client.pers.inventory[index] == max)
 		return false;
@@ -536,15 +537,15 @@ API_FUNC static bool(entity ent, entity other) Pickup_Ammo =
 {
 	int	oldcount = 0;
 	int	ammocount = 0;
-	bool	weapon = (GetItemKeyByIndex(ent.item, flags) & IT_WEAPON);
-	if ((weapon) && (dmflags.intVal & DF_INFINITE_AMMO))
+	bool	weapon = (ent.item->flags & IT_WEAPON);
+	if (weapon && (dmflags.intVal & DF_INFINITE_AMMO))
 		ammocount = 1000;
 	else if (ent.count)
 		ammocount = ent.count;
 	else
-		ammocount = GetItemKeyByIndex(ent.item, quantity);
+		ammocount = ent.item->quantity;
 
-	oldcount = other.client.pers.inventory[ITEM_INDEX(ent.item)];
+	oldcount = other.client.pers.inventory[ent.item->id];
 
 	if (!Add_Ammo(other, ent.item, ammocount))
 		return false;
@@ -559,23 +560,21 @@ API_FUNC static bool(entity ent, entity other) Pickup_Ammo =
 	return true;
 }
 
-static void(entity ent, gitem_id_t itemid) Drop_Ammo =
+static void(entity ent, gitem_t *it) Drop_Ammo =
 {
-	entity	dropped;
-	int	index;
+	int index = it->id;
+	entity dropped = Drop_Item(ent, it);
 
-	index = ITEM_INDEX(itemid);
-	dropped = Drop_Item(ent, itemid);
-
-	if (ent.client.pers.inventory[index] >= GetItemKeyByIndex(itemid, quantity))
-		dropped.count = GetItemKeyByIndex(itemid, quantity);
+	if (ent.client.pers.inventory[index] >= it->quantity)
+		dropped.count = it->quantity;
 	else
 		dropped.count = ent.client.pers.inventory[index];
 
 	if (ent.client.pers.weapon &&
-		GetItemKeyByIndex(ent.client.pers.weapon, tag) == AMMO_GRENADES &&
-		GetItemKeyByIndex(itemid, tag) == AMMO_GRENADES &&
-		ent.client.pers.inventory[index] - dropped.count <= 0) {
+		ent.client.pers.weapon->tag == AMMO_GRENADES &&
+		it->tag == AMMO_GRENADES &&
+		ent.client.pers.inventory[index] - dropped.count <= 0)
+	{
 		gi.cprintf(ent, PRINT_HIGH, "Can't drop current weapon\n");
 		G_FreeEdict(dropped);
 		return;
@@ -651,68 +650,60 @@ int(entity ent) ArmorIndex =
 
 API_FUNC static bool(entity ent, entity other) Pickup_Armor =
 {
-	int	old_armor_index;
-	gitem_armor_id_t	oldinfo;
-	gitem_armor_id_t	newinfo;
 	int	newcount;
 	float	salvage;
 	int	salvagecount;
-
-	// get info on new armor
-	newinfo = GetItemKeyByIndex(ent.item, info);
-
-	old_armor_index = ArmorIndex(other);
+	int	old_armor_index = ArmorIndex(other);
 
 	// handle armor shards specially
-	if (GetItemKeyByIndex(ent.item, tag) == ARMOR_SHARD) {
+	if (ent.item->tag == ARMOR_SHARD)
+	{
 		if (!old_armor_index)
 			other.client.pers.inventory[jacket_armor_index] = 2;
 		else
 			other.client.pers.inventory[old_armor_index] += 2;
 	}
+	else
+	{
+		// get info on new armor
+		gitem_armor_t *newinfo = ent.item->info;
 
-	// if player has no armor, just use it
-	else if (!old_armor_index) {
-		other.client.pers.inventory[ITEM_INDEX(ent.item)] = GetArmorInfoKeyByIndex(newinfo, base_count);
-	}
+		// if player has no armor, just use it
+		if (!old_armor_index)
+			other.client.pers.inventory[ent.item->id] = newinfo->base_count;
+		// use the better armor
+		else
+		{
+			// get info on old armor
+			gitem_armor_t *oldinfo = GetItemByIndex(old_armor_index)->info;
 
-	// use the better armor
-	else {
-		// get info on old armor
-		if (old_armor_index == jacket_armor_index)
-			oldinfo = ARMOR_JACKET;
-		else if (old_armor_index == combat_armor_index)
-			oldinfo = ARMOR_COMBAT;
-		else // (old_armor_index == body_armor_index)
-			oldinfo = ARMOR_BODY;
+			if (newinfo->normal_protection > oldinfo->normal_protection)
+			{
+				// calc new armor values
+				float salvage = oldinfo->normal_protection / newinfo->normal_protection;
+				int salvagecount = (int)(salvage * other.client.pers.inventory[old_armor_index]);
+				int newcount = mini(newinfo->base_count + salvagecount, newinfo->max_count);
 
-		if (GetArmorInfoKeyByIndex(newinfo, normal_protection) > GetArmorInfoKeyByIndex(oldinfo, normal_protection)) {
-			// calc new armor values
-			salvage = GetArmorInfoKeyByIndex(oldinfo, normal_protection) / GetArmorInfoKeyByIndex(newinfo, normal_protection);
-			salvagecount = (int)(salvage * other.client.pers.inventory[old_armor_index]);
-			newcount = GetArmorInfoKeyByIndex(newinfo, base_count) + salvagecount;
-			if (newcount > GetArmorInfoKeyByIndex(newinfo, max_count))
-				newcount = GetArmorInfoKeyByIndex(newinfo, max_count);
+				// zero count of old armor so it goes away
+				other.client.pers.inventory[old_armor_index] = 0;
 
-			// zero count of old armor so it goes away
-			other.client.pers.inventory[old_armor_index] = 0;
+				// change armor to new item with computed value
+				other.client.pers.inventory[ent.item->id] = newcount;
+			}
+			else
+			{
+				// calc new armor values
+				float salvage = newinfo->normal_protection / oldinfo->normal_protection;
+				int salvagecount = (int)(salvage * newinfo->base_count);
+				int newcount = mini(other.client.pers.inventory[old_armor_index] + salvagecount, oldinfo->max_count);
 
-			// change armor to new item with computed value
-			other.client.pers.inventory[ITEM_INDEX(ent.item)] = newcount;
-		} else {
-			// calc new armor values
-			salvage = GetArmorInfoKeyByIndex(newinfo, normal_protection) / GetArmorInfoKeyByIndex(oldinfo, normal_protection);
-			salvagecount = (int)(salvage * GetArmorInfoKeyByIndex(newinfo, base_count));
-			newcount = other.client.pers.inventory[old_armor_index] + salvagecount;
-			if (newcount > GetArmorInfoKeyByIndex(oldinfo, max_count))
-				newcount = GetArmorInfoKeyByIndex(oldinfo, max_count);
+				// if we're already maxed out then we don't need the new armor
+				if (other.client.pers.inventory[old_armor_index] >= newcount)
+					return false;
 
-			// if we're already maxed out then we don't need the new armor
-			if (other.client.pers.inventory[old_armor_index] >= newcount)
-				return false;
-
-			// update current armor value
-			other.client.pers.inventory[old_armor_index] = newcount;
+				// update current armor value
+				other.client.pers.inventory[old_armor_index] = newcount;
+			}
 		}
 	}
 
@@ -726,61 +717,58 @@ API_FUNC static bool(entity ent, entity other) Pickup_Armor =
 
 power_armor_type_t(entity ent) PowerArmorType =
 {
-	if (!ent.is_client)
-		return POWER_ARMOR_NONE;
-
-	if (!(ent.flags & FL_POWER_ARMOR))
-		return POWER_ARMOR_NONE;
-
-	if (ent.client.pers.inventory[power_shield_index] > 0)
-		return POWER_ARMOR_SHIELD;
-
-	if (ent.client.pers.inventory[power_screen_index] > 0)
-		return POWER_ARMOR_SCREEN;
+	if (ent.is_client && (ent.flags & FL_POWER_ARMOR))
+	{
+		if (ent.client.pers.inventory[power_shield_index] > 0)
+			return POWER_ARMOR_SHIELD;
+		else if (ent.client.pers.inventory[power_screen_index] > 0)
+			return POWER_ARMOR_SCREEN;
+	}
 
 	return POWER_ARMOR_NONE;
 }
 
-API_FUNC static void(entity ent, gitem_id_t itemid) Use_PowerArmor =
+API_FUNC static void(entity ent, gitem_t *it) Use_PowerArmor =
 {
-	int     index;
-
-	if (ent.flags & FL_POWER_ARMOR) {
-		ent.flags &= ~FL_POWER_ARMOR;
+	if (ent.flags & FL_POWER_ARMOR)
 		gi.sound(ent, CHAN_AUTO, gi.soundindex("misc/power2.wav"), 1, ATTN_NORM, 0);
-	} else {
-		index = ITEM_INDEX(FindItem("cells"));
-		if (!ent.client.pers.inventory[index]) {
+	else
+	{
+		int index = FindItem("cells")->id;
+		if (!ent.client.pers.inventory[index])
+		{
 			gi.cprintf(ent, PRINT_HIGH, "No cells for power armor.\n");
 			return;
 		}
-		ent.flags |= FL_POWER_ARMOR;
 		gi.sound(ent, CHAN_AUTO, gi.soundindex("misc/power1.wav"), 1, ATTN_NORM, 0);
 	}
+
+	ent.flags ^= FL_POWER_ARMOR;
 }
 
 API_FUNC static bool(entity ent, entity other) Pickup_PowerArmor =
 {
-	int	quantity = other.client.pers.inventory[ITEM_INDEX(ent.item)];
+	int	quantity = other.client.pers.inventory[ent.item->id];
 
-	other.client.pers.inventory[ITEM_INDEX(ent.item)]++;
+	other.client.pers.inventory[ent.item->id]++;
 
-	if (deathmatch.intVal) {
+	if (deathmatch.intVal)
+	{
 		if (!(ent.spawnflags & DROPPED_ITEM))
-			SetRespawn(ent, GetItemKeyByIndex(ent.item, quantity));
+			SetRespawn(ent, ent.item->quantity);
 		// auto-use for DM only if we didn't already have one
 		if (!quantity)
-			GetItemKeyByIndex(ent.item, use)(other, ent.item);
+			ent.item->use(other, ent.item);
 	}
 
 	return true;
 }
 
-static void(entity ent, gitem_id_t itemid) Drop_PowerArmor =
+static void(entity ent, gitem_t *it) Drop_PowerArmor =
 {
-	if ((ent.flags & FL_POWER_ARMOR) && (ent.client.pers.inventory[ITEM_INDEX(itemid)] == 1))
-		Use_PowerArmor(ent, itemid);
-	Drop_General(ent, itemid);
+	if ((ent.flags & FL_POWER_ARMOR) && (ent.client.pers.inventory[it->id] == 1))
+		Use_PowerArmor(ent, it);
+	Drop_General(ent, it);
 }
 
 //======================================================================
@@ -798,25 +786,27 @@ void(entity ent, entity other, vector plane, csurface_t surf) Touch_Item =
 		return;
 	if (other.health < 1)
 		return;     // dead people can't pickup
-	if (!GetItemKeyByIndex(ent.item, pickup))
+	if (!ent.item->pickup)
 		return;     // not a grabbable item?
 
-	taken = GetItemKeyByIndex(ent.item, pickup)(ent, other);
+	taken = ent.item->pickup(ent, other);
 
-	if (taken) {
+	if (taken)
+	{
 		// flash the screen
 		other.client.bonus_alpha = 0.25f;
 
 		// show icon and name on status bar
-		other.client.ps.stats[STAT_PICKUP_ICON] = gi.imageindex(GetItemKeyByIndex(ent.item, icon));
-		other.client.ps.stats[STAT_PICKUP_STRING] = CS_ITEMS + ITEM_INDEX(ent.item);
+		other.client.ps.stats[STAT_PICKUP_ICON] = gi.imageindex(ent.item->icon);
+		other.client.ps.stats[STAT_PICKUP_STRING] = CS_ITEMS + ent.item->id;
 		other.client.pickup_msg_framenum = level.framenum + (int)(3.0f * BASE_FRAMERATE);
 
 		// change selected item
-		if (GetItemKeyByIndex(ent.item, use))
-			other.client.pers.selected_item = other.client.ps.stats[STAT_SELECTED_ITEM] = ITEM_INDEX(ent.item);
+		if (ent.item->use)
+			other.client.pers.selected_item = other.client.ps.stats[STAT_SELECTED_ITEM] = ent.item->id;
 
-		if (GetItemKeyByIndex(ent.item, pickup) == Pickup_Health) {
+		if (ent.item->pickup == Pickup_Health)
+		{
 			if (ent.count == 2)
 				gi.sound(other, CHAN_ITEM, gi.soundindex("items/s_health.wav"), 1, ATTN_NORM, 0);
 			else if (ent.count == 10)
@@ -825,9 +815,9 @@ void(entity ent, entity other, vector plane, csurface_t surf) Touch_Item =
 				gi.sound(other, CHAN_ITEM, gi.soundindex("items/l_health.wav"), 1, ATTN_NORM, 0);
 			else // (ent.count == 100)
 				gi.sound(other, CHAN_ITEM, gi.soundindex("items/m_health.wav"), 1, ATTN_NORM, 0);
-		} else if (GetItemKeyByIndex(ent.item, pickup_sound)) {
-			gi.sound(other, CHAN_ITEM, gi.soundindex(GetItemKeyByIndex(ent.item, pickup_sound)), 1, ATTN_NORM, 0);
 		}
+		else if (ent.item->pickup_sound)
+			gi.sound(other, CHAN_ITEM, gi.soundindex(ent.item->pickup_sound), 1, ATTN_NORM, 0);
 	}
 
 	if (!(ent.spawnflags & ITEM_TARGETS_USED)) {
@@ -838,7 +828,8 @@ void(entity ent, entity other, vector plane, csurface_t surf) Touch_Item =
 	if (!taken)
 		return;
 
-	if (!((coop.intVal) && (GetItemKeyByIndex(ent.item, flags) & IT_STAY_COOP)) || (ent.spawnflags & (DROPPED_ITEM | DROPPED_PLAYER_ITEM))) {
+	if (!(coop.intVal && (ent.item->flags & IT_STAY_COOP)) || (ent.spawnflags & (DROPPED_ITEM | DROPPED_PLAYER_ITEM)))
+	{
 		if (ent.flags & FL_RESPAWN)
 			ent.flags &= ~FL_RESPAWN;
 		else
@@ -865,7 +856,7 @@ static void(entity ent) drop_make_touchable =
 	}
 }
 
-entity(entity ent, gitem_id_t itemid) Drop_Item =
+entity(entity ent, gitem_t *it) Drop_Item =
 {
 	entity	dropped;
 	vector	forward, right;
@@ -873,10 +864,10 @@ entity(entity ent, gitem_id_t itemid) Drop_Item =
 
 	dropped = G_Spawn();
 
-	dropped.classname = GetItemKeyByIndex(itemid, classname);
-	dropped.item = itemid;
+	dropped.classname = it->classname;
+	dropped.item = it;
 	dropped.spawnflags = DROPPED_ITEM;
-	dropped.s.effects = GetItemKeyByIndex(itemid, world_model_flags);
+	dropped.s.effects = it->world_model_flags;
 	dropped.s.renderfx = RF_GLOW
 #ifdef GROUND_ZERO
 		| RF_IR_VISIBLE
@@ -884,7 +875,7 @@ entity(entity ent, gitem_id_t itemid) Drop_Item =
 		;
 	dropped.mins = '-15 -15 -15';
 	dropped.maxs = '15 15 15';
-	gi.setmodel(dropped, GetItemKeyByIndex(itemid, world_model));
+	gi.setmodel(dropped, it->world_model);
 	dropped.solid = SOLID_TRIGGER;
 	dropped.movetype = MOVETYPE_TOSS;
 	dropped.touch = drop_temp_touch;
@@ -951,7 +942,7 @@ void(entity ent) droptofloor =
 	if (ent.model)
 		gi.setmodel(ent, ent.model);
 	else
-		gi.setmodel(ent, GetItemKeyByIndex(ent.item, world_model));
+		gi.setmodel(ent, ent.item->world_model);
 	ent.solid = SOLID_TRIGGER;
 	ent.movetype = MOVETYPE_TOSS;
 	ent.touch = Touch_Item;
@@ -1020,29 +1011,30 @@ This will be called for each item spawned in a level,
 and for each item in each client's inventory.
 ===============
 */
-void(gitem_id_t it) PrecacheItem =
+void(gitem_t *it) PrecacheItem =
 {
 	if (!it)
 		return;
 
-	if (GetItemKeyByIndex(it, pickup_sound))
-		gi.soundindex(GetItemKeyByIndex(it, pickup_sound));
-	if (GetItemKeyByIndex(it, world_model))
-		gi.modelindex(GetItemKeyByIndex(it, world_model));
-	if (GetItemKeyByIndex(it, view_model))
-		gi.modelindex(GetItemKeyByIndex(it, view_model));
-	if (GetItemKeyByIndex(it, icon))
-		gi.imageindex(GetItemKeyByIndex(it, icon));
+	if (it->pickup_sound)
+		gi.soundindex(it->pickup_sound);
+	if (it->world_model)
+		gi.modelindex(it->world_model);
+	if (it->view_model)
+		gi.modelindex(it->view_model);
+	if (it->icon)
+		gi.imageindex(it->icon);
 
 	// parse everything for its ammo
-	if (GetItemKeyByIndex(it, ammo)) {
-		gitem_id_t ammo = FindItem(GetItemKeyByIndex(it, ammo));
+	if (it->ammo)
+	{
+		gitem_t *ammo = FindItem(it->ammo);
 		if (ammo != it)
 			PrecacheItem(ammo);
 	}
 
 	// parse the space seperated precache string for other items
-	string s = GetItemKeyByIndex(it, precaches);
+	string s = it->precaches;
 	if (!s)
 		return;
 
@@ -1058,7 +1050,7 @@ void(gitem_id_t it) PrecacheItem =
 		int v_len = strlen(v);
 
 		if (v_len >= MAX_QPATH || v_len < 5)
-			gi.error("PrecacheItem: %s has bad precache string \"%s\"", GetItemKeyByIndex(it, classname), GetItemKeyByIndex(it, precaches));
+			gi.error("PrecacheItem: %s has bad precache string \"%s\"", it->classname, it->precaches);
 		
 		string ext = substr(v, v_len - 3);
 
@@ -1088,7 +1080,7 @@ Items can't be immediately dropped to floor, because they might
 be on an entity that hasn't spawned yet.
 ============
 */
-void(entity ent, gitem_id_t it) SpawnItem =
+void(entity ent, gitem_t *it) SpawnItem =
 {
 	if (ent.spawnflags
 #ifdef GROUND_ZERO
@@ -1108,7 +1100,7 @@ void(entity ent, gitem_id_t it) SpawnItem =
 	{
 		if (dmflags.intVal & DF_NO_ARMOR)
 		{
-			if (GetItemKeyByIndex(it, pickup) == Pickup_Armor || GetItemKeyByIndex(it, pickup) == Pickup_PowerArmor)
+			if (it->pickup == Pickup_Armor || it->pickup == Pickup_PowerArmor)
 			{
 				G_FreeEdict(ent);
 				return;
@@ -1116,7 +1108,7 @@ void(entity ent, gitem_id_t it) SpawnItem =
 		}
 		if (dmflags.intVal & DF_NO_ITEMS)
 		{
-			if (GetItemKeyByIndex(it, pickup) == Pickup_Powerup)
+			if (it->pickup == Pickup_Powerup)
 			{
 				G_FreeEdict(ent);
 				return;
@@ -1124,7 +1116,7 @@ void(entity ent, gitem_id_t it) SpawnItem =
 		}
 		if (dmflags.intVal & DF_NO_HEALTH)
 		{
-			if (GetItemKeyByIndex(it, pickup) == Pickup_Health || GetItemKeyByIndex(it, pickup) == Pickup_Adrenaline || GetItemKeyByIndex(it, pickup) == Pickup_AncientHead)
+			if (it->pickup == Pickup_Health || it->pickup == Pickup_Adrenaline || it->pickup == Pickup_AncientHead)
 			{
 				G_FreeEdict(ent);
 				return;
@@ -1132,7 +1124,7 @@ void(entity ent, gitem_id_t it) SpawnItem =
 		}
 		if (dmflags.intVal & DF_INFINITE_AMMO)
 		{
-			if ((GetItemKeyByIndex(it, flags) == IT_AMMO) || ent.classname == "weapon_bfg")
+			if (it->flags == IT_AMMO || ent.classname == "weapon_bfg")
 			{
 				G_FreeEdict(ent);
 				return;
@@ -1170,20 +1162,20 @@ void(entity ent, gitem_id_t it) SpawnItem =
 
 	PrecacheItem(it);
 
-	if (coop.intVal && ent.classname == "key_power_cube") {
+	if (coop.intVal && ent.classname == "key_power_cube")
+	{
 		ent.spawnflags |= (1 << (8 + level.power_cubes));
 		level.power_cubes++;
 	}
 
 	// don't let them drop items that stay in a coop game
-	if ((coop.intVal) && (GetItemKeyByIndex(it, flags) & IT_STAY_COOP)) {
-		GetItemKeyByIndex(it, drop) = 0;
-	}
+	if (coop.intVal && (it->flags & IT_STAY_COOP))
+		it->drop = 0;
 
 	ent.item = it;
 	ent.nextthink = level.framenum + 2;    // items start after other solids
 	ent.think = droptofloor;
-	ent.s.effects = GetItemKeyByIndex(it, world_model_flags);
+	ent.s.effects = it->world_model_flags;
 	ent.s.renderfx = RF_GLOW;
 	if (ent.model)
 		gi.modelindex(ent.model);
@@ -1267,15 +1259,13 @@ Called by worldspawn
 */
 void() SetItemNames =
 {
-	int     i;
+	gitem_t *it = itemlist;
+	for (int i = 0; i < itemlist.length; i++, it++)
+		gi.configstring(CS_ITEMS + i, it->pickup_name);
 
-	for (i = 0 ; i < itemlist.length ; i++) {
-		gi.configstring(CS_ITEMS + i, GetItemKeyByIndex(i, pickup_name));
-	}
-
-	jacket_armor_index = ITEM_INDEX(FindItem("Jacket Armor"));
-	combat_armor_index = ITEM_INDEX(FindItem("Combat Armor"));
-	body_armor_index   = ITEM_INDEX(FindItem("Body Armor"));
-	power_screen_index = ITEM_INDEX(FindItem("Power Screen"));
-	power_shield_index = ITEM_INDEX(FindItem("Power Shield"));
+	jacket_armor_index = FindItem("Jacket Armor")->id;
+	combat_armor_index = FindItem("Combat Armor")->id;
+	body_armor_index   = FindItem("Body Armor")->id;
+	power_screen_index = FindItem("Power Screen")->id;
+	power_shield_index = FindItem("Power Shield")->id;
 }

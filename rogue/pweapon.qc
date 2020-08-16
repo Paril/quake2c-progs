@@ -216,7 +216,7 @@ static void(entity ent) weapon_chainfist_fire =
 
 	ent.client.ps.gunframe++;
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
-		ent.client.pers.inventory[ent.client.ammo_index] -= GetItemKeyByIndex(ent.client.pers.weapon, quantity);
+		ent.client.pers.inventory[ent.client.ammo_index] -= ent.client.pers.weapon->quantity;
 }
 
 // this spits out some smoke from the motor. it's a two-stroke, you know.
@@ -380,7 +380,7 @@ static void(entity self) weapon_tracker_fire =
 
 	self.client.ps.gunframe++;
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
-		self.client.pers.inventory[self.client.ammo_index] -= GetItemKeyByIndex(self.client.pers.weapon, quantity);
+		self.client.pers.inventory[self.client.ammo_index] -= self.client.pers.weapon->quantity;
 }
 
 API_FUNC void(entity ent) Weapon_Disintegrator =
@@ -415,7 +415,7 @@ static void(entity ent) weapon_etf_rifle_fire =
 	vector	offset;
 
 	// PGM - adjusted to use the quantity entry in the weapon structure.
-	if(ent.client.pers.inventory[ent.client.ammo_index] < GetItemKeyByIndex(ent.client.pers.weapon, quantity))
+	if(ent.client.pers.inventory[ent.client.ammo_index] < ent.client.pers.weapon->quantity)
 	{
 		ent.client.kick_origin = ent.client.kick_angles = vec3_origin;
 		ent.client.ps.gunframe = 8;
@@ -462,7 +462,7 @@ static void(entity ent) weapon_etf_rifle_fire =
 
 	ent.client.ps.gunframe++;
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
-		ent.client.pers.inventory[ent.client.ammo_index] -= GetItemKeyByIndex(ent.client.pers.weapon, quantity);
+		ent.client.pers.inventory[ent.client.ammo_index] -= ent.client.pers.weapon->quantity;
 
 	ent.client.anim_priority = ANIM_ATTACK;
 	if (ent.client.ps.pmove.pm_flags & PMF_DUCKED)
@@ -503,7 +503,7 @@ API_FUNC void(entity ent) Weapon_ETF_Rifle =
 
 static void(entity ent) Heatbeam_Fire =
 {
-	if (ent.client.pers.inventory[ent.client.ammo_index] < GetItemKeyByIndex(ent.client.pers.weapon, quantity))
+	if (ent.client.pers.inventory[ent.client.ammo_index] < ent.client.pers.weapon->quantity)
 	{
 		ent.client.ps.gunframe++;
 		return;
@@ -553,7 +553,7 @@ static void(entity ent) Heatbeam_Fire =
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
-		ent.client.pers.inventory[ent.client.ammo_index] -= GetItemKeyByIndex(ent.client.pers.weapon, quantity);
+		ent.client.pers.inventory[ent.client.ammo_index] -= ent.client.pers.weapon->quantity;
 
 	ent.client.anim_priority = ANIM_ATTACK;
 	if (ent.client.ps.pmove.pm_flags & PMF_DUCKED)
@@ -585,7 +585,7 @@ API_FUNC void(entity ent) Weapon_Heatbeam =
 	if (ent.client.weaponstate == WEAPON_FIRING)
 	{
 		ent.client.weapon_sound = gi.soundindex ("weapons/bfg__l1a.wav");
-		if ((ent.client.pers.inventory[ent.client.ammo_index] >= GetItemKeyByIndex(ent.client.pers.weapon, quantity)) && ((ent.client.buttons) & BUTTON_ATTACK))
+		if ((ent.client.pers.inventory[ent.client.ammo_index] >= ent.client.pers.weapon->quantity) && (ent.client.buttons & BUTTON_ATTACK))
 		{
 			if(ent.client.ps.gunframe >= 13)
 			{

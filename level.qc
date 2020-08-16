@@ -4,7 +4,7 @@
 //
 API_FUNC struct
 {
-	int	framenum;
+	int		framenum;
 	float	time;
 
 	string	level_name;  // the descriptive name (Outer Base, etc)
@@ -12,20 +12,20 @@ API_FUNC struct
 	string	nextmap;     // go here when fraglimit is hit
 
 	// intermission state
-	int	intermission_framenum;  // time the intermission was started
+	int		intermission_framenum;  // time the intermission was started
 	string	changemap;
-	int	exitintermission;
+	int		exitintermission;
 	vector	intermission_origin;
 	vector	intermission_angle;
 
 	entity	sight_client;  // changed once each frame for coop games
 
 	entity	sight_entity;
-	int	sight_entity_framenum;
+	int		sight_entity_framenum;
 	entity	sound_entity;
-	int	sound_entity_framenum;
+	int		sound_entity_framenum;
 	entity	sound2_entity;
-	int	sound2_entity_framenum;
+	int		sound2_entity_framenum;
 
 	int	pic_health;
 
@@ -39,12 +39,12 @@ API_FUNC struct
 	int	killed_monsters;
 
 	entity	current_entity;    // entity running from G_RunFrame
-	int	body_que;           // dead bodies
 
+	int	body_que;           // dead bodies
 	int	power_cubes;        // ugly necessity for coop
 
 #ifdef GROUND_ZERO
 	entity	disguise_violator;
-	int	disguise_violation_framenum;
+	int		disguise_violation_framenum;
 #endif
 } level;

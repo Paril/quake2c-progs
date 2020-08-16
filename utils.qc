@@ -10,15 +10,15 @@ G_Find
 Searches all active entities for the next one that holds
 the matching string at fieldofs (use the FOFS() macro) in the structure.
 
-Searches beginning at the edict after from, or the beginning if NULL
-NULL will be returned if the end of the list is reached.
+Searches beginning at the edict after from, or the beginning (after clients) if
+from is world. world will be returned if the end of the list is reached.
 =============
 */
 entity(entity from, .string fieldofs, string match) G_Find =
 {
 	strcasesensitive = false;
 
-	if (from == null_entity)
+	if !(from)
 		from = itoe(game.maxclients + 1);
 	else
 		from = next_ent(from);
@@ -34,7 +34,7 @@ entity(entity from, .string fieldofs, string match) G_Find =
 	}
 
 	strcasesensitive = true;
-	return null_entity;
+	return world;
 }
 
 /*
@@ -48,25 +48,24 @@ findradius (origin, radius)
 */
 entity(entity from, vector org, float rad) findradius =
 {
-	vector	eorg;
-
-	if (from == null_entity)
-		from = world;
+	if !(from)
+		from = itoe(1);
 	else
 		from = next_ent(from);
 
-	for (; etoi(from) < globals.num_edicts; from = next_ent(from)) {
+	for (; etoi(from) < globals.num_edicts; from = next_ent(from))
+	{
 		if (!from.inuse)
 			continue;
 		if (from.solid == SOLID_NOT)
 			continue;
-		eorg = org - (from.s.origin + (from.mins + from.maxs) * 0.5f);
+		vector eorg = org - (from.s.origin + (from.mins + from.maxs) * 0.5f);
 		if (VectorLength(eorg) > rad)
 			continue;
 		return from;
 	}
 
-	return null_entity;
+	return world;
 }
 
 /*
@@ -78,7 +77,6 @@ the matching string at fieldofs (use the FOFS() macro) in the structure.
 
 Searches beginning at the edict after from, or the beginning if world.
 world will be returned if the end of the list is reached.
-
 =============
 */
 const int MAX_CHOICES	= 8;
@@ -89,15 +87,14 @@ entity G_PickTarget(string stargetname)
 	int	num_choices = 0;
 	entity	choice[MAX_CHOICES] = { 0 };
 
-	if (!stargetname) {
+	if (!stargetname)
+	{
 		gi.dprintf("G_PickTarget called with NULL targetname\n");
 		return world;
 	}
 
-	while (1) {
-		ent = G_Find(ent, targetname, stargetname);
-		if (ent == null_entity)
-			break;
+	while ((ent = G_Find(ent, targetname, stargetname)))
+	{
 		choice[num_choices++] = ent;
 		if (num_choices == MAX_CHOICES)
 			break;
@@ -142,7 +139,7 @@ match (string)self.target and call their .use function
 */
 void(entity ent, entity cactivator) G_UseTargets =
 {
-	entity	t;
+	entity	t = world;
 
 //
 // check for a delay
@@ -183,9 +180,8 @@ void(entity ent, entity cactivator) G_UseTargets =
 		bool done = false;
 		entity master;
 #endif
-					
-		t = null_entity;
-		while ((t = G_Find(t, targetname, ent.killtarget)) != null_entity)
+
+		while ((t = G_Find(t, targetname, ent.killtarget)))
 		{
 #ifdef GROUND_ZERO
 			// PMM - if this entity is part of a train, cleanly remove it
@@ -219,9 +215,10 @@ void(entity ent, entity cactivator) G_UseTargets =
 //
 // fire targets
 //
-	if (ent.target) {
-		t = null_entity;
-		while ((t = G_Find(t, targetname, ent.target)) != null_entity) {
+	if (ent.target)
+	{
+		while ((t = G_Find(t, targetname, ent.target)))
+		{
 			// doors fire area portals in a specific way
 			if (striequals(t.classname, "func_areaportal") &&
 				(striequals(ent.classname, "func_door") || striequals(ent.classname, "func_door_rotating")))

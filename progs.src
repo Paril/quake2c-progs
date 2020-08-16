@@ -7,6 +7,7 @@ debug.qc
 mem.qc
 vector.qc
 string.qc
+time.qc
 info.qc
 api.qc
 game.qc

@@ -7,6 +7,10 @@ struct
 } globals;
 
 const entity world;
+
+// this is a special value that can be used to distinguish the world
+// from a literal null entity. The only place this is really required in Q2
+// is for groundentity, which may be null *or* world (or other entity).
 const entity null_entity = (entity)(__variant)-1;
 
 int snd_fry;
@@ -58,23 +62,23 @@ cvar_t  sv_features;
 struct spawn_temp_t
 {
 	// world vars
-	string		sky;
-	float		skyrotate;
-	vector		skyaxis;
-	string		nextmap;
+	string	sky;
+	float	skyrotate;
+	vector	skyaxis;
+	string	nextmap;
 	
 	int		lip;
 	int		distance;
 	int		height;
-	string		noise;
-	float		pausetime;
-	string		item;
-	string		gravity;
+	string	noise;
+	float	pausetime;
+	string	item;
+	string	gravity;
 	
-	float		minyaw;
-	float		maxyaw;
-	float		minpitch;
-	float		maxpitch;
+	float	minyaw;
+	float	maxyaw;
+	float	minpitch;
+	float	maxpitch;
 	
-	float		angle;
+	float	angle;
 } st;

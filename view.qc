@@ -515,7 +515,7 @@ static void(entity ent) SV_CalcGunOffset =
 	// gun angles from bobbing
 #ifdef GROUND_ZERO
 	//ROGUE - heatbeam shouldn't bob so the beam looks right
-	if (GetItemKeyByIndex(ent.client.pers.weapon, classname) != "weapon_plasmabeam")
+	if (ent.client.pers.weapon && ent.client.pers.weapon->classname != "weapon_plasmabeam")
 	{
 #endif
 		ent.client.ps.gunangles[ROLL] = xyspeed * bobfracsin * 0.005f;
@@ -560,7 +560,7 @@ static void(entity ent) SV_CalcGunOffset =
 SV_AddBlend
 =============
 */
-static INLINE void(vector rgb, float a, float *v_blend) SV_AddBlend =
+static inline void(vector rgb, float a, float *v_blend) SV_AddBlend =
 {
 	float a2 = v_blend[3] + (1 - v_blend[3]) * a; // new total alpha
 	float a3 = v_blend[3] / a2;   // fraction of color from old
@@ -799,19 +799,21 @@ static void(entity ent) G_SetClientSound =
 {
 	string	weap;
 
-	if (ent.client.pers.game_helpchanged != game.helpchanged) {
+	if (ent.client.pers.game_helpchanged != game.helpchanged)
+	{
 		ent.client.pers.game_helpchanged = game.helpchanged;
 		ent.client.pers.helpchanged = 1;
 	}
 
 	// help beep (no more than three times)
-	if (ent.client.pers.helpchanged && ent.client.pers.helpchanged <= 3 && !(level.framenum & 63)) {
+	if (ent.client.pers.helpchanged && ent.client.pers.helpchanged <= 3 && !(level.framenum & 63))
+	{
 		ent.client.pers.helpchanged++;
 		gi.sound(ent, CHAN_VOICE, gi.soundindex("misc/pc_up.wav"), 1, ATTN_STATIC, 0);
 	}
 
 	if (ent.client.pers.weapon)
-		weap = GetItemKeyByIndex(ent.client.pers.weapon, classname);
+		weap = ent.client.pers.weapon->classname;
 	else
 		weap = 0;
 

@@ -368,10 +368,10 @@ void(entity ent) plat2_spawn_danger_area =
 
 void(entity ent) plat2_kill_danger_area =
 {
-	entity t = null_entity;
+	entity t = world;
 
-	while ((t = G_Find (t, classname, "bad_area")) != null_entity)
-		if(t.owner == ent)
+	while ((t = G_Find (t, classname, "bad_area")))
+		if (t.owner == ent)
 			G_FreeEdict(t);
 }
 

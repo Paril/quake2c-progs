@@ -1,5 +1,5 @@
 // game.serverflags values
-typedef enumflags int
+typedef enumflags : int
 {
 	SFL_CROSS_TRIGGER_1,
 	SFL_CROSS_TRIGGER_2,
@@ -17,7 +17,7 @@ API_FUNC struct game_locals_t
 {
 	string	helpmessage1;
 	string	helpmessage2;
-	int	helpchanged;	// flash F1 icon if non 0, play sound
+	int		helpchanged;	// flash F1 icon if non 0, play sound
 					// and increment only if 1, 2, or 3
 	
 	// can't store spawnpoint in level, because
@@ -75,7 +75,7 @@ enumflags : int
 };
 
 // damage flags
-typedef enumflags int
+typedef enumflags : int
 {
 	DAMAGE_RADIUS,		// damage was indirect
 	DAMAGE_NO_ARMOR,	// armour does not protect from this damage
@@ -92,7 +92,7 @@ typedef enumflags int
 } damage_flags_t;
 
 // means of death
-typedef enum int
+typedef enum : int
 {
 	MOD_UNKNOWN,
 	MOD_BLASTER,
@@ -155,17 +155,17 @@ typedef enum int
 } means_of_death_t;
 
 // gib types
-typedef enum int
+typedef enum : int
 {
 	GIB_ORGANIC,
 	GIB_METALLIC
 } gib_type_t;
 
 // weapon parameters
-const int DEFAULT_BULLET_HSPREAD		= 300;
-const int DEFAULT_BULLET_VSPREAD		= 500;
-const int DEFAULT_SHOTGUN_HSPREAD		= 1000;
-const int DEFAULT_SHOTGUN_VSPREAD		= 500;
+const int DEFAULT_BULLET_HSPREAD			= 300;
+const int DEFAULT_BULLET_VSPREAD			= 500;
+const int DEFAULT_SHOTGUN_HSPREAD			= 1000;
+const int DEFAULT_SHOTGUN_VSPREAD			= 500;
 const int DEFAULT_DEATHMATCH_SHOTGUN_COUNT	= 12;
-const int DEFAULT_SHOTGUN_COUNT			= 12;
-const int DEFAULT_SSHOTGUN_COUNT		= 20;
+const int DEFAULT_SHOTGUN_COUNT				= 12;
+const int DEFAULT_SSHOTGUN_COUNT			= 20;

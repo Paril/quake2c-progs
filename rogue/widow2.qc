@@ -897,14 +897,10 @@ static void widow2_dead (entity self)
 
 static void KillChildren (entity self)
 {
-	entity ent = null_entity;
+	entity ent = world;
 	.string field = classname;
-	while (1)
+	while ((ent = G_Find (ent, field, "monster_stalker")))
 	{
-		ent = G_Find (ent, field, "monster_stalker");
-		if (ent == null_entity)
-			return;
-		
 		// FIXME - may need to stagger
 		if ((ent.inuse) && (ent.health > 0))
 			T_Damage (ent, self, self, vec3_origin, self.enemy.s.origin, vec3_origin, (ent.health + 1), 0, DAMAGE_NO_KNOCKBACK, MOD_UNKNOWN);

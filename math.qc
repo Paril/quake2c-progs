@@ -102,28 +102,28 @@ const int INT_MAX	= 2147483647;
 
 // min/max functions
 
-/*INLINE*/ float minf(float a, float b)
+/*INLINE*/ float(float a, float b) minf =
 {
 	if (a < b)
 		return a;
 	return b;
 }
 
-/*INLINE*/ float maxf(float a, float b)
+/*INLINE*/ float(float a, float b) maxf =
 {
 	if (a > b)
 		return a;
 	return b;
 }
 
-/*INLINE*/ int mini(int a, int b)
+/*INLINE*/ int(int a, int b) mini =
 {
 	if (a < b)
 		return a;
 	return b;
 }
 
-/*INLINE*/ int maxi(int a, int b)
+/*INLINE*/ int(int a, int b) maxi =
 {
 	if (a > b)
 		return a;

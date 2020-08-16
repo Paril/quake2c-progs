@@ -934,12 +934,12 @@ NOMONSTER   monsters will not trigger this door
 
 static void(entity self, bool open) door_use_areaportals =
 {
-	entity t = null_entity;
+	entity t = world;
 
 	if (!self.target)
 		return;
 
-	while ((t = G_Find(t, targetname, self.target)) != null_entity)
+	while ((t = G_Find(t, targetname, self.target)))
 		if (striequals(t.classname, "func_areaportal"))
 			gi.SetAreaPortalState(t.style, open);
 }
@@ -1055,7 +1055,7 @@ static void(entity self) smart_water_go_up =
 
 	// find the lowest player point.
 	lowestPlayerPt = 999999f;
-	lowestPlayer = null_entity;
+	lowestPlayer = world;
 	for (i=0 ; i<game.maxclients ; i++)
 	{
 		ent = itoe(1 + i);
@@ -1071,7 +1071,7 @@ static void(entity self) smart_water_go_up =
 		}
 	}
 
-	if(lowestPlayer == null_entity)
+	if !(lowestPlayer)
 		return;
 
 	distance = lowestPlayerPt - self.absmax[2];

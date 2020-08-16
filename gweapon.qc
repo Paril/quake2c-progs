@@ -628,19 +628,23 @@ void(entity self, vector start, vector aimdir, int damage, int kick) fire_rail =
 	ignore = self;
 	water = false;
 	mask = MASK_SHOT | CONTENTS_SLIME | CONTENTS_LAVA;
-	while (ignore != null_entity) {
+	while (ignore)
+	{
 		gi.trace(&tr, from, vec3_origin, vec3_origin, end, ignore, mask);
 
-		if (tr.contents & (CONTENTS_SLIME | CONTENTS_LAVA)) {
+		if (tr.contents & (CONTENTS_SLIME | CONTENTS_LAVA))
+		{
 			mask &= ~(CONTENTS_SLIME | CONTENTS_LAVA);
 			water = true;
-		} else {
+		}
+		else
+		{
 			//ZOID--added so rail goes through SOLID_BBOX entities (gibs, etc)
 			if ((tr.ent.svflags & SVF_MONSTER) || (tr.ent.is_client) ||
 				(tr.ent.solid == SOLID_BBOX))
 				ignore = tr.ent;
 			else
-				ignore = null_entity;
+				ignore = world;
 
 			if ((tr.ent != self) && (tr.ent.takedamage))
 				T_Damage(tr.ent, self, self, aimdir, tr.endpos, tr.normal, damage, kick, 0, MOD_RAILGUN);
@@ -683,8 +687,9 @@ static void(entity self) bfg_explode =
 
 	if (self.s.frame == 0) {
 		// the BFG effect
-		ent = null_entity;
-		while ((ent = findradius(ent, self.s.origin, self.dmg_radius)) != null_entity) {
+		ent = world;
+		while ((ent = findradius(ent, self.s.origin, self.dmg_radius)))
+		{
 			if (!ent.takedamage)
 				continue;
 			if (ent == self.owner)
@@ -770,8 +775,9 @@ static void(entity self) bfg_think =
 	else
 		dmg = 10;
 
-	ent = null_entity;
-	while ((ent = findradius(ent, self.s.origin, 256)) != null_entity) {
+	ent = world;
+	while ((ent = findradius(ent, self.s.origin, 256)))
+	{
 		if (ent == self)
 			continue;
 

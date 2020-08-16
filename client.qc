@@ -14,13 +14,10 @@
 
 static void(entity self) SP_FixCoopSpots =
 {
-	entity spot = null_entity;
+	entity spot = world;
 
-	while (1)
+	while ((spot = G_Find(spot, classname, "info_player_start")))
 	{
-		spot = G_Find(spot, classname, "info_player_start");
-		if (spot == null_entity)
-			return;
 		if (!spot.targetname)
 			continue;
 		vector d = self.s.origin - spot.s.origin;
@@ -441,7 +438,7 @@ static void(entity self, entity inflictor, entity attacker) ClientObituary =
 
 static void(entity self) TossClientWeapon =
 {
-	gitem_id_t	it;
+	gitem_t 	*it;
 	entity		drop;
 	bool		quad;
 	float		spread;
@@ -450,16 +447,14 @@ static void(entity self) TossClientWeapon =
 		return;
 
 	it = self.client.pers.weapon;
-	if (!self.client.pers.inventory[self.client.ammo_index])
-		it = 0;
-	
-	if (it && GetItemKeyByIndex(it, pickup_name) == "Blaster")
+
+	if (!self.client.pers.inventory[self.client.ammo_index] || it->pickup_name == "Blaster")
 		it = 0;
 
 	if (!(dmflags.intVal & DF_QUAD_DROP))
 		quad = false;
 	else
-		quad = (bool)(self.client.quad_framenum > (level.framenum + 10));
+		quad = (self.client.quad_framenum > (level.framenum + 10));
 		
 #ifdef THE_RECKONING
 	// RAFAEL
@@ -480,14 +475,16 @@ static void(entity self) TossClientWeapon =
 	else
 		spread = 0.0f;
 
-	if (it) {
+	if (it)
+	{
 		self.client.v_angle[YAW] -= spread;
 		drop = Drop_Item(self, it);
 		self.client.v_angle[YAW] += spread;
 		drop.spawnflags = DROPPED_PLAYER_ITEM;
 	}
 
-	if (quad) {
+	if (quad)
+	{
 		self.client.v_angle[YAW] += spread;
 		drop = Drop_Item(self, FindItemByClassname("item_quad"));
 		self.client.v_angle[YAW] -= spread;
@@ -676,8 +673,8 @@ static void(entity ent) InitClientPersistant =
 {
 	memclear(&ent.client.pers, sizeof(ent.client.pers));
 	
-	gitem_id_t it = FindItem("Blaster");
-	ent.client.pers.selected_item = ITEM_INDEX(it);
+	gitem_t *it = FindItem("Blaster");
+	ent.client.pers.selected_item = it->id;
 	ent.client.pers.inventory[ent.client.pers.selected_item] = 1;
 	
 	ent.client.pers.weapon = it;
@@ -805,39 +802,39 @@ to other players
 */
 static entity() SelectRandomDeathmatchSpawnPoint =
 {
-	entity	spot, spot1, spot2;
 	int	count = 0;
-	int	selection;
-	float	range, range1, range2;
+	entity spot = world, spot1 = world, spot2 = world;
+	float range1 = FLT_MAX, range2 = FLT_MAX;
 
-	spot = null_entity;
-	range1 = range2 = 99999f;
-	spot1 = spot2 = null_entity;
-
-	while ((spot = G_Find(spot, classname, "info_player_deathmatch")) != null_entity) {
+	while ((spot = G_Find(spot, classname, "info_player_deathmatch")))
+	{
 		count++;
-		range = PlayersRangeFromSpot(spot);
-		if (range < range1) {
+		float range = PlayersRangeFromSpot(spot);
+		if (range < range1)
+		{
 			range1 = range;
 			spot1 = spot;
-		} else if (range < range2) {
+		}
+		else if (range < range2)
+		{
 			range2 = range;
 			spot2 = spot;
 		}
 	}
 
 	if (!count)
-		return null_entity;
+		return world;
 
-	if (count <= 2) {
-		spot1 = spot2 = null_entity;
-	} else
+	if (count <= 2)
+		spot1 = spot2 = world;
+	else
 		count -= 2;
 
-	selection = Q_rand_uniform(count);
+	int selection = Q_rand_uniform(count);
 
-	spot = null_entity;
-	do {
+	spot = world;
+	do
+	{
 		spot = G_Find(spot, classname, "info_player_deathmatch");
 		if (spot == spot1 || spot == spot2)
 			selection++;
@@ -854,32 +851,27 @@ SelectFarthestDeathmatchSpawnPoint
 */
 static entity() SelectFarthestDeathmatchSpawnPoint =
 {
-	entity	bestspot;
-	float	bestdistance, bestplayerdistance;
-	entity	spot;
-
-	spot = null_entity;
-	bestspot = null_entity;
-	bestdistance = 0;
+	entity spot = world;
+	entity bestspot = world;
+	float bestdistance = 0;
 	
-	while ((spot = G_Find(spot, classname, "info_player_deathmatch")) != null_entity) {
-		bestplayerdistance = PlayersRangeFromSpot(spot);
+	while ((spot = G_Find(spot, classname, "info_player_deathmatch")))
+	{
+		float bestplayerdistance = PlayersRangeFromSpot(spot);
 
-		if (bestplayerdistance > bestdistance) {
+		if (bestplayerdistance > bestdistance)
+		{
 			bestspot = spot;
 			bestdistance = bestplayerdistance;
 		}
 	}
 
-	if (bestspot) {
+	if (bestspot)
 		return bestspot;
-	}
 
 	// if there is a player just spawned on each and every start spot
 	// we have no choice to turn one into a telefrag meltdown
-	spot = G_Find(null_entity, classname, "info_player_deathmatch");
-
-	return spot;
+	return G_Find(world, classname, "info_player_deathmatch");
 }
 
 static entity() SelectDeathmatchSpawnPoint =
@@ -894,7 +886,7 @@ static entity() SelectDeathmatchSpawnPoint =
 static entity(entity ent) SelectLavaCoopSpawnPoint =
 {
 	int	index;
-	entity	spot = null_entity;
+	entity	spot = world;
 	float	lavatop;
 	entity	lava;
 	entity	pointWithLeastLava;
@@ -905,18 +897,14 @@ static entity(entity ent) SelectLavaCoopSpawnPoint =
 	entity	highestlava;
 
 	lavatop = -99999f;
-	highestlava = null_entity;
+	highestlava = world;
 
 	// first, find the highest lava
 	// remember that some will stop moving when they've filled their
 	// areas...
-	lava = null_entity;
-	while (1)
+	lava = world;
+	while ((lava = G_Find (lava, classname, "func_door")))
 	{
-		lava = G_Find (lava, classname, "func_door");
-		if(lava == null_entity)
-			break;
-		
 		center = (lava.absmax + lava.absmin) * 0.5f;
 
 		if(lava.spawnflags & 2 && (gi.pointcontents(center) & MASK_WATER))
@@ -930,16 +918,16 @@ static entity(entity ent) SelectLavaCoopSpawnPoint =
 	}
 
 	// if we didn't find ANY lava, then return NULL
-	if (highestlava == null_entity)
-		return null_entity;
+	if !(highestlava)
+		return world;
 
 	// find the top of the lava and include a small margin of error (plus bbox size)
 	lavatop = highestlava.absmax[2] + 64;
 
 	// find all the lava spawn points and store them in spawnPoints[]
-	spot = null_entity;
+	spot = world;
 	numPoints = 0;
-	while((spot = G_Find (spot, classname, "info_player_coop_lava")) != null_entity)
+	while ((spot = G_Find (spot, classname, "info_player_coop_lava")))
 	{
 		if(numPoints == 64)
 			break;
@@ -948,12 +936,12 @@ static entity(entity ent) SelectLavaCoopSpawnPoint =
 	}
 
 	if(numPoints < 1)
-		return null_entity;
+		return world;
 
 	// walk up the sorted list and return the lowest, open, non-lava spawn point
-	spot = null_entity;
+	spot = world;
 	lowest = 999999f;
-	pointWithLeastLava = null_entity;
+	pointWithLeastLava = world;
 	for (index = 0; index < numPoints; index++)
 	{
 		if(spawnPoints[index].s.origin[2] < lavatop)
@@ -972,10 +960,10 @@ static entity(entity ent) SelectLavaCoopSpawnPoint =
 
 	// FIXME - better solution????
 	// well, we may telefrag someone, but oh well...
-	if(pointWithLeastLava != null_entity)
+	if (pointWithLeastLava)
 		return pointWithLeastLava;
 
-	return null_entity;
+	return world;
 }
 #endif
 
@@ -988,26 +976,24 @@ static entity(entity ent) SelectCoopSpawnPoint =
 #endif
 
 	int	index;
-	entity	spot = null_entity;
+	entity	spot = world;
 	string	target;
 
 	index = ent.s.number - 1;
 	
 	// player 0 starts in normal player spawn point
-	if (!index)
-		return null_entity;
+	if !(index)
+		return world;
 
-	spot = null_entity;
+	spot = world;
 
 	// assume there are four coop spots at each spawnpoint
-	while (1) {
-		spot = G_Find(spot, classname, "info_player_coop");
-		if (spot == null_entity)
-			return null_entity;    // we didn't have enough...
-
+	while ((spot = G_Find(spot, classname, "info_player_coop")))
+	{
 		target = spot.targetname;
 
-		if (stricmp(game.spawnpoint, target) == 0) {
+		if (stricmp(game.spawnpoint, target) == 0)
+		{
 			// this is a coop spawn point for one of the clients here
 			index--;
 			if (!index)
@@ -1029,7 +1015,7 @@ Chooses a player start, deathmatch start, coop start, etc
 */
 static void(entity ent, __out vector origin, __out vector angles) SelectSpawnPoint =
 {
-	entity spot = null_entity;
+	entity spot = world;
 
 	if (deathmatch.intVal)
 		spot = SelectDeathmatchSpawnPoint();
@@ -1037,9 +1023,9 @@ static void(entity ent, __out vector origin, __out vector angles) SelectSpawnPoi
 		spot = SelectCoopSpawnPoint(ent);
 
 	// find a single player start spot
-	if (spot == null_entity)
+	if !(spot)
 	{
-		while ((spot = G_Find(spot, classname, "info_player_start")) != null_entity)
+		while ((spot = G_Find(spot, classname, "info_player_start")))
 		{
 			if (!game.spawnpoint && !spot.targetname)
 				break;
@@ -1051,18 +1037,15 @@ static void(entity ent, __out vector origin, __out vector angles) SelectSpawnPoi
 				break;
 		}
 
-		if (spot == null_entity)
-		{
-			if (!game.spawnpoint)
-			{
+		if !(spot)
+			if !(game.spawnpoint)
 				// there wasn't a spawnpoint without a target, so use any
 				spot = G_Find(spot, classname, "info_player_start");
-			}
-			if (spot == null_entity)
-			{
-				gi.dprintf("Couldn't find spawn point \"%s\"\n", game.spawnpoint);
-				return;
-			}
+
+		if !(spot)
+		{
+			gi.dprintf("Couldn't find spawn point \"%s\"\n", game.spawnpoint);
+			return;
 		}
 	}
 
@@ -1355,7 +1338,7 @@ static void(entity ent) PutClientInServer =
 	}
 
 	if (ent.client.pers.weapon)
-		ent.client.ps.gunindex = gi.modelindex(GetItemKeyByIndex(ent.client.pers.weapon, view_model));
+		ent.client.ps.gunindex = gi.modelindex(ent.client.pers.weapon->view_model);
 	else
 		ent.client.ps.gunindex = 0;
 
@@ -1411,10 +1394,8 @@ static void(entity ent) PutClientInServer =
 	{
 		// if you get on to rboss in single player or coop, ensure
 		// the player has the nuke key. (not in DM)
-		gitem_id_t	it;
-
-		it = FindItem("Antimatter Bomb");
-		ent.client.pers.selected_item = ITEM_INDEX(it);
+		gitem_t *it = FindItem("Antimatter Bomb");
+		ent.client.pers.selected_item = it->id;
 		ent.client.pers.inventory[ent.client.pers.selected_item] = 1;
 	}
 #endif
@@ -1702,7 +1683,7 @@ void(vector pos) PlayerTrail_Add;
 
 // from pweapon.qc
 // noise types for PlayerNoise
-typedef enum int
+typedef enum : int
 {
 	PNOISE_SELF,
 	PNOISE_WEAPON,

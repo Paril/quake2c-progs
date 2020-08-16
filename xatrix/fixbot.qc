@@ -12,10 +12,10 @@ static int	sound_weld3;
 
 static entity(entity self) fixbot_FindDeadMonster =
 {
-	entity	ent = null_entity;
-	entity	best = null_entity;
+	entity	ent = world;
+	entity	best = world;
 
-	while ((ent = findradius(ent, self.s.origin, 1024)) != null_entity)
+	while ((ent = findradius(ent, self.s.origin, 1024)))
 	{
 		if (ent == self)
 			continue;
@@ -32,13 +32,9 @@ static entity(entity self) fixbot_FindDeadMonster =
 		if (!visible(self, ent))
 			continue;
 		if (!best)
-		{
 			best = ent;
-			continue;
-		}
-		if (ent.max_health <= best.max_health)
-			continue;
-		best = ent;
+		else if (ent.max_health > best.max_health)
+			best = ent;
 	}
 
 	return best;
@@ -118,14 +114,13 @@ static var mmove_t fixbot_move_weld_start = { FRAME_weldstart_01, FRAME_weldstar
 
 static void(entity self) use_scanner =
 {
-	entity	ent = null_entity;
+	entity	ent = world;
 	float   radius = 1024;
 	vector	vec;
 	float	len;
 	float	oldlen = 0x10000;
-	entity	tempent = null_entity; 
 
-	while ((ent = findradius(ent, self.s.origin, radius)) != null_entity)
+	while ((ent = findradius(ent, self.s.origin, radius)))
 	{
 		if (ent.health >= 100)
 		{

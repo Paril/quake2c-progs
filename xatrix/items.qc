@@ -1,11 +1,11 @@
 #ifdef THE_RECKONING
 
 #ifdef THE_RECKONING
-API_FUNC void(entity ent, gitem_id_t it) Use_QuadFire =
+API_FUNC void(entity ent, gitem_t *it) Use_QuadFire =
 {
 	int		timeout;
 
-	ent.client.pers.inventory[ITEM_INDEX(it)]--;
+	ent.client.pers.inventory[it->id]--;
 	ValidateSelectedItem (ent);
 
 	if (quad_fire_drop_timeout_hack)
@@ -14,9 +14,7 @@ API_FUNC void(entity ent, gitem_id_t it) Use_QuadFire =
 		quad_fire_drop_timeout_hack = 0;
 	}
 	else
-	{
 		timeout = 300;
-	}
 
 	if (ent.client.quadfire_framenum > level.framenum)
 		ent.client.quadfire_framenum += timeout;

@@ -55,7 +55,7 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_ionripper_fire =
 	PlayerNoise (ent, start, PNOISE_WEAPON);
 
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
-		ent.client.pers.inventory[ent.client.ammo_index] -= GetItemKeyByIndex(ent.client.pers.weapon, quantity);
+		ent.client.pers.inventory[ent.client.ammo_index] -= ent.client.pers.weapon->quantity;
 	
 	if (ent.client.pers.inventory[ent.client.ammo_index] < 0)
 		ent.client.pers.inventory[ent.client.ammo_index] = 0;

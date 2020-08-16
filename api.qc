@@ -15,7 +15,7 @@ const int MAX_ITEMS		= 256;
 const int MAX_GENERAL		= (MAX_CLIENTS * 2); // general config strings
 
 // game print flags
-typedef enum int
+typedef enum : int
 {
 	PRINT_LOW,		// pickup messages
 	PRINT_MEDIUM,	// death messages
@@ -24,7 +24,7 @@ typedef enum int
 } print_level_t;
 
 // destination class for gi.multicast()
-typedef enum int
+typedef enum : int
 {
 	MULTICAST_ALL,
 	MULTICAST_PHS,
@@ -37,7 +37,7 @@ typedef enum int
 //
 // muzzle flashes / player effects
 //
-typedef enum int
+typedef enum : int
 {
 	MZ_BLASTER,
 	MZ_MACHINEGUN,
@@ -80,7 +80,7 @@ typedef enum int
 //
 // monster muzzle flashes
 //
-typedef enum int
+typedef enum : int
 {
 	MZ2_TANK_BLASTER_1	= 1,
 	MZ2_TANK_BLASTER_2,
@@ -319,7 +319,7 @@ typedef enum int
 // at a location seperate from any existing entity.
 // Temporary entity messages are explicitly constructed
 // and broadcast.
-typedef enum int
+typedef enum : int
 {
 	TE_GUNSHOT,
 	TE_BLOOD,
@@ -384,7 +384,7 @@ typedef enum int
 } temp_event_t;
 
 // color for TE_SPLASH
-typedef enum int
+typedef enum : int
 {
 	SPLASH_UNKNOWN,
 	SPLASH_SPARKS,
@@ -402,7 +402,7 @@ typedef enum int
 // sound channels
 // channel 0 never willingly overrides
 // other channels (1-7) allways override a playing sound on that channel
-typedef enum int
+typedef enum : int
 {
 	CHAN_AUTO,
 	CHAN_WEAPON,
@@ -473,7 +473,7 @@ CVARS (console variables)
 ==========================================================
 */
 
-typedef enumflags int
+typedef enumflags : int
 {
 	CVAR_NONE	= 0,
 	CVAR_ARCHIVE	= 1,	// set to cause it to be saved to vars.rc
@@ -528,7 +528,7 @@ COLLISION DETECTION
 */
 
 // lower bits are stronger, and will eat weaker brushes completely
-typedef enumflags int
+typedef enumflags : int
 {
 	CONTENTS_SOLID,		// an eye is never valid in a solid
 	CONTENTS_WINDOW,	// translucent, but not watery
@@ -575,7 +575,7 @@ const content_flags_t MASK_OPAQUE	= CONTENTS_SOLID | CONTENTS_SLIME | CONTENTS_L
 const content_flags_t MASK_SHOT		= CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_WINDOW | CONTENTS_DEADMONSTER;
 const content_flags_t MASK_CURRENT	= CONTENTS_CURRENT_0 | CONTENTS_CURRENT_90 | CONTENTS_CURRENT_180 | CONTENTS_CURRENT_270 | CONTENTS_CURRENT_UP | CONTENTS_CURRENT_DOWN;
 
-typedef enumflags int
+typedef enumflags : int
 {
 	SURF_LIGHT,	// value will hold the light strength
 	
@@ -591,7 +591,7 @@ typedef enumflags int
 	SURF_ALPHATEST	= 0x02000000	// used by kmquake2
 } surface_flags_t;
 
-typedef enum int
+typedef enum : int
 {
 	AREA_SOLID	= 1,
 	AREA_TRIGGERS	= 2
@@ -599,11 +599,11 @@ typedef enum int
 
 accessor entity_set_t : handle;
 
-static entity(entity_set_t, int)		entity_set_get = #0;
+static entity(entity_set_t, int)	entity_set_get = #0;
 static int(entity_set_t)			entity_set_length = #0;
-void(entity_set_t, entity)		entity_set_add = #0;
-void(entity_set_t, entity)		entity_set_remove = #0;
-void(entity_set_t)			entity_set_clear = #0;
+void(entity_set_t, entity)			entity_set_add = #0;
+void(entity_set_t, entity)			entity_set_remove = #0;
+void(entity_set_t)					entity_set_clear = #0;
 entity_set_t(optional int reserve)	entity_set_alloc = #0;
 
 accessor entity_set_t : handle
@@ -623,35 +623,35 @@ const csurface_t null_surface = { 0, 0, 0 };
 
 struct trace_t
 {
-	int		allsolid;
-	int		startsolid;
-	float		fraction;
-	vector		endpos;
-	vector		normal;
-	csurface_t	surface;
+	int				allsolid;
+	int				startsolid;
+	float			fraction;
+	vector			endpos;
+	vector			normal;
+	csurface_t		surface;
 	content_flags_t	contents;
-	entity		ent;
+	entity			ent;
 };
 
 //
 // button bits
 //
-typedef enum int
+typedef enum : int
 {
-	BUTTON_ATTACK		= 1,
-	BUTTON_USE			= 2,
-	BUTTON_ANY			= 128		// any key whatsoever
+	BUTTON_ATTACK	= 1,
+	BUTTON_USE		= 2,
+	BUTTON_ANY		= 128		// any key whatsoever
 } button_bits_t;
 
 // usercmd_t is sent to the server each client frame
 struct usercmd_t
 {
-	int		msec;
+	int				msec;
 	button_bits_t	buttons;
-	vector		angles;
-	int		forwardmove, sidemove, upmove;
-	int		impulse;        // remove?
-	int		lightlevel;     // light level the player is standing on
+	vector			angles;
+	int				forwardmove, sidemove, upmove;
+	int				impulse;        // remove?
+	int				lightlevel;     // light level the player is standing on
 };
 
 // This constant is used in Q2 for movement
@@ -662,7 +662,7 @@ const int MAX_CLIP_PLANES = 5;
 
 // pmove_state_t is the information necessary for client side movement
 // prediction
-typedef enum int
+typedef enum : int
 {
 	// can accelerate and turn
 	PM_NORMAL,
@@ -674,7 +674,7 @@ typedef enum int
 } pmtype_t;
 
 // pmove.pm_flags
-typedef enumflags int
+typedef enumflags : int
 {
 	PMF_DUCKED,
 	PMF_JUMP_HELD,
@@ -715,13 +715,13 @@ struct pmove_t
 	
 	vector	mins, maxs;
 	
-	entity		groundentity;
+	entity			groundentity;
 	content_flags_t	watertype;
-	int		waterlevel;
+	int				waterlevel;
 	
 	// in (callbacks)
-	void(trace_t *tr, vector start, vector mins, vector maxs, vector end) trace;
-	content_flags_t(vector)	pointcontents;
+	void(trace_t *tr, vector start, vector mins, vector maxs, vector end)	trace;
+	content_flags_t(vector)													pointcontents;
 };
 
 // default server FPS
@@ -729,13 +729,12 @@ const int	BASE_FRAMERATE		= 10;
 const int	BASE_FRAMETIME		= 100;
 const float	BASE_1_FRAMETIME	= 1.0 / BASE_FRAMERATE;
 const float	BASE_FRAMETIME_1000	= BASE_FRAMETIME / 1000.f;
-
-const float	FRAMETIME = BASE_FRAMETIME_1000;
+const float	FRAMETIME			= BASE_FRAMETIME_1000;
 
 //
 // server to client
 //
-typedef enum int
+typedef enum : int
 {
 	svc_bad,
 
@@ -769,7 +768,7 @@ typedef enum int
 // that happen constantly on the given entity.
 // An entity that has effects will be sent to the client
 // even if it has a zero index model.
-typedef enumflags int
+typedef enumflags : int
 {
 	EF_ROTATE,	// rotate (bonus items)
 	EF_GIB,		// leave a trail

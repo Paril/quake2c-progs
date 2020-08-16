@@ -86,64 +86,58 @@ Also checks the length of keys/values and the whole string.
 */
 bool(string s) Info_Validate =
 {
-	int len, total = 0, c, offset = 0;
+	int total = 0, offset = 0;
 
 	while (1)
 	{
 		//
 		// validate key
 		//
-		if (strat(s, offset) == '\\') {
+		if (strat(s, offset) == '\\')
+		{
+			if (++total == MAX_INFO_STRING)
+				return false;   // oversize infostring
+
 			offset++;
-			if (++total == MAX_INFO_STRING) {
-				return false;   // oversize infostring
-			}
 		}
-		if (!strat(s, offset)) {
+		if (!strat(s, offset))
 			return false;   // missing key
-		}
-		len = 0;
-		while (strat(s, offset) != '\\') {
-			c = strat(s, offset++);
-			if (c & 128 || !isprint(c) || c == '\"' || c == ';') {
+
+		int len = 0;
+		while (strat(s, offset) != '\\')
+		{
+			int c = strat(s, offset++);
+			if (c & 128 || !isprint(c) || c == '\"' || c == ';')
 				return false;   // illegal characters
-			}
-			if (++len == MAX_INFO_KEY) {
+			else if (++len == MAX_INFO_KEY)
 				return false;   // oversize key
-			}
-			if (++total == MAX_INFO_STRING) {
+			else if (++total == MAX_INFO_STRING)
 				return false;   // oversize infostring
-			}
-			if (!strat(s, offset)) {
+			else if (!strat(s, offset))
 				return false;   // missing value
-			}
 		}
 
 		//
 		// validate value
 		//
 		offset++;
-		if (++total == MAX_INFO_STRING) {
+		if (++total == MAX_INFO_STRING)
 			return false;   // oversize infostring
-		}
-		if (!strat(s, offset)) {
+		if (!strat(s, offset))
 			return false;   // missing value
-		}
+
 		len = 0;
-		while (strat(s, offset) != '\\') {
-			c = strat(s, offset++);
-			if (c & 128 || !isprint(c) || c == '\"' || c == ';') {
+		while (strat(s, offset) != '\\')
+		{
+			int c = strat(s, offset++);
+			if (c & 128 || !isprint(c) || c == '\"' || c == ';')
 				return false;   // illegal characters
-			}
-			if (++len == MAX_INFO_VALUE) {
+			else if (++len == MAX_INFO_VALUE)
 				return false;   // oversize value
-			}
-			if (++total == MAX_INFO_STRING) {
+			else if (++total == MAX_INFO_STRING)
 				return false;   // oversize infostring
-			}
-			if (!strat(s, offset)) {
+			else if (!strat(s, offset))
 				return true;    // end of string
-			}
 		}
 	}
 	
@@ -162,16 +156,14 @@ static int(string s) Info_SubValidate =
 	while (strat(s, offset))
 	{
 		int c = strat(s, offset++);
-		if (c & 128 || !isprint(c) || c == '\\' || c == '\"' || c == ';') {
+		if (c & 128 || !isprint(c) || c == '\\' || c == '\"' || c == ';')
 			return INT_MAX;  // illegal characters
-		}
-		if (++len == MAX_QPATH) {
+		else if (++len == MAX_QPATH)
 			return MAX_QPATH;  // oversize value
-		}
 	}
 
 	return len;
-};
+}
 
 /*
 ==================
@@ -182,25 +174,21 @@ bool(__inout string s, string key, string value) Info_SetValueForKey =
 {
 	// validate key
 	int kl = Info_SubValidate(key);
-	if (kl >= MAX_QPATH) {
+	if (kl >= MAX_QPATH)
 		return false;
-	}
 
 	// validate value
 	int vl = Info_SubValidate(value);
-	if (vl >= MAX_QPATH) {
+	if (vl >= MAX_QPATH)
 		return false;
-	}
 
 	s = Info_RemoveKey(s, key);
-	if (!vl) {
+	if (!vl)
 		return true;
-	}
 
 	int l = strlen(s);
-	if (l + kl + vl + 2 >= MAX_INFO_STRING) {
+	if (l + kl + vl + 2 >= MAX_INFO_STRING)
 		return false;
-	}
 	
 	s = strconcat(s, "\\", key, "\\", value);
 	return true;

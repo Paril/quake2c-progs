@@ -186,7 +186,7 @@ static void(entity ent) prox_seek =
 //===============
 static void(entity ent) prox_open =
 {
-	entity	search = null_entity;
+	entity search = world;
 
 	if(ent.s.frame == 9)	// end of opening animation
 	{
@@ -198,7 +198,7 @@ static void(entity ent) prox_open =
 		if(ent.teamchain)
 			ent.teamchain.touch = Prox_Field_Touch;
 
-		while ((search = findradius(search, ent.s.origin, PROX_DAMAGE_RADIUS + 10)) != null_entity)
+		while ((search = findradius(search, ent.s.origin, PROX_DAMAGE_RADIUS + 10)))
 		{
 			if (!search.classname)			// tag token and other weird shit
 				continue;
@@ -213,10 +213,10 @@ static void(entity ent) prox_open =
 					(
 						(deathmatch.intVal) && 
 						(
-						(search.classname == "info_player_deathmatch") ||
-						(search.classname == "info_player_start") ||
-						(search.classname == "info_player_coop") ||
-						(search.classname == "misc_teleporter_dest")
+							(search.classname == "info_player_deathmatch") ||
+							(search.classname == "info_player_start") ||
+							(search.classname == "info_player_coop") ||
+							(search.classname == "misc_teleporter_dest")
 						)
 					)
 				)
@@ -517,7 +517,7 @@ Like T_RadiusDamage, but ignores walls (skips CanDamage check, among others)
 static void(entity inflictor, entity attacker, float damage, entity ignore, float radius, int mod) T_RadiusNukeDamage =
 {
 	float	points;
-	entity	ent = null_entity;
+	entity	ent = world;
 	vector	v;
 	vector	dir;
 	float	len;
@@ -528,7 +528,7 @@ static void(entity inflictor, entity attacker, float damage, entity ignore, floa
 	killzone = radius;
 	killzone2 = radius*2.0;
 
-	while ((ent = findradius(ent, inflictor.s.origin, killzone2)) != null_entity)
+	while ((ent = findradius(ent, inflictor.s.origin, killzone2)))
 	{
 // ignore nobody
 		if (ent == ignore)
@@ -565,7 +565,7 @@ static void(entity inflictor, entity attacker, float damage, entity ignore, floa
 	}
 	ent = itoe(1); // skip the worldspawn
 	// cycle through players
-	while (ent != null_entity)
+	while (ent)
 	{
 		if ((ent.is_client) && (ent.client.nuke_framenum != level.framenum+20) && (ent.inuse))
 		{
@@ -583,7 +583,7 @@ static void(entity inflictor, entity attacker, float damage, entity ignore, floa
 			ent = next_ent(ent);
 		}
 		else
-			ent = null_entity;
+			ent = world;
 	}
 }
 
@@ -912,8 +912,8 @@ static void(entity self) tesla_activate =
 	// only check for spawn points in deathmatch
 	if (deathmatch.intVal)
 	{
-		search = null_entity;
-		while ((search = findradius(search, self.s.origin, 1.5*TESLA_DAMAGE_RADIUS)) != null_entity)
+		search = world;
+		while ((search = findradius(search, self.s.origin, 1.5*TESLA_DAMAGE_RADIUS)))
 		{
 			// if it's a monster or player with health > 0
 			// or it's a deathmatch start point

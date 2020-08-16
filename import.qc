@@ -3,7 +3,7 @@ accessor entity_set_t : handle;
 
 PROGS_LOCAL var struct {
 	// QC-specific imports
-	void(int)	SetNumEdicts;
+	void(int)		SetNumEdicts;
 	void(entity)	ClearEntity;
 	bool(entity)	entitylinked;
 

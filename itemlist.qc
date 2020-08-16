@@ -1,5 +1,5 @@
 // gitem_t.flags
-typedef enumflags int
+typedef enumflags : int
 {
 	IT_WEAPON,       // use makes active weapon
 	IT_AMMO,
@@ -14,7 +14,7 @@ typedef enumflags int
 } item_flags_t;
 
 // gitem_t.weapmodel for weapons indicates model index
-typedef enum int
+typedef enum : int
 {
 	WEAP_NONE,
 	WEAP_BLASTER,
@@ -43,7 +43,7 @@ typedef enum int
 #endif
 } weap_model_t;
 
-typedef enum int
+typedef enum : int
 {
 	AMMO_BULLETS,
 	AMMO_SHELLS,
@@ -65,13 +65,13 @@ typedef enum int
 #endif
 } ammo_t;
 
-typedef enum int
+typedef enum : int
 {
 	ITEM_NONE
 } gitem_id_t;
 
 // armor types
-typedef enum int
+typedef enum : int
 {
 	ARMOR_NONE,
 	ARMOR_JACKET,
@@ -80,50 +80,17 @@ typedef enum int
 	ARMOR_SHARD
 } gitem_armor_id_t;
 
-typedef bool(entity, entity)		pickup_func;
-typedef void(entity, gitem_id_t)	use_func;
-typedef use_func			drop_func;
+struct gitem_t;
+
+typedef bool(entity, entity)	pickup_func;
+typedef void(entity, gitem_t *)	use_func;
+typedef use_func				drop_func;
 typedef void(entity)			weaponthink_func;
 
-struct gitem_t
+PROGS_LOCAL const struct gitem_armor_t
 {
-	string			classname; // spawning name
-	string			pickup_str;
-	string			use_str;
-	string			drop_str;
-	string			weaponthink_str;
-	string			pickup_sound;
-	string			world_model;
-	entity_effects_t	world_model_flags;
-	string			view_model;
-	
-	// client side info
-	string	icon;
-	string	pickup_name;   // for printing on pickup
-	int	count_width;    // number of digits to display by icon
-	
-	int		quantity;       // for ammo how much, for weapons how much is used per shot
-	string		ammo;          // for weapons
-	item_flags_t	flags;          // IT_* flags
-	
-	weap_model_t	weapmodel;      // weapon model index (for weapons)
-	
-	gitem_armor_id_t	info;
-	int			tag;
-	
-	string	precaches;     // string of all models, sounds, and images this item will use
-
-	// set at load time
-	pickup_func		pickup;
-	use_func		use;
-	drop_func		drop;
-	weaponthink_func	weaponthink;
-};
-
-PROGS_LOCAL const struct
-{
-	int	base_count;
-	int	max_count;
+	int		base_count;
+	int		max_count;
 	float	normal_protection;
 	float	energy_protection;
 } armor_infos[] =
@@ -134,8 +101,44 @@ PROGS_LOCAL const struct
 	{100, 200, .80, .60 },
 	{ }
 };
- 
-#define GetArmorInfoKeyByIndex(index, key) armor_infos[index].key
+
+struct gitem_t
+{
+	string				classname; // spawning name
+	string				pickup_str;
+	string				use_str;
+	string				drop_str;
+	string				weaponthink_str;
+	string				pickup_sound;
+	string				world_model;
+	entity_effects_t	world_model_flags;
+	string				view_model;
+	
+	// client side info
+	string	icon;
+	string	pickup_name;   // for printing on pickup
+	int		count_width;    // number of digits to display by icon
+	
+	int				quantity;       // for ammo how much, for weapons how much is used per shot
+	string			ammo;          // for weapons
+	item_flags_t	flags;          // IT_* flags
+	
+	weap_model_t	weapmodel;      // weapon model index (for weapons)
+	
+	gitem_armor_id_t	info_id;
+	int					tag;
+	
+	string	precaches;     // string of all models, sounds, and images this item will use
+
+	// set at load time
+	pickup_func			pickup;
+	use_func			use;
+	drop_func			drop;
+	weaponthink_func	weaponthink;
+
+	gitem_armor_t	*info;
+	int				id;
+};
 
 //======================================================================
 

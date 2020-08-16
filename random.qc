@@ -1,12 +1,12 @@
 int() Q_rand = #0;
 int(int) Q_rand_uniform = #0;
 
-inline float crandom()
+inline float() crandom =
 {
 	return random(-1f, 1f);
 }
 
-inline vector crandomv()
+inline vector() crandomv =
 {
 	return randomv('-1 -1 -1', '1 1 1');
 }

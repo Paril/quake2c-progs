@@ -133,10 +133,7 @@ void(entity who, vector where, player_noise_t type) PlayerNoise =
 
 API_FUNC static bool(entity ent, entity other) Pickup_Weapon =
 {
-	int		index;
-	gitem_id_t	ammo;
-
-	index = ITEM_INDEX(ent.item);
+	int	index = ent.item->id;
 
 	if (((dmflags.intVal & DF_WEAPONS_STAY) || coop.intVal)
 		&& other.client.pers.inventory[index]) {
@@ -146,18 +143,19 @@ API_FUNC static bool(entity ent, entity other) Pickup_Weapon =
 
 	other.client.pers.inventory[index]++;
 
-	if (!(ent.spawnflags & DROPPED_ITEM)) {
+	if (!(ent.spawnflags & DROPPED_ITEM))
+	{
 		// give them some ammo with it
-		if (GetItemKeyByIndex(ent.item, ammo))
+		if (ent.item->ammo)
 		{
-			ammo = FindItem(GetItemKeyByIndex(ent.item, ammo));
-			
-			// Paril: the ammo we get with a weapon with infinite ammo enabled is irrelevant.
-			Add_Ammo(other, ammo, GetItemKeyByIndex(ammo, quantity));
+			gitem_t *ammo = FindItem(ent.item->ammo);
+			Add_Ammo(other, ammo, ammo->quantity);
 		}
 
-		if (!(ent.spawnflags & DROPPED_PLAYER_ITEM)) {
-			if (deathmatch.intVal) {
+		if (!(ent.spawnflags & DROPPED_PLAYER_ITEM))
+		{
+			if (deathmatch.intVal)
+			{
 				if (dmflags.intVal & DF_WEAPONS_STAY)
 					ent.flags |= FL_RESPAWN;
 				else
@@ -213,16 +211,17 @@ void(entity ent) ChangeWeapon =
 	ent.client.machinegun_shots = 0;
 
 	// set visible model
-	if (ent.s.modelindex == 255) {
+	if (ent.s.modelindex == 255)
+	{
 		if (ent.client.pers.weapon)
-			i = (GetItemKeyByIndex(ent.client.pers.weapon, weapmodel) & 0xff) << 8;
+			i = (ent.client.pers.weapon->weapmodel & 0xff) << 8;
 		else
 			i = 0;
 		ent.s.skinnum = ent.s.number | i;
 	}
 
-	if (ent.client.pers.weapon && GetItemKeyByIndex(ent.client.pers.weapon, ammo))
-			ent.client.ammo_index = ITEM_INDEX(FindItem(GetItemKeyByIndex(ent.client.pers.weapon, ammo)));
+	if (ent.client.pers.weapon && ent.client.pers.weapon->ammo)
+			ent.client.ammo_index = FindItem(ent.client.pers.weapon->ammo)->id;
 	else
 		ent.client.ammo_index = 0;
 
@@ -234,7 +233,7 @@ void(entity ent) ChangeWeapon =
 
 	ent.client.weaponstate = WEAPON_ACTIVATING;
 	ent.client.ps.gunframe = 0;
-	ent.client.ps.gunindex = gi.modelindex(GetItemKeyByIndex(ent.client.pers.weapon, view_model));
+	ent.client.ps.gunindex = gi.modelindex(ent.client.pers.weapon->view_model);
 
 	ent.client.anim_priority = ANIM_PAIN;
 	if (ent.client.ps.pmove.pm_flags & PMF_DUCKED) {
@@ -254,21 +253,21 @@ NoAmmoWeaponChange
 */
 PROGS_LOCAL void(entity ent) NoAmmoWeaponChange =
 {
-	if (ent.client.pers.inventory[ITEM_INDEX(FindItem("slugs"))]
-		&& ent.client.pers.inventory[ITEM_INDEX(FindItem("railgun"))]) {
+	if (ent.client.pers.inventory[FindItem("slugs")->id]
+		&& ent.client.pers.inventory[FindItem("railgun")->id]) {
 		ent.client.newweapon = FindItem("railgun");
 		return;
 	}
 	
 #ifdef THE_RECKONING
-	if (ent.client.pers.inventory[ITEM_INDEX(FindItem("mag slug"))]
-		&& ent.client.pers.inventory[ITEM_INDEX(FindItem("phalanx"))])
+	if (ent.client.pers.inventory[FindItem("mag slug")->id]
+		&& ent.client.pers.inventory[FindItem("phalanx")->id])
 	{
 		ent.client.newweapon = FindItem("phalanx");
 		return;
 	}
-	if ( ent.client.pers.inventory[ITEM_INDEX(FindItem("cells"))]
-		&& ent.client.pers.inventory[ITEM_INDEX(FindItem("ionripper"))])
+	if ( ent.client.pers.inventory[FindItem("cells")->id]
+		&& ent.client.pers.inventory[FindItem("ionripper")->id])
 	{
 		ent.client.newweapon = FindItem("ionripper");
 		return;
@@ -276,44 +275,44 @@ PROGS_LOCAL void(entity ent) NoAmmoWeaponChange =
 #endif
 
 #ifdef GROUND_ZERO
-	if ((ent.client.pers.inventory[ITEM_INDEX(FindItem("cells"))] >= 2)
-		&& ent.client.pers.inventory[ITEM_INDEX(FindItem("Plasma Beam"))])
+	if ((ent.client.pers.inventory[FindItem("cells")->id] >= 2)
+		&& ent.client.pers.inventory[FindItem("Plasma Beam")->id])
 	{
 		ent.client.newweapon = FindItem ("Plasma Beam");
 		return;
 	}
 
-	if (ent.client.pers.inventory[ITEM_INDEX(FindItem("flechettes"))]
-		&&  ent.client.pers.inventory[ITEM_INDEX(FindItem("etf rifle"))])
+	if (ent.client.pers.inventory[FindItem("flechettes")->id]
+		&&  ent.client.pers.inventory[FindItem("etf rifle")->id])
 	{
 		ent.client.newweapon = FindItem ("etf rifle");
 		return;
 	}
 #endif
 	
-	if (ent.client.pers.inventory[ITEM_INDEX(FindItem("cells"))]
-		&& ent.client.pers.inventory[ITEM_INDEX(FindItem("hyperblaster"))]) {
+	if (ent.client.pers.inventory[FindItem("cells")->id]
+		&& ent.client.pers.inventory[FindItem("hyperblaster")->id]) {
 		ent.client.newweapon = FindItem("hyperblaster");
 		return;
 	}
 	
-	if (ent.client.pers.inventory[ITEM_INDEX(FindItem("bullets"))]
-		&& ent.client.pers.inventory[ITEM_INDEX(FindItem("chaingun"))]) {
+	if (ent.client.pers.inventory[FindItem("bullets")->id]
+		&& ent.client.pers.inventory[FindItem("chaingun")->id]) {
 		ent.client.newweapon = FindItem("chaingun");
 		return;
 	}
-	if (ent.client.pers.inventory[ITEM_INDEX(FindItem("bullets"))]
-		&& ent.client.pers.inventory[ITEM_INDEX(FindItem("machinegun"))]) {
+	if (ent.client.pers.inventory[FindItem("bullets")->id]
+		&& ent.client.pers.inventory[FindItem("machinegun")->id]) {
 		ent.client.newweapon = FindItem("machinegun");
 		return;
 	}
-	if (ent.client.pers.inventory[ITEM_INDEX(FindItem("shells"))] > 1
-		&& ent.client.pers.inventory[ITEM_INDEX(FindItem("super shotgun"))]) {
+	if (ent.client.pers.inventory[FindItem("shells")->id] > 1
+		&& ent.client.pers.inventory[FindItem("super shotgun")->id]) {
 		ent.client.newweapon = FindItem("super shotgun");
 		return;
 	}
-	if (ent.client.pers.inventory[ITEM_INDEX(FindItem("shells"))]
-		&& ent.client.pers.inventory[ITEM_INDEX(FindItem("shotgun"))]) {
+	if (ent.client.pers.inventory[FindItem("shells")->id]
+		&& ent.client.pers.inventory[FindItem("shotgun")->id]) {
 		ent.client.newweapon = FindItem("shotgun");
 		return;
 	}
@@ -336,7 +335,8 @@ void(entity ent) Think_Weapon =
 	}
 
 	// call active weapon think routine
-	if (ent.client.pers.weapon && GetItemKeyByIndex(ent.client.pers.weapon, weaponthink)) {
+	if (ent.client.pers.weapon && ent.client.pers.weapon->weaponthink)
+	{
 		P_DamageModifier(ent);
 #ifdef THE_RECKONING
 		is_quadfire = (ent.client.quadfire_framenum > level.framenum);
@@ -345,7 +345,7 @@ void(entity ent) Think_Weapon =
 			is_silenced = MZ_SILENCED;
 		else
 			is_silenced = 0;
-		GetItemKeyByIndex(ent.client.pers.weapon, weaponthink)(ent);
+		ent.client.pers.weapon->weaponthink(ent);
 	}
 }
 
@@ -366,23 +366,23 @@ typedef enum : int
 	USEWEAP_OUT_OF_ITEM
 } useweap_t;
 
-static useweap_t(entity ent, gitem_id_t it) CanUseWeapon =
+static useweap_t(entity ent, gitem_t *it) CanUseWeapon =
 {
 	if (it == ent.client.pers.weapon)
 		return USEWEAP_IS_ACTIVE;
 
-	if (!ent.client.pers.inventory[it])
+	if (!ent.client.pers.inventory[it->id])
 		return USEWEAP_OUT_OF_ITEM;
 	
-	if (GetItemKeyByIndex(it, ammo) && !g_select_empty.intVal && !(GetItemKeyByIndex(it, flags) & IT_AMMO))
+	if (it->ammo && !g_select_empty.intVal && !(it->flags & IT_AMMO))
 	{
-		int ammo_item = FindItem(GetItemKeyByIndex(it, ammo));
-		gitem_id_t ammo_index = ITEM_INDEX(ammo_item);
+		gitem_t *ammo_item = FindItem(it->ammo);
+		gitem_id_t ammo_index = ammo_item->id;
 
 		if (!ent.client.pers.inventory[ammo_index])
 			return USEWEAP_NO_AMMO;
 
-		if (ent.client.pers.inventory[ammo_index] < GetItemKeyByIndex(it, quantity))
+		if (ent.client.pers.inventory[ammo_index] < it->quantity)
 			return USEWEAP_NOT_ENOUGH_AMMO;
 	}
 
@@ -411,46 +411,46 @@ static const string grenade_chain[] = { "Grenades", "Trap" };
 static const string hyperblaster_chain[] = { "HyperBlaster", "Ionripper" };
 #endif
 
-static bool(entity ent, gitem_id_t it, __out string *chain, __out int chain_length) GetChain =
+static bool(entity ent, gitem_t *it, __out string *chain, __out int chain_length) GetChain =
 {
 	chain = 0;
 
 #if defined(GROUND_ZERO) || defined(THE_RECKONING)
-	if (GetItemKeyByIndex(it, pickup_name) == "HyperBlaster")
+	if (it->pickup_name == "HyperBlaster")
 	{
 		chain = hyperblaster_chain;
 		chain_length = hyperblaster_chain.length;
 	}
-	else if (GetItemKeyByIndex(it, pickup_name) == "Grenades")
+	else if (it->pickup_name == "Grenades")
 	{
 		chain = grenade_chain;
 		chain_length = grenade_chain.length;
 	}
 #endif
 #if defined(GROUND_ZERO)
-	else if (GetItemKeyByIndex(it, pickup_name) == "Grenade Launcher")
+	else if (it->pickup_name == "Grenade Launcher")
 	{
 		chain = grenadelauncher_chain;
 		chain_length = grenadelauncher_chain.length;
 	}
-	else if (GetItemKeyByIndex(it, pickup_name) == "Machinegun")
+	else if (it->pickup_name == "Machinegun")
 	{
 		chain = machinegun_chain;
 		chain_length = machinegun_chain.length;
 	}
-	else if (GetItemKeyByIndex(it, pickup_name) == "Blaster")
+	else if (it->pickup_name == "Blaster")
 	{
 		chain = blaster_chain;
 		chain_length = blaster_chain.length;
 	}
-	else if (GetItemKeyByIndex(it, pickup_name) == "BFG10k")
+	else if (it->pickup_name == "BFG10k")
 	{
 		chain = bfg_chain;
 		chain_length = bfg_chain.length;
 	}
 #endif
 #if defined(THE_RECKONING)
-	else if (GetItemKeyByIndex(it, pickup_name) == "Railgun")
+	else if (it->pickup_name == "Railgun")
 	{
 		chain = rail_chain;
 		chain_length = rail_chain.length;
@@ -460,10 +460,10 @@ static bool(entity ent, gitem_id_t it, __out string *chain, __out int chain_leng
 	return !!chain;
 };
 
-API_FUNC static void(entity ent, gitem_id_t it) Use_Weapon =
+API_FUNC static void(entity ent, gitem_t *it) Use_Weapon =
 {
-	string *chain;
-	int chain_length;
+	string	*chain;
+	int	chain_length;
 
 	// we have a weapon chain; find our current position in this chain
 	if (GetChain(ent, it, chain, chain_length))
@@ -472,7 +472,7 @@ API_FUNC static void(entity ent, gitem_id_t it) Use_Weapon =
 
 		for (string *c = chain; c < chain + chain_length; c++)
 		{
-			gitem_id_t cit = FindItem(*c);
+			gitem_t *cit = FindItem(*c);
 			
 			if (!cit)
 			{
@@ -490,7 +490,7 @@ API_FUNC static void(entity ent, gitem_id_t it) Use_Weapon =
 		// find the next weapon we can equip that doesn't return false
 		for (int cid = 0; cid < chain_length; cid++)
 		{
-			gitem_id_t cit = FindItem(chain[(chain_start + cid) % chain_length]);
+			gitem_t *cit = FindItem(chain[(chain_start + cid) % chain_length]);
 			
 			// got it!
 			if (CanUseWeapon(ent, cit) == USEWEAP_OK)
@@ -504,17 +504,17 @@ API_FUNC static void(entity ent, gitem_id_t it) Use_Weapon =
 	}
 	
 	useweap_t result = CanUseWeapon(ent, it);
-	int ammo_item = GetItemKeyByIndex(it, ammo) ? FindItem(GetItemKeyByIndex(it, ammo)) : 0;
+	gitem_t *ammo_item = it->ammo ? FindItem(it->ammo) : 0;
 
 	switch (result)
 	{
 	case USEWEAP_IS_ACTIVE:
 		return;
 	case USEWEAP_NO_AMMO:
-		gi.cprintf(ent, PRINT_HIGH, "No %s for %s.\n", GetItemKeyByIndex(ammo_item, pickup_name), GetItemKeyByIndex(it, pickup_name));
+		gi.cprintf(ent, PRINT_HIGH, "No %s for %s.\n", ammo_item->pickup_name, it->pickup_name);
 		return;
 	case USEWEAP_NOT_ENOUGH_AMMO:
-		gi.cprintf(ent, PRINT_HIGH, "No %s for %s.\n", GetItemKeyByIndex(ammo_item, pickup_name), GetItemKeyByIndex(it, pickup_name));
+		gi.cprintf(ent, PRINT_HIGH, "No %s for %s.\n", ammo_item->pickup_name, it->pickup_name);
 		return;
 	}
 
@@ -529,16 +529,15 @@ API_FUNC static void(entity ent, gitem_id_t it) Use_Weapon =
 Drop_Weapon
 ================
 */
-void(entity ent, gitem_id_t it) Drop_Weapon =
+void(entity ent, gitem_t *it) Drop_Weapon =
 {
-	int     index;
-
 	if (dmflags.intVal & DF_WEAPONS_STAY)
 		return;
 
-	index = ITEM_INDEX(it);
+	int index = it->id;
 	// see if we're already using it
-	if (((it == ent.client.pers.weapon) || (it == ent.client.newweapon)) && (ent.client.pers.inventory[index] == 1)) {
+	if (((it == ent.client.pers.weapon) || (it == ent.client.newweapon)) && (ent.client.pers.inventory[index] == 1))
+	{
 		gi.cprintf(ent, PRINT_HIGH, "Can't drop current weapon\n");
 		return;
 	}
@@ -624,8 +623,8 @@ PROGS_LOCAL Weapon_Generic_Func Weapon_Generic =
 	if (ent.client.weaponstate == WEAPON_READY) {
 		if (((ent.client.latched_buttons | ent.client.buttons) & BUTTON_ATTACK)) {
 			ent.client.latched_buttons &= ~BUTTON_ATTACK;
-			if ((!ent.client.ammo_index) || 
-				(ent.client.pers.inventory[ent.client.ammo_index] >= GetItemKeyByIndex(ent.client.pers.weapon, quantity))) {
+			if (!ent.client.ammo_index || 
+				(ent.client.pers.inventory[ent.client.ammo_index] >= ent.client.pers.weapon->quantity)) {
 				ent.client.ps.gunframe = FRAME_FIRE_FIRST;
 				ent.client.weaponstate = WEAPON_FIRING;
 
@@ -848,7 +847,7 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_grenadelauncher_fire =
 	vector	forward, right;
 	vector	start;
 #ifdef GROUND_ZERO
-	bool	is_prox = GetItemKeyByIndex(ent.client.pers.weapon, weapmodel) == WEAP_PROXLAUNCH;
+	bool	is_prox = ent.client.pers.weapon->weapmodel == WEAP_PROXLAUNCH;
 	int	damage = is_prox ? 90 : 120;
 #else
 	int	damage = 120;

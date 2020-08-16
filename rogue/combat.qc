@@ -3,7 +3,7 @@
 /* clean up heal targets for medic */
 void(entity ent) M_SetEffects;
 
-INLINE void(entity ent) cleanupHealTarget =
+inline void(entity ent) cleanupHealTarget =
 {
 	ent.monsterinfo.healer = 0;
 	ent.takedamage = DAMAGE_YES;

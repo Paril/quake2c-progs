@@ -3,7 +3,7 @@ bool(entity self) FindTarget;
 bool(entity self, float dist) ai_checkattack;
 
 //range
-typedef enum int
+typedef enum : int
 {
 	RANGE_MELEE,
 	RANGE_NEAR,
@@ -31,7 +31,7 @@ will be null.
 In coop games, sight_client will cycle between the clients.
 =================
 */
-void AI_SetSightClient(void)
+void() AI_SetSightClient =
 {
 	entity	ent;
 	int	start, check;
@@ -42,7 +42,8 @@ void AI_SetSightClient(void)
 		start = level.sight_client.s.number;
 
 	check = start;
-	while (1) {
+	while (1)
+	{
 		check++;
 		if (check > game.maxclients)
 			check = 1;
@@ -59,7 +60,8 @@ void AI_SetSightClient(void)
 			level.sight_client = ent;
 			return;     // got one
 		}
-		if (check == start) {
+		if (check == start)
+		{
 			level.sight_client = world;
 			return;     // nobody to see
 		}
@@ -98,8 +100,6 @@ Distance is for slight position adjustments needed by the animations
 */
 void(entity self, float dist) ai_stand =
 {
-	vector	v;
-
 	if (dist)
 		M_walkmove(self, self.s.angles[YAW], dist);
 
@@ -107,7 +107,7 @@ void(entity self, float dist) ai_stand =
 	{
 		if (self.enemy)
 		{
-			v = self.enemy.s.origin - self.s.origin;
+			vector v = self.enemy.s.origin - self.s.origin;
 			self.ideal_yaw = vectoyaw(v);
 			if (self.s.angles[YAW] != self.ideal_yaw && self.monsterinfo.aiflags & AI_TEMP_STAND_GROUND)
 			{
@@ -118,11 +118,12 @@ void(entity self, float dist) ai_stand =
 #ifdef GROUND_ZERO
 			if (!(self.monsterinfo.aiflags & AI_MANUAL_STEERING))
 				M_ChangeYaw (self);
-			// PMM
+
 			// find out if we're going to be shooting
 			bool retval = ai_checkattack (self, 0);
+
 			// record sightings of player
-			if ((self.enemy) && (self.enemy.inuse) && (visible(self, self.enemy)))
+			if (self.enemy && self.enemy.inuse && visible(self, self.enemy))
 			{
 				self.monsterinfo.aiflags &= ~AI_LOST_SIGHT;
 				self.monsterinfo.last_sighting = self.enemy.s.origin;

@@ -1,7 +1,7 @@
 const string GAMEVERSION = "progs";
 
 // extended features
-typedef enumflags int
+typedef enumflags : int
 {
 	GMF_CLIENTNUM,
 	GMF_PROPERINUSE,
@@ -185,9 +185,11 @@ static void() EndDMLevel =
 
 	if (level.nextmap) // go to a specific map
 		BeginIntermission(CreateTargetChangeLevel(level.nextmap));
-	else {  // search for a changelevel
-		ent = G_Find(null_entity, classname, "target_changelevel");
-		if (ent == null_entity) {
+	else
+	{  // search for a changelevel
+		ent = G_Find(world, classname, "target_changelevel");
+		if !(ent)
+		{
 			// the map designer didn't include a changelevel,
 			// so create a fake ent that goes back to the same level
 			BeginIntermission(CreateTargetChangeLevel(level.mapname));

@@ -623,22 +623,26 @@ static void(entity self) monster_start_go =
 		return;
 
 	// check for target to combat_point and change to combattarget
-	if (self.target) {
+	if (self.target)
+	{
 		bool	notcombat;
 		bool	fixup;
 		entity	ctarget;
 
-		ctarget = null_entity;
+		ctarget = world;
 		notcombat = false;
 		fixup = false;
-		while ((ctarget = G_Find(ctarget, targetname, self.target)) != null_entity) {
-			if (ctarget.classname == "point_combat") {
+		while ((ctarget = G_Find(ctarget, targetname, self.target)))
+		{
+			if (ctarget.classname == "point_combat")
+			{
 				self.combattarget = self.target;
 				fixup = true;
-			} else {
-				notcombat = true;
 			}
+			else
+				notcombat = true;
 		}
+
 		if (notcombat && self.combattarget)
 			gi.dprintf("%s at %s has target with mixed types\n", self.classname, vtos(self.s.origin));
 		if (fixup)
@@ -646,37 +650,42 @@ static void(entity self) monster_start_go =
 	}
 
 	// validate combattarget
-	if (self.combattarget) {
-		entity	ctarget;
-
-		ctarget = null_entity;
-		while ((ctarget = G_Find(ctarget, targetname, self.combattarget)) != null_entity) {
-			if (ctarget.classname != "point_combat") {
+	if (self.combattarget)
+	{
+		entity	ctarget = world;
+		while ((ctarget = G_Find(ctarget, targetname, self.combattarget)))
+			if (ctarget.classname != "point_combat")
 				gi.dprintf("%s at (%s) has a bad combattarget %s : %s at (%s)\n",
 						   self.classname, vtos(self.s.origin),
 						   self.combattarget, ctarget.classname, vtos(ctarget.s.origin));
-			}
-		}
 	}
 
-	if (self.target) {
+	if (self.target)
+	{
 		self.goalentity = self.movetarget = G_PickTarget(self.target);
-		if (!self.movetarget) {
+		if (!self.movetarget)
+		{
 			gi.dprintf("%s can't find target %s at %s\n", self.classname, self.target, vtos(self.s.origin));
 			self.target = 0;
 			self.monsterinfo.pause_framenum = INT_MAX;
 			self.monsterinfo.stand(self);
-		} else if (self.movetarget.classname == "path_corner") {
+		}
+		else if (self.movetarget.classname == "path_corner")
+		{
 			v = self.goalentity.s.origin - self.s.origin;
 			self.ideal_yaw = self.s.angles[YAW] = vectoyaw(v);
 			self.monsterinfo.walk(self);
 			self.target = 0;
-		} else {
+		}
+		else
+		{
 			self.goalentity = self.movetarget = world;
 			self.monsterinfo.pause_framenum = INT_MAX;
 			self.monsterinfo.stand(self);
 		}
-	} else {
+	}
+	else
+	{
 		self.monsterinfo.pause_framenum = INT_MAX;
 		self.monsterinfo.stand(self);
 	}

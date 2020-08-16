@@ -4,29 +4,29 @@ API_FUNC bool(entity ent, entity other) Pickup_Nuke =
 {
 	int		quantity;
 
-	quantity = other.client.pers.inventory[ITEM_INDEX(ent.item)];
+	quantity = other.client.pers.inventory[ent.item->id];
 
 	if (quantity >= 1)
 		return false;
 
-	if (coop.intVal && (GetItemKeyByIndex(ent.item, flags) & IT_STAY_COOP) && quantity > 0)
+	if (coop.intVal && (ent.item->flags & IT_STAY_COOP) && quantity > 0)
 		return false;
 
-	other.client.pers.inventory[ITEM_INDEX(ent.item)]++;
+	other.client.pers.inventory[ent.item->id]++;
 
 	if (deathmatch.intVal)
 	{
-		if (!(ent.spawnflags & DROPPED_ITEM) )
-			SetRespawn (ent, GetItemKeyByIndex(ent.item, quantity));
+		if (!(ent.spawnflags & DROPPED_ITEM))
+			SetRespawn (ent, ent.item->quantity);
 	}
 
 	return true;
 }
 
 
-API_FUNC void(entity ent, gitem_id_t it) Use_IR =
+API_FUNC void(entity ent, gitem_t *it) Use_IR =
 {
-	ent.client.pers.inventory[ITEM_INDEX(it)]--;
+	ent.client.pers.inventory[it->id]--;
 	ValidateSelectedItem (ent);
 
 	if (ent.client.ir_framenum > level.framenum)
@@ -37,9 +37,9 @@ API_FUNC void(entity ent, gitem_id_t it) Use_IR =
 	gi.sound(ent, CHAN_ITEM, gi.soundindex("misc/ir_start.wav"), 1, ATTN_NORM, 0);
 }
 
-API_FUNC void(entity ent, gitem_id_t it) Use_Double =
+API_FUNC void(entity ent, gitem_t *it) Use_Double =
 {
-	ent.client.pers.inventory[ITEM_INDEX(it)]--;
+	ent.client.pers.inventory[it->id]--;
 	ValidateSelectedItem (ent);
 
 	if (ent.client.double_framenum > level.framenum)
@@ -52,12 +52,12 @@ API_FUNC void(entity ent, gitem_id_t it) Use_Double =
 
 void(entity self, vector start, vector aimdir, int speed) fire_nuke;
 
-API_FUNC void(entity ent, gitem_id_t it) Use_Nuke =
+API_FUNC void(entity ent, gitem_t *it) Use_Nuke =
 {
 	vector	forward, right, start;
 	float	speed;
 
-	ent.client.pers.inventory[ITEM_INDEX(it)]--;
+	ent.client.pers.inventory[it->id]--;
 	ValidateSelectedItem (ent);
 
 	AngleVectors (ent.client.v_angle, &forward, &right, 0);

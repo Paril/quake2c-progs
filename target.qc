@@ -598,15 +598,17 @@ static void(entity self) target_laser_start =
 	else if (self.spawnflags & 32)
 		self.s.skinnum = 0xe0e1e2e3;
 
-	if (!self.enemy) {
-		if (self.target) {
-			ent = G_Find(null_entity, targetname, self.target);
-			if (ent == null_entity)
+	if (!self.enemy)
+	{
+		if (self.target)
+		{
+			ent = G_Find(world, targetname, self.target);
+			if !(ent)
 				gi.dprintf("%s at %s: %s is a bad target\n", self.classname, vtos(self.s.origin), self.target);
 			self.enemy = ent;
-		} else {
-			G_SetMovedir(self.s.angles, self.movedir);
 		}
+		else
+			G_SetMovedir(self.s.angles, self.movedir);
 	}
 	self.use = target_laser_use;
 	self.think = target_laser_think;
@@ -660,24 +662,24 @@ static void(entity self) target_lightramp_think =
 
 static void(entity self, entity other, entity cactivator) target_lightramp_use =
 {
-	if (!self.enemy) {
-		entity e;
-
+	if (!self.enemy)
+	{
 		// check all the targets
-		e = null_entity;
-		while (1) {
-			e = G_Find(e, targetname, self.target);
-			if (e == null_entity)
-				break;
-			if (e.classname != "light") {
+		entity e = world;
+
+		while ((e = G_Find(e, targetname, self.target)))
+		{
+			if (e.classname != "light")
+			{
 				gi.dprintf("%s at %s ", self.classname, vtos(self.s.origin));
 				gi.dprintf("target %s (%s at %s) is not a light\n", self.target, e.classname, vtos(e.s.origin));
-			} else {
-				self.enemy = e;
 			}
+			else
+				self.enemy = e;
 		}
 
-		if (!self.enemy) {
+		if (!self.enemy)
+		{
 			gi.dprintf("%s target %s not found at %s\n", self.classname, self.target, vtos(self.s.origin));
 			G_FreeEdict(self);
 			return;

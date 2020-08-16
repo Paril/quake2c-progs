@@ -144,10 +144,8 @@ static void(entity targ, entity inflictor, entity attacker, int damage, vector p
 SpawnDamage
 ================
 */
-static void(int type, vector origin, vector normal, int damage) SpawnDamage =
+static inline void(int type, vector origin, vector normal) SpawnDamage =
 {
-	if (damage > 255)
-		damage = 255;
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(type);
 	gi.WritePosition(origin);
@@ -207,7 +205,7 @@ static int(entity ent, vector point, vector normal, int damage, damage_flags_t d
 	if (ent.is_client) {
 		power_armor_type = PowerArmorType(ent);
 		if (power_armor_type != POWER_ARMOR_NONE) {
-			index = ITEM_INDEX(FindItem("Cells"));
+			index = FindItem("Cells")->id;
 			power = ent.client.pers.inventory[index];
 		}
 	} else if (ent.svflags & SVF_MONSTER) {
@@ -254,7 +252,7 @@ static int(entity ent, vector point, vector normal, int damage, damage_flags_t d
 	if (save > damage)
 		save = damage;
 
-	SpawnDamage(pa_te_type, point, normal, save);
+	SpawnDamage(pa_te_type, point, normal);
 	ent.powerarmor_framenum = (int)(level.framenum + 0.2f * BASE_FRAMERATE);
 
 #ifdef GROUND_ZERO
@@ -273,10 +271,6 @@ static int(entity ent, vector point, vector normal, int damage, damage_flags_t d
 
 static int(entity ent, vector point, vector normal, int damage, int te_sparks, damage_flags_t dflags) CheckArmor =
 {
-	int	save;
-	int	index;
-	gitem_id_t	armor;
-
 	if (!damage)
 		return 0;
 
@@ -290,16 +284,18 @@ static int(entity ent, vector point, vector normal, int damage, int te_sparks, d
 		))
 		return 0;
 
-	index = ArmorIndex(ent);
+	int index = ArmorIndex(ent);
 	if (!index)
 		return 0;
 
-	armor = GetItemByIndex(index);
+	gitem_t *armor = GetItemByIndex(index);
+	
+	int save;
 
 	if (dflags & DAMAGE_ENERGY)
-		save = (int)ceil(GetArmorInfoKeyByIndex(GetItemKeyByIndex(armor, info), energy_protection) * damage);
+		save = (int)ceil((armor->info)->energy_protection * damage);
 	else
-		save = (int)ceil(GetArmorInfoKeyByIndex(GetItemKeyByIndex(armor, info), normal_protection) * damage);
+		save = (int)ceil((armor->info)->normal_protection * damage);
 
 	if (save >= ent.client.pers.inventory[index])
 		save = ent.client.pers.inventory[index];
@@ -308,7 +304,7 @@ static int(entity ent, vector point, vector normal, int damage, int te_sparks, d
 		return 0;
 
 	ent.client.pers.inventory[index] -= save;
-	SpawnDamage(te_sparks, point, normal, save);
+	SpawnDamage(te_sparks, point, normal);
 
 	return save;
 }
@@ -532,7 +528,7 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 	if ((targ.flags & FL_GODMODE) && !(dflags & DAMAGE_NO_PROTECTION)) {
 		take = 0;
 		save = damage;
-		SpawnDamage(te_sparks, point, normal, save);
+		SpawnDamage(te_sparks, point, normal);
 	}
 
 	// check for invincibility
@@ -579,20 +575,20 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 		{
 #ifdef THE_RECKONING
 			if (targ.classname == "monster_gekk")
-				SpawnDamage (TE_GREENBLOOD, point, normal, take);
+				SpawnDamage (TE_GREENBLOOD, point, normal);
 			else
 #endif
 #ifdef GROUND_ZERO
 			if (targ.flags & FL_MECHANICAL)
-				SpawnDamage ( TE_ELECTRIC_SPARKS, point, normal, take);
+				SpawnDamage ( TE_ELECTRIC_SPARKS, point, normal);
 			else if (mod == MOD_CHAINFIST)
-				SpawnDamage (TE_MOREBLOOD, point, normal, 255);
+				SpawnDamage (TE_MOREBLOOD, point, normal);
 			else
 #endif
-				SpawnDamage(TE_BLOOD, point, normal, take);
+				SpawnDamage(TE_BLOOD, point, normal);
 		}
 		else
-			SpawnDamage(te_sparks, point, normal, take);
+			SpawnDamage(te_sparks, point, normal);
 
 
 		targ.health = targ.health - take;
@@ -648,11 +644,11 @@ T_RadiusDamage
 void(entity inflictor, entity attacker, float damage, entity ignore, float radius, means_of_death_t mod) T_RadiusDamage =
 {
 	float	points;
-	entity	ent = null_entity;
+	entity	ent = world;
 	vector	v;
 	vector	dir;
 
-	while ((ent = findradius(ent, inflictor.s.origin, radius)) != null_entity) {
+	while ((ent = findradius(ent, inflictor.s.origin, radius))) {
 		if (ent == ignore)
 			continue;
 		if (!ent.takedamage)

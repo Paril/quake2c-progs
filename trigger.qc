@@ -206,29 +206,29 @@ Use "item" to specify the required key, for example "key_data_cd"
 */
 static void(entity self, entity other, entity cactivator) trigger_key_use =
 {
-	int	index;
-
 	if (!self.item)
 		return;
 	if (!cactivator.is_client)
 		return;
 
-	index = ITEM_INDEX(self.item);
-	if (!cactivator.client.pers.inventory[index]) {
+	int index = self.item->id;
+	if (!cactivator.client.pers.inventory[index])
+	{
 		if (level.framenum < self.touch_debounce_framenum)
 			return;
 		self.touch_debounce_framenum = level.framenum + (int)(5.0f * BASE_FRAMERATE);
-		gi.centerprintf(cactivator, "You need the %s", GetItemKeyByIndex(self.item, pickup_name));
+		gi.centerprintf(cactivator, "You need the %s", self.item->pickup_name);
 		gi.sound(cactivator, CHAN_AUTO, gi.soundindex("misc/keytry.wav"), 1, ATTN_NORM, 0);
 		return;
 	}
 
 	gi.sound(cactivator, CHAN_AUTO, gi.soundindex("misc/keyuse.wav"), 1, ATTN_NORM, 0);
-	if (coop.intVal) {
+	if (coop.intVal)
+	{
 		int     player;
 		entity	ent;
 
-		if (GetItemKeyByIndex(self.item, classname) == "key_power_cube") {
+		if (self.item->classname == "key_power_cube") {
 			int cube;
 
 			for (cube = 0; cube < 8; cube++)

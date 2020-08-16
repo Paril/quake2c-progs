@@ -86,15 +86,13 @@ static void(entity self) target_steam_start =
 
 	if (self.target)
 	{
-		ent = G_Find (null_entity, targetname, self.target);
-		if (ent == null_entity)
+		ent = G_Find (world, targetname, self.target);
+		if !(ent)
 			gi.dprintf ("%s at %s: %s is a bad target\n", self.classname, vtos(self.s.origin), self.target);
 		self.enemy = ent;
 	}
 	else
-	{
 		G_SetMovedir (self.s.angles, self.movedir);
-	}
 
 	if (!self.count)
 		self.count = 32;
@@ -134,38 +132,31 @@ static void(entity self) SP_target_steam =
 
 static void(entity self, entity other, entity cactivator) target_anger_use =
 {
-	entity	ctarget;
-	entity	t;
+	entity t = world;
+	entity ctarget = G_Find (t, targetname, self.killtarget);
 
-	t = null_entity;
-	ctarget = G_Find (t, targetname, self.killtarget);
-
-	if (ctarget != null_entity && self.target)
+	if (ctarget && self.target)
 	{
 		// Make whatever a "good guy" so the monster will try to kill it!
 		ctarget.monsterinfo.aiflags |= AI_GOOD_GUY;
 		ctarget.svflags |= SVF_MONSTER;
 		ctarget.health = 300;
 
-		t = null_entity;
-		while ((t = G_Find (t, targetname, self.target)) != null_entity)
+		t = world;
+		while ((t = G_Find (t, targetname, self.target)))
 		{
 			if (t == self)
-			{
 				gi.dprintf ("WARNING: entity used itself.\n");
-			}
-			else
+			else if (t.use)
 			{
-				if (t.use)
-				{
-					if (t.health < 0)
-						return;
+				if (t.health < 0)
+					return;
 
-					t.enemy = ctarget;
-					t.monsterinfo.aiflags |= AI_TARGET_ANGER;
-					FoundTarget (t);
-				}
+				t.enemy = ctarget;
+				t.monsterinfo.aiflags |= AI_TARGET_ANGER;
+				FoundTarget (t);
 			}
+
 			if (!self.inuse)
 			{
 				gi.dprintf("entity was removed while using targets\n");

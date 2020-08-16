@@ -2,17 +2,17 @@ const vector vec3_origin = '0 0 0';
 
 enum : int { PITCH, YAW, ROLL };
 
-inline float VectorLengthSquared(vector v)
+inline float(vector v) VectorLengthSquared =
 {
 	return v * v;
 }
 
-inline float VectorLength(vector v)
+inline float(vector v) VectorLength =
 {
 	return sqrt(VectorLengthSquared(v));
 }
 
-inline float VectorNormalize(__inout vector v)
+INLINE float(__inout vector v) VectorNormalize =
 {
 	float length = VectorLength(v);
 	
@@ -34,7 +34,7 @@ Slide off of the impacting object
 // bouncing things.
 const float STOP_EPSILON = 0.1f;
 
-vector ClipVelocity (vector in, vector normal, float overbounce)
+vector(vector in, vector normal, float overbounce) ClipVelocity =
 {
 	float backoff = (in * normal) * overbounce;
 	vector out = vec3_origin;
@@ -52,22 +52,19 @@ vector ClipVelocity (vector in, vector normal, float overbounce)
 
 void(vector angles, vector *forward, vector *right, vector *up) AngleVectors =
 {
-	float	angle;
-	float	sp, sy, cp, cy;
-
-	angle = DEG2RAD(angles[YAW]);
-	sy = sin(angle);
-	cy = cos(angle);
-	angle = DEG2RAD(angles[PITCH]);
-	sp = sin(angle);
-	cp = cos(angle);
+	float angle = DEG2RAD(angles[YAW]);
+	float sy = sin(angle);
+	float cy = cos(angle);
+	float angle = DEG2RAD(angles[PITCH]);
+	float sp = sin(angle);
+	float cp = cos(angle);
 
 	if (forward)
 		*forward = [ cp * cy, cp * sy, -sp ];
 
 	if (right || up)
 	{
-		angle = DEG2RAD(angles[ROLL]);
+		float angle = DEG2RAD(angles[ROLL]);
 		float sr = sin(angle);
 		float cr = cos(angle);
 
@@ -125,13 +122,16 @@ float(vector vec) vectoyaw =
 {
 	float   yaw;
 
-	if (vec.x == 0) {
+	if (vec.x == 0)
+	{
 		yaw = 0;
 		if (vec.y > 0)
 			yaw = 90f;
 		else if (vec.y < 0)
 			yaw = -90f;
-	} else {
+	}
+	else
+	{
 		yaw = RAD2DEG(atan2(vec.y, vec.x));
 		if (yaw < 0)
 			yaw += 360f;
@@ -145,7 +145,7 @@ inline vector(vector v1, vector v2) CrossProduct =
 	return v1 >< v2;
 }
 
-void AddPointToBounds(vector v, __inout vector mins, __inout vector maxs)
+inline void(vector v, __inout vector mins, __inout vector maxs) AddPointToBounds =
 {
 	mins[0] = minf(mins[0], v[0]);
 	maxs[0] = maxf(maxs[0], v[0]);
@@ -175,8 +175,7 @@ vector(vector p, vector normal) ProjectPointOnPlane =
 */
 vector(vector src) PerpendicularVector =
 {
-	int	pos;
-	int	i;
+	int	pos, i;
 	float	minelem = 1.0f;
 	vector	tempvec;
 
@@ -201,7 +200,7 @@ vector(vector src) PerpendicularVector =
 	/*
 	** normalize the result
 	*/
-	VectorNormalize( dst );
+	VectorNormalize(dst);
 	
 	return dst;
 }
@@ -235,32 +234,17 @@ void(vector *in1, vector *in2, vector *out) R_ConcatRotations =
 
 vector(vector dir, vector point, float degrees) RotatePointAroundVector =
 {
-	vector	m[3];
-	vector	im[3];
-	vector	zrot[3];
-	vector	tmpmat[3];
-	vector	rot[3];
-	vector	vr, vup, vf;
+	vector vf = dir;
+	vector vr = PerpendicularVector(dir);
+	vector vup = CrossProduct(vr, vf);
 
-	vf[0] = dir[0];
-	vf[1] = dir[1];
-	vf[2] = dir[2];
-
-	vr = PerpendicularVector(dir);
-	vup = CrossProduct(vr, vf);
-
-	m[0][0] = vr[0];
-	m[1][0] = vr[1];
-	m[2][0] = vr[2];
-
-	m[0][1] = vup[0];
-	m[1][1] = vup[1];
-	m[2][1] = vup[2];
-
-	m[0][2] = vf[0];
-	m[1][2] = vf[1];
-	m[2][2] = vf[2];
+	vector m[3] = {
+		[ vr[0], vup[0], vf[0] ],
+		[ vr[1], vup[1], vf[1] ],
+		[ vr[2], vup[2], vf[2] ]
+	};
 	
+	vector	im[3];
 	memcpy(&im[0], &m[0], sizeof(im));
 
 	im[0][1] = m[1][0];
@@ -270,15 +254,21 @@ vector(vector dir, vector point, float degrees) RotatePointAroundVector =
 	im[2][0] = m[0][2];
 	im[2][1] = m[1][2];
 
-	zrot[0][0] = zrot[1][1] = zrot[2][2] = 1.0f;
+	vector zrot[3] = {
+		[ 1, 0, 0 ],
+		[ 0, 1, 0 ],
+		[ 0, 0, 1 ]
+	};
 
-	zrot[0][0] = cos( DEG2RAD( degrees ) );
-	zrot[0][1] = sin( DEG2RAD( degrees ) );
-	zrot[1][0] = -sin( DEG2RAD( degrees ) );
-	zrot[1][1] = cos( DEG2RAD( degrees ) );
+	zrot[0][0] = cos(DEG2RAD(degrees));
+	zrot[0][1] = sin(DEG2RAD(degrees));
+	zrot[1][0] = -sin(DEG2RAD(degrees));
+	zrot[1][1] = cos(DEG2RAD(degrees));
 
-	R_ConcatRotations( m, zrot, tmpmat );
-	R_ConcatRotations( tmpmat, im, rot );
+	vector	tmpmat[3];
+	R_ConcatRotations(m, zrot, tmpmat);
+	vector	rot[3];
+	R_ConcatRotations(tmpmat, im, rot);
 	
 	return [
 		rot[0][0] * point[0] + rot[0][1] * point[1] + rot[0][2] * point[2],

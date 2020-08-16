@@ -41,9 +41,10 @@ static void(entity ent, int itflags) SelectNextItem =
 		index = (ent.client.pers.selected_item + i)%itemlist.length;
 		if (!ent.client.pers.inventory[index])
 			continue;
-		if (!GetItemKeyByIndex(index, use))
+		gitem_t *it = GetItemByIndex(index);
+		if (!it->use)
 			continue;
-		if (!(GetItemKeyByIndex(index, flags) & itflags))
+		if (!(it->flags & itflags))
 			continue;
 
 		ent.client.pers.selected_item = index;
@@ -69,9 +70,10 @@ static void(entity ent, int itflags) SelectPrevItem =
 		index = (ent.client.pers.selected_item + itemlist.length - i)%itemlist.length;
 		if (!ent.client.pers.inventory[index])
 			continue;
-		if (!GetItemKeyByIndex(index, use))
+		gitem_t *it = GetItemByIndex(index);
+		if (!it->use)
 			continue;
-		if (!(GetItemKeyByIndex(index, flags) & itflags))
+		if (!(it->flags & itflags))
 			continue;
 
 		ent.client.pers.selected_item = index;
@@ -102,7 +104,7 @@ Give items to a client
 static void(entity ent) Cmd_Give_f =
 {
 	string		name;
-	gitem_id_t	it;
+	gitem_t		*it;
 	int		index;
 	int		i;
 	bool		give_all;
@@ -133,12 +135,12 @@ static void(entity ent) Cmd_Give_f =
 
 	if (give_all || stricmp(name, "weapons") == 0)
 	{
-		for (i = 0; i < itemlist.length; i++)
+		it = itemlist;
+		for (i = 0; i < itemlist.length; i++, it++)
 		{
-			it = i;
-			if (!GetItemKeyByIndex(it, pickup))
+			if (!it->pickup)
 				continue;
-			if (!(GetItemKeyByIndex(it, flags) & IT_WEAPON))
+			if (!(it->flags & IT_WEAPON))
 				continue;
 			ent.client.pers.inventory[i] += 1;
 		}
@@ -148,12 +150,12 @@ static void(entity ent) Cmd_Give_f =
 
 	if (give_all || stricmp(name, "ammo") == 0)
 	{
-		for (i=0 ; i< itemlist.length; i++)
+		it = itemlist;
+		for (i = 0; i < itemlist.length; i++, it++)
 		{
-			it = i;
-			if (!GetItemKeyByIndex(it, pickup))
+			if (!it->pickup)
 				continue;
-			if (!(GetItemKeyByIndex(it, flags) & IT_AMMO))
+			if (!(it->flags & IT_AMMO))
 				continue;
 			Add_Ammo (ent, it, 1000);
 		}
@@ -163,17 +165,15 @@ static void(entity ent) Cmd_Give_f =
 
 	if (give_all || stricmp(name, "armor") == 0)
 	{
-		gitem_armor_id_t	info;
-
 		it = FindItem("Jacket Armor");
-		ent.client.pers.inventory[ITEM_INDEX(it)] = 0;
+		ent.client.pers.inventory[it->id] = 0;
 
 		it = FindItem("Combat Armor");
-		ent.client.pers.inventory[ITEM_INDEX(it)] = 0;
+		ent.client.pers.inventory[it->id] = 0;
 
 		it = FindItem("Body Armor");
-		info = GetItemKeyByIndex(it, info);
-		ent.client.pers.inventory[ITEM_INDEX(it)] = GetArmorInfoKeyByIndex(info, max_count);
+		gitem_armor_t *info = it->info;
+		ent.client.pers.inventory[it->id] = info->max_count;
 
 		if (!give_all)
 			return;
@@ -183,7 +183,7 @@ static void(entity ent) Cmd_Give_f =
 	{
 		it = FindItem("Power Shield");
 		it_ent = G_Spawn();
-		it_ent.classname = GetItemKeyByIndex(it, classname);
+		it_ent.classname = it->classname;
 		SpawnItem (it_ent, it);
 		Touch_Item (it_ent, ent, vec3_origin, null_surface);
 		if (it_ent.inuse)
@@ -195,12 +195,12 @@ static void(entity ent) Cmd_Give_f =
 
 	if (give_all)
 	{
-		for (i=0 ; i<itemlist.length ; i++)
+		it = itemlist;
+		for (i = 0; i < itemlist.length; i++, it++)
 		{
-			it = i;
-			if (!GetItemKeyByIndex(it, pickup))
+			if (!it->pickup)
 				continue;
-			if (GetItemKeyByIndex(it, flags) & (IT_ARMOR|IT_WEAPON|IT_AMMO))
+			if (it->flags & (IT_ARMOR|IT_WEAPON|IT_AMMO))
 				continue;
 			ent.client.pers.inventory[i] = 1;
 		}
@@ -219,25 +219,25 @@ static void(entity ent) Cmd_Give_f =
 		}
 	}
 
-	if (!GetItemKeyByIndex(it, pickup))
+	if (!it->pickup)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "non-pickup item\n");
 		return;
 	}
 
-	index = ITEM_INDEX(it);
+	index = it->id;
 
-	if (GetItemKeyByIndex(it, flags) & IT_AMMO)
+	if (it->flags & IT_AMMO)
 	{
 		if (gi.argc() == 3)
 			ent.client.pers.inventory[index] = stoi(gi.argv(2));
 		else
-			ent.client.pers.inventory[index] += GetItemKeyByIndex(it, quantity);
+			ent.client.pers.inventory[index] += it->quantity;
 	}
 	else
 	{
 		it_ent = G_Spawn();
-		it_ent.classname = GetItemKeyByIndex(it, classname);
+		it_ent.classname = it->classname;
 		SpawnItem (it_ent, it);
 		Touch_Item (it_ent, ent, vec3_origin, null_surface);
 		if (it_ent.inuse)
@@ -346,7 +346,7 @@ Use an inventory item
 static void(entity ent) Cmd_Use_f =
 {
 	int		index;
-	gitem_id_t	it;
+	gitem_t		*it;
 	string		s;
 
 	s = gi.args();
@@ -356,19 +356,19 @@ static void(entity ent) Cmd_Use_f =
 		gi.cprintf (ent, PRINT_HIGH, "unknown item: %s\n", s);
 		return;
 	}
-	if (!GetItemKeyByIndex(it, use))
-	{
-		gi.cprintf (ent, PRINT_HIGH, "Item is not usable.\n");
-		return;
-	}
-	index = ITEM_INDEX(it);
+	index = it->id;
 	if (!ent.client.pers.inventory[index])
 	{
 		gi.cprintf (ent, PRINT_HIGH, "Out of item: %s\n", s);
 		return;
 	}
+	if (!it->use)
+	{
+		gi.cprintf (ent, PRINT_HIGH, "Item is not usable.\n");
+		return;
+	}
 
-	GetItemKeyByIndex(it, use) (ent, it);
+	it->use(ent, it);
 }
 
 
@@ -382,7 +382,7 @@ Drop an inventory item
 static void(entity ent) Cmd_Drop_f =
 {
 	int		index;
-	gitem_id_t	it;
+	gitem_t		*it;
 	string		s;
 
 	s = gi.args();
@@ -392,19 +392,19 @@ static void(entity ent) Cmd_Drop_f =
 		gi.cprintf (ent, PRINT_HIGH, "unknown item: %s\n", s);
 		return;
 	}
-	if (!GetItemKeyByIndex(it, drop))
-	{
-		gi.cprintf (ent, PRINT_HIGH, "Item is not dropable.\n");
-		return;
-	}
-	index = ITEM_INDEX(it);
+	index = it->id;
 	if (!ent.client.pers.inventory[index])
 	{
 		gi.cprintf (ent, PRINT_HIGH, "Out of item: %s\n", s);
 		return;
 	}
+	if (!it->drop)
+	{
+		gi.cprintf (ent, PRINT_HIGH, "Item is not dropable.\n");
+		return;
+	}
 
-	GetItemKeyByIndex(it, drop) (ent, it);
+	it->drop(ent, it);
 }
 
 
@@ -446,7 +446,7 @@ Cmd_InvUse_f
 */
 static void(entity ent) Cmd_InvUse_f =
 {
-	gitem_id_t	it;
+	gitem_t	*it;
 
 	ValidateSelectedItem (ent);
 
@@ -456,13 +456,13 @@ static void(entity ent) Cmd_InvUse_f =
 		return;
 	}
 
-	it = ent.client.pers.selected_item;
-	if (!GetItemKeyByIndex(it, use))
+	it = GetItemByIndex(ent.client.pers.selected_item);
+	if (!it->use)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "Item is not usable.\n");
 		return;
 	}
-	GetItemKeyByIndex(it, use) (ent, it);
+	it->use(ent, it);
 }
 
 /*
@@ -473,13 +473,13 @@ Cmd_WeapPrev_f
 static void(entity ent) Cmd_WeapPrev_f =
 {
 	int		i, index;
-	gitem_id_t	it;
+	gitem_t		*it;
 	int		selected_weapon;
 
 	if (!ent.client.pers.weapon)
 		return;
 
-	selected_weapon = ITEM_INDEX(ent.client.pers.weapon);
+	selected_weapon = ent.client.pers.weapon->id;
 
 	// scan  for the next valid one
 	for (i=1 ; i<=itemlist.length ; i++)
@@ -487,12 +487,12 @@ static void(entity ent) Cmd_WeapPrev_f =
 		index = (selected_weapon + itemlist.length - i) % itemlist.length;
 		if (!ent.client.pers.inventory[index])
 			continue;
-		it = index;
-		if (!GetItemKeyByIndex(it, use))
+		it = GetItemByIndex(index);
+		if (!it->use)
 			continue;
-		if (!(GetItemKeyByIndex(it, flags) & IT_WEAPON))
+		if (!(it->flags & IT_WEAPON))
 			continue;
-		GetItemKeyByIndex(it, use) (ent, it);
+		it->use(ent, it);
 		if (ent.client.newweapon == it || ent.client.pers.weapon == it)
 			return;	// successful
 	}
@@ -506,13 +506,13 @@ Cmd_WeapNext_f
 static void(entity ent) Cmd_WeapNext_f =
 {
 	int		i, index;
-	gitem_id_t	it;
+	gitem_t		*it;
 	int		selected_weapon;
 
 	if (!ent.client.pers.weapon)
 		return;
 
-	selected_weapon = ITEM_INDEX(ent.client.pers.weapon);
+	selected_weapon = ent.client.pers.weapon->id;
 
 	// scan  for the next valid one
 	for (i=1 ; i<=itemlist.length ; i++)
@@ -520,12 +520,12 @@ static void(entity ent) Cmd_WeapNext_f =
 		index = (selected_weapon + i) % itemlist.length;
 		if (!ent.client.pers.inventory[index])
 			continue;
-		it = index;
-		if (!GetItemKeyByIndex(it, use))
+		it = GetItemByIndex(index);
+		if (!it->use)
 			continue;
-		if (!(GetItemKeyByIndex(it, flags) & IT_WEAPON))
+		if (!(it->flags & IT_WEAPON))
 			continue;
-		GetItemKeyByIndex(it, use) (ent, it);
+		it->use(ent, it);
 		if (ent.client.newweapon == it || ent.client.pers.weapon == it)
 			return;	// successful
 	}
@@ -539,20 +539,20 @@ Cmd_WeapLast_f
 static void(entity ent) Cmd_WeapLast_f =
 {
 	int		index;
-	gitem_id_t	it;
+	gitem_t		*it;
 
 	if (!ent.client.pers.weapon || !ent.client.pers.lastweapon)
 		return;
 
-	index = ITEM_INDEX(ent.client.pers.lastweapon);
+	index = ent.client.pers.lastweapon->id;
 	if (!ent.client.pers.inventory[index])
 		return;
-	it = index;
-	if (!GetItemKeyByIndex(it, use))
+	it = GetItemByIndex(index);
+	if (!it->use)
 		return;
-	if (!(GetItemKeyByIndex(it, flags) & IT_WEAPON))
+	if (!(it->flags & IT_WEAPON))
 		return;
-	GetItemKeyByIndex(it, use) (ent, it);
+	it->use(ent, it);
 }
 
 /*
@@ -562,7 +562,7 @@ Cmd_InvDrop_f
 */
 static void(entity ent) Cmd_InvDrop_f =
 {
-	gitem_id_t	it;
+	gitem_t	*it;
 
 	ValidateSelectedItem (ent);
 
@@ -572,13 +572,13 @@ static void(entity ent) Cmd_InvDrop_f =
 		return;
 	}
 
-	it = ent.client.pers.selected_item;
-	if (!GetItemKeyByIndex(it, drop))
+	it = GetItemByIndex(ent.client.pers.selected_item);
+	if (!it->drop)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "Item is not dropable.\n");
 		return;
 	}
-	GetItemKeyByIndex(it, drop) (ent, it);
+	it->drop(ent, it);
 }
 
 /*

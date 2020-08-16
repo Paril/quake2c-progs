@@ -12,7 +12,7 @@ API_FUNC var bool strcasesensitive = true;
 inline int(string str, int offset) strat =
 {
 	return (int)(__variant)str[(float)(__variant)offset];
-};
+}
 
 int(string) stoi = #0;
 float(string) stof = #0;
@@ -25,7 +25,7 @@ int(string, int) strchr = #0;
 string(string, int start, optional int length) substr = #0;
 string(string...) strconcat = #0;
 
-INLINE bool(string a, string b) stricmp =
+inline bool(string a, string b) stricmp =
 {
 	strcasesensitive = false;
 	bool result = strcmp(a, b);
@@ -33,7 +33,7 @@ INLINE bool(string a, string b) stricmp =
 	return result;
 }
 
-INLINE bool(string a, string b, int len) strnicmp =
+inline bool(string a, string b, int len) strnicmp =
 {
 	strcasesensitive = false;
 	bool result = strncmp(a, b, len);
@@ -41,7 +41,7 @@ INLINE bool(string a, string b, int len) strnicmp =
 	return result;
 }
 
-INLINE bool(string a, string b) striequals =
+inline bool(string a, string b) striequals =
 {
 	strcasesensitive = false;
 	bool result = (a == b) != 0;
@@ -65,22 +65,6 @@ inline string(vector v) vtos =
 {
 	return va("%f %f %f", v[0], v[1], v[2]);
 };
-
-// FIXME: time.qc?
-struct time_t
-{
-	int tm_sec;   // seconds after the minute - [0, 60] including leap second
-	int tm_min;   // minutes after the hour - [0, 59]
-	int tm_hour;  // hours since midnight - [0, 23]
-	int tm_mday;  // day of the month - [1, 31]
-	int tm_mon;   // months since January - [0, 11]
-	int tm_year;  // years since 1900
-	int tm_wday;  // days since Sunday - [0, 6]
-	int tm_yday;  // days since January 1 - [0, 365]
-	int tm_isdst; // daylight savings time flag
-};
-
-void(__out time_t tm) localtime = #0;
 
 /*
 ==============

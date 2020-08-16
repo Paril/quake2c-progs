@@ -38,8 +38,8 @@ static void(entity self, entity other, vector plane, csurface_t surf) trigger_te
 	if(self.delay)
 		return;
 
-	dest = G_Find (null_entity, targetname, self.target);
-	if(dest == null_entity)
+	dest = G_Find (world, targetname, self.target);
+	if !(dest)
 	{
 		gi.dprintf("Teleport Destination not found!\n");
 		return;

@@ -1307,7 +1307,7 @@ static void(entity self, entity other, entity cactivator) misc_viper_bomb_use =
 	self.touch = misc_viper_bomb_touch;
 	self.activator = cactivator;
 
-	viper = G_Find(null_entity, classname, "misc_viper");
+	viper = G_Find(world, classname, "misc_viper");
 	self.velocity = viper.moveinfo.dir * viper.moveinfo.speed;
 
 	self.timestamp = level.framenum;
@@ -1581,19 +1581,25 @@ static void(entity self) func_clock_format_countdown =
 
 static void(entity self) func_clock_think =
 {
-	if (!self.enemy) {
-		self.enemy = G_Find(null_entity, targetname, self.target);
-		if (self.enemy == null_entity)
+	if !(self.enemy)
+	{
+		self.enemy = G_Find(world, targetname, self.target);
+		if (self.enemy == world)
 			return;
 	}
 
-	if (self.spawnflags & 1) {
+	if (self.spawnflags & 1)
+	{
 		func_clock_format_countdown(self);
 		self.health++;
-	} else if (self.spawnflags & 2) {
+	}
+	else if (self.spawnflags & 2)
+	{
 		func_clock_format_countdown(self);
 		self.health--;
-	} else {
+	}
+	else
+	{
 		time_t ltime;
 		localtime(ltime);
 		self.message = va("%02i:%02i:%02i", ltime.tm_hour, ltime.tm_min, ltime.tm_sec);
@@ -1603,8 +1609,10 @@ static void(entity self) func_clock_think =
 	self.enemy.use(self.enemy, self, self);
 
 	if (((self.spawnflags & 1) && (self.health > self.wait)) ||
-		((self.spawnflags & 2) && (self.health < self.wait))) {
-		if (self.pathtarget) {
+		((self.spawnflags & 2) && (self.health < self.wait)))
+	{
+		if (self.pathtarget)
+		{
 			string	savetarget;
 			string	savemessage;
 
@@ -1670,13 +1678,13 @@ API_FUNC static void(entity self) SP_func_clock =
 
 static void(entity self, entity other, vector plane, csurface_t surf) teleporter_touch =
 {
-	entity	dest;
-
-
 	if (!other.is_client)
 		return;
-	dest = G_Find(null_entity, targetname, self.target);
-	if (dest == null_entity) {
+
+	entity dest = G_Find(world, targetname, self.target);
+
+	if !(dest)
+	{
 		gi.dprintf("Couldn't find destination\n");
 		return;
 	}

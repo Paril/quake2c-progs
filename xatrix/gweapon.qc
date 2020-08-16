@@ -77,15 +77,15 @@ PROGS_LOCAL void(entity self, vector start, vector dir, int damage, int speed, e
 
 static void(entity self) heat_think =
 {
-	entity	target = null_entity;
-	entity	aquire = null_entity;
+	entity	target = world;
+	entity	aquire = world;
 	vector	vec = vec3_origin;
 	vector	oldang;
 	float	len;
 	float	oldlen = 0;
 
 	// acquire new target
-	while (( target = findradius (target, self.s.origin, 1024)) != null_entity)
+	while ((target = findradius (target, self.s.origin, 1024)))
 	{
 		if (self.owner == target)
 			continue;
@@ -119,7 +119,7 @@ static void(entity self) heat_think =
 		vec = self.s.origin - target.s.origin;
 		len = VectorLength (vec);
 
-		if (aquire == null_entity || len < oldlen)
+		if (!aquire || len < oldlen)
 		{
 			aquire = target;
 			self.target_ent = aquire;
@@ -127,7 +127,7 @@ static void(entity self) heat_think =
 		}
 	}
 
-	if (aquire != null_entity)
+	if (aquire)
 	{
 		oldang = self.s.angles;
 		vec = aquire.s.origin - self.s.origin;
@@ -220,8 +220,8 @@ API_FUNC void(entity self) SP_item_foodcube;
 
 static void(entity ent) Trap_Think =
 {
-	entity	target = null_entity;
-	entity	best = null_entity;
+	entity	target = world;
+	entity	best = world;
 	vector	vec;
 	float	len;
 	int	i;
@@ -335,7 +335,7 @@ static void(entity ent) Trap_Think =
 	if (ent.s.frame < 4)
 		ent.s.frame++;
 
-	while ((target = findradius(target, ent.s.origin, 256)) != null_entity)
+	while ((target = findradius(target, ent.s.origin, 256)))
 	{
 		if (target == ent)
 			continue;

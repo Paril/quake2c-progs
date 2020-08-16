@@ -125,8 +125,7 @@ static void abortHeal (entity self, bool change_frame, bool gib, bool mark)
 
 static entity medic_FindDeadMonster(entity self)
 {
-	entity ent = null_entity;
-	entity best = null_entity;
+	entity ent = world, best = world;
 	float radius = 1024;
 
 #ifdef GROUND_ZERO
@@ -134,7 +133,8 @@ static entity medic_FindDeadMonster(entity self)
 		radius = MEDIC_MAX_HEAL_DISTANCE;
 #endif
 
-	while ((ent = findradius(ent, self.s.origin, radius)) != null_entity) {
+	while ((ent = findradius(ent, self.s.origin, radius)))
+	{
 		if (ent == self)
 			continue;
 		if (!(ent.svflags & SVF_MONSTER))
@@ -168,13 +168,10 @@ static entity medic_FindDeadMonster(entity self)
 		if (realrange(self, ent) <= MEDIC_MIN_DISTANCE)
 			continue;
 #endif
-		if (best == null_entity) {
+		if !(best)
 			best = ent;
-			continue;
-		}
-		if (ent.max_health <= best.max_health)
-			continue;
-		best = ent;
+		else if (ent.max_health > best.max_health)
+			best = ent;
 	}
 
 #ifdef GROUND_ZERO
@@ -201,7 +198,8 @@ static void medic_idle(entity self)
 	{
 #endif
 		ent = medic_FindDeadMonster(self);
-		if (ent != null_entity) {
+		if (ent)
+		{
 #ifdef GROUND_ZERO
 			self.oldenemy = self.enemy;
 #endif
@@ -232,7 +230,8 @@ static void medic_search(entity self)
 
 	if (!self.oldenemy) {
 		ent = medic_FindDeadMonster(self);
-		if (ent != null_entity) {
+		if (ent)
+		{
 			self.oldenemy = self.enemy;
 			self.enemy = ent;
 #ifdef GROUND_ZERO
@@ -403,7 +402,8 @@ static void medic_run(entity self)
 		entity ent;
 
 		ent = medic_FindDeadMonster(self);
-		if (ent != null_entity) {
+		if (ent)
+		{
 			self.oldenemy = self.enemy;
 			self.enemy = ent;
 #ifdef GROUND_ZERO

@@ -63,7 +63,6 @@ void(entity ent) MoveClientToIntermission =
 
 void(entity targ) BeginIntermission =
 {
-	int	i, n;
 	entity	ent, cl;
 
 	if (level.intermission_framenum)
@@ -72,7 +71,8 @@ void(entity targ) BeginIntermission =
 	game.autosaved = false;
 
 	// respawn any dead clients
-	for (i = 0 ; i < game.maxclients ; i++) {
+	for (int i = 0 ; i < game.maxclients ; i++)
+	{
 		cl = itoe(1 + i);
 		if (!cl.inuse)
 			continue;
@@ -83,21 +83,28 @@ void(entity targ) BeginIntermission =
 	level.intermission_framenum = level.framenum;
 	level.changemap = targ.map;
 
-	if (strstr(level.changemap, "*") != -1) {
-		if (coop.intVal) {
-			for (i = 0 ; i < game.maxclients ; i++) {
+	if (strstr(level.changemap, "*") != -1)
+	{
+		if (coop.intVal)
+		{
+			for (int i = 0 ; i < game.maxclients ; i++)
+			{
 				cl = itoe(1 + i);
 				if (!cl.inuse)
 					continue;
+					
+				gitem_t *it = itemlist;
 				// strip players of all keys between units
-				for (n = 0; n < itemlist.length; n++) {
-					if (GetItemKeyByIndex(n, flags) & IT_KEY)
+				for (int n = 0; n < itemlist.length; n++, it++)
+					if (it->flags & IT_KEY)
 						cl.client.pers.inventory[n] = 0;
-				}
 			}
 		}
-	} else {
-		if (!deathmatch.intVal) {
+	}
+	else
+	{
+		if (!deathmatch.intVal)
+		{
 			level.exitintermission = 1;     // go immediately to the next level
 			return;
 		}
@@ -106,18 +113,22 @@ void(entity targ) BeginIntermission =
 	level.exitintermission = 0;
 
 	// find an intermission spot
-	ent = G_Find(null_entity, classname, "info_player_intermission");
-	if (ent == null_entity) {
+	ent = G_Find(world, classname, "info_player_intermission");
+	if !(ent)
+	{
 		// the map creator forgot to put in an intermission point...
-		ent = G_Find(null_entity, classname, "info_player_start");
-		if (ent == null_entity)
-			ent = G_Find(null_entity, classname, "info_player_deathmatch");
-	} else {
+		ent = G_Find(world, classname, "info_player_start");
+		if !(ent)
+			ent = G_Find(world, classname, "info_player_deathmatch");
+	}
+	else
+	{
 		// chose one of four spots
-		i = Q_rand() & 3;
-		while (i--) {
+		int i = Q_rand() & 3;
+		while (i--)
+		{
 			ent = G_Find(ent, classname, "info_player_intermission");
-			if (ent == null_entity)   // wrap around the list
+			if !(ent)   // wrap around the list
 				ent = G_Find(ent, classname, "info_player_intermission");
 		}
 	}
@@ -126,7 +137,8 @@ void(entity targ) BeginIntermission =
 	level.intermission_angle = ent.s.angles;
 
 	// move all clients to the intermission point
-	for (i = 0 ; i < game.maxclients ; i++) {
+	for (int i = 0; i < game.maxclients; i++)
+	{
 		cl = itoe(1 + i);
 		if (!cl.inuse)
 			continue;
@@ -343,7 +355,7 @@ G_SetStats
 */
 void(entity ent) G_SetStats =
 {
-	gitem_id_t	it;
+	gitem_t	*it;
 	int	index, cells = 0;
 	int	power_armor_type;
 
@@ -363,9 +375,9 @@ void(entity ent) G_SetStats =
 	}
 	else
 	{
-		it = ent.client.ammo_index;
-		ent.client.ps.stats[STAT_AMMO_ICON] = gi.imageindex(GetItemKeyByIndex(it, icon));
-		ent.client.ps.stats[STAT_AMMO] = ent.client.pers.inventory[ent.client.ammo_index];
+		it = GetItemByIndex(ent.client.ammo_index);
+		ent.client.ps.stats[STAT_AMMO_ICON] = gi.imageindex(it->icon);
+		ent.client.ps.stats[STAT_AMMO] = ent.client.pers.inventory[it->id];
 	}
 
 	//
@@ -373,7 +385,7 @@ void(entity ent) G_SetStats =
 	//
 	power_armor_type = PowerArmorType(ent);
 	if (power_armor_type) {
-		cells = ent.client.pers.inventory[ITEM_INDEX(FindItem("cells"))];
+		cells = ent.client.pers.inventory[FindItem("cells")->id];
 		if (cells == 0) {
 			// ran out of cells for power armor
 			ent.flags &= ~FL_POWER_ARMOR;
@@ -393,7 +405,7 @@ void(entity ent) G_SetStats =
 		ent.client.ps.stats[STAT_ARMOR] = cells;
 	} else if (index) {
 		it = GetItemByIndex(index);
-		ent.client.ps.stats[STAT_ARMOR_ICON] = gi.imageindex(GetItemKeyByIndex(it, icon));
+		ent.client.ps.stats[STAT_ARMOR_ICON] = gi.imageindex(it->icon);
 		ent.client.ps.stats[STAT_ARMOR] = ent.client.pers.inventory[index];
 	} else {
 		ent.client.ps.stats[STAT_ARMOR_ICON] = 0;
@@ -465,7 +477,7 @@ void(entity ent) G_SetStats =
 	if (ent.client.pers.selected_item == -1)
 		ent.client.ps.stats[STAT_SELECTED_ICON] = 0;
 	else
-		ent.client.ps.stats[STAT_SELECTED_ICON] = gi.imageindex(GetItemKeyByIndex(ent.client.pers.selected_item, icon));
+		ent.client.ps.stats[STAT_SELECTED_ICON] = gi.imageindex(GetItemByIndex(ent.client.pers.selected_item)->icon);
 
 	ent.client.ps.stats[STAT_SELECTED_ITEM] = ent.client.pers.selected_item;
 
@@ -499,7 +511,7 @@ void(entity ent) G_SetStats =
 		ent.client.ps.stats[STAT_HELPICON] = gi.imageindex("i_help");
 	else if ((ent.client.pers.hand == CENTER_HANDED || ent.client.ps.fov > 91)
 			 && ent.client.pers.weapon)
-		ent.client.ps.stats[STAT_HELPICON] = gi.imageindex(GetItemKeyByIndex(ent.client.pers.weapon, icon));
+		ent.client.ps.stats[STAT_HELPICON] = gi.imageindex(ent.client.pers.weapon->icon);
 	else
 		ent.client.ps.stats[STAT_HELPICON] = 0;
 

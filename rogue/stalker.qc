@@ -756,9 +756,9 @@ static void(entity self) stalker_jump_straightup =
 	if (self.deadflag == DEAD_DEAD)
 		return;
 
-	if(STALKER_ON_CEILING(self))
+	if (STALKER_ON_CEILING(self))
 	{
-		if(stalker_ok_to_transition(self))
+		if (stalker_ok_to_transition(self))
 		{
 			self.gravityVector[2] = -1f;
 			self.s.angles[2] += 180.0;
@@ -767,7 +767,7 @@ static void(entity self) stalker_jump_straightup =
 			self.groundentity = null_entity;
 		}
 	}
-	else if(self.groundentity != null_entity)	// make sure we're standing on SOMETHING...
+	else if (self.groundentity != null_entity)	// make sure we're standing on SOMETHING...
 	{
 		self.velocity[0] += ((random() * 10) - 5);
 		self.velocity[1] += ((random() * 10) - 5);
