@@ -7,6 +7,8 @@ debug.qc
 mem.qc
 vector.qc
 string.qc
+type.qc
+set.qc
 time.qc
 info.qc
 api.qc

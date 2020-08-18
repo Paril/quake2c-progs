@@ -315,7 +315,7 @@ retry:
 }
 
 PROGS_LOCAL_STATIC entity	obstacle;
-PROGS_LOCAL_STATIC entity_set_t	pushed_list;
+PROGS_LOCAL_STATIC hashset	pushed_list;
 
 /*
 ============
@@ -363,7 +363,7 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 	AngleVectors(org, &forward, &right, &up);
 
 // save the pusher's original position
-	entity_set_add(pushed_list, pusher);
+	hashset_add(pushed_list, TYPE_ENTITY, pusher);
 
 	pusher.pushed.origin = pusher.s.origin;
 	pusher.pushed.angles = pusher.s.angles;
@@ -418,7 +418,7 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 				check.pushed.deltayaw = check.client.ps.pmove.delta_angles[YAW];
 #endif
 
-			entity_set_add(pushed_list, check);
+			hashset_add(pushed_list, TYPE_ENTITY, check);
 
 			// try moving the contacted entity
 			check.s.origin += move;
@@ -455,8 +455,9 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 			// FIXME: this doesn't acount for rotation
 			check.s.origin = check.s.origin - move;
 			block = SV_TestEntityPosition(check);
-			if (!block) {
-				entity_set_remove(pushed_list, check);
+			if (!block)
+			{
+				hashset_remove(pushed_list, TYPE_ENTITY, check);
 				continue;
 			}
 		}
@@ -514,9 +515,9 @@ static void(entity ent) SV_Physics_Pusher =
 	// any moves or calling any think functions
 	// if the move is blocked, all moved objects will be backed out
 	if (handle_empty(pushed_list))
-		pushed_list = entity_set_alloc(16);
+		pushed_list = hashset_alloc(16);
 	else
-		entity_set_clear(pushed_list);
+		hashset_clear(pushed_list);
 
 	for (part = ent ; part ; part = part.teamchain) {
 		if (part.velocity || part.avelocity) {

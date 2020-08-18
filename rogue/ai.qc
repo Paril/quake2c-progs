@@ -950,25 +950,21 @@ entity(vector cmins, vector cmaxs, int lifespan_frames, entity cowner) SpawnBadA
 //		for bad area triggers and return them if they're touched.
 entity(entity ent) CheckForBadArea =
 {
-	int		i;
-	entity		hit;
-	vector		cmins, cmaxs;
-
-	cmins = ent.s.origin + ent.mins;
-	cmaxs = ent.s.origin + ent.maxs;
+	vector cmins = ent.s.origin + ent.mins;
+	vector cmaxs = ent.s.origin + ent.maxs;
 	
-	static entity_set_t entities;
+	static hashset entities;
 	
 	if (handle_empty(entities))
-		entities = entity_set_alloc(32);
+		entities = hashset_alloc(32);
 
-	gi.BoxEdicts (entities, cmins, cmaxs, MAX_EDICTS, AREA_TRIGGERS);
+	int num = gi.BoxEdicts (entities, cmins, cmaxs, MAX_EDICTS, AREA_TRIGGERS);
 
 	// be careful, it is possible to have an entity in this
 	// list removed before we get to it (killtriggered)
-	for (i = 0; i < entities.length; i++)
+	for (int i = 0; i < num; i++)
 	{
-		hit = entities[i];
+		entity hit = entities[i];
 		if !(hit.inuse)
 			continue;
 		if (hit.touch == badarea_touch)

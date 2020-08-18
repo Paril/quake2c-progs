@@ -824,33 +824,29 @@ static void(entity self) tesla_blow =
 
 static void(entity self) tesla_think_active =
 {
-	int	i;
-	entity	hit;
-	vector	dir, start;
-	trace_t	tr;
-	
 	if(level.framenum > self.air_finished_framenum)
 	{
 		tesla_remove(self);
 		return;
 	}
 
-	start = self.s.origin;
+	vector start = self.s.origin;
 	start[2] += 16;
 
-	static entity_set_t entities;
+	static hashset entities;
 	
 	if (handle_empty(entities))
-		entities = entity_set_alloc(32);
+		entities = hashset_alloc(32);
 
-	gi.BoxEdicts(entities, self.teamchain.absmin, self.teamchain.absmax, MAX_EDICTS, AREA_SOLID);
-	for(i=0;i<entities.length;i++)
+	int num = gi.BoxEdicts(entities, self.teamchain.absmin, self.teamchain.absmax, MAX_EDICTS, AREA_SOLID);
+
+	for(int i = 0; i < num; i++)
 	{
 		// if the tesla died while zapping things, stop zapping.
 		if(!self.inuse)
 			break;
 
-		hit=entities[i];
+		entity hit = entities[i];
 		if(!hit.inuse)
 			continue;
 		if(hit == self)
@@ -864,10 +860,12 @@ static void(entity self) tesla_think_active =
 		if(!(hit.svflags & (SVF_MONSTER | SVF_DAMAGEABLE)) && !hit.is_client)
 			continue;
 	
+		trace_t tr;
 		gi.trace(&tr, start, vec3_origin, vec3_origin, hit.s.origin, self, MASK_SHOT);
+
 		if(tr.fraction == 1 || tr.ent == hit)
 		{
-			dir = hit.s.origin - start;
+			vector dir = hit.s.origin - start;
 			
 			// PMM - play quad sound if it's above the "normal" damage
 			if (self.dmg > TESLA_DAMAGE)

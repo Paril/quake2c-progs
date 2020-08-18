@@ -597,21 +597,6 @@ typedef enum : int
 	AREA_TRIGGERS	= 2
 } box_edicts_area_t;
 
-accessor entity_set_t : handle;
-
-static entity(entity_set_t, int)	entity_set_get = #0;
-static int(entity_set_t)			entity_set_length = #0;
-void(entity_set_t, entity)			entity_set_add = #0;
-void(entity_set_t, entity)			entity_set_remove = #0;
-void(entity_set_t)					entity_set_clear = #0;
-entity_set_t(optional int reserve)	entity_set_alloc = #0;
-
-accessor entity_set_t : handle
-{
-	get entity[int] = entity_set_get;
-	get int length = entity_set_length;
-};
-
 struct csurface_t
 {
 	string name;
@@ -707,8 +692,7 @@ struct pmove_t
 	bool		snapinitial;
 	
 	// out
-	// DO NOT FREE THIS LIST!!!
-	entity_set_t	touchents;
+	hashset		touchents; // this hashset is owned by PMove; don't free
 	
 	vector	viewangles;
 	float	viewheight;

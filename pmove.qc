@@ -52,7 +52,7 @@ static const float	pm_friction = 6;
 static const float	pm_waterfriction = 1;
 static const float	pm_waterspeed = 400;
 
-static entity_set_t pm_entity_list;
+static hashset pm_entity_list;
 
 /*
 
@@ -118,7 +118,7 @@ static void PM_StepSlideMove_ (void)
 
 		// save entity for contact
 		if (trace.ent != null_entity)
-			entity_set_add(pm_entity_list, trace.ent);
+			hashset_add(pm_entity_list, TYPE_ENTITY, trace.ent);
 		
 		time_left -= time_left * trace.fraction;
 
@@ -608,7 +608,7 @@ static void PM_CatagorizePosition (void)
 		}
 
 		if (trace.ent != null_entity)
-			entity_set_add(pm_entity_list, trace.ent);
+			hashset_add(pm_entity_list, TYPE_ENTITY, trace.ent);
 	}
 
 //
@@ -1052,9 +1052,9 @@ Can be called by either the server or the client
 static void Pmove_ (pmove_t *pmove)
 {
 	if (handle_empty(pm_entity_list))
-		pm_entity_list = entity_set_alloc(16);
+		pm_entity_list = hashset_alloc(16);
 	else
-		entity_set_clear(pm_entity_list);
+		hashset_clear(pm_entity_list);
 	
 	pm = pmove;
 

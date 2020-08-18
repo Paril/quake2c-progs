@@ -25,7 +25,7 @@ int(string, int) strchr = #0;
 string(string, int start, optional int length) substr = #0;
 string(string...) strconcat = #0;
 
-inline bool(string a, string b) stricmp =
+INLINE bool(string a, string b) stricmp =
 {
 	strcasesensitive = false;
 	bool result = strcmp(a, b);
@@ -33,7 +33,7 @@ inline bool(string a, string b) stricmp =
 	return result;
 }
 
-inline bool(string a, string b, int len) strnicmp =
+INLINE bool(string a, string b, int len) strnicmp =
 {
 	strcasesensitive = false;
 	bool result = strncmp(a, b, len);
@@ -41,7 +41,7 @@ inline bool(string a, string b, int len) strnicmp =
 	return result;
 }
 
-inline bool(string a, string b) striequals =
+INLINE bool(string a, string b) striequals =
 {
 	strcasesensitive = false;
 	bool result = (a == b) != 0;

@@ -343,26 +343,22 @@ G_TouchTriggers
 */
 void(entity ent) G_TouchTriggers =
 {
-	int	i;
-	entity	hit;
-
 	// dead things don't activate triggers!
 	if ((ent.is_client || (ent.svflags & SVF_MONSTER)) && (ent.health <= 0))
 		return;
 
-	static entity_set_t touches;
+	static hashset touches;
 	
 	if (handle_empty(touches))
-		touches = entity_set_alloc(32);
+		touches = hashset_alloc(32);
 
-	gi.BoxEdicts(touches, ent.absmin, ent.absmax, MAX_EDICTS, AREA_TRIGGERS);
-	int num = touches.length;
+	int num = gi.BoxEdicts(touches, ent.absmin, ent.absmax, MAX_EDICTS, AREA_TRIGGERS);
 
 	// be careful, it is possible to have an entity in this
 	// list removed before we get to it (killtriggered)
-	for (i = 0 ; i < num ; i++)
+	for (int i = 0; i < num; i++)
 	{
-		hit = touches[i];
+		entity hit = touches[i];
 		if (!hit.inuse)
 			continue;
 		if (!hit.touch)

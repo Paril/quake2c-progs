@@ -1,5 +1,4 @@
 accessor cvar_t : handle;
-accessor entity_set_t : handle;
 
 PROGS_LOCAL var struct {
 	// QC-specific imports
@@ -35,7 +34,7 @@ PROGS_LOCAL var struct {
 	
 	void(entity) linkentity;
 	void(entity) unlinkentity;
-	void(entity_set_t set, vector mins, vector maxs, int maxcount, box_edicts_area_t areatype) BoxEdicts;
+	int(hashset set, vector mins, vector maxs, int maxcount, box_edicts_area_t areatype) BoxEdicts;
 	void(pmove_t *) Pmove;
 	
 	void(vector, multicast_t) multicast;
