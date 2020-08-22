@@ -456,7 +456,7 @@ static void jorg_die(entity self, entity inflictor, entity attacker, int damage,
 {
 	gi.sound(self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_NO;
+	self.takedamage = false;
 	self.s.sound = 0;
 	self.count = 0;
 	self.monsterinfo.currentmove = &jorg_move_death;
@@ -478,7 +478,7 @@ static bool Jorg_CheckAttack(entity self)
 		spot2 = self.enemy.s.origin;
 		spot2[2] += self.enemy.viewheight;
 
-		gi.trace(&tr, spot1, vec3_origin, vec3_origin, spot2, self, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_SLIME | CONTENTS_LAVA);
+		gi.traceline(&tr, spot1, spot2, self, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_SLIME | CONTENTS_LAVA);
 
 		// do we have a clear shot?
 		if (tr.ent != self.enemy)

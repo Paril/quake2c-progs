@@ -15,7 +15,7 @@ bool(entity targ, entity inflictor) CanDamage =
 	if (targ.movetype == MOVETYPE_PUSH) {
 		dest = targ.absmin + targ.absmax;
 		dest *= 0.5f;
-		gi.trace(&trace, inflictor.s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
+		gi.traceline(&trace, inflictor.s.origin, dest, inflictor, MASK_SOLID);
 		if (trace.fraction == 1.0f)
 			return true;
 		if (trace.ent == targ)
@@ -23,35 +23,35 @@ bool(entity targ, entity inflictor) CanDamage =
 		return false;
 	}
 
-	gi.trace(&trace, inflictor.s.origin, vec3_origin, vec3_origin, targ.s.origin, inflictor, MASK_SOLID);
+	gi.traceline(&trace, inflictor.s.origin, targ.s.origin, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
 	dest = targ.s.origin;
 	dest.x += 15.0f;
 	dest.y += 15.0f;
-	gi.trace(&trace, inflictor.s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
+	gi.traceline(&trace, inflictor.s.origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
 	dest = targ.s.origin;
 	dest.x += 15.0f;
 	dest.y -= 15.0f;
-	gi.trace(&trace, inflictor.s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
+	gi.traceline(&trace, inflictor.s.origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
 	dest = targ.s.origin;
 	dest.x -= 15.0f;
 	dest.y += 15.0f;
-	gi.trace(&trace, inflictor.s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
+	gi.traceline(&trace, inflictor.s.origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
 	dest = targ.s.origin;
 	dest.x -= 15.0f;
 	dest.y -= 15.0f;
-	gi.trace(&trace, inflictor.s.origin, vec3_origin, vec3_origin, dest, inflictor, MASK_SOLID);
+	gi.traceline(&trace, inflictor.s.origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 

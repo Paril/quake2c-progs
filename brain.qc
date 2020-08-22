@@ -204,7 +204,7 @@ static void brain_duck_down(entity self) {
 		return;
 	self.monsterinfo.aiflags |= AI_DUCKED;
 	self.maxs[2] -= 32;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	gi.linkentity(self);
 }
 
@@ -218,7 +218,7 @@ static void brain_duck_hold(entity self) {
 static void brain_duck_up(entity self) {
 	self.monsterinfo.aiflags &= ~AI_DUCKED;
 	self.maxs[2] += 32;
-	self.takedamage = DAMAGE_AIM;
+	self.takedamage = true;
 	gi.linkentity(self);
 }
 #endif
@@ -438,7 +438,7 @@ static void(entity self) brain_tounge_attack =
 	}
 	end = self.enemy.s.origin;
 
-	gi.trace (&tr, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+	gi.traceline(&tr, start, end, self, MASK_SHOT);
 	if (tr.ent != self.enemy)
 		return;
 
@@ -707,7 +707,7 @@ static void brain_die(entity self, entity inflictor, entity attacker, int damage
 // regular death
 	gi.sound(self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	if (random() <= 0.5f)
 		self.monsterinfo.currentmove = &brain_move_death1;
 	else

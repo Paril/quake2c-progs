@@ -1,6 +1,6 @@
 #ifdef GROUND_ZERO
 
-void(entity self, vector start, vector dir, int damage, int speed, int flashtype, int effect) monster_fire_blaster2 =
+inline void(entity self, vector start, vector dir, int damage, int speed, int flashtype, int effect) monster_fire_blaster2 =
 {
 	fire_blaster2 (self, start, dir, damage, speed, effect, false);
 
@@ -10,7 +10,7 @@ void(entity self, vector start, vector dir, int damage, int speed, int flashtype
 	gi.multicast (start, MULTICAST_PVS);
 }
 
-void(entity self, vector start, vector dir, int damage, int speed, entity enemy, int flashtype) monster_fire_tracker =
+inline void(entity self, vector start, vector dir, int damage, int speed, entity enemy, int flashtype) monster_fire_tracker =
 {
 	fire_tracker (self, start, dir, damage, speed, enemy);
 
@@ -20,7 +20,7 @@ void(entity self, vector start, vector dir, int damage, int speed, entity enemy,
 	gi.multicast (start, MULTICAST_PVS);
 }
 
-void(entity self, vector start, vector dir, vector offset, int damage, int kick, int flashtype) monster_fire_heatbeam =
+inline void(entity self, vector start, vector dir, vector offset, int damage, int kick, int flashtype) monster_fire_heatbeam =
 {
 	fire_heatbeam (self, start, dir, offset, damage, kick, true);
 
@@ -53,38 +53,21 @@ void(entity self, vector start, vector dir, vector offset, int damage, int kick,
 //
 // CreateMonster
 //
-inline entity CreateMonster(vector origin, vector angles, string cclassname)
+inline entity(vector origin, vector angles, string cclassname) CreateMonster =
 {
-	entity newEnt = G_Spawn();
+	entity new_ent = G_Spawn();
 
-	newEnt.s.origin = origin;
-	newEnt.s.angles = angles;
-	newEnt.classname = cclassname;
-	newEnt.monsterinfo.aiflags |= AI_DO_NOT_COUNT;
-	
-	newEnt.gravityVector = '0 0 -1';
-	ED_CallSpawn(newEnt);
-	newEnt.s.renderfx |= RF_IR_VISIBLE;
+	new_ent.s.origin = origin;
+	new_ent.s.angles = angles;
+	new_ent.classname = cclassname;
+	new_ent.monsterinfo.aiflags |= AI_DO_NOT_COUNT;
 
-	return newEnt;
+	ED_CallSpawn(new_ent);
+
+	new_ent.s.renderfx |= RF_IR_VISIBLE;
+
+	return new_ent;
 }
-
-static inline void DetermineBBox (string cclassname, vector *cmins, vector *cmaxs)
-{
-	entity newEnt = G_Spawn();
-
-	newEnt.s.origin = newEnt.s.angles = vec3_origin;
-	newEnt.classname = cclassname;
-	newEnt.monsterinfo.aiflags |= AI_DO_NOT_COUNT;
-	
-	ED_CallSpawn(newEnt);
-	
-	*cmins = newEnt.mins;
-	*cmaxs = newEnt.maxs;
-
-	G_FreeEdict (newEnt);
-}
-
 
 //
 // CheckSpawnPoint
@@ -92,13 +75,12 @@ static inline void DetermineBBox (string cclassname, vector *cmins, vector *cmax
 // PMM - checks volume to make sure we can spawn a monster there (is it solid?)
 //
 // This is all fliers should need
-bool CheckSpawnPoint (vector origin, vector mins, vector maxs)
+bool(vector origin, vector mins, vector maxs) CheckSpawnPoint =
 {
-	trace_t	tr;
-
 	if (!mins || !maxs)
 		return false;
 
+	trace_t	tr;
 	gi.trace (&tr, origin, mins, maxs, origin, 0, MASK_MONSTERSOLID);
 
 	if (tr.startsolid || tr.allsolid)
@@ -110,17 +92,6 @@ bool CheckSpawnPoint (vector origin, vector mins, vector maxs)
 	return true;
 }
 
-entity CreateFlyMonster (vector origin, vector angles, vector mins, vector maxs, string classname)
-{
-	if (!mins || !maxs)
-		DetermineBBox (classname, &mins, &maxs);
-
-	if (!CheckSpawnPoint(origin, mins, maxs))
-		return 0;
-
-	return CreateMonster(origin, angles, classname);
-}
-
 //
 // CheckGroundSpawnPoint
 //
@@ -130,22 +101,16 @@ entity CreateFlyMonster (vector origin, vector angles, vector mins, vector maxs,
 //		2)	is the ground non-water?
 //		3)	is the ground flat enough to walk on?
 //
-bool CheckGroundSpawnPoint (vector origin, vector entMins, vector entMaxs, float height, float gravity)
+bool(vector origin, vector ent_mins, vector ent_maxs, float height, float gravity) CheckGroundSpawnPoint =
 {
-	trace_t		tr;
-	vector		start, stop;
-	int		failure = 0;
-	vector		mins, maxs;
-	int		x, y;	
-	float		mid, bottom;
-
-	if (!CheckSpawnPoint (origin, entMins, entMaxs))
+	if (!CheckSpawnPoint (origin, ent_mins, ent_maxs))
 		return false;
 
-	stop = origin;
-	stop[2] = origin[2] + entMins[2] - height;
+	vector stop = origin;
+	stop[2] = origin[2] + ent_mins[2] - height;
 
-	gi.trace (&tr, origin, entMins, entMaxs, stop, 0, MASK_MONSTERSOLID | MASK_WATER);
+	trace_t tr;
+	gi.trace (&tr, origin, ent_mins, ent_maxs, stop, 0, MASK_MONSTERSOLID | MASK_WATER);
 
 	// it's not going to be all solid or start solid, since that's checked above
 	if ((tr.fraction < 1) && (tr.contents & MASK_MONSTERSOLID))
@@ -156,65 +121,62 @@ bool CheckGroundSpawnPoint (vector origin, vector entMins, vector entMaxs, float
 		//
 
 		// first, do the midpoint trace
-
-		mins = tr.endpos + entMins;
-		maxs = tr.endpos + entMaxs;
+		vector mins = tr.endpos + ent_mins;
+		vector maxs = tr.endpos + ent_maxs;
 
 		// first, do the easy flat check
-		//
-		if(gravity > 0)
+		vector start;
+
+		if (gravity > 0)
 			start[2] = maxs[2] + 1;
 		else
 			start[2] = mins[2] - 1;
 
-		for (x=0 ; x<=1 ; x++)
-		{
-			for (y=0 ; y<=1 ; y++)
+		for (int x = 0; x <= 1; x++)
+			for (int y = 0; y <= 1; y++)
 			{
 				start[0] = x ? maxs[0] : mins[0];
 				start[1] = y ? maxs[1] : mins[1];
 				if (gi.pointcontents (start) != CONTENTS_SOLID)
 					goto realcheck;
 			}
-		}
 
 		// if it passed all four above checks, we're done
 		return true;
 
 realcheck:
-
 		// check it for real
-
 		start[0] = stop[0] = (mins[0] + maxs[0])*0.5;
 		start[1] = stop[1] = (mins[1] + maxs[1])*0.5;
 		start[2] = mins[2];
 
-		gi.trace (&tr, start, vec3_origin, vec3_origin, stop, 0, MASK_MONSTERSOLID);
+		gi.traceline(&tr, start, stop, 0, MASK_MONSTERSOLID);
 
 		if (tr.fraction == 1.0)
 			return false;
-		mid = bottom = tr.endpos[2];
 
-		if(gravity < 0)
+		float mid, bottom;
+
+		if (gravity < 0)
 		{
 			start[2] = mins[2];
 			stop[2] = start[2] - STEPSIZE - STEPSIZE;
-			mid = bottom = tr.endpos[2] + entMins[2];
+			mid = bottom = tr.endpos[2] + ent_mins[2];
 		}
 		else
 		{
 			start[2] = maxs[2];
 			stop[2] = start[2] + STEPSIZE + STEPSIZE;
-			mid = bottom = tr.endpos[2] - entMaxs[2];
+			mid = bottom = tr.endpos[2] - ent_maxs[2];
 		}
 
-		for (x=0 ; x<=1 ; x++)
-			for (y=0 ; y<=1 ; y++)
+		for (int x = 0; x <= 1; x++)
+			for (int y = 0; y <= 1; y++)
 			{
 				start[0] = stop[0] = x ? maxs[0] : mins[0];
 				start[1] = stop[1] = y ? maxs[1] : mins[1];
 
-				gi.trace (&tr, start, vec3_origin, vec3_origin, stop, 0, MASK_MONSTERSOLID);
+				gi.traceline(&tr, start, stop, 0, MASK_MONSTERSOLID);
 
 				if(gravity > 0)
 				{
@@ -237,7 +199,6 @@ realcheck:
 
 	// otherwise, it's either water (bad) or not there (too far)
 	// if we're here, it's bad below
-
 	return false;
 }
 
@@ -245,20 +206,8 @@ realcheck:
 // are bad things down there or not
 //
 // this is from m_move.c
-
-entity CreateGroundMonster (vector origin, vector angles, vector entMins, vector entMaxs, string classname, int height)
+entity(vector origin, vector angles, vector mins, vector maxs, string classname, int height) CreateGroundMonster =
 {
-	vector		mins, maxs;
-
-	// if they don't provide us a bounding box, figure it out
-	if (!entMins || !entMaxs)
-		DetermineBBox (classname, &mins, &maxs);
-	else
-	{
-		mins = entMins;
-		maxs = entMaxs;
-	}
-
 	// check the ground to make sure it's there, it's relatively flat, and it's not toxic
 	if (!CheckGroundSpawnPoint(origin, mins, maxs, height, -1))
 		return 0;
@@ -269,18 +218,15 @@ entity CreateGroundMonster (vector origin, vector angles, vector entMins, vector
 // FindSpawnPoint
 // PMM - this is used by the medic commander (possibly by the carrier) to find a good spawn point
 // if the startpoint is bad, try above the startpoint for a bit
-bool FindSpawnPoint (vector startpoint, vector mins, vector maxs, vector *spawnpoint, float maxMoveUp)
+bool(vector startpoint, vector mins, vector maxs, vector *spawnpoint, float max_move_up) FindSpawnPoint =
 {
-	trace_t		tr;
-	float		height = maxs[2] - mins[2];
-	vector		top;
-
+	trace_t tr;
 	gi.trace (&tr, startpoint, mins, maxs, startpoint, 0, MASK_MONSTERSOLID|CONTENTS_PLAYERCLIP);
 
-	if((tr.startsolid || tr.allsolid) || (tr.ent != world))
+	if ((tr.startsolid || tr.allsolid) || (tr.ent != world))
 	{
-		top = startpoint;
-		top[2] += maxMoveUp;
+		vector top = startpoint;
+		top[2] += max_move_up;
 
 		gi.trace (&tr, top, mins, maxs, startpoint, 0, MASK_MONSTERSOLID);
 		if (tr.startsolid || tr.allsolid)
@@ -297,10 +243,9 @@ bool FindSpawnPoint (vector startpoint, vector mins, vector maxs, vector *spawnp
 // ****************************
 // SPAWNGROW stuff
 // ****************************
-
 const float SPAWNGROW_LIFESPAN		= 0.3;
 
-static void spawngrow_think (entity self)
+static void(entity self) spawngrow_think =
 {
 	self.s.angles = randomv('360 360 360');
 
@@ -321,21 +266,21 @@ static void spawngrow_think (entity self)
 			return;
 		}
 	}
+
 	self.nextthink += 1;
 }
 
-void SpawnGrow_Spawn (vector startpos, int size)
+void(vector startpos, int size) SpawnGrow_Spawn =
 {
-	entity	ent;
-	float	lifespan = SPAWNGROW_LIFESPAN;
-
-	ent = G_Spawn();
+	entity ent = G_Spawn();
 	ent.s.origin = startpos;
 	ent.s.angles = randomv('360 360 360');	
 	ent.solid = SOLID_NOT;
 	ent.s.renderfx = RF_IR_VISIBLE;
 	ent.movetype = MOVETYPE_NONE;
 	ent.classname = "spawngro";
+
+	float lifespan = SPAWNGROW_LIFESPAN;
 
 	if (size <= 1)
 		ent.s.modelindex = gi.modelindex("models/items/spawngro2/tris.md2");
@@ -361,12 +306,12 @@ void SpawnGrow_Spawn (vector startpos, int size)
 // WidowLeg stuff
 // ****************************
 
-static vector WidowVelocityForDamage (int damage)
+static inline vector(int damage) WidowVelocityForDamage =
 {
 	return [ damage * crandom(), damage * crandom(), damage * crandom() + 200.0 ];
 }
 
-static void widow_gib_touch (entity self, entity other, vector plane, csurface_t surf)
+static void(entity self, entity other, vector plane, csurface_t surf) widow_gib_touch =
 {
 	self.solid = SOLID_NOT;
 	self.touch = 0;
@@ -383,32 +328,26 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) g
 void(entity self, entity other, vector plane, csurface_t surf) gib_touch;
 PROGS_LOCAL void(entity ent) ClipGibVelocity;
 
-void ThrowWidowGibReal (entity self, string gibname, int damage, int type, vector startpos, bool sized, int hitsound, bool fade)
+void(entity self, string gibname, int damage, int type, vector startpos, bool sized, int hitsound, bool fade) ThrowWidowGibReal =
 {
-	entity	gib;
-	vector	vd;
-	vector	origin;
-	vector	csize;
-	float	vscale;
-
 	if (!gibname)
 		return;
 
-	gib = G_Spawn();
+	entity gib = G_Spawn();
 
 	if (startpos)
 		gib.s.origin = startpos;
 	else
 	{
-		csize = self.size * 0.5;
-		origin = self.absmin + csize;
+		vector csize = self.size * 0.5;
+		vector origin = self.absmin + csize;
 		gib.s.origin = origin + randomv(-csize, csize);
 	}
 
 	gib.solid = SOLID_NOT;
 	gib.s.effects |= EF_GIB;
 	gib.flags |= FL_NO_KNOCKBACK;
-	gib.takedamage = DAMAGE_YES;
+	gib.takedamage = true;
 	gib.die = gib_die;
 	gib.s.renderfx |= RF_IR_VISIBLE;
 	gib.think = G_FreeEdict;
@@ -430,6 +369,8 @@ void ThrowWidowGibReal (entity self, string gibname, int damage, int type, vecto
 			gib.nextthink = level.framenum + (int)(random(25f, 35f) * BASE_FRAMERATE);
 	}
 
+	float vscale;
+
 	if (type == GIB_ORGANIC)
 	{
 		gib.movetype = MOVETYPE_TOSS;
@@ -442,7 +383,7 @@ void ThrowWidowGibReal (entity self, string gibname, int damage, int type, vecto
 		vscale = 1.0;
 	}
 
-	vd = WidowVelocityForDamage (damage);
+	vector vd = WidowVelocityForDamage (damage);
 	gib.velocity = self.velocity + (vscale * vd);
 	ClipGibVelocity (gib);
 
@@ -452,9 +393,7 @@ void ThrowWidowGibReal (entity self, string gibname, int damage, int type, vecto
 	{
 		gib.plat2flags = hitsound;
 		gib.solid = SOLID_BBOX;
-		gib.avelocity[0] = random(400f);
-		gib.avelocity[1] = random(400f);
-		gib.avelocity[2] = random(200f);
+		gib.avelocity = randomv([ 400f, 400f, 200f ]);
 		if (gib.velocity[2] < 0)
 			gib.velocity[2] *= -1;
 		gib.velocity[0] *= 2;
@@ -464,6 +403,7 @@ void ThrowWidowGibReal (entity self, string gibname, int damage, int type, vecto
 		gib.gravity = 0.25;
 		gib.touch = widow_gib_touch;
 		gib.owner = self;
+
 		if (gib.s.modelindex == gi.modelindex ("models/monsters/blackwidow2/gib2/tris.md2"))
 		{
 			gib.mins = '-10 -10 0';
@@ -479,72 +419,62 @@ void ThrowWidowGibReal (entity self, string gibname, int damage, int type, vecto
 	{
 		gib.velocity[0] *= 2;
 		gib.velocity[1] *= 2;
-		gib.avelocity[0] = random(600f);
-		gib.avelocity[1] = random(600f);
-		gib.avelocity[2] = random(600f);
+		gib.avelocity = randomv([ 600f, 600f, 600f ]);
 	}
 
-	gi.linkentity (gib);
+	gi.linkentity(gib);
 }
 
-void ThrowWidowGib (entity self, string gibname, int damage, int type)
+INLINE void(entity self, string gibname, int damage, int type) ThrowWidowGib =
 {
-	ThrowWidowGibReal (self, gibname, damage, type, 0, false, 0, true);
+	ThrowWidowGibReal(self, gibname, damage, type, 0, false, 0, true);
 }
 
-void ThrowWidowGibLoc (entity self, string gibname, int damage, int type, vector startpos, bool fade)
+INLINE void(entity self, string gibname, int damage, int type, vector startpos, bool fade) ThrowWidowGibLoc =
 {
-	ThrowWidowGibReal (self, gibname, damage, type, startpos, false, 0, fade);
+	ThrowWidowGibReal(self, gibname, damage, type, startpos, false, 0, fade);
 }
 
-void ThrowWidowGibSized (entity self, string gibname, int damage, int type, vector startpos, int hitsound, bool fade)
+INLINE void(entity self, string gibname, int damage, int type, vector startpos, int hitsound, bool fade) ThrowWidowGibSized =
 {
-	ThrowWidowGibReal (self, gibname, damage, type, startpos, true, hitsound, fade);
+	ThrowWidowGibReal(self, gibname, damage, type, startpos, true, hitsound, fade);
 }
 
-void ThrowSmallStuff (entity self, vector point)
+INLINE void(entity self, vector point) ThrowSmallStuff =
 {
-	int n;
-
-	for (n= 0; n < 2; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, point, false);
-	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, point, false);
-	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, point, false);
-
+	ThrowWidowGibLoc(self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, point, false);
+	ThrowWidowGibLoc(self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, point, false);
+	ThrowWidowGibLoc(self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, point, false);
+	ThrowWidowGibLoc(self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, point, false);
 }
 
-void ThrowMoreStuff (entity self, vector point)
+INLINE void(entity self, vector point) ThrowMoreStuff =
 {
-	int n;
-
 	if (coop.intVal)
 	{
 		ThrowSmallStuff (self, point);
 		return;
 	}
 
-	for (n= 0; n < 1; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, point, false);
-	for (n= 0; n < 2; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, point, false);
-	for (n= 0; n < 3; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, point, false);
-
+	ThrowWidowGibLoc(self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, point, false);
+	ThrowWidowGibLoc(self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, point, false);
+	ThrowWidowGibLoc(self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, point, false);
+	ThrowWidowGibLoc(self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, point, false);
+	ThrowWidowGibLoc(self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, point, false);
+	ThrowWidowGibLoc(self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, point, false);
 }
 
-const int MAX_LEGSFRAME	= 23;
+const int MAX_LEGSFRAME		= 23;
 const float LEG_WAIT_TIME	= 1;
 
-static void widowlegs_think (entity self)
+static void(entity self) widowlegs_think =
 {
-	vector	offset, start;
-	vector	f,r,u;
-
 	if (self.s.frame == 17)
 	{
-		offset = '11.77 -7.24 23.31';
+		vector f, r, u;
 		AngleVectors (self.s.angles, &f, &r, &u);
-		start = G_ProjectSource2 (self.s.origin, offset, f, r, u);
+
+		vector start = G_ProjectSource2 (self.s.origin, '11.77 -7.24 23.31', f, r, u);
 		gi.WriteByte (svc_temp_entity);
 		gi.WriteByte (TE_EXPLOSION1);
 		gi.WritePosition (start);
@@ -563,10 +493,10 @@ static void widowlegs_think (entity self)
 
 	if (level.framenum > self.wait)
 	{
+		vector f, r, u;
 		AngleVectors (self.s.angles, &f, &r, &u);
 
-		offset = '-65.6 -8.44 28.59';
-		start = G_ProjectSource2 (self.s.origin, offset, f, r, u);
+		vector start = G_ProjectSource2 (self.s.origin, '-65.6 -8.44 28.59', f, r, u);
 		gi.WriteByte (svc_temp_entity);
 		gi.WriteByte (TE_EXPLOSION1);
 		gi.WritePosition (start);
@@ -576,8 +506,7 @@ static void widowlegs_think (entity self)
 		ThrowWidowGibSized (self, "models/monsters/blackwidow/gib1/tris.md2", (int)random(80f, 100f), GIB_METALLIC, start, 0, true);
 		ThrowWidowGibSized (self, "models/monsters/blackwidow/gib2/tris.md2", (int)random(80f, 100f), GIB_METALLIC, start, 0, true);
 
-		offset = '-1.04 -51.18 7.04';
-		start = G_ProjectSource2 (self.s.origin, offset, f, r, u);
+		start = G_ProjectSource2 (self.s.origin, '-1.04 -51.18 7.04', f, r, u);
 		gi.WriteByte (svc_temp_entity);
 		gi.WriteByte (TE_EXPLOSION1);
 		gi.WritePosition (start);
@@ -591,36 +520,33 @@ static void widowlegs_think (entity self)
 		G_FreeEdict (self);
 		return;
 	}
+
 	if ((level.framenum > (self.wait - (0.5 * BASE_FRAMERATE))) && (self.count == 0))
 	{
 		self.count = 1;
+
+		vector f, r, u;
 		AngleVectors (self.s.angles, &f, &r, &u);
 
-		offset = '31 -88.7 10.96';
-		start = G_ProjectSource2 (self.s.origin, offset, f, r, u);
+		vector start = G_ProjectSource2 (self.s.origin, '31 -88.7 10.96', f, r, u);
 		gi.WriteByte (svc_temp_entity);
 		gi.WriteByte (TE_EXPLOSION1);
 		gi.WritePosition (start);
 		gi.multicast (start, MULTICAST_ALL);
 
-		offset = '-12.67 -4.39 15.68';
-		start = G_ProjectSource2 (self.s.origin, offset, f, r, u);
+		start = G_ProjectSource2 (self.s.origin, '-12.67 -4.39 15.68', f, r, u);
 		gi.WriteByte (svc_temp_entity);
 		gi.WriteByte (TE_EXPLOSION1);
 		gi.WritePosition (start);
 		gi.multicast (start, MULTICAST_ALL);
-
-		self.nextthink = level.framenum + 1;
-		return;
 	}
+
 	self.nextthink = level.framenum + 1;
 }
 
-void Widowlegs_Spawn (vector startpos, vector cangles)
+inline void(vector startpos, vector cangles) Widowlegs_Spawn =
 {
-	entity ent;
-
-	ent = G_Spawn();
+	entity ent = G_Spawn();
 	ent.s.origin = startpos;
 	ent.s.angles = cangles;
 	ent.solid = SOLID_NOT;
@@ -635,221 +561,183 @@ void Widowlegs_Spawn (vector startpos, vector cangles)
 	gi.linkentity (ent);
 }
 
-void ThrowArm1 (entity self)
+INLINE void(entity self) ThrowArm1 =
 {
-	int		n;
-	vector	f,r,u, startpoint;
-	static const vector	offset1 = '65.76 17.52 7.56';
-
+	vector	f, r, u;
 	AngleVectors (self.s.angles, &f, &r, &u);
-	startpoint = G_ProjectSource2 (self.s.origin, offset1, f, r, u);
+
+	vector startpoint = G_ProjectSource2 (self.s.origin, '65.76 17.52 7.56', f, r, u);
 
 	gi.WriteByte (svc_temp_entity);
 	gi.WriteByte (TE_EXPLOSION1_BIG);
 	gi.WritePosition (startpoint);
 	gi.multicast (self.s.origin, MULTICAST_ALL);
 
-	for (n= 0; n < 2; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
 }
 
-void ThrowArm2 (entity self)
+INLINE void(entity self) ThrowArm2 =
 {
-	vector	f,r,u, startpoint;
-	static const vector	offset1 = '65.76 17.52 7.56';
-
+	vector f, r, u;
 	AngleVectors (self.s.angles, &f, &r, &u);
-	startpoint = G_ProjectSource2 (self.s.origin, offset1, f, r, u);
 
-	ThrowWidowGibSized (self, "models/monsters/blackwidow2/gib4/tris.md2", 200, GIB_METALLIC, startpoint, 
-		gi.soundindex ("misc/fhit3.wav"), false);
+	vector startpoint = G_ProjectSource2 (self.s.origin, '65.76 17.52 7.56', f, r, u);
+
+	ThrowWidowGibSized (self, "models/monsters/blackwidow2/gib4/tris.md2", 200, GIB_METALLIC, startpoint, gi.soundindex ("misc/fhit3.wav"), false);
 	ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
 }
 
-void WidowExplosion1 (entity self)
+INLINE void(entity self) WidowExplosion1 =
 {
-	int		n;
-	vector f,r,u, startpoint;
-	static const vector offset = '23.74 -37.67 76.96';
-
+	vector f, r, u;
 	AngleVectors (self.s.angles, &f, &r, &u);
-	startpoint = G_ProjectSource2 (self.s.origin, offset, f, r, u);
+
+	vector startpoint = G_ProjectSource2 (self.s.origin, '23.74 -37.67 76.96', f, r, u);
+
+	gi.WriteByte (svc_temp_entity);
+	gi.WriteByte (TE_EXPLOSION1);
+	gi.WritePosition (startpoint);
+	gi.multicast (self.s.origin, MULTICAST_ALL);
+
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
+}
+
+INLINE void(entity self) WidowExplosion2 =
+{
+	vector f, r, u;
+	AngleVectors (self.s.angles, &f, &r, &u);
+
+	vector startpoint = G_ProjectSource2 (self.s.origin, '-20.49 36.92 73.52', f, r, u);
 
 	gi.WriteByte (svc_temp_entity);
 	gi.WriteByte (TE_EXPLOSION1);
 	gi.WritePosition (startpoint);
 	gi.multicast (self.s.origin, MULTICAST_ALL);
 	
-	for (n= 0; n < 1; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
-	for (n= 0; n < 1; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
-	for (n= 0; n < 2; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
 }
 
-void WidowExplosion2 (entity self)
+INLINE void(entity self) WidowExplosion3 =
 {
-	int		n;
-	vector	f,r,u, startpoint;
-	static const vector	offset = '-20.49 36.92 73.52';
-
+	vector	f, r, u;
 	AngleVectors (self.s.angles, &f, &r, &u);
-	startpoint = G_ProjectSource2 (self.s.origin, offset, f, r, u);
+
+	vector startpoint = G_ProjectSource2 (self.s.origin, '2.11 0.05 92.20', f, r, u);
+
+	gi.WriteByte (svc_temp_entity);
+	gi.WriteByte (TE_EXPLOSION1);
+	gi.WritePosition (startpoint);
+	gi.multicast (self.s.origin, MULTICAST_ALL);
+
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
+}
+
+INLINE void(entity self) WidowExplosion4 =
+{
+	vector	f, r, u;
+	AngleVectors (self.s.angles, &f, &r, &u);
+
+	vector startpoint = G_ProjectSource2 (self.s.origin, '-28.04 -35.57 -77.56', f, r, u);
+
+	gi.WriteByte (svc_temp_entity);
+	gi.WriteByte (TE_EXPLOSION1);
+	gi.WritePosition (startpoint);
+	gi.multicast (self.s.origin, MULTICAST_ALL);
+
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
+}
+
+INLINE void(entity self) WidowExplosion5 =
+{
+	vector	f, r, u;
+	AngleVectors (self.s.angles, &f, &r, &u);
+
+	vector startpoint = G_ProjectSource2 (self.s.origin, '-20.11 -1.11 40.76', f, r, u);
+
+	gi.WriteByte (svc_temp_entity);
+	gi.WriteByte (TE_EXPLOSION1);
+	gi.WritePosition (startpoint);
+	gi.multicast (self.s.origin, MULTICAST_ALL);
+
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
+}
+
+INLINE void(entity self) WidowExplosion6 =
+{
+	vector	f, r, u;
+	AngleVectors (self.s.angles, &f, &r, &u);
+
+	vector startpoint = G_ProjectSource2 (self.s.origin, '-20.11 -1.11 40.76', f, r, u);
+
+	gi.WriteByte (svc_temp_entity);
+	gi.WriteByte (TE_EXPLOSION1);
+	gi.WritePosition (startpoint);
+	gi.multicast (self.s.origin, MULTICAST_ALL);
+
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
+}
+
+INLINE void(entity self) WidowExplosion7 =
+{
+	vector	f, r, u;
+	AngleVectors (self.s.angles, &f, &r, &u);
+
+	vector startpoint = G_ProjectSource2 (self.s.origin, '-20.11 -1.11 40.76', f, r, u);
 
 	gi.WriteByte (svc_temp_entity);
 	gi.WriteByte (TE_EXPLOSION1);
 	gi.WritePosition (startpoint);
 	gi.multicast (self.s.origin, MULTICAST_ALL);
 	
-	for (n= 0; n < 1; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
-	for (n= 0; n < 1; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
-	for (n= 0; n < 2; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
+	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
 }
 
-void WidowExplosion3 (entity self)
+INLINE void(entity self) WidowExplosionLeg =
 {
-	int		n;
-	vector	f,r,u, startpoint;
-	static const vector	offset = '2.11 0.05 92.20';
-
-//	gi.dprintf ("3\n");
-
+	vector	f, r, u;
 	AngleVectors (self.s.angles, &f, &r, &u);
-	startpoint = G_ProjectSource2 (self.s.origin, offset, f, r, u);
 
-	gi.WriteByte (svc_temp_entity);
-	gi.WriteByte (TE_EXPLOSION1);
-	gi.WritePosition (startpoint);
-	gi.multicast (self.s.origin, MULTICAST_ALL);
-	
-	for (n= 0; n < 1; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
-	for (n= 0; n < 1; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
-	for (n= 0; n < 2; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
-}
-
-void WidowExplosion4 (entity self)
-{
-	int		n;
-	vector	f,r,u, startpoint;
-	static const vector offset = '-28.04 -35.57 -77.56';
-
-	AngleVectors (self.s.angles, &f, &r, &u);
-	startpoint = G_ProjectSource2 (self.s.origin, offset, f, r, u);
-
-	gi.WriteByte (svc_temp_entity);
-	gi.WriteByte (TE_EXPLOSION1);
-	gi.WritePosition (startpoint);
-	gi.multicast (self.s.origin, MULTICAST_ALL);
-	
-	for (n= 0; n < 1; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
-	for (n= 0; n < 1; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
-	for (n= 0; n < 2; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
-}
-
-void WidowExplosion5 (entity self)
-{
-	int		n;
-	vector	f,r,u, startpoint;
-	static const vector	offset = '-20.11 -1.11 40.76';
-
-	AngleVectors (self.s.angles, &f, &r, &u);
-	startpoint = G_ProjectSource2 (self.s.origin, offset, f, r, u);
-
-	gi.WriteByte (svc_temp_entity);
-	gi.WriteByte (TE_EXPLOSION1);
-	gi.WritePosition (startpoint);
-	gi.multicast (self.s.origin, MULTICAST_ALL);
-	
-	for (n= 0; n < 1; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
-	for (n= 0; n < 1; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
-	for (n= 0; n < 2; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
-}
-
-void WidowExplosion6 (entity self)
-{
-	int		n;
-	vector	f,r,u, startpoint;
-	static const vector	offset = '-20.11 -1.11 40.76';
-
-	AngleVectors (self.s.angles, &f, &r, &u);
-	startpoint = G_ProjectSource2 (self.s.origin, offset, f, r, u);
-
-	gi.WriteByte (svc_temp_entity);
-	gi.WriteByte (TE_EXPLOSION1);
-	gi.WritePosition (startpoint);
-	gi.multicast (self.s.origin, MULTICAST_ALL);
-	
-	for (n= 0; n < 1; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
-	for (n= 0; n < 1; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
-	for (n= 0; n < 2; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
-}
-
-void WidowExplosion7 (entity self)
-{
-	int		n;
-	vector	f,r,u, startpoint;
-	static const vector	offset = '-20.11 -1.11 40.76';
-
-	AngleVectors (self.s.angles, &f, &r, &u);
-	startpoint = G_ProjectSource2 (self.s.origin, offset, f, r, u);
-
-	gi.WriteByte (svc_temp_entity);
-	gi.WriteByte (TE_EXPLOSION1);
-	gi.WritePosition (startpoint);
-	gi.multicast (self.s.origin, MULTICAST_ALL);
-	
-	for (n= 0; n < 1; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
-	for (n= 0; n < 1; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
-	for (n= 0; n < 2; n++)
-		ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 300, GIB_METALLIC, startpoint, false);
-}
-
-void WidowExplosionLeg (entity self)
-{
-	vector	f,r,u, startpoint;
-	static const vector	offset1 = '-31.89 -47.86 67.02';
-	static const vector	offset2 = '-44.9 -82.14 54.72';
-
-	AngleVectors (self.s.angles, &f, &r, &u);
-	startpoint = G_ProjectSource2 (self.s.origin, offset1, f, r, u);
+	vector startpoint = G_ProjectSource2 (self.s.origin, '-31.89 -47.86 67.02', f, r, u);
 
 	gi.WriteByte (svc_temp_entity);
 	gi.WriteByte (TE_EXPLOSION1_BIG);
 	gi.WritePosition (startpoint);
 	gi.multicast (self.s.origin, MULTICAST_ALL);
 
-	ThrowWidowGibSized (self, "models/monsters/blackwidow2/gib2/tris.md2", 200, GIB_METALLIC, startpoint, 
-		gi.soundindex ("misc/fhit3.wav"), false);
+	ThrowWidowGibSized (self, "models/monsters/blackwidow2/gib2/tris.md2", 200, GIB_METALLIC, startpoint, gi.soundindex ("misc/fhit3.wav"), false);
 	ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
 	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
 
-	startpoint = G_ProjectSource2 (self.s.origin, offset2, f, r, u);
+	startpoint = G_ProjectSource2 (self.s.origin, '-44.9 -82.14 54.72', f, r, u);
 
 	gi.WriteByte (svc_temp_entity);
 	gi.WriteByte (TE_EXPLOSION1);
 	gi.WritePosition (startpoint);
 	gi.multicast (self.s.origin, MULTICAST_ALL);
 
-	ThrowWidowGibSized (self, "models/monsters/blackwidow2/gib1/tris.md2", 300, GIB_METALLIC, startpoint,
-		gi.soundindex ("misc/fhit3.wav"), false);
+	ThrowWidowGibSized (self, "models/monsters/blackwidow2/gib1/tris.md2", 300, GIB_METALLIC, startpoint, gi.soundindex ("misc/fhit3.wav"), false);
 	ThrowWidowGibLoc (self, "models/objects/gibs/sm_meat/tris.md2", 300, GIB_ORGANIC, startpoint, false);
 	ThrowWidowGibLoc (self, "models/objects/gibs/sm_metal/tris.md2", 100, GIB_METALLIC, startpoint, false);
 }

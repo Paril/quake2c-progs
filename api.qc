@@ -457,7 +457,7 @@ var config_string_t CS_GENERAL;
 var config_string_t MAX_CONFIGSTRINGS;
 
 // Some mods actually exploit CS_STATUSBAR to take space up to CS_AIRACCEL
-int CS_SIZE(config_string_t cs)
+INLINE int CS_SIZE(config_string_t cs)
 {
 	if (cs >= CS_STATUSBAR && cs < CS_AIRACCEL)
 		return MAX_QPATH * (CS_AIRACCEL - cs);
@@ -475,13 +475,13 @@ CVARS (console variables)
 
 typedef enumflags : int
 {
-	CVAR_NONE	= 0,
+	CVAR_NONE		= 0,
 	CVAR_ARCHIVE	= 1,	// set to cause it to be saved to vars.rc
-	CVAR_USERINFO,		// added to userinfo  when changed
-	CVAR_SERVERINFO,	// added to serverinfo when changed
-	CVAR_NOSET,		// don't allow change from console at all,
-				// but can be set from the command line
-	CVAR_LATCH		// save changes until server restart
+	CVAR_USERINFO,			// added to userinfo  when changed
+	CVAR_SERVERINFO,		// added to serverinfo when changed
+	CVAR_NOSET,				// don't allow change from console at all,
+							// but can be set from the command line
+	CVAR_LATCH				// save changes until server restart
 } cvar_flags_t;
 
 accessor cvar_t : handle;
@@ -494,12 +494,12 @@ static string(cvar_t)		cvar_get_latched_string = #0;
 
 static cvar_flags_t(cvar_t)	cvar_get_flags = #0;
 
-static bool(cvar_t)		cvar_get_modified = #0;
+static bool(cvar_t)			cvar_get_modified = #0;
 static void(cvar_t, bool)	cvar_set_modified = #0;
 
 static float(cvar_t)		cvar_get_floatVal = #0;
 
-static int(cvar_t)		cvar_get_intVal = #0;
+static int(cvar_t)			cvar_get_intVal = #0;
 
 accessor cvar_t : handle
 {
@@ -560,20 +560,20 @@ typedef enumflags : int
 	CONTENTS_DEADMONSTER,
 	CONTENTS_DETAIL,	// brushes to be added after vis leafs
 	CONTENTS_TRANSLUCENT,	// auto set if any surface has trans
-	CONTENTS_LADDER
-} content_flags_t;
+	CONTENTS_LADDER,
 
-// FIXME should be in enum, but it infinite loop
-const content_flags_t MASK_ALL	= -1;
-// content masks
-const content_flags_t MASK_SOLID	= CONTENTS_SOLID | CONTENTS_WINDOW;
-const content_flags_t MASK_PLAYERSOLID	= CONTENTS_SOLID | CONTENTS_PLAYERCLIP | CONTENTS_WINDOW | CONTENTS_MONSTER;
-const content_flags_t MASK_DEADSOLID	= CONTENTS_SOLID | CONTENTS_PLAYERCLIP | CONTENTS_WINDOW;
-const content_flags_t MASK_MONSTERSOLID	= CONTENTS_SOLID | CONTENTS_MONSTERCLIP | CONTENTS_WINDOW | CONTENTS_MONSTER;
-const content_flags_t MASK_WATER	= CONTENTS_WATER | CONTENTS_LAVA | CONTENTS_SLIME;
-const content_flags_t MASK_OPAQUE	= CONTENTS_SOLID | CONTENTS_SLIME | CONTENTS_LAVA;
-const content_flags_t MASK_SHOT		= CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_WINDOW | CONTENTS_DEADMONSTER;
-const content_flags_t MASK_CURRENT	= CONTENTS_CURRENT_0 | CONTENTS_CURRENT_90 | CONTENTS_CURRENT_180 | CONTENTS_CURRENT_270 | CONTENTS_CURRENT_UP | CONTENTS_CURRENT_DOWN;
+	MASK_ALL	= -1,
+
+	// content masks
+	MASK_SOLID			= CONTENTS_SOLID | CONTENTS_WINDOW,
+	MASK_PLAYERSOLID	= CONTENTS_SOLID | CONTENTS_PLAYERCLIP | CONTENTS_WINDOW | CONTENTS_MONSTER,
+	MASK_DEADSOLID		= CONTENTS_SOLID | CONTENTS_PLAYERCLIP | CONTENTS_WINDOW,
+	MASK_MONSTERSOLID	= CONTENTS_SOLID | CONTENTS_MONSTERCLIP | CONTENTS_WINDOW | CONTENTS_MONSTER,
+	MASK_WATER			= CONTENTS_WATER | CONTENTS_LAVA | CONTENTS_SLIME,
+	MASK_OPAQUE			= CONTENTS_SOLID | CONTENTS_SLIME | CONTENTS_LAVA,
+	MASK_SHOT			= CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_WINDOW | CONTENTS_DEADMONSTER,
+	MASK_CURRENT		= CONTENTS_CURRENT_0 | CONTENTS_CURRENT_90 | CONTENTS_CURRENT_180 | CONTENTS_CURRENT_270 | CONTENTS_CURRENT_UP | CONTENTS_CURRENT_DOWN
+} content_flags_t;
 
 typedef enumflags : int
 {
@@ -599,9 +599,9 @@ typedef enum : int
 
 struct csurface_t
 {
-	string name;
-	surface_flags_t flags;
-	int value;
+	string			name;
+	surface_flags_t	flags;
+	int				value;
 };
 
 const csurface_t null_surface = { 0, 0, 0 };
@@ -676,9 +676,9 @@ struct pmove_state_t
 	pmtype_t	pm_type;
 	vector		origin;
 	vector		velocity;
-	int		pm_flags;
-	int		pm_time;
-	int		gravity;
+	int			pm_flags;
+	int			pm_time;
+	int			gravity;
 	vector		delta_angles;
 };
 
@@ -692,7 +692,7 @@ struct pmove_t
 	bool		snapinitial;
 	
 	// out
-	hashset		touchents; // this hashset is owned by PMove; don't free
+	hashset	touchents; // this hashset is owned by PMove; don't free
 	
 	vector	viewangles;
 	float	viewheight;

@@ -72,7 +72,7 @@ static inline void() ClearSpawnTemp =
 	memclear(&st, sizeof(st));
 }
 
-static void(string entities, __inout int entities_offset, entity ent) ED_ParseEdict =
+static void(string entities, inout int entities_offset, entity ent) ED_ParseEdict =
 {
 	bool init = false;
 	
@@ -137,7 +137,7 @@ bool(entity ent) ED_CallSpawn =
 	}
 	
 #ifdef GROUND_ZERO
-	ent.gravityVector = '0 0 -1';
+	ent.gravityVector = MOVEDIR_DOWN;
 
 	if (ent.classname == "weapon_nailgun")
 		ent.classname = FindItem("ETF Rifle")->classname;

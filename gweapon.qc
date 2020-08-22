@@ -20,7 +20,7 @@ void(entity self, vector start, vector dir, int speed) check_dodge =
 			return;
 	}
 	end = start + (8192 * dir);
-	gi.trace(&tr, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+	gi.traceline(&tr, start, end, self, MASK_SHOT);
 	if ((tr.ent) && (tr.ent.svflags & SVF_MONSTER) && (tr.ent.health > 0) && (tr.ent.monsterinfo.dodge) && infront(tr.ent, self)) {
 		v = tr.endpos - start;
 		eta = (VectorLength(v) - tr.ent.maxs.x) / speed;
@@ -68,7 +68,7 @@ bool(entity self, vector aim, int damage, int kick) fire_hit =
 
 	point = self.s.origin + (range * dir);
 
-	gi.trace(&tr, self.s.origin, vec3_origin, vec3_origin, point, self, MASK_SHOT);
+	gi.traceline(&tr, self.s.origin, point, self, MASK_SHOT);
 	if (tr.fraction < 1) {
 		if (!tr.ent.takedamage)
 			return false;
@@ -118,7 +118,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 	bool	water = false;
 	int	content_mask = MASK_SHOT | MASK_WATER;
 	
-	gi.trace(&tr, self.s.origin, vec3_origin, vec3_origin, start, self, MASK_SHOT);
+	gi.traceline(&tr, self.s.origin, start, self, MASK_SHOT);
 	if (!(tr.fraction < 1.0f)) {
 		dir = vectoangles(aimdir);
 
@@ -136,7 +136,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 			content_mask &= ~MASK_WATER;
 		}
 
-		gi.trace(&tr, start, vec3_origin, vec3_origin, end, self, content_mask);
+		gi.traceline(&tr, start, end, self, content_mask);
 
 		// see if we hit water
 		if (tr.contents & MASK_WATER) {
@@ -180,7 +180,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 			}
 
 			// re-trace ignoring water this time
-			gi.trace(&tr, water_start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+			gi.traceline(&tr, water_start, end, self, MASK_SHOT);
 		}
 	}
 
@@ -214,7 +214,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 		if (gi.pointcontents(pos) & MASK_WATER)
 			tr.endpos = pos;
 		else
-			gi.trace(&tr, pos, vec3_origin, vec3_origin, water_start, tr.ent, MASK_WATER);
+			gi.traceline(&tr, pos, water_start, tr.ent, MASK_WATER);
 
 		pos = water_start + tr.endpos;
 		pos *= 0.5f;
@@ -289,7 +289,6 @@ static void(entity self, entity other, vector normal, csurface_t surf) blaster_t
 	} else {
 		gi.WriteByte(svc_temp_entity);
 #ifdef THE_RECKONING
-		// RAFAEL
 		if (self.s.effects & EF_BLUEHYPERBLASTER)	// Knightmare- this was checking bit TE_BLUEHYPERBLASTER
 			gi.WriteByte (TE_FLECHETTE);			// Knightmare- TE_BLUEHYPERBLASTER is broken (parse error) in most Q2 engines
 		else
@@ -347,7 +346,7 @@ void(entity self, vector start, vector dir, int damage, int speed, int effect, b
 	if (self.is_client)
 		check_dodge(self, bolt.s.origin, dir, speed);
 
-	gi.trace(&tr, self.s.origin, vec3_origin, vec3_origin, bolt.s.origin, bolt, MASK_SHOT);
+	gi.traceline(&tr, self.s.origin, bolt.s.origin, bolt, MASK_SHOT);
 	
 	if (tr.fraction < 1.0f) {
 		bolt.s.origin += (-10 * dir);
@@ -630,7 +629,7 @@ void(entity self, vector start, vector aimdir, int damage, int kick) fire_rail =
 	mask = MASK_SHOT | CONTENTS_SLIME | CONTENTS_LAVA;
 	while (ignore)
 	{
-		gi.trace(&tr, from, vec3_origin, vec3_origin, end, ignore, mask);
+		gi.traceline(&tr, from, end, ignore, mask);
 
 		if (tr.contents & (CONTENTS_SLIME | CONTENTS_LAVA))
 		{
@@ -803,7 +802,7 @@ static void(entity self) bfg_think =
 		start = self.s.origin;
 		end = start + (2048 * dir);
 		while (1) {
-			gi.trace(&tr, start, vec3_origin, vec3_origin, end, ignore, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_DEADMONSTER);
+			gi.traceline(&tr, start, end, ignore, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_DEADMONSTER);
 
 			if (!tr.ent)
 				break;

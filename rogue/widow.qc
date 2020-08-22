@@ -968,7 +968,7 @@ static void widow_dead (entity self)
 static void widow_die (entity self, entity inflictor, entity attacker, int damage, vector point)
 {
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_NO;
+	self.takedamage = false;
 	self.count = 0;
 	self.monsterinfo.quad_framenum = 0;
 	self.monsterinfo.double_framenum = 0;
@@ -1156,7 +1156,7 @@ static bool Widow_CheckAttack (entity self)
 		spot2 = self.enemy.s.origin;
 		spot2[2] += self.enemy.viewheight;
 
-		gi.trace (&tr, spot1, vec3_origin, vec3_origin, spot2, self, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA);
+		gi.traceline(&tr, spot1, spot2, self, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA);
 
 		// do we have a clear shot?
 		if (tr.ent != self.enemy)

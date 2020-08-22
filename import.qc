@@ -1,5 +1,7 @@
 accessor cvar_t : handle;
 
+#define traceline(tr, start, end, passent, mask) trace(tr, start, vec3_origin, vec3_origin, end, passent, mask)
+
 PROGS_LOCAL var struct {
 	// QC-specific imports
 	void(int)		SetNumEdicts;

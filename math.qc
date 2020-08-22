@@ -19,11 +19,11 @@ float(float) atanh = #0;
 
 // exp/logarithmic
 float(float) exp = #0;
-float(float, __out int) frexp = #0;
+float(float, out int) frexp = #0;
 float(float, int) ldexp = #0;
 float(float) log = #0;
 float(float) log10 = #0;
-float(float, __out int) modf = #0;
+float(float, out int) modf = #0;
 float(float) exp2 = #0;
 float(float) expm1 = #0;
 int(float) ilogb = #0;
@@ -55,7 +55,7 @@ float(float) rint = #0;
 int(float) lrint = #0;
 float(float) nearbyint = #0;
 float(float, float) remainder = #0;
-float(float, float, __out int) remquo = #0;
+float(float, float, out int) remquo = #0;
 
 // floating point
 float(float, float) copysign = #0;

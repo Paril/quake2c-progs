@@ -280,7 +280,7 @@ static void parasite_drain_attack(entity self)
 	}
 	end = self.enemy.s.origin;
 
-	gi.trace(&tr, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+	gi.traceline(&tr, start, end, self, MASK_SHOT);
 	if (tr.ent != self.enemy)
 		return;
 
@@ -382,7 +382,7 @@ static void parasite_die(entity self, entity inflictor, entity attacker, int dam
 // regular death
 	gi.sound(self, CHAN_VOICE, sound_die, 1, ATTN_NORM, 0);
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.monsterinfo.currentmove = &parasite_move_death;
 }
 
@@ -518,7 +518,7 @@ static bool parasite_checkattack (entity self)
 	}
 	end = self.enemy.s.origin;
 
-	gi.trace (&tr, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+	gi.traceline(&tr, start, end, self, MASK_SHOT);
 	if (tr.ent != self.enemy)
 	{
 		self.monsterinfo.aiflags |= AI_BLOCKED;

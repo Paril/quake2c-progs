@@ -162,7 +162,7 @@ static void CarrierCoopCheck (entity self)
 			continue;
 		if (inback(self, ent) || below(self, ent))
 		{
-			gi.trace (&tr, self.s.origin, vec3_origin, vec3_origin, ent.s.origin, self, MASK_SOLID);
+			gi.traceline(&tr, self.s.origin, ent.s.origin, self, MASK_SOLID);
 			if (tr.fraction == 1.0)
 				targets[num_targets++] = ent;
 		}
@@ -722,7 +722,7 @@ static void carrier_die (entity self, entity inflictor, entity attacker, int dam
 {
 	gi.sound (self, CHAN_VOICE, sound_death, 1, ATTN_NONE, 0);
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_NO;
+	self.takedamage = false;
 	self.count = 0;
 	self.monsterinfo.currentmove = &carrier_move_death;
 }
@@ -745,7 +745,7 @@ static bool Carrier_CheckAttack (entity self)
 		spot2 = self.enemy.s.origin;
 		spot2[2] += self.enemy.viewheight;
 
-		gi.trace (&tr, spot1, vec3_origin, vec3_origin, spot2, self, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA);
+		gi.traceline(&tr, spot1, spot2, self, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA);
 
 		// do we have a clear shot?
 		if (tr.ent != self.enemy)

@@ -34,7 +34,7 @@ API_FUNC struct game_locals_t
 	bool	autosaved;
 } game;
 
-#define itoe(num) ((entity)(__variant)(num))
+#define itoe(num) ((entity)(variant)(num))
 #define etoi(e) (e.s.number)
 
 #define next_ent(e) itoe(e.s.number + 1)

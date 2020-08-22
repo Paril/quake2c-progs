@@ -12,7 +12,7 @@ inline float(vector v) VectorLength =
 	return sqrt(VectorLengthSquared(v));
 }
 
-INLINE float(__inout vector v) VectorNormalize =
+INLINE float(inout vector v) VectorNormalize =
 {
 	float length = VectorLength(v);
 	
@@ -85,67 +85,64 @@ void(vector angles, vector *forward, vector *right, vector *up) AngleVectors =
 
 vector vectoangles(vector value1)
 {
-	float	yaw, pitch;
-	
 	if (value1[1] == 0 && value1[0] == 0)
 	{
-		yaw = 0;
 		if (value1[2] > 0)
-			pitch = 90f;
-		else
-			pitch = 270f;
+			return [ -90f, 0, 0 ];
+
+		return [ -270f, 0, 0 ];
 	}
-	else
+
+	float yaw;
+
+	if (value1[0])
 	{
-		if (value1[0])
-		{
-			yaw = RAD2DEG(atan2(value1[1], value1[0]));
+		yaw = RAD2DEG(atan2(value1[1], value1[0]));
 
-			if (yaw < 0)
-				yaw += 360;
-		}
-		else if (value1[1] > 0)
-			yaw = 90f;
-		else
-			yaw = 270f;
-
-		const float forward = sqrt(value1[0]*value1[0] + value1[1]*value1[1]);
-		pitch = RAD2DEG(atan2(value1[2], forward));
-		if (pitch < 0)
-			pitch += 360;
+		if (yaw < 0)
+			yaw += 360;
 	}
+	else if (value1[1] > 0)
+		yaw = 90f;
+	else
+		yaw = 270f;
+
+	const float forward = sqrt(value1[0]*value1[0] + value1[1]*value1[1]);
+	float pitch = RAD2DEG(atan2(value1[2], forward));
+	if (pitch < 0)
+		pitch += 360;
 
 	return [ -pitch, yaw, 0 ];
 }
 
 float(vector vec) vectoyaw =
 {
-	float   yaw;
-
 	if (vec.x == 0)
 	{
-		yaw = 0;
 		if (vec.y > 0)
-			yaw = 90f;
+			return 90f;
 		else if (vec.y < 0)
-			yaw = -90f;
+			return -90f;
+
+		return 0;
 	}
-	else
-	{
-		yaw = RAD2DEG(atan2(vec.y, vec.x));
-		if (yaw < 0)
-			yaw += 360f;
-	}
+
+	float yaw = RAD2DEG(atan2(vec.y, vec.x));
+
+	if (yaw < 0)
+		yaw += 360f;
 
 	return yaw;
 }
 
 inline vector(vector v1, vector v2) CrossProduct =
 {
-	return v1 >< v2;
+	return [v1[1] * v2[2] - v1[2] * v2[1],
+			v1[2] * v2[0] - v1[0] * v2[2],
+			v1[0] * v2[1] - v1[1] * v2[0]];
 }
 
-inline void(vector v, __inout vector mins, __inout vector maxs) AddPointToBounds =
+inline void(vector v, inout vector mins, inout vector maxs) AddPointToBounds =
 {
 	mins[0] = minf(mins[0], v[0]);
 	maxs[0] = maxf(maxs[0], v[0]);
@@ -153,126 +150,4 @@ inline void(vector v, __inout vector mins, __inout vector maxs) AddPointToBounds
 	maxs[1] = maxf(maxs[1], v[1]);
 	mins[2] = minf(mins[2], v[2]);
 	maxs[2] = maxf(maxs[2], v[2]);
-}
-
-vector(vector p, vector normal) ProjectPointOnPlane =
-{
-	float d;
-	vector n;
-	float inv_denom = 1.0f / (normal * normal);
-
-	d = (normal * p) * inv_denom;
-
-	n[0] = normal[0] * inv_denom;
-	n[1] = normal[1] * inv_denom;
-	n[2] = normal[2] * inv_denom;
-
-	return [ p[0] - d * n[0], p[1] - d * n[1], p[2] - d * n[2] ];
-}
-
-/*
-** assumes "src" is normalized
-*/
-vector(vector src) PerpendicularVector =
-{
-	int	pos, i;
-	float	minelem = 1.0f;
-	vector	tempvec;
-
-	/*
-	** find the smallest magnitude axially aligned vector
-	*/
-	for (pos = 0, i = 0; i < 3; i++)
-	{
-		if (fabs(src[i]) < minelem)
-		{
-			pos = i;
-			minelem = fabs(src[i]);
-		}
-	}
-	tempvec[pos] = 1.0f;
-
-	/*
-	** project the point onto the plane defined by src
-	*/
-	vector dst = ProjectPointOnPlane(tempvec, src);
-
-	/*
-	** normalize the result
-	*/
-	VectorNormalize(dst);
-	
-	return dst;
-}
-
-/*
-================
-R_ConcatRotations
-================
-*/
-void(vector *in1, vector *in2, vector *out) R_ConcatRotations =
-{
-	out[0][0] = in1[0][0] * in2[0][0] + in1[0][1] * in2[1][0] +
-				in1[0][2] * in2[2][0];
-	out[0][1] = in1[0][0] * in2[0][1] + in1[0][1] * in2[1][1] +
-				in1[0][2] * in2[2][1];
-	out[0][2] = in1[0][0] * in2[0][2] + in1[0][1] * in2[1][2] +
-				in1[0][2] * in2[2][2];
-	out[1][0] = in1[1][0] * in2[0][0] + in1[1][1] * in2[1][0] +
-				in1[1][2] * in2[2][0];
-	out[1][1] = in1[1][0] * in2[0][1] + in1[1][1] * in2[1][1] +
-				in1[1][2] * in2[2][1];
-	out[1][2] = in1[1][0] * in2[0][2] + in1[1][1] * in2[1][2] +
-				in1[1][2] * in2[2][2];
-	out[2][0] = in1[2][0] * in2[0][0] + in1[2][1] * in2[1][0] +
-				in1[2][2] * in2[2][0];
-	out[2][1] = in1[2][0] * in2[0][1] + in1[2][1] * in2[1][1] +
-				in1[2][2] * in2[2][1];
-	out[2][2] = in1[2][0] * in2[0][2] + in1[2][1] * in2[1][2] +
-				in1[2][2] * in2[2][2];
-}
-
-vector(vector dir, vector point, float degrees) RotatePointAroundVector =
-{
-	vector vf = dir;
-	vector vr = PerpendicularVector(dir);
-	vector vup = CrossProduct(vr, vf);
-
-	vector m[3] = {
-		[ vr[0], vup[0], vf[0] ],
-		[ vr[1], vup[1], vf[1] ],
-		[ vr[2], vup[2], vf[2] ]
-	};
-	
-	vector	im[3];
-	memcpy(&im[0], &m[0], sizeof(im));
-
-	im[0][1] = m[1][0];
-	im[0][2] = m[2][0];
-	im[1][0] = m[0][1];
-	im[1][2] = m[2][1];
-	im[2][0] = m[0][2];
-	im[2][1] = m[1][2];
-
-	vector zrot[3] = {
-		[ 1, 0, 0 ],
-		[ 0, 1, 0 ],
-		[ 0, 0, 1 ]
-	};
-
-	zrot[0][0] = cos(DEG2RAD(degrees));
-	zrot[0][1] = sin(DEG2RAD(degrees));
-	zrot[1][0] = -sin(DEG2RAD(degrees));
-	zrot[1][1] = cos(DEG2RAD(degrees));
-
-	vector	tmpmat[3];
-	R_ConcatRotations(m, zrot, tmpmat);
-	vector	rot[3];
-	R_ConcatRotations(tmpmat, im, rot);
-	
-	return [
-		rot[0][0] * point[0] + rot[0][1] * point[1] + rot[0][2] * point[2],
-		rot[1][0] * point[0] + rot[1][1] * point[1] + rot[1][2] * point[2],
-		rot[2][0] * point[0] + rot[2][1] * point[1] + rot[2][2] * point[2]
-	];
 }

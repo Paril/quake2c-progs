@@ -286,7 +286,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 
 	gi.sound(self, CHAN_VOICE, sound_die, 1, ATTN_NORM, 0);
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 
 	if (damage >= 50)
 		self.monsterinfo.currentmove = &berserk_move_death1;

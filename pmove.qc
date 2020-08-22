@@ -329,7 +329,7 @@ static void PM_AirAccelerate (vector wishdir, float wishspeed, float accel)
 PM_AddCurrents
 =============
 */
-static void PM_AddCurrents (__inout vector wishvel)
+static void PM_AddCurrents (inout vector wishvel)
 {
 	vector	v;
 	float	s;

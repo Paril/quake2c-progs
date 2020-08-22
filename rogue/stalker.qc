@@ -41,13 +41,13 @@ static bool(entity self) stalker_ok_to_transition =
 
 	pt = self.s.origin;
 	pt[2] += max_dist;
-	gi.trace (&trace, self.s.origin, self.mins, self.maxs, pt, self, MASK_MONSTERSOLID);
+	gi.trace(&trace, self.s.origin, self.mins, self.maxs, pt, self, MASK_MONSTERSOLID);
 
 	if(trace.fraction == 1.0 || 
 	   !(trace.contents & CONTENTS_SOLID) ||
 	   (trace.ent != world))
 	{
-		if(STALKER_ON_CEILING(self))
+		if (STALKER_ON_CEILING(self))
 		{
 			if (trace.normal[2] < 0.9)
 				return false;
@@ -67,7 +67,7 @@ static bool(entity self) stalker_ok_to_transition =
 	pt[2] = trace.endpos[2] + margin;	// give a little margin of error to allow slight inclines
 	start = pt;
 	start[2] = self.s.origin[2];
-	gi.trace(&trace, start, vec3_origin, vec3_origin, pt, self, MASK_MONSTERSOLID);
+	gi.traceline(&trace, start, pt, self, MASK_MONSTERSOLID);
 	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 		return false;
 
@@ -78,7 +78,7 @@ static bool(entity self) stalker_ok_to_transition =
 	pt[1] = self.absmin[1];
 	start = pt;
 	start[2] = self.s.origin[2];
-	gi.trace(&trace, start, vec3_origin, vec3_origin, pt, self, MASK_MONSTERSOLID);
+	gi.traceline(&trace, start, pt, self, MASK_MONSTERSOLID);
 	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 		return false;
 
@@ -89,7 +89,7 @@ static bool(entity self) stalker_ok_to_transition =
 	pt[1] = self.absmax[1];
 	start = pt;
 	start[2] = self.s.origin[2];
-	gi.trace(&trace, start, vec3_origin, vec3_origin, pt, self, MASK_MONSTERSOLID);
+	gi.traceline(&trace, start, pt, self, MASK_MONSTERSOLID);
 	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 		return false;
 
@@ -100,7 +100,7 @@ static bool(entity self) stalker_ok_to_transition =
 	pt[1] = self.absmax[1];
 	start = pt;
 	start[2] = self.s.origin[2];
-	gi.trace(&trace, start, vec3_origin, vec3_origin, pt, self, MASK_MONSTERSOLID);
+	gi.traceline(&trace, start, pt, self, MASK_MONSTERSOLID);
 	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 		return false;
 
@@ -467,7 +467,7 @@ static void(entity self) stalker_shoot_attack =
 	else
 		end = self.enemy.s.origin;
 
-	gi.trace(&trace, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+	gi.traceline(&trace, start, end, self, MASK_SHOT);
 	if(trace.ent == self.enemy || trace.ent == world)
 		monster_fire_blaster2(self, start, dir, 15, 800, MZ2_STALKER_BLASTER, EF_BLASTER);
 }
@@ -703,7 +703,7 @@ static bool(entity self, vector dest) stalker_do_pounce =
 		jumpLZ[2] += 32f;
 	}
 
-	gi.trace (&trace, self.s.origin, vec3_origin, vec3_origin, dest, self, MASK_MONSTERSOLID);
+	gi.traceline(&trace, self.s.origin, dest, self, MASK_MONSTERSOLID);
 
 	if((trace.fraction < 1) && (trace.ent != self.enemy))
 		preferHighJump = true;
@@ -1039,7 +1039,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 // regular death
 	gi.sound (self, CHAN_VOICE, sound_die, 1, ATTN_NORM, 0);
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.monsterinfo.currentmove = &stalker_move_death;
 }
 

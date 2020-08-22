@@ -37,9 +37,9 @@ static void(entity self, entity other, entity cactivator) fd_secret_use =
 static void(entity self, entity inflictor, entity attacker, int damage, vector point) fd_secret_killed =
 {
 	self.health = self.max_health;
-	self.takedamage = DAMAGE_NO;
+	self.takedamage = false;
 
-	if ((self.flags & FL_TEAMSLAVE) && self.teammaster && self.teammaster.takedamage != DAMAGE_NO)
+	if ((self.flags & FL_TEAMSLAVE) && self.teammaster && self.teammaster.takedamage != false)
 		fd_secret_killed (self.teammaster, inflictor, attacker, damage, point);
 	else
 		fd_secret_use (self, inflictor, attacker);
@@ -103,7 +103,7 @@ static void(entity self) fd_secret_done =
 	if (!self.targetname || self.spawnflags & SEC_YES_SHOOT)
 	{
 		self.health = 1;
-		self.takedamage = DAMAGE_YES;
+		self.takedamage = true;
 		self.die = fd_secret_killed;   
 	}
 }
@@ -225,7 +225,7 @@ API_FUNC static void(entity ent) SP_func_door_secret2 =
 	{
 		ent.health = 1;
 		ent.max_health = ent.health;
-		ent.takedamage = DAMAGE_YES;
+		ent.takedamage = true;
 		ent.die = fd_secret_killed;
 	}
 	if (!ent.wait)

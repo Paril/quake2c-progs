@@ -1,4 +1,4 @@
-void AnglesNormalize(__inout vector vec)
+void AnglesNormalize(inout vector vec)
 {
 	while (vec[0] > 360)
 		vec[0] -= 360;
@@ -366,7 +366,7 @@ API_FUNC static void SP_turret_driver(entity self)
 	level.total_monsters++;
 
 	self.svflags |= SVF_MONSTER;
-	self.takedamage = DAMAGE_AIM;
+	self.takedamage = true;
 	self.use = monster_use;
 	self.clipmask = MASK_MONSTERSOLID;
 	self.s.old_origin = self.s.origin;

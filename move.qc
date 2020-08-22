@@ -64,7 +64,7 @@ realcheck:
 #ifdef GROUND_ZERO
 	}
 #endif
-	gi.trace(&trace, start, vec3_origin, vec3_origin, stop, ent, MASK_MONSTERSOLID);
+	gi.traceline(&trace, start, stop, ent, MASK_MONSTERSOLID);
 
 	if (trace.fraction == 1.0f)
 		return false;
@@ -76,7 +76,7 @@ realcheck:
 			start.x = stop.x = x ? cmaxs.x : cmins.x;
 			start.y = stop.y = y ? cmaxs.y : cmins.y;
 
-			gi.trace(&trace, start, vec3_origin, vec3_origin, stop, ent, MASK_MONSTERSOLID);
+			gi.traceline(&trace, start, stop, ent, MASK_MONSTERSOLID);
 
 #ifdef GROUND_ZERO
 			if (ent.gravityVector[2] > 0)

@@ -266,7 +266,7 @@ void(entity ent) Weapon_Trap =
 			if (!ent.client.grenade_blew_up && level.framenum >= ent.client.trap_framenum)
 			{
 				ent.client.weapon_sound = 0;
-				weapon_trap_fire (ent, true);
+				weapon_trap_fire(ent, true);
 				ent.client.grenade_blew_up = true;
 			}
 

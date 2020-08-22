@@ -24,7 +24,7 @@ void(entity self, string gibname, int damage, int type) ThrowGibACID =
 	// note to self check this
 	gib.s.renderfx |= RF_FULLBRIGHT;
 	gib.flags |= FL_NO_KNOCKBACK;
-	gib.takedamage = DAMAGE_YES;
+	gib.takedamage = true;
 	gib.die = gib_die;
 	gib.dmg = 2;
 
@@ -74,7 +74,7 @@ void(entity self, string gibname, int damage, int type) ThrowHeadACID =
 	self.s.sound = 0;
 	self.flags |= FL_NO_KNOCKBACK;
 	self.svflags &= ~SVF_MONSTER;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.die = gib_die;
 	self.dmg = 2;
 

@@ -2,23 +2,19 @@
 
 API_FUNC bool(entity ent, entity other) Pickup_Nuke =
 {
-	int		quantity;
-
-	quantity = other.client.pers.inventory[ent.item->id];
+	gitem_t	*citem = ent.item;
+	int		quantity = other.client.pers.inventory[citem->id];
 
 	if (quantity >= 1)
 		return false;
 
-	if (coop.intVal && (ent.item->flags & IT_STAY_COOP) && quantity > 0)
+	if (coop.intVal && (citem->flags & IT_STAY_COOP) && quantity > 0)
 		return false;
 
-	other.client.pers.inventory[ent.item->id]++;
+	other.client.pers.inventory[citem->id]++;
 
-	if (deathmatch.intVal)
-	{
-		if (!(ent.spawnflags & DROPPED_ITEM))
-			SetRespawn (ent, ent.item->quantity);
-	}
+	if (deathmatch.intVal && !(ent.spawnflags & DROPPED_ITEM))
+		SetRespawn (ent, citem->quantity);
 
 	return true;
 }
@@ -54,30 +50,24 @@ void(entity self, vector start, vector aimdir, int speed) fire_nuke;
 
 API_FUNC void(entity ent, gitem_t *it) Use_Nuke =
 {
-	vector	forward, right, start;
-	float	speed;
-
 	ent.client.pers.inventory[it->id]--;
 	ValidateSelectedItem (ent);
 
-	AngleVectors (ent.client.v_angle, &forward, &right, 0);
+	vector	forward;
+	AngleVectors (ent.client.v_angle, &forward, 0, 0);
 
-	start = ent.s.origin;
-	speed = 100f;
-	fire_nuke (ent, start, forward, speed);
+	fire_nuke (ent, ent.s.origin, forward, 100f);
 }
 
 
 //=================
 // Item_TriggeredSpawn - create the item marked for spawn creation
 //=================
-void(entity ent) droptofloor;
-
 static void(entity self, entity other, entity cactivator) Item_TriggeredSpawn =
 {
 	self.svflags &= ~SVF_NOCLIENT;
 	self.use = 0;
-	if(self.classname != "key_power_cube")	// leave them be on key_power_cube..
+	if (self.classname != "key_power_cube")	// leave them be on key_power_cube..
 		self.spawnflags = 0;
 	droptofloor (self);
 }
@@ -88,7 +78,7 @@ static void(entity self, entity other, entity cactivator) Item_TriggeredSpawn =
 void(entity ent) SetTriggeredSpawn =
 {
 	// don't do anything on key_power_cubes.
-	if(ent.classname == "key_power_cube")
+	if (ent.classname == "key_power_cube")
 		return;
 
 	ent.think = 0;

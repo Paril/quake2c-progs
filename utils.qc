@@ -25,8 +25,7 @@ entity(entity from, .string fieldofs, string match) G_Find =
 
 	for (; etoi(from) < globals.num_edicts; from = next_ent(from))
 	{
-		string str = from.fieldofs;
-		if (str != match)
+		if (from.fieldofs != match)
 			continue;
 
 		strcasesensitive = true;
@@ -83,9 +82,6 @@ const int MAX_CHOICES	= 8;
 
 entity G_PickTarget(string stargetname)
 {
-	entity	ent = world;
-	int	num_choices = 0;
-	entity	choice[MAX_CHOICES] = { 0 };
 
 	if (!stargetname)
 	{
@@ -93,14 +89,20 @@ entity G_PickTarget(string stargetname)
 		return world;
 	}
 
+	entity	ent = world;
+	int		num_choices = 0;
+	entity	choice[MAX_CHOICES] = { 0 };
+
 	while ((ent = G_Find(ent, targetname, stargetname)))
 	{
 		choice[num_choices++] = ent;
+
 		if (num_choices == MAX_CHOICES)
 			break;
 	}
 
-	if (!num_choices) {
+	if (!num_choices)
+	{
 		gi.dprintf("G_PickTarget: target %s not found\n", stargetname);
 		return world;
 	}
@@ -139,14 +141,13 @@ match (string)self.target and call their .use function
 */
 void(entity ent, entity cactivator) G_UseTargets =
 {
-	entity	t = world;
-
 //
 // check for a delay
 //
-	if (ent.delay) {
+	if (ent.delay)
+	{
 		// create a temp object to fire at a later time
-		t = G_Spawn();
+		entity t = G_Spawn();
 		t.classname = "DelayedUse";
 		t.nextthink = level.framenum + (int)(ent.delay * BASE_FRAMERATE);
 		t.think = Think_Delay;
@@ -163,7 +164,8 @@ void(entity ent, entity cactivator) G_UseTargets =
 //
 // print the message
 //
-	if ((ent.message) && !(cactivator.svflags & SVF_MONSTER)) {
+	if ((ent.message) && !(cactivator.svflags & SVF_MONSTER))
+	{
 		gi.centerprintf(cactivator, "%s", ent.message);
 		if (ent.noise_index)
 			gi.sound(cactivator, CHAN_AUTO, ent.noise_index, 1, ATTN_NORM, 0);
@@ -180,32 +182,30 @@ void(entity ent, entity cactivator) G_UseTargets =
 		bool done = false;
 		entity master;
 #endif
+		entity t = world;
 
 		while ((t = G_Find(t, targetname, ent.killtarget)))
 		{
 #ifdef GROUND_ZERO
 			// PMM - if this entity is part of a train, cleanly remove it
-			if (t.flags & FL_TEAMSLAVE)
+			if ((t.flags & FL_TEAMSLAVE) && t.teammaster)
 			{
-				if (t.teammaster)
+				master = t.teammaster;
+				while (!done)
 				{
-					master = t.teammaster;
-					while (!done)
+					if (master.teamchain == t)
 					{
-						if (master.teamchain == t)
-						{
-							master.teamchain = t.teamchain;
-							done = true;
-						}
-						master = master.teamchain;
+						master.teamchain = t.teamchain;
+						done = true;
 					}
+					master = master.teamchain;
 				}
 			}
 #endif
-			
-			
+
 			G_FreeEdict(t);
-			if (!ent.inuse) {
+			if (!ent.inuse)
+			{
 				gi.dprintf("entity was removed while using killtargets\n");
 				return;
 			}
@@ -217,6 +217,8 @@ void(entity ent, entity cactivator) G_UseTargets =
 //
 	if (ent.target)
 	{
+		entity t = world;
+
 		while ((t = G_Find(t, targetname, ent.target)))
 		{
 			// doors fire area portals in a specific way
@@ -224,13 +226,13 @@ void(entity ent, entity cactivator) G_UseTargets =
 				(striequals(ent.classname, "func_door") || striequals(ent.classname, "func_door_rotating")))
 				continue;
 
-			if (t == ent) {
+			if (t == ent)
 				gi.dprintf("WARNING: Entity used itself.\n");
-			} else {
-				if (t.use)
-					t.use(t, ent, cactivator);
-			}
-			if (!ent.inuse) {
+			else if (t.use)
+				t.use(t, ent, cactivator);
+
+			if (!ent.inuse)
+			{
 				gi.dprintf("entity was removed while using targets\n");
 				return;
 			}
@@ -238,24 +240,22 @@ void(entity ent, entity cactivator) G_UseTargets =
 	}
 }
 
-const vector VEC_UP		= [ 0, -1, 0 ];
+const vector VEC_UP			= [ 0, -1, 0 ];
 const vector MOVEDIR_UP		= [ 0, 0, 1 ];
 const vector VEC_DOWN		= [ 0, -2, 0 ];
 const vector MOVEDIR_DOWN	= [ 0, 0, -1 ];
 
-void(__inout vector angles, __out vector movedir) G_SetMovedir =
+void(inout vector angles, out vector movedir) G_SetMovedir =
 {
-	if (angles == VEC_UP) {
+	if (angles == VEC_UP)
 		movedir = MOVEDIR_UP;
-	} else if (angles == VEC_DOWN) {
+	else if (angles == VEC_DOWN)
 		movedir = MOVEDIR_DOWN;
-	} else {
+	else
 		AngleVectors(angles, &movedir, 0, 0);
-	}
 
 	angles = vec3_origin;
 }
-
 
 /*
 =================
@@ -264,7 +264,7 @@ G_InitEdict
 Marks an entity as active, and sets up some default parameters.
 =================
 */
-void(entity e) G_InitEdict =
+inline void(entity e) G_InitEdict =
 {
 	e.inuse = true;
 	e.classname = "noclass";
@@ -272,7 +272,7 @@ void(entity e) G_InitEdict =
 	e.groundentity = null_entity;
 	
 #ifdef GROUND_ZERO
-	e.gravityVector = '0 0 -1';
+	e.gravityVector = MOVEDIR_DOWN;
 #endif
 };
 
@@ -297,7 +297,7 @@ entity G_Spawn() =
 
 		// the first couple seconds of server time can involve a lot of
 		// freeing and allocating, so relax the replacement policy
-		if (!e.inuse && (e.freetime < 2 || level.time - e.freetime > 0.5f))
+		if (!e.inuse && (e.freeframenum < (2 * BASE_FRAMERATE) || (level.framenum - e.freeframenum) > (int)(0.5f * BASE_FRAMERATE)))
 		{
 		    G_InitEdict(e);
 		    return e;
@@ -332,7 +332,7 @@ void(entity e) G_FreeEdict =
 
 	gi.ClearEntity(e);
 	e.classname = "freed";
-	e.freetime = level.time;
+	e.freeframenum = level.framenum;
 }
 
 /*
@@ -387,9 +387,9 @@ of ent.  Ent should be unlinked before calling this!
 */
 bool(entity ent) KillBox =
 {
-	trace_t     tr;
-
-	while (1) {
+	while (1)
+	{
+		trace_t	tr;
 		gi.trace(&tr, ent.s.origin, ent.mins, ent.maxs, ent.s.origin, world, MASK_PLAYERSOLID);
 
 		if (!tr.ent)

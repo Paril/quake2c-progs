@@ -548,7 +548,7 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 {
 	self.avelocity = vec3_origin;
 
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.movetype = MOVETYPE_TOSS;
 
 	self.s.modelindex2 = 0;    // remove linked weapon model
@@ -622,7 +622,7 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 
 		ThrowClientHead(self, damage);
 
-		self.takedamage = DAMAGE_NO;
+		self.takedamage = false;
 	}
 	else
 	{
@@ -661,6 +661,11 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 
 //=======================================================================
 
+static inline void(entity other, ammo_t ammo_id, int new_max) SetAmmoMax =
+{
+	other.client.pers.max_ammo[ammo_id] = new_max;
+}
+
 /*
 ==============
 InitClientPersistant
@@ -681,25 +686,24 @@ static void(entity ent) InitClientPersistant =
 	
 	ent.client.pers.health         = 100;
 	ent.client.pers.max_health     = 100;
-	
-	ent.client.pers.max_bullets    = 200;
-	ent.client.pers.max_shells     = 100;
-	ent.client.pers.max_rockets    = 50;
-	ent.client.pers.max_grenades   = 50;
-	ent.client.pers.max_cells      = 200;
-	ent.client.pers.max_slugs      = 50;
+
+	SetAmmoMax(ent, AMMO_BULLETS, 200);
+	SetAmmoMax(ent, AMMO_SHELLS, 100);
+	SetAmmoMax(ent, AMMO_ROCKETS, 50);
+	SetAmmoMax(ent, AMMO_GRENADES, 50);
+	SetAmmoMax(ent, AMMO_CELLS, 200);
+	SetAmmoMax(ent, AMMO_SLUGS, 50);
 	
 #ifdef THE_RECKONING
-	ent.client.pers.max_magslug	= 50;
-	ent.client.pers.max_trap	= 5;
+	SetAmmoMax(ent, AMMO_MAGSLUG, 50);
+	SetAmmoMax(ent, AMMO_TRAP, 5);
 #endif
 
 #ifdef GROUND_ZERO
-	// FIXME - give these real numbers....
-	ent.client.pers.max_prox		= 50;
-	ent.client.pers.max_tesla		= 50;
-	ent.client.pers.max_flechettes = 200;
-	ent.client.pers.max_rounds     = 100;
+	SetAmmoMax(ent, AMMO_PROX, 50);
+	SetAmmoMax(ent, AMMO_TESLA, 50);
+	SetAmmoMax(ent, AMMO_FLECHETTES, 200);
+	SetAmmoMax(ent, AMMO_DISRUPTOR, 100);
 #endif
 	
 	ent.client.pers.connected = true;
@@ -1013,7 +1017,7 @@ SelectSpawnPoint
 Chooses a player start, deathmatch start, coop start, etc
 ============
 */
-static void(entity ent, __out vector origin, __out vector angles) SelectSpawnPoint =
+static void(entity ent, out vector origin, out vector angles) SelectSpawnPoint =
 {
 	entity spot = world;
 
@@ -1075,7 +1079,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
 		self.s.origin[2] -= 48f;
 		ThrowClientHead(self, damage);
-		self.takedamage = DAMAGE_NO;
+		self.takedamage = false;
 	}
 }
 
@@ -1117,7 +1121,7 @@ static void(entity ent) CopyToBodyQue =
 	body.groundentity = ent.groundentity;
 	
 	body.die = body_die;
-	body.takedamage = DAMAGE_YES;
+	body.takedamage = true;
 	
 	gi.linkentity(body);
 }
@@ -1299,7 +1303,7 @@ static void(entity ent) PutClientInServer =
 
 	// clear entity values
 	ent.groundentity = null_entity;
-	ent.takedamage = DAMAGE_AIM;
+	ent.takedamage = true;
 	ent.movetype = MOVETYPE_WALK;
 	ent.viewheight = 22;
 	ent.inuse = true;
@@ -1555,7 +1559,7 @@ Changing levels will NOT cause this to be called again, but
 loadgames will.
 ============
 */
-bool(entity ent, __inout string userinfo) ClientConnect =
+bool(entity ent, inout string userinfo) ClientConnect =
 {
 	// check to see if they are on the banned IP list
 	/*string value = Info_ValueForKey(userinfo, "ip");

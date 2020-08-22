@@ -529,7 +529,7 @@ static void mutant_die(entity self, entity inflictor, entity attacker, int damag
 
 	gi.sound(self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.s.skinnum = 1;
 
 	if (random() < 0.5f)

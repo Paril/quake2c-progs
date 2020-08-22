@@ -485,7 +485,7 @@ static void supertank_die(entity self, entity inflictor, entity attacker, int da
 {
 	gi.sound(self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_NO;
+	self.takedamage = false;
 	self.count = 0;
 	self.monsterinfo.currentmove = &supertank_move_death;
 }

@@ -253,7 +253,7 @@ static void(entity self) roam_goal =
 
 		AngleVectors (dang, &forward, &right, &up);
 		end = self.s.origin + (forward * 8192);
-		gi.trace (&tr, self.s.origin, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+		gi.traceline (&tr, self.s.origin, end, self, MASK_SHOT);
 
 		vec = self.s.origin - tr.endpos;
 		len = VectorNormalize (vec);
@@ -509,7 +509,8 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 	hspread += (self.s.frame - FRAME_takeoff_01);
 	vspread += (self.s.frame - FRAME_takeoff_01);
 
-	gi.trace (&tr, self.s.origin, vec3_origin, vec3_origin, start, self, MASK_SHOT);
+	gi.traceline (&tr, self.s.origin, start, self, MASK_SHOT);
+
 	if (!(tr.fraction < 1.0))
 	{
 		dir = vectoangles (aimdir);
@@ -528,7 +529,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 			content_mask &= ~MASK_WATER;
 		}
 
-		gi.trace (&tr, start, vec3_origin, vec3_origin, end, self, content_mask);
+		gi.traceline(&tr, start, end, self, content_mask);
 
 		// see if we hit water
 		if (tr.contents & MASK_WATER)
@@ -577,7 +578,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 			}
 
 			// re-trace ignoring water this time
-			gi.trace (&tr, water_start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+			gi.traceline(&tr, water_start, end, self, MASK_SHOT);
 		}
 	}
 
@@ -618,7 +619,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 		if (gi.pointcontents (pos) & MASK_WATER)
 			tr.endpos = pos;
 		else
-			gi.trace (&tr, pos, vec3_origin, vec3_origin, water_start, tr.ent, MASK_WATER);
+			gi.traceline (&tr, pos, water_start, tr.ent, MASK_WATER);
 
 		pos = water_start + tr.endpos;
 		pos *= 0.5f;

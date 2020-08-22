@@ -11,7 +11,7 @@ const entity world;
 // this is a special value that can be used to distinguish the world
 // from a literal null entity. The only place this is really required in Q2
 // is for groundentity, which may be null *or* world (or other entity).
-const entity null_entity = (entity)(__variant)-1;
+const entity null_entity = itoe(-1);
 
 int snd_fry;
 int sm_meat_index;

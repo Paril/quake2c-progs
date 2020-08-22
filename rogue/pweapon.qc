@@ -210,7 +210,7 @@ static void(entity ent) weapon_chainfist_fire =
 	offset = [ 0, 8, ent.viewheight - 4 ];
 	start = P_ProjectSource (ent, ent.s.origin, offset, forward, right);
 
-	fire_player_melee (ent, start, forward, CHAINFIST_REACH, damage, 100, 1, MOD_CHAINFIST);
+	fire_player_melee (ent, start, forward, CHAINFIST_REACH, damage, 100, MOD_CHAINFIST);
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 
@@ -343,7 +343,7 @@ static void(entity self) weapon_tracker_fire =
 	end = start + (forward * 8192);
 	enemy = 0;
 	//PMM - doing two traces .. one point and one box.  
-	gi.trace (&tr, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+	gi.traceline (&tr, start, end, self, MASK_SHOT);
 	if(tr.ent != world)
 	{
 		if(tr.ent.svflags & SVF_MONSTER || tr.ent.is_client || tr.ent.svflags & SVF_DAMAGEABLE)

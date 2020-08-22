@@ -40,7 +40,7 @@ void(entity ent) UpdateChaseCam =
 	if (targ.groundentity == null_entity)
 		o.z += 16;
 
-	gi.trace(&trace, ownerv, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
+	gi.traceline(&trace, ownerv, o, targ, MASK_SOLID);
 
 	goal = trace.endpos;
 
@@ -49,7 +49,7 @@ void(entity ent) UpdateChaseCam =
 	// pad for floors and ceilings
 	o = goal;
 	o.z += 6;
-	gi.trace(&trace, goal, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
+	gi.traceline(&trace, goal, o, targ, MASK_SOLID);
 	if (trace.fraction < 1) {
 		goal = trace.endpos;
 		goal.z -= 6;
@@ -57,7 +57,7 @@ void(entity ent) UpdateChaseCam =
 
 	o = goal;
 	o.z -= 6;
-	gi.trace(&trace, goal, vec3_origin, vec3_origin, o, targ, MASK_SOLID);
+	gi.traceline(&trace, goal, o, targ, MASK_SOLID);
 	if (trace.fraction < 1) {
 		goal = trace.endpos;
 		goal.z += 6;

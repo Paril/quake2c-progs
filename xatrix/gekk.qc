@@ -767,7 +767,7 @@ static void(entity self, vector start, vector dir, int damage, int speed) fire_l
 	loogie.dmg = damage;
 	gi.linkentity (loogie);
 
-	gi.trace (&tr, self.s.origin, vec3_origin, vec3_origin, loogie.s.origin, loogie, MASK_SHOT);
+	gi.traceline(&tr, self.s.origin, loogie.s.origin, loogie, MASK_SHOT);
 	if (tr.fraction < 1.0)
 	{
 		loogie.s.origin += dir * -10;
@@ -1267,7 +1267,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 
 	gi.sound (self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.s.skinnum = 2;
 
 	if (self.waterlevel)
@@ -1294,7 +1294,7 @@ static void(entity self) gekk_duck_down =
 		return;
 	self.monsterinfo.aiflags |= AI_DUCKED;
 	self.maxs[2] -= 32;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.monsterinfo.pause_framenum = level.framenum + 1 * BASE_FRAMERATE;
 	gi.linkentity (self);
 }
@@ -1303,7 +1303,7 @@ static void(entity self) gekk_duck_up =
 {
 	self.monsterinfo.aiflags &= ~AI_DUCKED;
 	self.maxs[2] += 32;
-	self.takedamage = DAMAGE_AIM;
+	self.takedamage = true;
 	gi.linkentity (self);
 }
 

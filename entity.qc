@@ -4,20 +4,20 @@ typedef enumflags : int
 	RF_MINLIGHT,	// allways have some light (viewmodel)
 	RF_VIEWERMODEL,	// don't draw through eyes, only mirrors
 	RF_WEAPONMODEL,	// only draw through eyes
-	RF_FULLBRIGHT,	// allways draw full intensity
+	RF_FULLBRIGHT,	// always draw full intensity
 	RF_DEPTHHACK,	// for view weapon Z crunching
 	RF_TRANSLUCENT,
 	RF_FRAMELERP,
 	RF_BEAM,
 	RF_CUSTOMSKIN,	// skin is an index in image_precache
-	RF_GLOW,	// pulse lighting for bonus items
+	RF_GLOW,		// pulse lighting for bonus items
 	RF_SHELL_RED,
 	RF_SHELL_GREEN,
 	RF_SHELL_BLUE,
 
 //ROGUE
-	RF_IR_VISIBLE		= 0x00008000,      // 32768
-	RF_SHELL_DOUBLE,      // 65536
+	RF_IR_VISIBLE		= 0x00008000,
+	RF_SHELL_DOUBLE,
 	RF_SHELL_HALF_DAM,
 	RF_USE_DISGUISE
 //ROGUE
@@ -72,10 +72,11 @@ const int MAX_ENT_CLUSTERS = 16;
 
 // Best not to touch most of these, as they are mapped into Q2's structures.
 .entity_state_t	s;
-.bool		inuse;
-.int		linkcount;
 
-.int		areanum, areanum2;
+.bool	inuse;
+.int	linkcount;
+
+.int	areanum, areanum2;
 
 // edict.svflags
 .enumflags
@@ -88,10 +89,12 @@ const int MAX_ENT_CLUSTERS = 16;
 	, SVF_DAMAGEABLE
 #endif
 }		svflags;
-.vector		mins, maxs;
-.vector		absmin, absmax, size;
 
-.enum {
+.vector	mins, maxs;
+.vector	absmin, absmax, size;
+
+.enum : int
+{
     SOLID_NOT,		// no interaction with other objects
     SOLID_TRIGGER,	// only touch when inside, after moving
     SOLID_BBOX,		// touch on edge
@@ -101,7 +104,7 @@ const int MAX_ENT_CLUSTERS = 16;
 .entity				owner;
 
 // game fields below; feel free to modify!
-.enum
+.enum : int
 {
 	MOVETYPE_NONE,          // never moves
 	MOVETYPE_NOCLIP,        // origin and angles change with no interaction
@@ -121,7 +124,7 @@ const int MAX_ENT_CLUSTERS = 16;
 } 		movetype;
 
 // edict.flags
-.enumflags
+.enumflags : int
 {
 	FL_FLY,
 	FL_SWIM,	// implied immunity to drowning
@@ -144,41 +147,47 @@ const int MAX_ENT_CLUSTERS = 16;
 	FL_NOGIB,	// player has been vaporized by a nuke, drop no gibs
 #endif
 	
-	FL_RESPAWN
+	FL_RESPAWN,
+
+#ifdef GROUND_ZERO
+	FL_VISIBLE_MASK = FL_NOTARGET | FL_DISGUISED
+#else
+	FL_VISIBLE_MASK = FL_NOTARGET
+#endif
 }		flags;
 
-.string		model;
-.float		freetime;
+.string	model;
+.int	freeframenum;
 
-.string		message;
-.string		classname;
-.int		spawnflags;
+.string	message;
+.string	classname;
+.int	spawnflags;
 
-.int		timestamp;
-.float		angle;
-.string		target;
-.string		targetname;
-.string		killtarget;
-.string		team;
-.string		pathtarget;
-.string		deathtarget;
-.string		combattarget;
-.entity		target_ent;
+.int	timestamp;
+.float	angle;
+.string	target;
+.string	targetname;
+.string	killtarget;
+.string	team;
+.string	pathtarget;
+.string	deathtarget;
+.string	combattarget;
+.entity	target_ent;
 
-.float		speed, accel, decel;
-.vector		movedir;
-.vector		pos1, pos2;
+.float	speed, accel, decel;
+.vector	movedir;
+.vector	pos1, pos2;
 
-.vector		velocity;
-.vector		avelocity;
-.int		mass;
-.int		air_finished_framenum;
-.float		gravity;
+.vector	velocity;
+.vector	avelocity;
+.int	mass;
+.int	air_finished_framenum;
+.float	gravity;
 
-.entity		goalentity;
-.entity		movetarget;
-.float		yaw_speed;
-.float		ideal_yaw;
+.entity	goalentity;
+.entity	movetarget;
+.float	yaw_speed;
+.float	ideal_yaw;
 
 .int			nextthink;
 .void(entity)	prethink;
@@ -205,19 +214,14 @@ const int MAX_ENT_CLUSTERS = 16;
 	DEAD_DYING,
 	DEAD_DEAD,
 	DEAD_RESPAWNABLE 
-}	deadflag;
+}		deadflag;
 .int	show_hostile;
 
 .int	powerarmor_framenum;
 
 .string	map;
 .int	viewheight;
-.enum : int
-{
-	DAMAGE_NO,
-	DAMAGE_YES,	// will take damage if hit
-	DAMAGE_AIM	// auto targeting recognizes this
-} 	takedamage;
+.bool	takedamage;
 .int	dmg;
 .int	radius_dmg;
 .float	dmg_radius;
@@ -342,7 +346,6 @@ typedef enumflags : int
 	AI_RESURRECTING
 	
 #ifdef GROUND_ZERO
-//ROGUE
 	, AI_WALK_WALLS,
 	AI_MANUAL_STEERING,
 	AI_TARGET_ANGER,
@@ -351,23 +354,17 @@ typedef enumflags : int
 	AI_HINT_PATH,
 	AI_IGNORE_SHOTS,
 	AI_DO_NOT_COUNT,	// set for healed monsters
-	AI_SPAWNED_CARRIER,	// both do_not_count and spawned are set for spawned monsters
+	AI_SPAWNED_CARRIER,	//
 	AI_SPAWNED_MEDIC_C,	// both do_not_count and spawned are set for spawned monsters
-	AI_SPAWNED_WIDOW,	// both do_not_count and spawned are set for spawned monsters
-	AI_BLOCKED		// used by blocked_checkattack: set to say I'm attacking while blocked (prevents run-attacks)
-//ROGUE
+	AI_SPAWNED_WIDOW,	//
+	AI_BLOCKED,			// used by blocked_checkattack: set to say I'm attacking while blocked (prevents run-attacks)
+
+	AI_GOOD_GUY_MASK = AI_GOOD_GUY | AI_DO_NOT_COUNT,
+	AI_SPAWNED_MASK = AI_SPAWNED_CARRIER | AI_SPAWNED_MEDIC_C | AI_SPAWNED_WIDOW	// mask to catch all three flavors of spawned
+#else
+	AI_GOOD_GUY_MASK = AI_GOOD_GUY
 #endif
 } ai_flags_t;
-
-#ifdef GROUND_ZERO
-const ai_flags_t AI_GOOD_GUY_MASK = AI_GOOD_GUY | AI_DO_NOT_COUNT;
-#else
-const ai_flags_t AI_GOOD_GUY_MASK = AI_GOOD_GUY;
-#endif
-
-#ifdef GROUND_ZERO
-const ai_flags_t AI_SPAWNED_MASK = AI_SPAWNED_CARRIER | AI_SPAWNED_MEDIC_C | AI_SPAWNED_WIDOW;	// mask to catch all three flavors of spawned
-#endif
 
 //monster attack state
 typedef enum : int
@@ -430,37 +427,37 @@ struct monsterinfo_t
 	int	power_armor_power;
 	
 #ifdef GROUND_ZERO
-	bool(entity self, float dist)		blocked;
-	int			last_hint_framenum;		// last time the monster checked for hintpaths.
-	entity		goal_hint;			// which hint_path we're trying to get to
-	int			medicTries;
-	entity		badMedic1, badMedic2;	// these medics have declared this monster "unhealable"
-	entity		healer;	// this is who is healing this monster
+	bool(entity self, float dist)	blocked;
+	int		last_hint_framenum;		// last time the monster checked for hintpaths.
+	entity	goal_hint;			// which hint_path we're trying to get to
+	int		medicTries;
+	entity	badMedic1, badMedic2;	// these medics have declared this monster "unhealable"
+	entity	healer;	// this is who is healing this monster
 	void(entity self, float eta)	duck;
 	void(entity self)				unduck;
 	void(entity self)				sidestep;
-	float		base_height;
-	int			next_duck_framenum;
-	int			duck_wait_framenum;
-	entity		last_player_enemy;
+	float	base_height;
+	int		next_duck_framenum;
+	int		duck_wait_framenum;
+	entity	last_player_enemy;
 	// blindfire stuff .. the boolean says whether the monster will do it, and blind_fire_time is the timing
 	// (set in the monster) of the next shot
-	bool		blindfire;		// will the monster blindfire?
-	int			blind_fire_framedelay;
-	vector		blind_fire_target;
+	bool	blindfire;		// will the monster blindfire?
+	int		blind_fire_framedelay;
+	vector	blind_fire_target;
 	// used by the spawners to not spawn too much and keep track of #s of monsters spawned
-	int			monster_slots;
-	int			monster_used;
-	entity		commander;
+	int		monster_slots;
+	int		monster_used;
+	entity	commander;
 	// powerup timers, used by widow, our friend
-	int		quad_framenum;
-	int		invincible_framenum;
-	int		double_framenum;
+	int	quad_framenum;
+	int	invincible_framenum;
+	int	double_framenum;
 #endif
 };
 
 .monsterinfo_t	monsterinfo;
-.moveinfo_t	moveinfo;
+.moveinfo_t		moveinfo;
 
 #ifdef GROUND_ZERO
 // this determines how long to wait after a duck to duck again.  this needs to be longer than
@@ -516,9 +513,9 @@ typedef enum : int
 	// Bits from here to 31 are free for mods
 
 #ifdef KMQUAKE2_EXTENSIONS
-	MAX_STATS	= (int)256
+	MAX_STATS	= 256
 #else
-	MAX_STATS	= (int)32
+	MAX_STATS	= 32
 #endif
 } player_stat_t;
 
@@ -532,8 +529,8 @@ struct player_state_t
 	
 	vector	gunangles;
 	vector	gunoffset;
-	int	gunindex;
-	int	gunframe;
+	int		gunindex;
+	int		gunframe;
 
 #ifdef KMQUAKE2_EXTENSIONS
 	int	gunskin;		// for animated weapon skins
@@ -585,23 +582,7 @@ struct client_persistant_t
 	int	inventory[itemlist.length];
 	
 	// ammo capacities
-	int	max_bullets;
-	int	max_shells;
-	int	max_rockets;
-	int	max_grenades;
-	int	max_cells;
-	int	max_slugs;
-#ifdef THE_RECKONING
-	int	max_magslug;
-	int	max_trap;
-#endif
-#ifdef GROUND_ZERO
-	int	max_tesla;
-	int	max_prox;
-	int	max_mines;
-	int	max_flechettes;
-	int	max_rounds;
-#endif
+	int max_ammo[AMMO_TOTAL];
 	
 	gitem_t	*weapon;
 	gitem_t	*lastweapon;
@@ -619,6 +600,7 @@ struct client_persistant_t
 struct client_respawn_t
 {
 	client_persistant_t	coop_respawn;   // what to set client.pers to on a respawn
+
 	int		enterframe;         // level.framenum the client entered the game
 	int		score;              // frags, etc
 	vector	cmd_angles;         // angles sent over in the last command
@@ -649,6 +631,7 @@ typedef enum : int
 struct gclient_t
 {
 	player_state_t	ps;
+
 	int		ping;
 	int		clientNum;
 
@@ -683,17 +666,18 @@ struct gclient_t
 	float	killer_yaw;         // when dead, look at killer
 	
 	weaponstate_t	weaponstate;
-	vector		kick_angles;    // weapon kicks
-	vector		kick_origin;
-	float		v_dmg_roll, v_dmg_pitch, v_dmg_time;    // damage kicks
-	float		fall_time, fall_value;      // for view drop on fall
-	float		bonus_alpha;
-	vector		damage_blend;
-	float		damage_alpha;
-	vector		v_angle;            // aiming direction
-	float		bobtime;            // so off-ground doesn't change it
-	vector		oldviewangles;
-	vector		oldvelocity;
+
+	vector	kick_angles;    // weapon kicks
+	vector	kick_origin;
+	float	v_dmg_roll, v_dmg_pitch, v_dmg_time;    // damage kicks
+	float	fall_time, fall_value;      // for view drop on fall
+	float	bonus_alpha;
+	vector	damage_blend;
+	float	damage_alpha;
+	vector	v_angle;            // aiming direction
+	float	bobtime;            // so off-ground doesn't change it
+	vector	oldviewangles;
+	vector	oldvelocity;
 	
 	int	next_drown_framenum;
 	int	old_waterlevel;
@@ -702,10 +686,10 @@ struct gclient_t
 	int	machinegun_shots;   // for weapon raising
 	
 	// animation vars
-	int		anim_end;
+	int				anim_end;
 	anim_priority_t	anim_priority;
-	bool		anim_duck;
-	bool		anim_run;
+	bool			anim_duck;
+	bool			anim_run;
 	
 	// powerup timers
 	int	quad_framenum;
@@ -714,7 +698,8 @@ struct gclient_t
 	int	enviro_framenum;
 	
 	bool	grenade_blew_up;
-	int	grenade_framenum;
+	int		grenade_framenum;
+
 	int	silencer_shots;
 	int	weapon_sound;
 	

@@ -310,7 +310,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 // regular death
 	gi.sound(self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.monsterinfo.currentmove = &gunner_move_death;
 }
 
@@ -356,7 +356,7 @@ static void(entity self) gunner_duck_up =
 {
 	self.monsterinfo.aiflags &= ~AI_DUCKED;
 	self.maxs.z += 32;
-	self.takedamage = DAMAGE_AIM;
+	self.takedamage = true;
 	gi.linkentity(self);
 }
 #endif
@@ -457,7 +457,7 @@ static bool gunner_grenade_check(entity self)
 	if (VectorLength(dir) < 100)
 		return false;
 
-	gi.trace(&tr, start, vec3_origin, vec3_origin, target, self, MASK_SHOT);
+	gi.traceline(&tr, start, target, self, MASK_SHOT);
 	if(tr.ent == self.enemy || tr.fraction == 1)
 		return true;
 

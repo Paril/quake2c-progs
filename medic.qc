@@ -76,7 +76,7 @@ static void cleanupHeal (entity self, bool change_frame)
 	{
 		self.enemy.monsterinfo.healer = 0;
 		self.enemy.monsterinfo.aiflags &= ~AI_RESURRECTING;
-		self.enemy.takedamage = DAMAGE_YES;
+		self.enemy.takedamage = true;
 		M_SetEffects (self.enemy);
 	}
 
@@ -635,7 +635,7 @@ static void medic_die(entity self, entity inflictor, entity attacker, int damage
 #endif
 		gi.sound(self, CHAN_VOICE, sound_die, 1, ATTN_NORM, 0);
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 
 	self.monsterinfo.currentmove = &medic_move_death;
 }
@@ -651,7 +651,7 @@ static void medic_duck_down(entity self)
 		return;
 	self.monsterinfo.aiflags |= AI_DUCKED;
 	self.maxs[2] -= 32;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.monsterinfo.pause_framenum = level.framenum + 1 * BASE_FRAMERATE;
 	gi.linkentity(self);
 }
@@ -668,7 +668,7 @@ static void medic_duck_up(entity self)
 {
 	self.monsterinfo.aiflags &= ~AI_DUCKED;
 	self.maxs[2] += 32;
-	self.takedamage = DAMAGE_AIM;
+	self.takedamage = true;
 	gi.linkentity(self);
 }
 #endif
@@ -828,7 +828,7 @@ static void medic_cable_attack(entity self)
 		return;
 #endif
 
-	gi.trace(&tr, start, vec3_origin, vec3_origin, self.enemy.s.origin, self, MASK_SOLID);
+	gi.traceline(&tr, start, self.enemy.s.origin, self, MASK_SOLID);
 	if (tr.fraction != 1.0f && tr.ent != self.enemy)
 	{
 #ifdef GROUND_ZERO
@@ -854,7 +854,7 @@ static void medic_cable_attack(entity self)
 	if (self.s.frame == FRAME_attack43)
 	{
 #ifdef GROUND_ZERO
-		self.enemy.takedamage = DAMAGE_NO;
+		self.enemy.takedamage = false;
 		M_SetEffects (self.enemy);
 
 		if (self.mass > 400)

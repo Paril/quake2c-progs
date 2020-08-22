@@ -4,6 +4,7 @@
 #pragma warning disable F322
 #pragma warning disable Q207
 #pragma warning disable F306
+#pragma warning disable F327 // multiple bits set for enumflag
 
 #pragma warning error Q101 /*too many parms. The vanilla qcc didn't validate properly, hence why fteqcc normally treats it as a warning.*/
 #pragma warning error Q105 /*too few parms. The vanilla qcc didn't validate properly, hence why fteqcc normally treats it as a warning.*/
@@ -25,7 +26,7 @@ accessor handle : int;
 
 const handle null_handle = 0;
 
-inline bool(__variant p) handle_empty =
+inline bool(variant p) handle_empty =
 {
 	return !(handle)p;
 }
@@ -34,10 +35,10 @@ void(handle) handle_free = #0;
 
 int(int, int) ModInt = #0;
 
-__variant(string) func_get = #0;
+variant(string) func_get = #0;
 
 // function is visible to func_get and to the game code
-#define API_FUNC __used
+#define API_FUNC used
 
 #define PROGS_LOCAL nosave
 #define PROGS_LOCAL_STATIC static PROGS_LOCAL

@@ -374,7 +374,7 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) i
 
 // regular death
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 
 	n = Q_rand() % 3;
 	if (n == 0) {
@@ -400,7 +400,7 @@ static void(entity self) infantry_duck_down =
 		return;
 	self.monsterinfo.aiflags |= AI_DUCKED;
 	self.maxs.z -= 32;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.monsterinfo.pause_framenum = level.framenum + 1 * BASE_FRAMERATE;
 	gi.linkentity(self);
 }
@@ -417,7 +417,7 @@ static void(entity self) infantry_duck_up =
 {
 	self.monsterinfo.aiflags &= ~AI_DUCKED;
 	self.maxs.z += 32;
-	self.takedamage = DAMAGE_AIM;
+	self.takedamage = true;
 	gi.linkentity(self);
 }
 #endif

@@ -490,18 +490,10 @@ static void(entity self) monster_triggered_spawn =
 	}
 #endif
 
-#ifdef GROUND_ZERO
-	if (self.enemy && !(self.spawnflags & 1) && !(self.enemy.flags & (FL_NOTARGET | FL_DISGUISED)))
-#else
-	if (self.enemy && !(self.spawnflags & 1) && !(self.enemy.flags & FL_NOTARGET))
-#endif
-	{
+	if (self.enemy && !(self.spawnflags & 1) && !(self.enemy.flags & FL_VISIBLE_MASK))
 		FoundTarget(self);
-	}
 	else
-	{
 		self.enemy = world;
-	}
 }
 
 static void(entity self, entity other, entity cactivator) monster_triggered_spawn_use =
@@ -573,7 +565,7 @@ static bool(entity self) monster_start =
 	self.nextthink = level.framenum + 1;
 	self.svflags |= SVF_MONSTER;
 	self.s.renderfx |= RF_FRAMELERP;
-	self.takedamage = DAMAGE_AIM;
+	self.takedamage = true;
 	self.air_finished_framenum = level.framenum + 12 * BASE_FRAMERATE;
 	self.use = monster_use;
 	self.max_health = self.health;

@@ -11,4 +11,4 @@ struct time_t
 	int tm_isdst; // daylight savings time flag
 };
 
-void(__out time_t tm) localtime = #0;
+void(out time_t tm) localtime = #0;

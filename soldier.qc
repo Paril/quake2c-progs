@@ -551,7 +551,7 @@ static void(entity self, int flash_number) soldier_fire =
 #ifdef GROUND_ZERO
 		if (!(flash_number == 5 || flash_number == 6))
 		{
-			gi.trace (&tr, start, vec3_origin, vec3_origin, aim_good, self, MASK_SHOT);
+			gi.traceline(&tr, start, aim_good, self, MASK_SHOT);
 			if ((tr.ent != self.enemy) && (tr.ent != world))
 				return;
 		}
@@ -821,7 +821,7 @@ static void(entity self) soldier_duck_down =
 		return;
 	self.monsterinfo.aiflags |= AI_DUCKED;
 	self.maxs.z -= 32;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.monsterinfo.pause_framenum = level.framenum + 1 * BASE_FRAMERATE;
 	gi.linkentity(self);
 }
@@ -830,7 +830,7 @@ static void(entity self) soldier_duck_up =
 {
 	self.monsterinfo.aiflags &= ~AI_DUCKED;
 	self.maxs.z += 32;
-	self.takedamage = DAMAGE_AIM;
+	self.takedamage = true;
 	gi.linkentity(self);
 }
 #endif
@@ -1405,7 +1405,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 
 // regular death
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.s.skinnum |= 1;
 
 	if (self.s.skinnum == 1)

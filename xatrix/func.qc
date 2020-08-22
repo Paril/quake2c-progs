@@ -89,13 +89,13 @@ API_FUNC static void(entity self) SP_rotating_light =
 		self.health = 10;
 		self.max_health = self.health;
 		self.die = rotating_light_killed;
-		self.takedamage = DAMAGE_YES;
+		self.takedamage = true;
 	}
 	else
 	{
 		self.max_health = self.health;
 		self.die = rotating_light_killed;
-		self.takedamage = DAMAGE_YES;
+		self.takedamage = true;
 	}
 	
 	if (self.spawnflags & 2)

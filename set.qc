@@ -14,7 +14,7 @@ bool(hashset, type_t, variant value) hashset_remove = #0;
 bool(hashset, type_t, variant value) hashset_contains = #0
 static int(hashset) hashset_get_length = #0;
 void(hashset) hashset_clear = #0;
-variant(hashset, int index, optional __out type_t) hashset_at = #0
+variant(hashset, int index, optional out type_t) hashset_at = #0
 
 accessor hashset : set_handle
 {

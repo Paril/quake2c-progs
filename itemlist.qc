@@ -50,25 +50,27 @@ typedef enum : int
 	AMMO_ROCKETS,
 	AMMO_GRENADES,
 	AMMO_CELLS,
-	AMMO_SLUGS
+	AMMO_SLUGS,
 
 #ifdef THE_RECKONING
-	, AMMO_MAGSLUG,
-	AMMO_TRAP
+	AMMO_MAGSLUG,
+	AMMO_TRAP,
 #endif
 
 #ifdef GROUND_ZERO
-	, AMMO_FLECHETTES,
+	AMMO_FLECHETTES,
 	AMMO_TESLA,
 	AMMO_PROX,
-	AMMO_DISRUPTOR
+	AMMO_DISRUPTOR,
 #endif
+
+	AMMO_TOTAL
 } ammo_t;
 
-typedef enum : int
+enum gitem_id_t : int
 {
 	ITEM_NONE
-} gitem_id_t;
+};
 
 // armor types
 typedef enum : int

@@ -530,7 +530,7 @@ static void insane_die(entity self, entity inflictor, entity attacker, int damag
 	gi.sound(self, CHAN_VOICE, gi.soundindex(va("player/male/death%i.wav", (Q_rand() % 4) + 1)), 1, ATTN_IDLE, 0);
 
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 
 	if (self.spawnflags & 8) {
 		insane_dead(self);

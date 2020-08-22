@@ -791,7 +791,7 @@ static void(entity self) button_return =
 	self.s.frame = 0;
 
 	if (self.health)
-		self.takedamage = DAMAGE_YES;
+		self.takedamage = true;
 }
 
 static void(entity self) button_wait =
@@ -841,7 +841,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 {
 	self.activator = attacker;
 	self.health = self.max_health;
-	self.takedamage = DAMAGE_NO;
+	self.takedamage = false;
 	button_fire(self);
 }
 
@@ -883,7 +883,7 @@ API_FUNC static void(entity ent) SP_func_button =
 	if (ent.health) {
 		ent.max_health = ent.health;
 		ent.die = button_killed;
-		ent.takedamage = DAMAGE_YES;
+		ent.takedamage = true;
 	} else if (! ent.targetname)
 		ent.touch = button_touch;
 
@@ -981,7 +981,7 @@ static void(entity self) door_go_down =
 		self.s.sound = self.moveinfo.sound_middle;
 	}
 	if (self.max_health) {
-		self.takedamage = DAMAGE_YES;
+		self.takedamage = true;
 		self.health = self.max_health;
 	}
 
@@ -1277,7 +1277,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 
 	for (ent = self.teammaster ; ent ; ent = ent.teamchain) {
 		ent.health = ent.max_health;
-		ent.takedamage = DAMAGE_NO;
+		ent.takedamage = false;
 	}
 	door_use(self.teammaster, attacker, attacker);
 }
@@ -1348,7 +1348,7 @@ API_FUNC static void(entity ent) SP_func_door =
 	ent.moveinfo.state = STATE_BOTTOM;
 
 	if (ent.health) {
-		ent.takedamage = DAMAGE_YES;
+		ent.takedamage = true;
 		ent.die = door_killed;
 		ent.max_health = ent.health;
 	} else if (ent.targetname && ent.message) {
@@ -1420,7 +1420,7 @@ static void(entity self, entity other, entity cactivator) Door_Activate =
 	
 	if (self.health)
 	{
-		self.takedamage = DAMAGE_YES;
+		self.takedamage = true;
 		self.die = door_killed;
 		self.max_health = self.health;
 	}
@@ -1494,7 +1494,7 @@ API_FUNC static void(entity ent) SP_func_door_rotating =
 	}
 
 	if (ent.health) {
-		ent.takedamage = DAMAGE_YES;
+		ent.takedamage = true;
 		ent.die = door_killed;
 		ent.max_health = ent.health;
 	}
@@ -1532,7 +1532,7 @@ API_FUNC static void(entity ent) SP_func_door_rotating =
 #ifdef GROUND_ZERO
 	if (ent.spawnflags & DOOR_INACTIVE)
 	{
-		ent.takedamage = DAMAGE_NO;
+		ent.takedamage = false;
 		ent.die = 0;
 		ent.think = 0;
 		ent.nextthink = 0;
@@ -2159,7 +2159,7 @@ static void(entity self) door_secret_done =
 {
 	if (!(self.targetname) || (self.spawnflags & SECRET_ALWAYS_SHOOT)) {
 		self.health = 0;
-		self.takedamage = DAMAGE_YES;
+		self.takedamage = true;
 	}
 	door_use_areaportals(self, false);
 }
@@ -2184,7 +2184,7 @@ static void(entity self, entity other) door_secret_blocked =
 
 static void(entity self, entity inflictor, entity attacker, int damage, vector point) door_secret_die =
 {
-	self.takedamage = DAMAGE_NO;
+	self.takedamage = false;
 	door_secret_use(self, attacker, attacker);
 }
 
@@ -2208,7 +2208,7 @@ API_FUNC static void(entity ent) SP_func_door_secret =
 
 	if (!(ent.targetname) || (ent.spawnflags & SECRET_ALWAYS_SHOOT)) {
 		ent.health = 0;
-		ent.takedamage = DAMAGE_YES;
+		ent.takedamage = true;
 		ent.die = door_secret_die;
 	}
 
@@ -2238,7 +2238,7 @@ API_FUNC static void(entity ent) SP_func_door_secret =
 	ent.pos2 = ent.pos1 + (length * forward);
 
 	if (ent.health) {
-		ent.takedamage = DAMAGE_YES;
+		ent.takedamage = true;
 		ent.die = door_killed;
 		ent.max_health = ent.health;
 	} else if (ent.targetname && ent.message) {

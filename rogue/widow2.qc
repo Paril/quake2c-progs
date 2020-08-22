@@ -407,7 +407,7 @@ static void Widow2Tongue (entity self)
 	}
 	end = self.enemy.s.origin;
 
-	gi.trace (&tr, start, vec3_origin, vec3_origin, end, self, MASK_SHOT);
+	gi.traceline(&tr, start, end, self, MASK_SHOT);
 	if (tr.ent != self.enemy)
 		return;
 
@@ -730,7 +730,7 @@ static void widow2_finaldeath (entity self)
 	self.mins = '-70 -70 0';
 	self.maxs = '70 70 80';
 	self.movetype = MOVETYPE_TOSS;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.nextthink = 0;
 	gi.linkentity (self);
 }
@@ -947,7 +947,7 @@ static void widow2_die (entity self, entity inflictor, entity attacker, int dama
 
 	gi.sound (self, CHAN_VOICE, sound_death, 1, ATTN_NONE, 0);
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_NO;
+	self.takedamage = false;
 	self.count = 0;
 	KillChildren (self);
 	self.monsterinfo.quad_framenum = 0;
@@ -987,7 +987,7 @@ static bool Widow2_CheckAttack (entity self)
 		spot2 = self.enemy.s.origin;
 		spot2[2] += self.enemy.viewheight;
 
-		gi.trace (&tr, spot1, vec3_origin, vec3_origin, spot2, self, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA);
+		gi.traceline(&tr, spot1, spot2, self, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA);
 
 		// do we have a clear shot?
 		if (tr.ent != self.enemy)

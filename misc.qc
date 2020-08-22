@@ -30,7 +30,7 @@ API_FUNC static void(entity ent) SP_func_areaportal =
 Misc functions
 =================
 */
-PROGS_LOCAL void(int damage, __out vector v) VelocityForDamage =
+PROGS_LOCAL void(int damage, out vector v) VelocityForDamage =
 {
 	v = randomv('-100 -100 200', '100 100 300');
 
@@ -120,7 +120,7 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowGib =
 	gib.solid = SOLID_NOT;
 	gib.s.effects |= EF_GIB;
 	gib.flags |= FL_NO_KNOCKBACK;
-	gib.takedamage = DAMAGE_YES;
+	gib.takedamage = true;
 	gib.die = gib_die;
 
 	if (type == GIB_ORGANIC) {
@@ -161,7 +161,7 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowHead =
 	self.s.sound = 0;
 	self.flags |= FL_NO_KNOCKBACK;
 	self.svflags &= ~SVF_MONSTER;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.die = gib_die;
 
 	if (type == GIB_ORGANIC) {
@@ -205,7 +205,7 @@ void(entity self, int damage) ThrowClientHead =
 	self.mins = '-16 -16 0';
 	self.maxs = '16 16 16';
 
-	self.takedamage = DAMAGE_NO;
+	self.takedamage = false;
 	self.solid = SOLID_NOT;
 	self.s.effects = EF_GIB;
 	self.s.sound = 0;
@@ -256,7 +256,7 @@ void(entity self, string modelname, float speed, vector origin) ThrowDebris =
 	chunk.s.frame = 0;
 	chunk.flags = 0;
 	chunk.classname = "debris";
-	chunk.takedamage = DAMAGE_YES;
+	chunk.takedamage = true;
 	chunk.die = debris_die;
 	gi.linkentity(chunk);
 }
@@ -558,7 +558,7 @@ static void(entity self, entity other, vector normal, csurface_t surf) func_obje
 		return;
 	if (normal[2] < 1.0f)
 		return;
-	if (other.takedamage == DAMAGE_NO)
+	if (other.takedamage == false)
 		return;
 	T_Damage(other, self, self, vec3_origin, self.s.origin, vec3_origin, self.dmg, 1, 0, MOD_CRUSH);
 }
@@ -640,7 +640,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 	origin = self.absmin + csize;
 	self.s.origin = origin;
 
-	self.takedamage = DAMAGE_NO;
+	self.takedamage = false;
 
 	if (self.dmg)
 		T_RadiusDamage(self, attacker, self.dmg, 0, self.dmg + 40, MOD_EXPLOSIVE);
@@ -738,7 +738,7 @@ static void(entity self, entity other, entity cactivator) func_explosive_activat
 	if (!self.health)
 		self.health = 100;
 	self.die = func_explosive_explode;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 }
 #endif
 
@@ -800,7 +800,7 @@ API_FUNC static void(entity self) SP_func_explosive =
 		if (!self.health)
 			self.health = 100;
 		self.die = func_explosive_explode;
-		self.takedamage = DAMAGE_YES;
+		self.takedamage = true;
 	}
 
 	gi.linkentity(self);
@@ -885,7 +885,7 @@ static void(entity self) barrel_explode =
 
 static void(entity self, entity inflictor, entity attacker, int damage, vector point) barrel_delay =
 {
-	self.takedamage = DAMAGE_NO;
+	self.takedamage = false;
 	self.nextthink = level.framenum + 2;
 	self.think = barrel_explode;
 	self.activator = attacker;
@@ -940,7 +940,7 @@ API_FUNC static void(entity self) SP_misc_explobox =
 		self.dmg = 150;
 
 	self.die = barrel_delay;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.monsterinfo.aiflags = AI_NOSTEP;
 
 	self.touch = barrel_touch;
@@ -1112,7 +1112,7 @@ API_FUNC static void(entity self) SP_monster_commander_body =
 	self.mins = '-32 -32 0';
 	self.maxs = '32 32 48';
 	self.use = commander_body_use;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.flags = FL_GODMODE;
 	self.s.renderfx |= RF_FRAMELERP;
 	gi.linkentity(self);
@@ -1196,7 +1196,7 @@ API_FUNC static void(entity ent) SP_misc_deadsoldier =
 	ent.mins = '-16 -16 0';
 	ent.maxs = '16 16 16';
 	ent.deadflag = DEAD_DEAD;
-	ent.takedamage = DAMAGE_YES;
+	ent.takedamage = true;
 	ent.svflags |= SVF_MONSTER | SVF_DEADMONSTER;
 	ent.die = misc_deadsoldier_die;
 	ent.monsterinfo.aiflags |= AI_GOOD_GUY;
@@ -1432,7 +1432,7 @@ API_FUNC static void(entity ent) SP_misc_gib_arm =
 	gi.setmodel(ent, "models/objects/gibs/arm/tris.md2");
 	ent.solid = SOLID_NOT;
 	ent.s.effects |= EF_GIB;
-	ent.takedamage = DAMAGE_YES;
+	ent.takedamage = true;
 	ent.die = gib_die;
 	ent.movetype = MOVETYPE_TOSS;
 	ent.svflags |= SVF_MONSTER;
@@ -1451,7 +1451,7 @@ API_FUNC static void(entity ent) SP_misc_gib_leg =
 	gi.setmodel(ent, "models/objects/gibs/leg/tris.md2");
 	ent.solid = SOLID_NOT;
 	ent.s.effects |= EF_GIB;
-	ent.takedamage = DAMAGE_YES;
+	ent.takedamage = true;
 	ent.die = gib_die;
 	ent.movetype = MOVETYPE_TOSS;
 	ent.svflags |= SVF_MONSTER;
@@ -1470,7 +1470,7 @@ API_FUNC static void(entity ent) SP_misc_gib_head =
 	gi.setmodel(ent, "models/objects/gibs/head/tris.md2");
 	ent.solid = SOLID_NOT;
 	ent.s.effects |= EF_GIB;
-	ent.takedamage = DAMAGE_YES;
+	ent.takedamage = true;
 	ent.die = gib_die;
 	ent.movetype = MOVETYPE_TOSS;
 	ent.svflags |= SVF_MONSTER;

@@ -55,7 +55,7 @@ void(entity self) dabeam_hit =
 	
 	while(1)
 	{
-		gi.trace (&tr, start, vec3_origin, vec3_origin, end, ignore, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_DEADMONSTER);
+		gi.traceline(&tr, start, end, ignore, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_DEADMONSTER);
 		if (!tr.ent)
 			break;
 

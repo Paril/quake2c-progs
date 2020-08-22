@@ -411,7 +411,7 @@ static const string grenade_chain[] = { "Grenades", "Trap" };
 static const string hyperblaster_chain[] = { "HyperBlaster", "Ionripper" };
 #endif
 
-static bool(entity ent, gitem_t *it, __out string *chain, __out int chain_length) GetChain =
+static bool(entity ent, gitem_t *it, out string *chain, out int chain_length) GetChain =
 {
 	chain = 0;
 

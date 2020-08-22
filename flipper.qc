@@ -304,7 +304,7 @@ static void flipper_die(entity self, entity inflictor, entity attacker, int dama
 // regular death
 	gi.sound(self, CHAN_VOICE, sound_death, 1, ATTN_NORM, 0);
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.monsterinfo.currentmove = &flipper_move_death;
 }
 

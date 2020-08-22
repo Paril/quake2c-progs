@@ -11,7 +11,7 @@ API_FUNC var bool strcasesensitive = true;
 
 inline int(string str, int offset) strat =
 {
-	return (int)(__variant)str[(float)(__variant)offset];
+	return str[offset];
 }
 
 int(string) stoi = #0;
@@ -74,7 +74,7 @@ Parse a token out of a string.
 Handles C and C++ comments.
 ==============
 */
-API_FUNC string(string data, __inout int start) strtok =
+API_FUNC string(string data, inout int start) strtok =
 {
 	int token_start = start, token_end;
 

@@ -6,7 +6,7 @@ void(entity ent) M_SetEffects;
 inline void(entity ent) cleanupHealTarget =
 {
 	ent.monsterinfo.healer = 0;
-	ent.takedamage = DAMAGE_YES;
+	ent.takedamage = true;
 	ent.monsterinfo.aiflags &= ~AI_RESURRECTING;
 	M_SetEffects (ent);
 }

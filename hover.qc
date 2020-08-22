@@ -522,7 +522,7 @@ static void hover_die(entity self, entity inflictor, entity attacker, int damage
 #endif
 
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.monsterinfo.currentmove = &hover_move_death1;
 }
 

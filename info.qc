@@ -170,7 +170,7 @@ static int(string s) Info_SubValidate =
 Info_SetValueForKey
 ==================
 */
-bool(__inout string s, string key, string value) Info_SetValueForKey =
+bool(inout string s, string key, string value) Info_SetValueForKey =
 {
 	// validate key
 	int kl = Info_SubValidate(key);

@@ -3,8 +3,8 @@
 // Note that these may be emulated by non-KMQ2 engines.
 accessor file_list_t : handle;
 
-static entity(file_list_t, int)		file_list_get = #0;
-static int(file_list_t)				file_list_length = #0;
+static entity(file_list_t, int)	file_list_get = #0;
+static int(file_list_t)			file_list_length = #0;
 
 accessor file_list_t : handle
 {
@@ -22,15 +22,15 @@ typedef enum : int
 } fs_mode_t;
 
 PROGS_LOCAL var struct {
-	int(string name, __out string buffer)	LoadFile;
+	int(string name, out string buffer)	LoadFile;
 	
 	file_list_t(string path, optional string extension = "")	GetFileList;
 	
-	int(string name, __out file_handle_t f, fs_mode_t mode)					OpenFile;
-	int(string zipName, string name, __out file_handle_t f, fs_mode_t mode)	OpenCompressedFile;
+	int(string name, out file_handle_t f, fs_mode_t mode)					OpenFile;
+	int(string zipName, string name, out file_handle_t f, fs_mode_t mode)	OpenCompressedFile;
 	
-	int(__variant *buffer, int size, file_handle_t f)	FRead;
-	int(__variant *buffer, int size, file_handle_t f)	FWrite;
+	int(variant *buffer, int size, file_handle_t f)	FRead;
+	int(variant *buffer, int size, file_handle_t f)	FWrite;
 	
 	string()	GameDir;
 	string()	SaveGameDir;

@@ -221,44 +221,29 @@ API_FUNC static bool(entity ent, entity other) Pickup_AncientHead =
 	return true;
 }
 
+static inline void(entity other, ammo_t ammo_id, int new_max) AdjustAmmoMax =
+{
+	other.client.pers.max_ammo[ammo_id] = maxi(other.client.pers.max_ammo[ammo_id], new_max);
+}
+
+static inline void(entity other, gitem_t *ammo) AddAndCapAmmo =
+{
+	int index = ammo->id;
+	other.client.pers.inventory[index] = mini(other.client.pers.inventory[index] + ammo->quantity, other.client.pers.max_ammo[ammo->tag]);
+}
+
 API_FUNC static bool(entity ent, entity other) Pickup_Bandolier =
 {
-	if (other.client.pers.max_bullets < 250)
-		other.client.pers.max_bullets = 250;
-	if (other.client.pers.max_shells < 150)
-		other.client.pers.max_shells = 150;
-	if (other.client.pers.max_cells < 250)
-		other.client.pers.max_cells = 250;
-	if (other.client.pers.max_slugs < 75)
-		other.client.pers.max_slugs = 75;
-#ifdef THE_RECKONING
-	if (other.client.pers.max_magslug < 75)
-		other.client.pers.max_magslug = 75;
-#endif
-#ifdef GROUND_ZERO
-	if (other.client.pers.max_flechettes < 250)
-		other.client.pers.max_flechettes = 250;
-	if (other.client.pers.max_rounds < 150)
-		other.client.pers.max_rounds = 150;
-#endif
+	AdjustAmmoMax(other, AMMO_BULLETS, 250);
+	AdjustAmmoMax(other, AMMO_SHELLS, 150);
+	AdjustAmmoMax(other, AMMO_CELLS, 250);
+	AdjustAmmoMax(other, AMMO_SLUGS, 75);
+	AdjustAmmoMax(other, AMMO_MAGSLUG, 75);
+	AdjustAmmoMax(other, AMMO_FLECHETTES, 250);
+	AdjustAmmoMax(other, AMMO_DISRUPTOR, 150);
 
-	gitem_t *it = FindItem("Bullets");
-	if (it)
-	{
-		int index = it->id;
-		other.client.pers.inventory[index] += it->quantity;
-		if (other.client.pers.inventory[index] > other.client.pers.max_bullets)
-			other.client.pers.inventory[index] = other.client.pers.max_bullets;
-	}
-
-	it = FindItem("Shells");
-	if (it)
-	{
-		int index = it->id;
-		other.client.pers.inventory[index] += it->quantity;
-		if (other.client.pers.inventory[index] > other.client.pers.max_shells)
-			other.client.pers.inventory[index] = other.client.pers.max_shells;
-	}
+	AddAndCapAmmo(other, FindItem("Bullets"));
+	AddAndCapAmmo(other, FindItem("Shells"));
 
 	if (!(ent.spawnflags & DROPPED_ITEM) && (deathmatch.intVal))
 		SetRespawn(ent, ent.item->quantity);
@@ -268,112 +253,25 @@ API_FUNC static bool(entity ent, entity other) Pickup_Bandolier =
 
 API_FUNC static bool(entity ent, entity other) Pickup_Pack =
 {
-	if (other.client.pers.max_bullets < 300)
-		other.client.pers.max_bullets = 300;
-	if (other.client.pers.max_shells < 200)
-		other.client.pers.max_shells = 200;
-	if (other.client.pers.max_rockets < 100)
-		other.client.pers.max_rockets = 100;
-	if (other.client.pers.max_grenades < 100)
-		other.client.pers.max_grenades = 100;
-	if (other.client.pers.max_cells < 300)
-		other.client.pers.max_cells = 300;
-	if (other.client.pers.max_slugs < 100)
-		other.client.pers.max_slugs = 100;
-#ifdef THE_RECKONING
-	if (other.client.pers.max_magslug < 100)
-		other.client.pers.max_magslug = 100;
-#endif
-#ifdef GROUND_ZERO
-	if (other.client.pers.max_flechettes < 200)
-		other.client.pers.max_flechettes = 200;
-	if (other.client.pers.max_rounds < 200)
-		other.client.pers.max_rounds = 200;
-#endif
+	AdjustAmmoMax(other, AMMO_BULLETS, 300);
+	AdjustAmmoMax(other, AMMO_SHELLS, 200);
+	AdjustAmmoMax(other, AMMO_ROCKETS, 100);
+	AdjustAmmoMax(other, AMMO_GRENADES, 100);
+	AdjustAmmoMax(other, AMMO_CELLS, 300);
+	AdjustAmmoMax(other, AMMO_SLUGS, 100);
+	AdjustAmmoMax(other, AMMO_MAGSLUG, 100);
+	AdjustAmmoMax(other, AMMO_FLECHETTES, 300);
+	AdjustAmmoMax(other, AMMO_DISRUPTOR, 200);
 
-	gitem_t *it = FindItem("Bullets");
-	if (it)
-	{
-		int index = it->id;
-		other.client.pers.inventory[index] += it->quantity;
-		if (other.client.pers.inventory[index] > other.client.pers.max_bullets)
-			other.client.pers.inventory[index] = other.client.pers.max_bullets;
-	}
-
-	it = FindItem("Shells");
-	if (it)
-	{
-		int index = it->id;
-		other.client.pers.inventory[index] += it->quantity;
-		if (other.client.pers.inventory[index] > other.client.pers.max_shells)
-			other.client.pers.inventory[index] = other.client.pers.max_shells;
-	}
-
-	it = FindItem("Cells");
-	if (it)
-	{
-		int index = it->id;
-		other.client.pers.inventory[index] += it->quantity;
-		if (other.client.pers.inventory[index] > other.client.pers.max_cells)
-			other.client.pers.inventory[index] = other.client.pers.max_cells;
-	}
-
-	it = FindItem("Grenades");
-	if (it)
-	{
-		int index = it->id;
-		other.client.pers.inventory[index] += it->quantity;
-		if (other.client.pers.inventory[index] > other.client.pers.max_grenades)
-			other.client.pers.inventory[index] = other.client.pers.max_grenades;
-	}
-
-	it = FindItem("Rockets");
-	if (it)
-	{
-		int index = it->id;
-		other.client.pers.inventory[index] += it->quantity;
-		if (other.client.pers.inventory[index] > other.client.pers.max_rockets)
-			other.client.pers.inventory[index] = other.client.pers.max_rockets;
-	}
-
-	it = FindItem("Slugs");
-	if (it)
-	{
-		int index = it->id;
-		other.client.pers.inventory[index] += it->quantity;
-		if (other.client.pers.inventory[index] > other.client.pers.max_slugs)
-			other.client.pers.inventory[index] = other.client.pers.max_slugs;
-	}
-	
-#ifdef THE_RECKONING
-	// RAFAEL
-	it = FindItem ("Mag Slug");
-	if (it)
-	{
-		int index = it->id;
-		other.client.pers.inventory[index] += it->quantity;
-		if (other.client.pers.inventory[index] > other.client.pers.max_magslug)
-			other.client.pers.inventory[index] = other.client.pers.max_magslug;
-	}
-#endif
-#ifdef GROUND_ZERO
-	it = FindItem("Flechettes");
-	if (it)
-	{
-		int index = it->id;
-		other.client.pers.inventory[index] += it->quantity;
-		if (other.client.pers.inventory[index] > other.client.pers.max_flechettes)
-			other.client.pers.inventory[index] = other.client.pers.max_flechettes;
-	}
-	it = FindItem("Rounds");
-	if (it)
-	{
-		int index = it->id;
-		other.client.pers.inventory[index] += it->quantity;
-		if (other.client.pers.inventory[index] > other.client.pers.max_rounds)
-			other.client.pers.inventory[index] = other.client.pers.max_rounds;
-	}
-#endif
+	AddAndCapAmmo(other, FindItem("Bullets"));
+	AddAndCapAmmo(other, FindItem("Shells"));
+	AddAndCapAmmo(other, FindItem("Cells"));
+	AddAndCapAmmo(other, FindItem("Grenades"));
+	AddAndCapAmmo(other, FindItem("Rockets"));
+	AddAndCapAmmo(other, FindItem("Slugs"));
+	AddAndCapAmmo(other, FindItem("Mag Slug"));
+	AddAndCapAmmo(other, FindItem("Flechettes"));
+	AddAndCapAmmo(other, FindItem("Rounds"));
 
 	if (!(ent.spawnflags & DROPPED_ITEM) && (deathmatch.intVal))
 		SetRespawn(ent, ent.item->quantity);
@@ -481,46 +379,11 @@ API_FUNC static bool(entity ent, entity other) Pickup_Key =
 
 bool(entity ent, gitem_t *it, int count) Add_Ammo =
 {
-	int         index;
-	int         max;
-
 	if (!ent.is_client)
 		return false;
-	
-	int	tag = it->tag;
 
-	if (tag == AMMO_BULLETS)
-		max = ent.client.pers.max_bullets;
-	else if (tag == AMMO_SHELLS)
-		max = ent.client.pers.max_shells;
-	else if (tag == AMMO_ROCKETS)
-		max = ent.client.pers.max_rockets;
-	else if (tag == AMMO_GRENADES)
-		max = ent.client.pers.max_grenades;
-	else if (tag == AMMO_CELLS)
-		max = ent.client.pers.max_cells;
-	else if (tag == AMMO_SLUGS)
-		max = ent.client.pers.max_slugs;
-#ifdef THE_RECKONING
-	else if (tag == AMMO_MAGSLUG)
-		max = ent.client.pers.max_magslug;
-	else if (tag == AMMO_TRAP)
-		max = ent.client.pers.max_trap;
-#endif
-#ifdef GROUND_ZERO
-	else if (tag == AMMO_FLECHETTES)
-		max = ent.client.pers.max_flechettes;
-	else if (tag == AMMO_PROX)
-		max = ent.client.pers.max_prox;
-	else if (tag == AMMO_TESLA)
-		max = ent.client.pers.max_tesla;
-	else if (tag == AMMO_DISRUPTOR)
-		max = ent.client.pers.max_rounds;
-#endif
-	else
-		return false;
-
-	index = it->id;
+	int max = ent.client.pers.max_ammo[it->tag];
+	int index = it->id;
 
 	if (ent.client.pers.inventory[index] == max)
 		return false;
@@ -650,9 +513,6 @@ int(entity ent) ArmorIndex =
 
 API_FUNC static bool(entity ent, entity other) Pickup_Armor =
 {
-	int	newcount;
-	float	salvage;
-	int	salvagecount;
 	int	old_armor_index = ArmorIndex(other);
 
 	// handle armor shards specially

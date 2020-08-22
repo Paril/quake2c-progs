@@ -48,14 +48,7 @@ void() AI_SetSightClient =
 		if (check > game.maxclients)
 			check = 1;
 		ent = itoe(check);
-		if (ent.inuse
-			&& ent.health > 0
-#ifdef GROUND_ZERO
-			&& !(ent.flags & (FL_NOTARGET|FL_DISGUISED))
-#else
-			&& !(ent.flags & FL_NOTARGET)
-#endif
-			)
+		if (ent.inuse && ent.health > 0 && !(ent.flags & FL_VISIBLE_MASK))
 		{
 			level.sight_client = ent;
 			return;     // got one
@@ -360,7 +353,7 @@ bool(entity self, entity other) visible =
 	spot1.z += self.viewheight;
 	spot2 = other.s.origin;
 	spot2.z += other.viewheight;
-	gi.trace(&trace, spot1, vec3_origin, vec3_origin, spot2, self, MASK_OPAQUE);
+	gi.traceline(&trace, spot1, spot2, self, MASK_OPAQUE);
 	
 	if (trace.fraction == 1.0f || trace.ent == other)
 		return true;
@@ -683,7 +676,7 @@ bool(entity self) M_CheckAttack =
 		spot2 = self.enemy.s.origin;
 		spot2.z += self.enemy.viewheight;
 
-		gi.trace(&tr, spot1, vec3_origin, vec3_origin, spot2, self, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_SLIME | CONTENTS_LAVA | CONTENTS_WINDOW);
+		gi.traceline(&tr, spot1, spot2, self, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_SLIME | CONTENTS_LAVA | CONTENTS_WINDOW);
 
 		// do we have a clear shot?
 		if (tr.ent != self.enemy)
@@ -709,7 +702,7 @@ bool(entity self) M_CheckAttack =
 						else
 						{
 							// make sure we're not going to shoot a monster
-							gi.trace (&tr, spot1, vec3_origin, vec3_origin, self.monsterinfo.blind_fire_target, self, CONTENTS_MONSTER);
+							gi.traceline(&tr, spot1, self.monsterinfo.blind_fire_target, self, CONTENTS_MONSTER);
 							if (tr.allsolid || tr.startsolid || ((tr.fraction < 1.0) && (tr.ent != self.enemy)))
 								return false;
 

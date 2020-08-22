@@ -345,7 +345,7 @@ static void chick_die(entity self, entity inflictor, entity attacker, int damage
 
 // regular death
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 
 	n = Q_rand() % 2;
 	if (n == 0) {
@@ -368,7 +368,7 @@ static void chick_duck_down(entity self)
 		return;
 	self.monsterinfo.aiflags |= AI_DUCKED;
 	self.maxs[2] -= 32;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 	self.monsterinfo.pause_framenum = level.framenum + 1 * BASE_FRAMERATE;
 	gi.linkentity(self);
 }
@@ -385,7 +385,7 @@ static void chick_duck_up(entity self)
 {
 	self.monsterinfo.aiflags &= ~AI_DUCKED;
 	self.maxs[2] += 32;
-	self.takedamage = DAMAGE_AIM;
+	self.takedamage = true;
 	gi.linkentity(self);
 }
 #endif
@@ -500,7 +500,7 @@ static void ChickRocket(entity self)
 #ifdef GROUND_ZERO
 	// pmm blindfire doesn't check target (done in checkattack)
 	// paranoia, make sure we're not shooting a target right next to us
-	gi.trace(&trace, start, vec3_origin, vec3_origin, vec, self, MASK_SHOT);
+	gi.traceline(&trace, start, vec, self, MASK_SHOT);
 	if (blindfire)
 	{
 		// blindfire has different fail criteria for the trace
@@ -515,7 +515,7 @@ static void ChickRocket(entity self)
 			vec += -10 * right;
 			vec -= start;
 			VectorNormalize (dir);
-			gi.trace(&trace, start, vec3_origin, vec3_origin, vec, self, MASK_SHOT);
+			gi.traceline(&trace, start, vec, self, MASK_SHOT);
 			if (!(trace.startsolid || trace.allsolid || (trace.fraction < 0.5)))
 				fire_func (self, start, dir, 50, rocketSpeed, MZ2_CHICK_ROCKET_1);
 			else 
@@ -525,7 +525,7 @@ static void ChickRocket(entity self)
 				vec += 10 * right;
 				dir = vec - start;
 				VectorNormalize (dir);
-				gi.trace(&trace, start, vec3_origin, vec3_origin, vec, self, MASK_SHOT);
+				gi.traceline(&trace, start, vec, self, MASK_SHOT);
 				if (!(trace.startsolid || trace.allsolid || (trace.fraction < 0.5)))
 					fire_func (self, start, dir, 50, rocketSpeed, MZ2_CHICK_ROCKET_1);
 			}
@@ -533,7 +533,7 @@ static void ChickRocket(entity self)
 	}
 	else
 	{
-		gi.trace(&trace, start, vec3_origin, vec3_origin, vec, self, MASK_SHOT);
+		gi.traceline(&trace, start, vec, self, MASK_SHOT);
 		if(trace.ent == self.enemy || trace.ent == world)
 		{
 			if(trace.fraction > 0.5 || (trace.ent && trace.ent.is_client))

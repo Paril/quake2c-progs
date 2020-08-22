@@ -389,7 +389,7 @@ static void TankRocket(entity self)
 #ifdef GROUND_ZERO
 	// pmm blindfire doesn't check target (done in checkattack)
 	// paranoia, make sure we're not shooting a target right next to us
-	gi.trace(&trace, start, vec3_origin, vec3_origin, vec, self, MASK_SHOT);
+	gi.traceline(&trace, start, vec, self, MASK_SHOT);
 	if (blindfire)
 	{
 		// blindfire has different fail criteria for the trace
@@ -402,7 +402,7 @@ static void TankRocket(entity self)
 			vec += -20 * right;
 			dir = vec - start;
 			VectorNormalize (dir);
-			gi.trace(&trace, start, vec3_origin, vec3_origin, vec, self, MASK_SHOT);
+			gi.traceline(&trace, start, vec, self, MASK_SHOT);
 			if (!(trace.startsolid || trace.allsolid || (trace.fraction < 0.5)))
 				monster_fire_rocket (self, start, dir, 50, rocketSpeed, flash_number);
 			else 
@@ -412,7 +412,7 @@ static void TankRocket(entity self)
 				vec += 20 * right;
 				dir = vec - start;
 				VectorNormalize (dir);
-				gi.trace(&trace, start, vec3_origin, vec3_origin, vec, self, MASK_SHOT);
+				gi.traceline(&trace, start, vec, self, MASK_SHOT);
 
 				if (!(trace.startsolid || trace.allsolid || (trace.fraction < 0.5)))
 					monster_fire_rocket (self, start, dir, 50, rocketSpeed, flash_number);
@@ -421,7 +421,7 @@ static void TankRocket(entity self)
 	}
 	else
 	{
-		gi.trace(&trace, start, vec3_origin, vec3_origin, vec, self, MASK_SHOT);
+		gi.traceline(&trace, start, vec, self, MASK_SHOT);
 		if(trace.ent == self.enemy || trace.ent == world)
 		{
 			if (trace.fraction > 0.5 || (trace.ent && trace.ent.is_client))
@@ -850,7 +850,7 @@ static void tank_die(entity self, entity inflictor, entity attacker, int damage,
 // regular death
 	gi.sound(self, CHAN_VOICE, sound_die, 1, ATTN_NORM, 0);
 	self.deadflag = DEAD_DEAD;
-	self.takedamage = DAMAGE_YES;
+	self.takedamage = true;
 
 	self.monsterinfo.currentmove = &tank_move_death;
 

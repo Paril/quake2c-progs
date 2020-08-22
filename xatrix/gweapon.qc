@@ -66,7 +66,7 @@ PROGS_LOCAL void(entity self, vector start, vector dir, int damage, int speed, e
 	if (self.is_client)
 		check_dodge (self, ion.s.origin, dir, speed);
 
-	gi.trace (&tr, self.s.origin, vec3_origin, vec3_origin, ion.s.origin, ion, MASK_SHOT);
+	gi.traceline(&tr, self.s.origin, ion.s.origin, ion, MASK_SHOT);
 	if (tr.fraction < 1.0)
 	{
 		ion.s.origin += dir * -10;
@@ -95,24 +95,6 @@ static void(entity self) heat_think =
 			continue;
 		if (!visible (self, target))
 			continue;
-		
-		// if we need to reduce the tracking cone
-		/*
-		{
-			vec3_t	vec;
-			float	dot;
-			vec3_t	forward;
-	
-			AngleVectors (self.s.angles, forward, NULL, NULL);
-			VectorSubtract (target.s.origin, self.s.origin, vec);
-			VectorNormalize (vec);
-			dot = DotProduct (vec, forward);
-	
-			if (dot > 0.6)
-				continue;
-		}
-		*/
-
 		if (!infront (self, target))
 			continue;
 
@@ -218,21 +200,29 @@ void(entity self) BecomeExplosion1;
 // from xatrix/item.qc
 API_FUNC void(entity self) SP_item_foodcube;
 
+static void(entity ent) Trap_Gib_Think =
+{
+	if (ent.owner.s.frame != 5)
+	{
+		G_FreeEdict(ent);
+		return;
+	}
+
+	vector forward;
+	AngleVectors (ent.s.angles, &forward, 0, 0);
+	float angle = DEG2RAD(ent.dmg_radius + ent.owner.delay) * 4.f;
+	ent.s.origin = ([ -cos(angle), sin(angle), 0 ] * (ent.owner.wait * 0.5f)) + ent.owner.s.origin + forward;
+	ent.s.origin[2] = ent.owner.s.origin[2] + ent.owner.wait;
+	gi.linkentity (ent);
+
+	ent.nextthink = level.framenum + 1;
+};
+
 static void(entity ent) Trap_Think =
 {
-	entity	target = world;
-	entity	best = world;
-	vector	vec;
-	float	len;
-	int	i;
-	float	oldlen = 8000;
-	vector forward, right, up;
-	
 	if (ent.timestamp < level.framenum)
 	{
 		BecomeExplosion1(ent);
-		// note to self
-		// cause explosion damage???
 		return;
 	}
 	
@@ -247,63 +237,52 @@ static void(entity ent) Trap_Think =
 		if (ent.s.frame == 5)
 		{
 			if (ent.wait == 64)
+			{
 				gi.sound(ent, CHAN_VOICE, gi.soundindex ("weapons/trapdown.wav"), 1, ATTN_IDLE, 0);
+
+				for (int i = 0; i < 3; i++)
+				{
+					entity best = G_Spawn();
+
+					if (ent.enemy.classname == "monster_gekk")
+					{
+						best.s.modelindex = gi.modelindex ("models/objects/gekkgib/torso/tris.md2");	
+						best.s.effects |= EF_GREENGIB;
+					}
+					else if (ent.enemy.mass > 200)
+					{
+						best.s.modelindex = gi.modelindex ("models/objects/gibs/chest/tris.md2");	
+						best.s.effects |= EF_GIB;
+					}
+					else
+					{
+						best.s.modelindex = gi.modelindex ("models/objects/gibs/sm_meat/tris.md2");	
+						best.s.effects |= EF_GIB;
+					}
+					
+					best.dmg_radius = (360.0 / 3) * i;
+					best.think = Trap_Gib_Think;
+					best.nextthink = level.framenum + 1;
+					best.s.angles = ent.s.angles;
+					best.solid = SOLID_NOT;
+					best.takedamage = true;
+					best.movetype = MOVETYPE_NONE;
+					best.svflags |= SVF_MONSTER;
+					best.deadflag = DEAD_DEAD;
+					best.owner = ent;
+					best.watertype = gi.pointcontents(best.s.origin);
+					if (best.watertype & MASK_WATER)
+						best.waterlevel = 1;
+
+					Trap_Gib_Think(best);
+				}
+			}
 
 			ent.wait -= 2;
 			ent.delay += level.time;
-
-			for (i=0; i<3; i++)
-			{
-				best = G_Spawn();
-
-				if (ent.enemy.classname == "monster_gekk")
-				{
-					best.s.modelindex = gi.modelindex ("models/objects/gekkgib/torso/tris.md2");	
-					best.s.effects |= TE_GREENBLOOD;
-				}
-				else if (ent.mass > 200)
-				{
-					best.s.modelindex = gi.modelindex ("models/objects/gibs/chest/tris.md2");	
-					best.s.effects |= TE_BLOOD;
-				}
-				else
-				{
-					best.s.modelindex = gi.modelindex ("models/objects/gibs/sm_meat/tris.md2");	
-					best.s.effects |= TE_BLOOD;
-				}
-
-				AngleVectors (ent.s.angles, &forward, &right, &up);
-				
-				vec = RotatePointAroundVector(up, right, ((360.0/3)* i)+ent.delay);
-				vec += vec * (ent.wait * 0.5f);
-				vec += ent.s.origin;
-				best.s.origin = vec + forward;
-  
-				best.s.origin[2] = ent.s.origin[2] + ent.wait;
-				
-				best.s.angles = ent.s.angles;
-  
-				best.solid = SOLID_NOT;
-				best.s.effects |= EF_GIB;
-				best.takedamage = DAMAGE_YES;
-		
-				best.movetype = MOVETYPE_TOSS;
-				best.svflags |= SVF_MONSTER;
-				best.deadflag = DEAD_DEAD;
-		  
-				best.mins = best.maxs = vec3_origin;
-
-				best.watertype = gi.pointcontents(best.s.origin);
-				if (best.watertype & MASK_WATER)
-					best.waterlevel = 1;
-
-				best.nextthink = level.framenum + 1;
-				best.think = G_FreeEdict;
-				gi.linkentity (best);
-			}
 				
 			if (ent.wait < 19)
-				ent.s.frame ++;
+				ent.s.frame++;
 
 			return;
 		}
@@ -313,7 +292,7 @@ static void(entity ent) Trap_Think =
 			ent.nextthink = level.framenum + 1 * BASE_FRAMERATE;
 			ent.think = G_FreeEdict;
 
-			best = G_Spawn ();
+			entity best = G_Spawn ();
 			SP_item_foodcube (best);
 			best.s.origin = ent.s.origin;
 			best.s.origin[2] += 16;
@@ -335,14 +314,15 @@ static void(entity ent) Trap_Think =
 	if (ent.s.frame < 4)
 		ent.s.frame++;
 
+	entity	target = world, best = world;
+	float	oldlen = 8000;
+	
 	while ((target = findradius(target, ent.s.origin, 256)))
 	{
 		if (target == ent)
 			continue;
 		if (!(target.svflags & SVF_MONSTER) && !target.is_client)
 			continue;
-		// if (target == ent.owner)
-		//	continue;
 		if (target.health <= 0)
 			continue;
 		if (!visible (ent, target))
@@ -352,8 +332,8 @@ static void(entity ent) Trap_Think =
 			best = target;
 			continue;
 		}
-		vec = ent.s.origin - target.s.origin;
-		len = VectorLength (vec);
+		vector vec = ent.s.origin - target.s.origin;
+		float len = VectorLength (vec);
 		if (len < oldlen)
 		{
 			oldlen = len;
@@ -362,60 +342,52 @@ static void(entity ent) Trap_Think =
 	}
 
 	// pull the enemy in
-	if (best)
+	if (!best)
+		return;
+
+	if (best.groundentity != null_entity)
 	{
-		vector	forward;
-
-		if (best.groundentity != null_entity)
-		{
-			best.s.origin[2] += 1;
-			best.groundentity = null_entity;
-		}
-		vec = ent.s.origin - best.s.origin;
-		len = VectorLength (vec);
-		if (best.is_client)
-		{
-			VectorNormalize (vec);
-			best.velocity += vec * 250;
-		}
-		else
-		{
-			best.ideal_yaw = vectoyaw(vec);	
-			M_ChangeYaw (best);
-			AngleVectors (best.s.angles, &forward, 0, 0);
-			best.velocity = forward * 256;
-		}
-
-		gi.sound(ent, CHAN_VOICE, gi.soundindex ("weapons/trapsuck.wav"), 1, ATTN_IDLE, 0);
-		
-		if (len < 32)
-		{	
-			if (best.mass < 400)
-			{
-				T_Damage (best, ent, ent.owner, vec3_origin, best.s.origin, vec3_origin, 100000, 1, DAMAGE_NO_PROTECTION, MOD_TRAP);
-				ent.enemy = best;
-				ent.wait = 64f;
-				ent.s.old_origin = ent.s.origin;
-				ent.timestamp = level.framenum + 30 * BASE_FRAMERATE;
-				if (deathmatch.intVal)
-					ent.mass = (int)(best.mass * 0.25f);
-				else
-					ent.mass = (int)(best.mass * 0.1f);
-				// ok spawn the food cube
-				ent.s.frame = 5;	
-			}
-			else
-			{
-				BecomeExplosion1(ent);
-				// note to self
-				// cause explosion damage???
-				return;
-			}
-				
-		}
+		best.s.origin[2] += 1;
+		best.groundentity = null_entity;
+	}
+	vector vec = ent.s.origin - best.s.origin;
+	float len = VectorLength (vec);
+	if (best.is_client)
+	{
+		VectorNormalize (vec);
+		best.velocity += vec * 250;
+	}
+	else
+	{
+		vector forward;
+		best.ideal_yaw = vectoyaw(vec);	
+		M_ChangeYaw (best);
+		AngleVectors (best.s.angles, &forward, 0, 0);
+		best.velocity = forward * 256;
 	}
 
-		
+	gi.sound(ent, CHAN_VOICE, gi.soundindex ("weapons/trapsuck.wav"), 1, ATTN_IDLE, 0);
+	
+	if (len >= 32)
+		return;
+
+	if (best.mass < 400)
+	{
+		T_Damage (best, ent, ent.owner, vec3_origin, best.s.origin, vec3_origin, 100000, 1, DAMAGE_NO_PROTECTION, MOD_TRAP);
+		ent.enemy = best;
+		ent.wait = 64f;
+		ent.s.old_origin = ent.s.origin;
+		ent.timestamp = level.framenum + 30 * BASE_FRAMERATE;
+		if (deathmatch.intVal)
+			ent.mass = (int)(best.mass * 0.25f);
+		else
+			ent.mass = (int)(best.mass * 0.1f);
+		// ok spawn the food cube
+		ent.s.frame = 5;
+		return;
+	}
+
+	BecomeExplosion1(ent);
 }
 
 

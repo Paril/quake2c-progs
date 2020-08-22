@@ -428,7 +428,7 @@ struct game_export_t {
 	void(string mapname, string entities, string spawnpoint)	SpawnEntities;
 	void()								PostSpawnEntities;
 	
-	bool(entity ent, __inout string userinfo)	ClientConnect;
+	bool(entity ent, inout string userinfo)	ClientConnect;
 	void(entity ent)				ClientBegin;
 	void(entity ent, string userinfo)		ClientUserinfoChanged;
 	void(entity ent)				ClientDisconnect;
@@ -459,7 +459,7 @@ API_FUNC void() Test =
 
 // Main entry point; if you need to do any global stuff, this is where
 // ya do it.
-API_FUNC void(__out game_export_t exports) GetGameAPI =
+API_FUNC void(out game_export_t exports) GetGameAPI =
 {
 	// set up constants for configstrings
 	CS_SOUNDS		= CS_MODELS + MAX_MODELS;

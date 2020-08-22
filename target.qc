@@ -506,10 +506,10 @@ void(entity self) target_laser_think =
 	{
 #ifdef GROUND_ZERO
 		if(self.spawnflags & LASER_STOPWINDOW)
-			gi.trace(&tr, start, vec3_origin, vec3_origin, end, ignore, MASK_SHOT);
+			gi.traceline(&tr, start, end, ignore, MASK_SHOT);
 		else
 #endif
-			gi.trace(&tr, start, vec3_origin, vec3_origin, end, ignore, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_DEADMONSTER);
+			gi.traceline(&tr, start, end, ignore, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_DEADMONSTER);
 
 		if (!tr.ent)
 			break;
