@@ -59,7 +59,7 @@ static void(entity self) turret_brain_think =
 	float reaction_time = self.delay;
 
 	if (!reaction_time)
-		reaction_time = (3 - skill.intVal) * 1.0;
+		reaction_time = (float)(3 - skill.intVal) * 1.0;
 
 	if ((level.framenum - self.monsterinfo.trail_framenum) < (reaction_time * BASE_FRAMERATE))
 		return;

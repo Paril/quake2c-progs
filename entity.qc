@@ -79,7 +79,7 @@ const int MAX_ENT_CLUSTERS = 16;
 .int	areanum, areanum2;
 
 // edict.svflags
-.enumflags
+.enumflags : int
 {
 	SVF_NOCLIENT,		// don't send entity to clients, even if it has effects
 	SVF_DEADMONSTER,	// treat as CONTENTS_DEADMONSTER for collision
