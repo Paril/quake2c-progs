@@ -1,8 +1,3 @@
-#ifndef DEBUG
-// If you want to compile in debug mode, change this.
-#define DEBUG 1
-#endif
-
 #pragma warning disable Q208 // we're valid darn you >:(
 #pragma warning enable F302 // uninitialised locals
 #pragma warning disable Q205
