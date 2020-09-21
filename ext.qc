@@ -37,6 +37,10 @@ int(int, int) ModInt = #0;
 
 variant(string) func_get = #0;
 
+typedef int(variant *a, variant *b, optional variant *ctx) qsort_comparator;
+
+void(variant* elements, int num, int size_of_element, qsort_comparator compar, optional variant *ctx) qsort = #0;
+
 // function is visible to func_get and to the game code
 #define API_FUNC used
 

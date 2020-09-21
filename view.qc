@@ -20,7 +20,8 @@ static void(void) P_WorldEffects =
 	bool        envirosuit;
 	int         current_waterlevel, old_waterlevel;
 
-	if (current_player.movetype == MOVETYPE_NOCLIP) {
+	if (current_player.movetype == MOVETYPE_NOCLIP)
+	{
 		current_player.air_finished_framenum = level.framenum + 12 * BASE_FRAMERATE; // don't need air
 		return;
 	}
@@ -510,8 +511,6 @@ SV_CalcGunOffset
 */
 static void(entity ent) SV_CalcGunOffset =
 {
-	float   delta;
-
 	// gun angles from bobbing
 #ifdef GROUND_ZERO
 	//ROGUE - heatbeam shouldn't bob so the beam looks right
@@ -520,7 +519,9 @@ static void(entity ent) SV_CalcGunOffset =
 #endif
 		ent.client.ps.gunangles[ROLL] = xyspeed * bobfracsin * 0.005f;
 		ent.client.ps.gunangles[YAW] = xyspeed * bobfracsin * 0.01f;
-		if (bobcycle & 1) {
+
+		if (bobcycle & 1)
+		{
 			ent.client.ps.gunangles[ROLL] = -ent.client.ps.gunangles[ROLL];
 			ent.client.ps.gunangles[YAW] = -ent.client.ps.gunangles[YAW];
 		}
@@ -528,23 +529,22 @@ static void(entity ent) SV_CalcGunOffset =
 		ent.client.ps.gunangles[PITCH] = xyspeed * bobfracsin * 0.005f;
 
 		// gun angles from delta movement
-		#define FIGURE_GUN_ANGLE(i) \
-			delta = ent.client.oldviewangles[i] - ent.client.ps.viewangles[i]; \
-			if (delta > 180) \
-				delta -= 360f; \
-			if (delta < -180) \
-				delta += 360f; \
-			if (delta > 45) \
-				delta = 45f; \
-			if (delta < -45) \
-				delta = -45f; \
-			if (i == YAW) \
-				ent.client.ps.gunangles[ROLL] += 0.1f * delta; \
-			ent.client.ps.gunangles[i] += 0.2f * delta
+		for (int i = 0; i < 3; i++)
+		{
+			float delta = ent.client.oldviewangles[i] - ent.client.ps.viewangles[i];
+			if (delta > 180)
+				delta -= 360f;
+			if (delta < -180)
+				delta += 360f;
+			if (delta > 45)
+				delta = 45f;
+			if (delta < -45)
+				delta = -45f;
+			if (i == YAW)
+				ent.client.ps.gunangles[ROLL] += 0.1f * delta;
+			ent.client.ps.gunangles[i] += 0.2f * delta;
+		}
 
-		FIGURE_GUN_ANGLE(0);
-		FIGURE_GUN_ANGLE(1);
-		FIGURE_GUN_ANGLE(2);
 #ifdef GROUND_ZERO
 	}
 	else

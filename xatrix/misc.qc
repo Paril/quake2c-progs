@@ -3,16 +3,10 @@
 // RAFAEL
 void(entity self, string gibname, int damage, int type) ThrowGibACID =
 {
-	entity gib;
-	vector vd;
-	vector origin;
-	vector sz;
-	float vscale;
+	entity gib = G_Spawn();
 
-	gib = G_Spawn();
-
-	sz = self.size * 0.5;
-	origin = self.absmin + sz;
+	vector sz = self.size * 0.5;
+	vector origin = self.absmin + sz;
 	gib.s.origin = origin + randomv(-sz, sz);
 
 	gib.s.modelindex = gi.modelindex (gibname);
@@ -28,6 +22,8 @@ void(entity self, string gibname, int damage, int type) ThrowGibACID =
 	gib.die = gib_die;
 	gib.dmg = 2;
 
+	float vscale;
+
 	if (type == GIB_ORGANIC)
 	{
 		gib.movetype = MOVETYPE_TOSS;
@@ -39,8 +35,7 @@ void(entity self, string gibname, int damage, int type) ThrowGibACID =
 		vscale = 1.0;
 	}
 
-	VelocityForDamage (damage, vd);
-	gib.velocity = self.velocity + (vd * vscale);
+	gib.velocity = self.velocity + (VelocityForDamage(damage) * vscale);
 	ClipGibVelocity (gib);
 	gib.avelocity = randomv('600 600 600');
 
@@ -54,9 +49,6 @@ void(entity self, string gibname, int damage, int type) ThrowGibACID =
 
 void(entity self, string gibname, int damage, int type) ThrowHeadACID =
 {
-	vector vd;
-	float vscale;
-
 	self.s.skinnum = 0;
 	self.s.frame = 0;
 	self.mins = vec3_origin;
@@ -78,6 +70,8 @@ void(entity self, string gibname, int damage, int type) ThrowHeadACID =
 	self.die = gib_die;
 	self.dmg = 2;
 
+	float vscale;
+
 	if (type == GIB_ORGANIC)
 	{
 		self.movetype = MOVETYPE_TOSS;
@@ -89,8 +83,7 @@ void(entity self, string gibname, int damage, int type) ThrowHeadACID =
 		vscale = 1.0;
 	}
 
-	VelocityForDamage (damage, vd);
-	self.velocity += vd * vscale;
+	self.velocity += VelocityForDamage(damage) * vscale;
 	ClipGibVelocity (self);
 
 	self.avelocity[YAW] = random(-600f, 600f);
@@ -138,19 +131,13 @@ API_FUNC static void(entity ent) SP_misc_crashviper =
 
 static void(entity self, entity other, entity cactivator) misc_viper_missile_use =
 {
-	vector	forward, right, up;
-	vector	start, dir;
-	vector	vec;
-	
-	AngleVectors (self.s.angles, &forward, &right, &up);
-	
 	self.enemy = G_Find(world, targetname, self.target);
 	
-	vec = self.enemy.s.origin;
+	vector vec = self.enemy.s.origin;
 	vec[2] += 16;	// Knightmare fixed
 	
-	start = self.s.origin;
-	dir = vec - start;
+	vector start = self.s.origin;
+	vector dir = vec - start;
 	VectorNormalize (dir);
 	
 	monster_fire_rocket (self, start, dir, self.dmg, 500, MZ2_CHICK_ROCKET_1);
@@ -205,10 +192,8 @@ API_FUNC static void(entity ent) SP_misc_transport =
 	ent.svflags |= SVF_NOCLIENT;
 	ent.moveinfo.accel = ent.moveinfo.decel = ent.moveinfo.speed = ent.speed;
 
-	if (!(ent.spawnflags & 1))
-	{
+	if !(ent.spawnflags & 1)
 		ent.spawnflags |= 1;
-	}
 	
 	gi.linkentity (ent);
 }
@@ -234,25 +219,19 @@ API_FUNC static void(entity ent) SP_misc_amb4 =
 
 /*QUAKED misc_nuke (1 0 0) (-16 -16 -16) (16 16 16)
 */
-
 static void(entity self, entity other, entity cactivator) use_nuke =
 {
-	int fromn = 0;
-
-	for ( ; fromn < globals.num_edicts; fromn++)
+	for (int fromn = 1; fromn < globals.num_edicts; fromn++)
 	{
 		entity from = itoe(fromn);
 		
 		if (from == self)
 			continue;
+
 		if (from.is_client)
-		{
 			T_Damage (from, self, self, vec3_origin, from.s.origin, vec3_origin, 100000, 1, 0, MOD_TRAP);
-		}
 		else if (from.svflags & SVF_MONSTER)
-		{
 			G_FreeEdict (from);
-		}
 	}
 
 	self.use = 0;

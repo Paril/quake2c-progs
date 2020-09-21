@@ -26,62 +26,43 @@ static bool(entity self) gekk_check_melee =
 	if (!self.enemy && self.enemy.health <= 0)
 		return false;
 
-	if (range (self, self.enemy) == RANGE_MELEE)
-		return true;
-	return false;
+	return range(self, self.enemy) == RANGE_MELEE;
 }
 
 static bool(entity self) gekk_check_jump =
 {
-	vector	v;
-	float	distance;
-
 	if (self.absmin[2] > (self.enemy.absmin[2] + 0.75 * self.enemy.size[2]))
 		return false;
 
 	if (self.absmax[2] < (self.enemy.absmin[2] + 0.25 * self.enemy.size[2]))
 		return false;
 
-	v[0] = self.s.origin[0] - self.enemy.s.origin[0];
-	v[1] = self.s.origin[1] - self.enemy.s.origin[1];
-	v[2] = 0;
-	distance = VectorLength(v);
+	vector v = [	self.s.origin[0] - self.enemy.s.origin[0],
+					self.s.origin[1] - self.enemy.s.origin[1],
+					0 ];
+	float distance = VectorLength(v);
 
 	if (distance < 100)
-	{
 		return false;
-	}
-	if (distance > 100)
-	{
+	else if (distance > 100)
 		if (random() < 0.9)
 			return false;
-	}
 
 	return true;
 }
 
 static bool(entity self) gekk_check_jump_close =
 {
-	vector	v;
-	float	distance;
-
-	v[0] = self.s.origin[0] - self.enemy.s.origin[0];
-	v[1] = self.s.origin[1] - self.enemy.s.origin[1];
-	v[2] = 0;
-	
-	distance = VectorLength(v);
+	vector v = [	self.s.origin[0] - self.enemy.s.origin[0],
+					self.s.origin[1] - self.enemy.s.origin[1],
+					0 ];
+	float distance = VectorLength(v);
 
 	if (distance < 100)
-	{
-		if (self.s.origin[2] < self.enemy.s.origin[2])
-			return true;
-		else
-			return false;
-	}
+		return self.s.origin[2] < self.enemy.s.origin[2];
 	
 	return true;
 }
-
 
 static bool(entity self) gekk_checkattack =
 {
@@ -116,8 +97,8 @@ static bool(entity self) gekk_checkattack =
 
 static void(entity self) gekk_step =
 {
-	int		n;
-	n = (Q_rand() + 1) % 3;
+	int n = Q_rand_uniform(3);
+
 	if (n == 0)
 		gi.sound (self, CHAN_VOICE, sound_step1, 1, ATTN_NORM, 0);		
 	else if (n == 1)
@@ -133,11 +114,9 @@ static void(entity self, entity other) gekk_sight =
 
 static void(entity self) gekk_search =
 {
-	float r;
-
 	if (self.spawnflags & 8)
 	{
-		r = random();
+		float r = random();
 		if (r < 0.33)
 			gi.sound (self, CHAN_VOICE, sound_chantlow, 1, ATTN_NORM, 0);
 		else if (r < 0.66)
@@ -147,13 +126,12 @@ static void(entity self) gekk_search =
 	}
 	else
 		gi.sound (self, CHAN_VOICE, sound_search, 1, ATTN_NORM, 0);
-	
 
 	self.health += (int)random(10f, 20f);
 	if (self.health > self.max_health)
 		self.health = self.max_health;
 
-	if (self.health < (self.max_health /4))
+	if (self.health < (self.max_health / 4))
 		self.s.skinnum = 2;
 	else if (self.health < (self.max_health / 2))
 		self.s.skinnum = 1;
@@ -179,20 +157,15 @@ static void(entity self, entity other, vector plane, csurface_t surf) gekk_jump_
 		return;
 	}
 
-	if (other.takedamage)
+	if (other.takedamage && VectorLength(self.velocity) > 200)
 	{
-		if (VectorLength(self.velocity) > 200)
-		{
-			vector	point;
-			vector	normal;
-			int	damage;
+		vector normal = self.velocity;
+		VectorNormalize(normal);
 
-			normal = self.velocity;
-			VectorNormalize(normal);
-			point = self.s.origin + (normal * self.maxs[0]);
-			damage = (int)random(10f, 20f);
-			T_Damage (other, self, self, self.velocity, point, normal, damage, damage, 0, MOD_GEKK);
-		}
+		vector point = self.s.origin + (normal * self.maxs[0]);
+		int damage = (int)random(10f, 20f);
+
+		T_Damage (other, self, self, self.velocity, point, normal, damage, damage, 0, MOD_GEKK);
 	}
 
 	if (!M_CheckBottom (self))
@@ -202,6 +175,7 @@ static void(entity self, entity other, vector plane, csurface_t surf) gekk_jump_
 			self.monsterinfo.nextframe = FRAME_leapatk_11;
 			self.touch = 0;
 		}
+
 		return;
 	}
 
@@ -210,10 +184,11 @@ static void(entity self, entity other, vector plane, csurface_t surf) gekk_jump_
 
 static void(entity self) gekk_jump_takeoff =
 {
-	vector	forward;
-
 	gi.sound (self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
+
+	vector	forward;
 	AngleVectors (self.s.angles, &forward, 0, 0);
+
 	self.s.origin[2] += 1;
 	
 	// high jump
@@ -228,7 +203,6 @@ static void(entity self) gekk_jump_takeoff =
 		self.velocity[2] = 400f;
 	}
 
-	
 	self.groundentity = null_entity;
 	self.monsterinfo.aiflags |= AI_DUCKED;
 	self.monsterinfo.attack_finished = level.framenum + 3 * BASE_FRAMERATE;
@@ -237,10 +211,11 @@ static void(entity self) gekk_jump_takeoff =
 
 static void(entity self) gekk_jump_takeoff2 =
 {
-	vector	forward;
-
 	gi.sound (self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
+
+	vector	forward;
 	AngleVectors (self.s.angles, &forward, 0, 0);
+
 	self.s.origin[2] = self.enemy.s.origin[2];
 	
 	if (gekk_check_jump (self))
@@ -263,9 +238,7 @@ static void(entity self) gekk_jump_takeoff2 =
 static void(entity self) gekk_stop_skid =
 {
 	if (self.groundentity != null_entity)
-	{
 		self.velocity = vec3_origin;
-	}
 }
 
 static void(entity self) gekk_check_landing =
@@ -275,13 +248,10 @@ static void(entity self) gekk_check_landing =
 		gi.sound (self, CHAN_WEAPON, sound_thud, 1, ATTN_NORM, 0);
 		self.monsterinfo.attack_finished = 0;
 		self.monsterinfo.aiflags &= ~AI_DUCKED;
-
 		self.velocity = vec3_origin;
 		return;
 	}
 
-	// note to self
-	// causing skid
 	if (level.framenum > self.monsterinfo.attack_finished)
 		self.monsterinfo.nextframe = FRAME_leapatk_11;
 	else
@@ -463,6 +433,7 @@ static void(entity self, float dist) ai_stand2 =
 	if (self.spawnflags & 8)
 	{
 		ai_move (self, dist);
+
 		if (!(self.spawnflags & 1) && (self.monsterinfo.idle) && (level.framenum > self.monsterinfo.idle_framenum))
 		{
 			if (self.monsterinfo.idle_framenum)
@@ -471,9 +442,7 @@ static void(entity self, float dist) ai_stand2 =
 				self.monsterinfo.idle_framenum = level.framenum + (int)(random(15f, 30f) * BASE_FRAMETIME);
 			}
 			else
-			{
 				self.monsterinfo.idle_framenum = level.framenum + (int)(random(15f) * BASE_FRAMETIME);
-			}
 		}
 	}
 	else
@@ -650,7 +619,6 @@ static void(entity self) gekk_idle =
 		self.monsterinfo.currentmove = &gekk_move_idle;
 	else
 		self.monsterinfo.currentmove = &gekk_move_swim_start;
-	// gi.sound (self, CHAN_VOICE, sound_idle, 1, ATTN_IDLE, 0);
 }
 
 
@@ -660,12 +628,12 @@ static void(entity self) gekk_idle =
 
 static mframe_t gekk_frames_walk[] = 
 {
- { ai_walk,   3.849, gekk_check_underwater }, // frame 0
- { ai_walk,  19.606 }, // frame 1
- { ai_walk,  25.583 }, // frame 2
- { ai_walk,  34.625, gekk_step }, // frame 3
- { ai_walk,  27.365 }, // frame 4
- { ai_walk,  28.480 }, // frame 5
+	{ ai_walk,  3.849, gekk_check_underwater }, // frame 0
+	{ ai_walk,  19.606 }, // frame 1
+	{ ai_walk,  25.583 }, // frame 2
+	{ ai_walk,  34.625, gekk_step }, // frame 3
+	{ ai_walk,  27.365 }, // frame 4
+	{ ai_walk,  28.480 }, // frame 5
 };
 static var mmove_t gekk_move_walk = { FRAME_run_01, FRAME_run_06 };
 
@@ -681,39 +649,27 @@ static void(entity self) gekk_walk =
 
 static void(entity self) gekk_run =
 {
-	
 	if (self.waterlevel)
-	{
 		self.monsterinfo.currentmove = &gekk_move_swim_start;
-		return;
-	}
+	else if (self.monsterinfo.aiflags & AI_STAND_GROUND)
+		self.monsterinfo.currentmove = &gekk_move_stand;
 	else
-	{
-		if (self.monsterinfo.aiflags & AI_STAND_GROUND)
-			self.monsterinfo.currentmove = &gekk_move_stand;
-		else
-			self.monsterinfo.currentmove = &gekk_move_run;
-	}
-
+		self.monsterinfo.currentmove = &gekk_move_run;
 }
 
 static mframe_t gekk_frames_run_st[] = 
 {
- { ai_run,   0.212 }, // frame 0
- { ai_run,  19.753 }, // frame 1
+	{ ai_run,   0.212 }, // frame 0
+	{ ai_run,  19.753 }, // frame 1
 };
 static var mmove_t gekk_move_run_start = { FRAME_stand_01, FRAME_stand_02, gekk_run };
 
 static void(entity self) gekk_run_start =
 {
 	if (self.waterlevel)
-	{
 		self.monsterinfo.currentmove = &gekk_move_swim_start;
-	}	
 	else
-	{
 		self.monsterinfo.currentmove = &gekk_move_run_start;
-	}
 }
 
 //
@@ -722,7 +678,6 @@ static void(entity self) gekk_run_start =
 
 static void(entity self, entity other, vector normal, csurface_t surf) loogie_touch =
 {
-
 	if (other == self.owner)
 		return;
 
@@ -741,15 +696,11 @@ static void(entity self, entity other, vector normal, csurface_t surf) loogie_to
 	G_FreeEdict (self);
 };
 	
-
 static void(entity self, vector start, vector dir, int damage, int speed) fire_loogie =
 {
-	entity loogie;
-	trace_t	tr;
-
 	VectorNormalize (dir);
 
-	loogie = G_Spawn();
+	entity loogie = G_Spawn();
 	loogie.s.origin = start;
 	loogie.s.old_origin = start;
 	loogie.s.angles = vectoangles (dir);
@@ -767,34 +718,30 @@ static void(entity self, vector start, vector dir, int damage, int speed) fire_l
 	loogie.dmg = damage;
 	gi.linkentity (loogie);
 
+	trace_t	tr;
 	gi.traceline(&tr, self.s.origin, loogie.s.origin, loogie, MASK_SHOT);
+
 	if (tr.fraction < 1.0)
 	{
 		loogie.s.origin += dir * -10;
 		loogie.touch (loogie, tr.ent, vec3_origin, null_surface);
 	}
-
 }	
 
 static void(entity self) loogie =
 {
-	vector	start;
-	vector	forward, right, up;
-	vector	end;
-	vector	dir;
-	vector	gekkoffset = '-18 -0.8 24';
-
 	if (!self.enemy || self.enemy.health <= 0)
 		return;
-	
-	AngleVectors (self.s.angles, &forward, &right, &up);
-	start = G_ProjectSource (self.s.origin, gekkoffset, forward, right);
 
+	vector forward, right, up;
+	AngleVectors (self.s.angles, &forward, &right, &up);
+
+	vector start = G_ProjectSource (self.s.origin, '-18 -0.8 24', forward, right);
 	start += up * 2;
 	
-	end = self.enemy.s.origin;
+	vector end = self.enemy.s.origin;
 	end[2] += self.enemy.viewheight;
-	dir = end - start;
+	vector dir = end - start;
 
 	fire_loogie (self, start, dir, 5, 550);
 }
@@ -817,14 +764,14 @@ static void(entity self) reloogie =
 
 static mframe_t gekk_frames_spit [] =
 {
- { ai_charge }, 
- { ai_charge }, 
- { ai_charge }, 
- { ai_charge }, 
- { ai_charge }, 
- 
- { ai_charge,   0.000, loogie },
- { ai_charge,   0.000, reloogie }
+	{ ai_charge }, 
+	{ ai_charge }, 
+	{ ai_charge }, 
+	{ ai_charge }, 
+	{ ai_charge }, 
+
+	{ ai_charge,   0.000, loogie },
+	{ ai_charge,   0.000, reloogie }
 };
 static var mmove_t gekk_move_spit = { FRAME_spit_01, FRAME_spit_07, gekk_run_start };
 
@@ -840,16 +787,13 @@ static void(entity self) gekk_check_refire =
 {
 	if (!self.enemy || !self.enemy.inuse || self.enemy.health <= 0)
 		return;
-	
-	if (random() < (skill.intVal * 0.1))
+
+	if (random() < (skill.intVal * 0.1) && range (self, self.enemy) == RANGE_MELEE)
 	{
-		if (range (self, self.enemy) == RANGE_MELEE)
-		{
-			if (self.s.frame == FRAME_clawatk3_09)
-				self.monsterinfo.currentmove = &gekk_move_attack2;
-			else if (self.s.frame == FRAME_clawatk5_09)
-				self.monsterinfo.currentmove = &gekk_move_attack1;
-		}
+		if (self.s.frame == FRAME_clawatk3_09)
+			self.monsterinfo.currentmove = &gekk_move_attack2;
+		else if (self.s.frame == FRAME_clawatk5_09)
+			self.monsterinfo.currentmove = &gekk_move_attack1;
 	}
 }
 
@@ -858,11 +802,11 @@ static mframe_t gekk_frames_attack1 [] =
 	{ ai_charge }, 
 	{ ai_charge }, 
 	{ ai_charge }, 
-	
+
 	{ ai_charge,   0, gekk_hit_left }, 
 	{ ai_charge }, 
 	{ ai_charge }, 
-	
+
 	{ ai_charge }, 
 	{ ai_charge }, 
 	{ ai_charge,   0, gekk_check_refire }
@@ -871,42 +815,41 @@ static mframe_t gekk_frames_attack1 [] =
 
 static mframe_t gekk_frames_attack2[] = 
 {
- { ai_charge },
- { ai_charge },
- { ai_charge,   0.000, gekk_hit_left }, 
- 
- { ai_charge },
- { ai_charge },
- { ai_charge,   0.000, gekk_hit_right }, 
- 
- { ai_charge },
- { ai_charge },
- { ai_charge,   0.000, gekk_check_refire  }
- 
+	{ ai_charge },
+	{ ai_charge },
+	{ ai_charge,   0.000, gekk_hit_left }, 
+
+	{ ai_charge },
+	{ ai_charge },
+	{ ai_charge,   0.000, gekk_hit_right }, 
+
+	{ ai_charge },
+	{ ai_charge },
+	{ ai_charge,   0.000, gekk_check_refire  }
 };
 
 static mframe_t gekk_frames_leapatk[] = 
 {
- { ai_charge }, // frame 0
- { ai_charge,  -0.387 }, // frame 1
- { ai_charge,  -1.113 }, // frame 2
- { ai_charge,  -0.237 }, // frame 3
- { ai_charge,   6.720, gekk_jump_takeoff }, // frame 4  last frame on ground
- { ai_charge,   6.414 }, // frame 5  leaves ground
- { ai_charge,   0.163 }, // frame 6
- { ai_charge,  28.316 }, // frame 7
- { ai_charge,  24.198 }, // frame 8
- { ai_charge,  31.742 }, // frame 9
- { ai_charge,  35.977, gekk_check_landing }, // frame 10  last frame in air
- { ai_charge,  12.303, gekk_stop_skid }, // frame 11  feet back on ground
- { ai_charge,  20.122, gekk_stop_skid }, // frame 12
- { ai_charge,  -1.042, gekk_stop_skid }, // frame 13
- { ai_charge,   2.556, gekk_stop_skid }, // frame 14
- { ai_charge,   0.544, gekk_stop_skid }, // frame 15
- { ai_charge,   1.862, gekk_stop_skid }, // frame 16
- { ai_charge,   1.224, gekk_stop_skid }, // frame 17
+	{ ai_charge }, // frame 0
+	{ ai_charge,  -0.387 }, // frame 1
+	{ ai_charge,  -1.113 }, // frame 2
+	{ ai_charge,  -0.237 }, // frame 3
+	{ ai_charge,   6.720, gekk_jump_takeoff }, // frame 4  last frame on ground
+	{ ai_charge,   6.414 }, // frame 5  leaves ground
+	{ ai_charge,   0.163 }, // frame 6
+	{ ai_charge,  28.316 }, // frame 7
+	{ ai_charge,  24.198 }, // frame 8
+	{ ai_charge,  31.742 }, // frame 9
+	{ ai_charge,  35.977, gekk_check_landing }, // frame 10  last frame in air
+	{ ai_charge,  12.303, gekk_stop_skid }, // frame 11  feet back on ground
+	{ ai_charge,  20.122, gekk_stop_skid }, // frame 12
+	{ ai_charge,  -1.042, gekk_stop_skid }, // frame 13
+	{ ai_charge,   2.556, gekk_stop_skid }, // frame 14
+	{ ai_charge,   0.544, gekk_stop_skid }, // frame 15
+	{ ai_charge,   1.862, gekk_stop_skid }, // frame 16
+	{ ai_charge,   1.224, gekk_stop_skid }, // frame 17
 
- { ai_charge,  -0.457, gekk_check_underwater }, // frame 18
+	{ ai_charge,  -0.457, gekk_check_underwater }, // frame 18
 };
 static var mmove_t gekk_move_leapatk = { FRAME_leapatk_01, FRAME_leapatk_19, gekk_run_start };
 
@@ -940,47 +883,25 @@ static var mmove_t gekk_move_attack = { FRAME_attack_01, FRAME_attack_21, gekk_r
 
 static void(entity self) gekk_melee =
 {
-	
-	float r;
-	
 	if (self.waterlevel)
-	{
-		self.monsterinfo.currentmove = &gekk_move_attack;	
-	}
-	else
-	{
-		r = random();
-
-		if (r > 0.66)
-			self.monsterinfo.currentmove = &gekk_move_attack1;
-		else 
-			self.monsterinfo.currentmove = &gekk_move_attack2;
-		
-	}
-
+		self.monsterinfo.currentmove = &gekk_move_attack;
+	else if (random() > 0.66)
+		self.monsterinfo.currentmove = &gekk_move_attack1;
+	else 
+		self.monsterinfo.currentmove = &gekk_move_attack2;
 }
 
 static void(entity self) gekk_jump =
 {
 	if (self.flags & FL_SWIM || self.waterlevel)
-	{
 		return;
-	}
+
+	if (random() > 0.5 && (range (self, self.enemy) >= RANGE_NEAR))
+		self.monsterinfo.currentmove = &gekk_move_spit;
+	else if (random() > 0.8)
+		self.monsterinfo.currentmove = &gekk_move_spit;
 	else
-	{
-		//if (random() > 0.8 && self.health < self.max_health)
-		//	self.monsterinfo.currentmove = &gekk_move_idle2;
-		//else
-		{
-			if (random() > 0.5 && (range (self, self.enemy) >= RANGE_NEAR))
-				self.monsterinfo.currentmove = &gekk_move_spit;
-			else if (random() > 0.8)
-				self.monsterinfo.currentmove = &gekk_move_spit;
-			else
-				self.monsterinfo.currentmove = &gekk_move_leapatk;
-			
-		}
-	}
+		self.monsterinfo.currentmove = &gekk_move_leapatk;
 }
 
 //
@@ -1000,44 +921,42 @@ static var mmove_t gekk_move_pain = { FRAME_pain_01, FRAME_pain_06, gekk_run_sta
 
 mframe_t gekk_frames_pain1[] = 
 {
- { ai_move }, // frame 0
- { ai_move }, // frame 1
- { ai_move }, // frame 2
- { ai_move }, // frame 3
- { ai_move }, // frame 4
- { ai_move }, // frame 5
- { ai_move }, // frame 6
- { ai_move }, // frame 7
- { ai_move }, // frame 8
- { ai_move }, // frame 9
- 
- { ai_move,   0.000, gekk_check_underwater }
+	{ ai_move }, // frame 0
+	{ ai_move }, // frame 1
+	{ ai_move }, // frame 2
+	{ ai_move }, // frame 3
+	{ ai_move }, // frame 4
+	{ ai_move }, // frame 5
+	{ ai_move }, // frame 6
+	{ ai_move }, // frame 7
+	{ ai_move }, // frame 8
+	{ ai_move }, // frame 9
+	
+	{ ai_move,   0.000, gekk_check_underwater }
 };
 static var mmove_t gekk_move_pain1 = { FRAME_pain3_01, FRAME_pain3_11, gekk_run_start };
 
 static mframe_t gekk_frames_pain2[] = 
 {
- { ai_move }, // frame 0
- { ai_move }, // frame 1
- { ai_move }, // frame 2
- { ai_move }, // frame 3
- { ai_move }, // frame 4
- { ai_move }, // frame 5
- { ai_move }, // frame 6
- { ai_move }, // frame 7
- { ai_move }, // frame 8
- { ai_move }, // frame 9
- 
- { ai_move }, // frame 10
- { ai_move }, // frame 11
- { ai_move,   0.000, gekk_check_underwater }, 
+	{ ai_move }, // frame 0
+	{ ai_move }, // frame 1
+	{ ai_move }, // frame 2
+	{ ai_move }, // frame 3
+	{ ai_move }, // frame 4
+	{ ai_move }, // frame 5
+	{ ai_move }, // frame 6
+	{ ai_move }, // frame 7
+	{ ai_move }, // frame 8
+	{ ai_move }, // frame 9
+	
+	{ ai_move }, // frame 10
+	{ ai_move }, // frame 11
+	{ ai_move,   0.000, gekk_check_underwater }, 
 };
 static var mmove_t gekk_move_pain2 = { FRAME_pain4_01, FRAME_pain4_13, gekk_run_start };
 
 static void(entity self, entity other, float kick, int damage) gekk_pain =
 {
-	float	r;
-
 	if (self.spawnflags & 8)
 	{
 		self.spawnflags &= ~8;
@@ -1063,17 +982,11 @@ static void(entity self, entity other, float kick, int damage) gekk_pain =
 		
 		self.monsterinfo.currentmove = &gekk_move_pain;
 	}
+	else if (random() > 0.5)
+		self.monsterinfo.currentmove = &gekk_move_pain1;
 	else
-	{
-		r = random();
-
-		if (r > 0.5)
-			self.monsterinfo.currentmove = &gekk_move_pain1;
-		else
-			self.monsterinfo.currentmove = &gekk_move_pain2;
-	}
+		self.monsterinfo.currentmove = &gekk_move_pain2;
 }
-
 
 //
 // DEATH
@@ -1097,9 +1010,9 @@ static void(entity self) gekk_dead =
 void(entity self, string gibname, int damage, int type) ThrowGibACID;
 void(entity self, string gibname, int damage, int type) ThrowHeadACID;
 
-static void(entity self) gekk_gibfest =
+static INLINE void(entity self) gekk_gibfest =
 {
-	int damage = 20;
+	const int damage = 20;
 	
 	gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
 	
@@ -1112,7 +1025,6 @@ static void(entity self) gekk_gibfest =
 	ThrowGibACID (self, "models/objects/gekkgib/leg/tris.md2", damage, GIB_ORGANIC);
 	
 	ThrowHeadACID (self, "models/objects/gekkgib/head/tris.md2", damage, GIB_ORGANIC);
-	
 
 	self.deadflag = DEAD_DEAD;
 }
@@ -1152,41 +1064,41 @@ static var mmove_t gekk_move_death3 = { FRAME_death3_01, FRAME_death3_07, gekk_d
 
 static mframe_t gekk_frames_death4[] = 
 {
- { ai_move,   5.103 }, // frame 0
- { ai_move,  -4.808 }, // frame 1
- { ai_move, -10.509 }, // frame 2
- { ai_move,  -9.899 }, // frame 3
- { ai_move,   4.033, isgibfest }, // frame 4
- { ai_move,  -5.197 }, // frame 5
- { ai_move,  -0.919 }, // frame 6
- { ai_move,  -8.821 }, // frame 7
- { ai_move,  -5.626 }, // frame 8
- { ai_move,  -8.865, isgibfest }, // frame 9
- { ai_move,  -0.845 }, // frame 10
- { ai_move,   1.986 }, // frame 11
- { ai_move,   0.170 }, // frame 12
- { ai_move,   1.339, isgibfest }, // frame 13
- { ai_move,  -0.922 }, // frame 14
- { ai_move,   0.818 }, // frame 15
- { ai_move,  -1.288 }, // frame 16
- { ai_move,  -1.408, isgibfest }, // frame 17
- { ai_move,  -7.787 }, // frame 18
- { ai_move,  -3.995 }, // frame 19
- { ai_move,  -4.604 }, // frame 20
- { ai_move,  -1.715, isgibfest }, // frame 21
- { ai_move,  -0.564 }, // frame 22
- { ai_move,  -0.597 }, // frame 23
- { ai_move,   0.074 }, // frame 24
- { ai_move,  -0.309, isgibfest }, // frame 25
- { ai_move,  -0.395 }, // frame 26
- { ai_move,  -0.501 }, // frame 27
- { ai_move,  -0.325 }, // frame 28
- { ai_move,  -0.931, isgibfest }, // frame 29
- { ai_move,  -1.433 }, // frame 30
- { ai_move,  -1.626 }, // frame 31
- { ai_move,   4.680 }, // frame 32
- { ai_move,   0.560 }, // frame 33
- { ai_move,  -0.549, gekk_gibfest } // frame 34
+	{ ai_move,   5.103 }, // frame 0
+	{ ai_move,  -4.808 }, // frame 1
+	{ ai_move, -10.509 }, // frame 2
+	{ ai_move,  -9.899 }, // frame 3
+	{ ai_move,   4.033, isgibfest }, // frame 4
+	{ ai_move,  -5.197 }, // frame 5
+	{ ai_move,  -0.919 }, // frame 6
+	{ ai_move,  -8.821 }, // frame 7
+	{ ai_move,  -5.626 }, // frame 8
+	{ ai_move,  -8.865, isgibfest }, // frame 9
+	{ ai_move,  -0.845 }, // frame 10
+	{ ai_move,   1.986 }, // frame 11
+	{ ai_move,   0.170 }, // frame 12
+	{ ai_move,   1.339, isgibfest }, // frame 13
+	{ ai_move,  -0.922 }, // frame 14
+	{ ai_move,   0.818 }, // frame 15
+	{ ai_move,  -1.288 }, // frame 16
+	{ ai_move,  -1.408, isgibfest }, // frame 17
+	{ ai_move,  -7.787 }, // frame 18
+	{ ai_move,  -3.995 }, // frame 19
+	{ ai_move,  -4.604 }, // frame 20
+	{ ai_move,  -1.715, isgibfest }, // frame 21
+	{ ai_move,  -0.564 }, // frame 22
+	{ ai_move,  -0.597 }, // frame 23
+	{ ai_move,   0.074 }, // frame 24
+	{ ai_move,  -0.309, isgibfest }, // frame 25
+	{ ai_move,  -0.395 }, // frame 26
+	{ ai_move,  -0.501 }, // frame 27
+	{ ai_move,  -0.325 }, // frame 28
+	{ ai_move,  -0.931, isgibfest }, // frame 29
+	{ ai_move,  -1.433 }, // frame 30
+	{ ai_move,  -1.626 }, // frame 31
+	{ ai_move,   4.680 }, // frame 32
+	{ ai_move,   0.560 }, // frame 33
+	{ ai_move,  -0.549, gekk_gibfest } // frame 34
 };
 static var mmove_t gekk_move_death4 = { FRAME_death4_01, FRAME_death4_35, gekk_dead };
 
@@ -1242,8 +1154,6 @@ static var mmove_t gekk_move_wdeath = { FRAME_wdeath_01, FRAME_wdeath_45, gekk_d
 
 static void(entity self, entity inflictor, entity attacker, int damage, vector point) gekk_die =
 {
-	float	r;
-
 	if (self.health <= self.gib_health)
 	{
 		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
@@ -1274,7 +1184,7 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 		self.monsterinfo.currentmove = &gekk_move_wdeath;
 	else
 	{
-		r = random();
+		float r = random();
 		if (r > 0.66)
 			self.monsterinfo.currentmove = &gekk_move_death1;
 		else if (r > 0.33)
@@ -1292,6 +1202,7 @@ static void(entity self) gekk_duck_down =
 {
 	if (self.monsterinfo.aiflags & AI_DUCKED)
 		return;
+
 	self.monsterinfo.aiflags |= AI_DUCKED;
 	self.maxs[2] -= 32;
 	self.takedamage = true;
@@ -1317,38 +1228,38 @@ static void(entity self) gekk_duck_hold =
 
 static mframe_t gekk_frames_lduck[] = 
 {
- { ai_move }, // frame 0
- { ai_move }, // frame 1
- { ai_move }, // frame 2
- { ai_move }, // frame 3
- { ai_move }, // frame 4
- { ai_move }, // frame 5
- { ai_move }, // frame 6
- { ai_move }, // frame 7
- { ai_move }, // frame 8
- { ai_move }, // frame 9
- 
- { ai_move }, // frame 10
- { ai_move }, // frame 11
- { ai_move }  // frame 12
+	{ ai_move }, // frame 0
+	{ ai_move }, // frame 1
+	{ ai_move }, // frame 2
+	{ ai_move }, // frame 3
+	{ ai_move }, // frame 4
+	{ ai_move }, // frame 5
+	{ ai_move }, // frame 6
+	{ ai_move }, // frame 7
+	{ ai_move }, // frame 8
+	{ ai_move }, // frame 9
+	
+	{ ai_move }, // frame 10
+	{ ai_move }, // frame 11
+	{ ai_move }  // frame 12
 };
 static var mmove_t gekk_move_lduck = { FRAME_lduck_01, FRAME_lduck_13, gekk_run_start };
 
 static mframe_t gekk_frames_rduck[] = 
 {
- { ai_move }, // frame 0
- { ai_move }, // frame 1
- { ai_move }, // frame 2
- { ai_move }, // frame 3
- { ai_move }, // frame 4
- { ai_move }, // frame 5
- { ai_move }, // frame 6
- { ai_move }, // frame 7
- { ai_move }, // frame 8
- { ai_move }, // frame 9
- { ai_move }, // frame 10
- { ai_move }, // frame 11
- { ai_move } // frame 12
+	{ ai_move }, // frame 0
+	{ ai_move }, // frame 1
+	{ ai_move }, // frame 2
+	{ ai_move }, // frame 3
+	{ ai_move }, // frame 4
+	{ ai_move }, // frame 5
+	{ ai_move }, // frame 6
+	{ ai_move }, // frame 7
+	{ ai_move }, // frame 8
+	{ ai_move }, // frame 9
+	{ ai_move }, // frame 10
+	{ ai_move }, // frame 11
+	{ ai_move } // frame 12
 };
 static var mmove_t gekk_move_rduck = { FRAME_rduck_01, FRAME_rduck_13, gekk_run_start };
 
@@ -1358,10 +1269,7 @@ static void(entity self, entity attacker, float eta, trace_t *tr) gekk_dodge =
 static void(entity self, entity attacker, float eta) gekk_dodge =
 #endif
 {
-	float	r;
-
-	r = random();
-	if (r > 0.25)
+	if (random() > 0.25)
 		return;
 
 	if (!self.enemy)
@@ -1375,8 +1283,7 @@ static void(entity self, entity attacker, float eta) gekk_dodge =
 	
 	if (skill.intVal == 0)
 	{
-		r = random();
-		if (r > 0.5)
+		if (random() > 0.5)
 			self.monsterinfo.currentmove = &gekk_move_lduck;
 		else 
 			self.monsterinfo.currentmove = &gekk_move_rduck;
@@ -1384,22 +1291,19 @@ static void(entity self, entity attacker, float eta) gekk_dodge =
 	}
 
 	self.monsterinfo.pause_framenum = level.framenum + (int)((eta + 0.3) * BASE_FRAMERATE);
-	r = random();
 
 	if (skill.intVal == 1)
 	{
-		if (r > 0.33)
+		if (random() > 0.33)
 		{
-			r = random();
-			if (r > 0.5)
+			if (random() > 0.5)
 				self.monsterinfo.currentmove = &gekk_move_lduck;
 			else 
 				self.monsterinfo.currentmove = &gekk_move_rduck;
 		}
 		else
 		{
-			r = random();
-			if (r > 0.66)
+			if (random() > 0.66)
 				self.monsterinfo.currentmove = &gekk_move_attack1;
 			else 
 				self.monsterinfo.currentmove = &gekk_move_attack2;
@@ -1407,21 +1311,18 @@ static void(entity self, entity attacker, float eta) gekk_dodge =
 		}
 		return;
 	}
-
-	if (skill.intVal == 2)
+	else if (skill.intVal == 2)
 	{
-		if (r > 0.66)
+		if (random() > 0.66)
 		{
-			r = random();
-			if (r > 0.5)
+			if (random() > 0.5)
 				self.monsterinfo.currentmove = &gekk_move_lduck;
 			else 
 				self.monsterinfo.currentmove = &gekk_move_rduck;
 		}
 		else
 		{
-			r = random();
-			if (r > 0.66)
+			if (random() > 0.66)
 				self.monsterinfo.currentmove = &gekk_move_attack1;
 			else 
 				self.monsterinfo.currentmove = &gekk_move_attack2;
@@ -1429,8 +1330,7 @@ static void(entity self, entity attacker, float eta) gekk_dodge =
 		return;
 	}
 
-	r = random();
-	if (r > 0.66)
+	if (random() > 0.66)
 		self.monsterinfo.currentmove = &gekk_move_attack1;
 	else 
 		self.monsterinfo.currentmove = &gekk_move_attack2;
@@ -1539,7 +1439,6 @@ API_FUNC static void(entity self) SP_monster_gekk =
 
 	if (self.spawnflags & 8)
 		self.monsterinfo.currentmove = &gekk_move_chant;
-	
 }
 
 #endif

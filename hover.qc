@@ -388,7 +388,7 @@ static void hover_attack(entity self)
 	else // circle strafe
 	{
 		if (random () <= 0.5) // switch directions
-			self.monsterinfo.lefty = 1 - self.monsterinfo.lefty;
+			self.monsterinfo.lefty = !self.monsterinfo.lefty;
 		self.monsterinfo.currentmove = &hover_move_attack2;
 		self.monsterinfo.attack_state = AS_SLIDING;
 	}

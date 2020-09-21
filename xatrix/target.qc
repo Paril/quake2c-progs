@@ -1,6 +1,5 @@
 #ifdef THE_RECKONING
 
-// RAFAEL 15-APR-98
 /*QUAKED target_mal_laser (1 0 0) (-4 -4 -4) (4 4 4) START_ON RED GREEN BLUE YELLOW ORANGE FAT
 Mal's laser
 */
@@ -87,6 +86,5 @@ API_FUNC static void(entity self) SP_target_mal_laser =
 	else
 		target_mal_laser_off (self);
 }
-// END	15-APR-98
 
 #endif

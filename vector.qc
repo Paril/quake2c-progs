@@ -22,6 +22,16 @@ INLINE float(inout vector v) VectorNormalize =
 	return length;
 }
 
+inline float(vector a, vector b) VectorDistance =
+{
+	return VectorLength(a - b);
+}
+
+inline float(vector a, vector b) VectorDistanceSquared =
+{
+	return VectorLengthSquared(a - b);
+}
+
 /*
 ==================
 ClipVelocity

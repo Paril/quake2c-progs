@@ -37,18 +37,16 @@ const vector stalker_maxs = '28 28 18';
 
 static int	widow_damage_multiplier;
 
-static void widow_sight (entity self, entity other)
+static void(entity self, entity other) widow_sight =
 {
 	self.monsterinfo.pause_framenum = 0;
 }
 
-static float target_angle (entity self)
+static float(entity self) target_angle =
 {
-	vector target;
-	float enemy_yaw;
+	vector target = self.s.origin - self.enemy.s.origin;
+	float enemy_yaw = self.s.angles[YAW] - vectoyaw(target);
 
-	target = self.s.origin - self.enemy.s.origin;
-	enemy_yaw = self.s.angles[YAW] - vectoyaw(target);
 	if (enemy_yaw < 0)
 		enemy_yaw += 360.0;
 
@@ -62,7 +60,7 @@ static float target_angle (entity self)
 static var mmove_t widow_move_attack_post_blaster_r = { FRAME_transa01, FRAME_transa05 };
 static var mmove_t widow_move_attack_post_blaster_l = { FRAME_transb01, FRAME_transb05 };
 
-static int WidowTorso (entity self)
+static int(entity self) WidowTorso =
 {
 	float enemy_yaw = target_angle (self);
 
@@ -122,33 +120,27 @@ static int WidowTorso (entity self)
 
 const float	VARIANCE = 15.0;
 
-static void WidowBlaster (entity self)
+static void(entity self) WidowBlaster =
 {
-	vector	forward, right, target, vec, targ_angles;
-	vector	start;
-	int	flashnum;
-	int	effect;
-
 	if (!self.enemy)
 		return;
 
 	shotsfired++;
-	if (!(shotsfired % 4))
-		effect = EF_BLASTER;
-	else
-		effect = 0;
+	
+	int effect = !(shotsfired % 4) ? EF_BLASTER : 0;
 
+	vector forward, right;
 	AngleVectors (self.s.angles, &forward, &right, 0);
+
 	if ((self.s.frame >= FRAME_spawn05) && (self.s.frame <= FRAME_spawn13))
 	{
 		// sweep
-		flashnum = MZ2_WIDOW_BLASTER_SWEEP1 + self.s.frame - FRAME_spawn05;
-		start = G_ProjectSource (self.s.origin, monster_flash_offset[flashnum], forward, right);
-		target = self.enemy.s.origin - start;
-		targ_angles = vectoangles (target);
+		int flashnum = MZ2_WIDOW_BLASTER_SWEEP1 + self.s.frame - FRAME_spawn05;
+		vector start = G_ProjectSource (self.s.origin, monster_flash_offset[flashnum], forward, right);
+		vector target = self.enemy.s.origin - start;
+		vector targ_angles = vectoangles (target);
 		
-		vec = self.s.angles;
-
+		vector vec = self.s.angles;
 		vec[PITCH] += targ_angles[PITCH];
 		vec[YAW] -= sweep_angles[flashnum-MZ2_WIDOW_BLASTER_SWEEP1];
 
@@ -157,10 +149,6 @@ static void WidowBlaster (entity self)
 	}
 	else if ((self.s.frame >= FRAME_fired02a) && (self.s.frame <= FRAME_fired20))
 	{
-		vector angles;
-		float aim_angle, target_angle;
-		float error;
-
 		self.monsterinfo.aiflags |= AI_MANUAL_STEERING;
 
 		self.monsterinfo.nextframe = WidowTorso (self);
@@ -168,26 +156,28 @@ static void WidowBlaster (entity self)
 		if (!self.monsterinfo.nextframe)
 			self.monsterinfo.nextframe = self.s.frame;
 
+		int flashnum;
+
 		if (self.s.frame == FRAME_fired02a)
 			flashnum = MZ2_WIDOW_BLASTER_0;
 		else
 			flashnum = MZ2_WIDOW_BLASTER_100 + self.s.frame - FRAME_fired03;
 
-		start = G_ProjectSource (self.s.origin, monster_flash_offset[flashnum], forward, right);
+		vector start = G_ProjectSource (self.s.origin, monster_flash_offset[flashnum], forward, right);
 
 		PredictAim (self.enemy, start, 1000, true, (random(0.1) - 0.05), &forward, 0);
 
 		// clamp it to within 10 degrees of the aiming angle (where she's facing)
-		angles = vectoangles (forward);
+		vector angles = vectoangles (forward);
 		// give me 100 . -70
-		aim_angle = 100f - (10*(flashnum-MZ2_WIDOW_BLASTER_100));
+		float aim_angle = 100f - (10*(flashnum-MZ2_WIDOW_BLASTER_100));
 		if (aim_angle <= 0)
 			aim_angle += 360;
-		target_angle = self.s.angles[YAW] - angles[YAW];
+		float target_angle = self.s.angles[YAW] - angles[YAW];
 		if (target_angle <= 0)
 			target_angle += 360;
 
-		error = aim_angle - target_angle;
+		float error = aim_angle - target_angle;
 
 		if (error > VARIANCE)
 		{
@@ -204,98 +194,91 @@ static void WidowBlaster (entity self)
 	}
 	else if ((self.s.frame >= FRAME_run01) && (self.s.frame <= FRAME_run08))
 	{
-		flashnum = MZ2_WIDOW_RUN_1 + self.s.frame - FRAME_run01;
-		start = G_ProjectSource (self.s.origin, monster_flash_offset[flashnum], forward, right);
+		int flashnum = MZ2_WIDOW_RUN_1 + self.s.frame - FRAME_run01;
+		vector start = G_ProjectSource (self.s.origin, monster_flash_offset[flashnum], forward, right);
 		
-		target = self.enemy.s.origin - start;
+		vector target = self.enemy.s.origin - start;
 		target[2] += self.enemy.viewheight;
 
 		monster_fire_blaster2 (self, start, target, BLASTER2_DAMAGE*widow_damage_multiplier, 1000, flashnum, effect);
 	}
 }	
 
-static void WidowSpawn (entity self)
+static void(entity self) WidowSpawn =
 {
-	vector	f, r, u, offset, startpoint, spawnpoint;
-	entity	ent, designated_enemy;
-	int	i;
-
+	vector f, r, u;
 	AngleVectors (self.s.angles, &f, &r, &u);
 
-	for (i=0; i < 2; i++)
+	for (int i = 0; i < 2; i++)
 	{
-		offset = spawnpoints[i];
+		vector offset = spawnpoints[i];
+		vector startpoint = G_ProjectSource2 (self.s.origin, offset, f, r, u);
+		vector spawnpoint;
 
-		startpoint = G_ProjectSource2 (self.s.origin, offset, f, r, u);
+		if (!FindSpawnPoint (startpoint, stalker_mins, stalker_maxs, &spawnpoint, 64))
+			continue;
 
-		if (FindSpawnPoint (startpoint, stalker_mins, stalker_maxs, &spawnpoint, 64))
+		entity ent = CreateGroundMonster (spawnpoint, self.s.angles, stalker_mins, stalker_maxs, "monster_stalker", 256);
+
+		if (!ent)
+			continue;
+		
+		self.monsterinfo.monster_used++;
+		ent.monsterinfo.commander = self;
+
+		ent.nextthink = level.framenum;
+		ent.think (ent);
+		
+		ent.monsterinfo.aiflags |= AI_SPAWNED_WIDOW|AI_DO_NOT_COUNT|AI_IGNORE_SHOTS;
+
+		entity designated_enemy;
+
+		if (!coop.intVal)
+			designated_enemy = self.enemy;
+		else if ((designated_enemy = PickCoopTarget(ent)))
 		{
-			ent = CreateGroundMonster (spawnpoint, self.s.angles, stalker_mins, stalker_maxs, "monster_stalker", 256);
-
-			if (!ent)
-				continue;
-			
-			self.monsterinfo.monster_used++;
-			ent.monsterinfo.commander = self;
-
-			ent.nextthink = level.framenum;
-			ent.think (ent);
-			
-			ent.monsterinfo.aiflags |= AI_SPAWNED_WIDOW|AI_DO_NOT_COUNT|AI_IGNORE_SHOTS;
-
-			if (!coop.intVal)
-				designated_enemy = self.enemy;
-			else
-			{
-				designated_enemy = PickCoopTarget(ent);
-				if (designated_enemy)
-				{
-					// try to avoid using my enemy
-					if (designated_enemy == self.enemy)
-					{
-						designated_enemy = PickCoopTarget(ent);
-						if (!designated_enemy)
-							designated_enemy = self.enemy;
-					}
-				}
-				else
+			// try to avoid using my enemy
+			if (designated_enemy == self.enemy)
+				if (!(designated_enemy = PickCoopTarget(ent)))
 					designated_enemy = self.enemy;
-			}
+		}
+		else
+			designated_enemy = self.enemy;
 
-			if ((designated_enemy.inuse) && (designated_enemy.health > 0))
-			{
-				ent.enemy = designated_enemy;
-				FoundTarget (ent);
-				ent.monsterinfo.attack(ent);
-			}
+		if ((designated_enemy.inuse) && (designated_enemy.health > 0))
+		{
+			ent.enemy = designated_enemy;
+			FoundTarget(ent);
+			ent.monsterinfo.attack(ent);
 		}
 	}
 }
 
-static void widow_spawn_check (entity self)
+static void(entity self) widow_spawn_check =
 {
 	WidowBlaster(self);
-	WidowSpawn (self);
+	WidowSpawn(self);
 }
 
-static void widow_ready_spawn (entity self)
+static void(entity self) widow_ready_spawn =
 {
-	vector	f, r, u, offset, startpoint, spawnpoint;
-	int	i;
-
 	WidowBlaster(self);
+
+	vector f, r, u;
 	AngleVectors (self.s.angles, &f, &r, &u);
 
-	for (i=0; i < 2; i++)
+	for (int i = 0; i < 2; i++)
 	{
-		offset = spawnpoints[i];
-		startpoint = G_ProjectSource2 (self.s.origin, offset, f, r, u);
-		if (FindSpawnPoint (startpoint, stalker_mins, stalker_maxs, &spawnpoint, 64))
-			SpawnGrow_Spawn (spawnpoint, 1);
+		vector offset = spawnpoints[i];
+		vector startpoint = G_ProjectSource2 (self.s.origin, offset, f, r, u);
+		vector spawnpoint;
+
+		if (FindSpawnPoint(startpoint, stalker_mins, stalker_maxs, &spawnpoint, 64))
+			SpawnGrow_Spawn(spawnpoint, 1);
 	}
 }
 
-static void widow_step (entity self)
+static void(entity self) widow_step =
 {
 	gi.sound (self, CHAN_BODY, gi.soundindex("widow/bwstep3.wav"), 1, ATTN_NORM, 0);
 }
@@ -334,7 +317,6 @@ static mframe_t widow_frames_walk [] =
 };
 static var mmove_t widow_move_walk = { FRAME_walk01, FRAME_walk13 };
 
-
 static mframe_t widow_frames_run [] =
 {
 	{ ai_run,	2.79,	widow_step },
@@ -353,7 +335,7 @@ static mframe_t widow_frames_run [] =
 };
 static var mmove_t widow_move_run = { FRAME_walk01, FRAME_walk13 };
 
-static void widow_stepshoot (entity self)
+static void(entity self) widow_stepshoot =
 {
 	gi.sound (self, CHAN_BODY, gi.soundindex("widow/bwstep2.wav"), 1, ATTN_NORM,0);
 	WidowBlaster (self);
@@ -376,19 +358,19 @@ static var mmove_t widow_move_run_attack = { FRAME_run01, FRAME_run08 };
 // These three allow specific entry into the run sequence
 //
 
-static void widow_start_run_5 (entity self)
+static void(entity self) widow_start_run_5 =
 {
 	self.monsterinfo.currentmove = &widow_move_run;
 	self.monsterinfo.nextframe = FRAME_walk05;
 }
 
-static void widow_start_run_10 (entity self)
+static void(entity self) widow_start_run_10 =
 {
 	self.monsterinfo.currentmove = &widow_move_run;
 	self.monsterinfo.nextframe = FRAME_walk10;
 }
 
-static void widow_start_run_12 (entity self)
+static void(entity self) widow_start_run_12 =
 {
 	self.monsterinfo.currentmove = &widow_move_run;
 	self.monsterinfo.nextframe = FRAME_walk12;
@@ -396,7 +378,7 @@ static void widow_start_run_12 (entity self)
 
 static var mmove_t widow_move_attack_blaster = { FRAME_fired02a, FRAME_fired20 };
 
-static void widow_attack_blaster (entity self)
+static void(entity self) widow_attack_blaster =
 {
 	self.monsterinfo.pause_framenum = level.framenum + (int)(random(1.0, 3.0) * BASE_FRAMERATE);
 	self.monsterinfo.currentmove = &widow_move_attack_blaster;
@@ -410,10 +392,9 @@ static mframe_t widow_frames_attack_pre_blaster [] =
 	{ ai_charge,	0,	widow_attack_blaster }
 };
 static var mmove_t widow_move_attack_pre_blaster = { FRAME_fired01, FRAME_fired02a };
-
 static var mmove_t widow_move_attack_post_blaster = { FRAME_fired21, FRAME_fired22 };
 
-static void widow_reattack_blaster (entity self)
+static void(entity self) widow_reattack_blaster =
 {
 	WidowBlaster(self);
 
@@ -427,7 +408,6 @@ static void widow_reattack_blaster (entity self)
 		return;
 
 	self.monsterinfo.aiflags &= ~AI_MANUAL_STEERING;
-
 	self.monsterinfo.currentmove = &widow_move_attack_post_blaster;
 }
 
@@ -483,49 +463,49 @@ static var mmove_t widow_move_attack_rail = { FRAME_firea01, FRAME_firea09 };
 static var mmove_t widow_move_attack_rail_r = { FRAME_fireb01, FRAME_fireb09 };
 static var mmove_t widow_move_attack_rail_l = { FRAME_firec01, FRAME_firec09 };
 
-static void WidowRail (entity self)
+static void(entity self) WidowRail =
 {
-	vector	start;
-	vector	dir;
-	vector	forward, right;
-	int	flash = MZ2_WIDOW_RAIL;
-
+	vector forward, right;
 	AngleVectors (self.s.angles, &forward, &right, 0);
+
+	int	flash;
 
 	if (self.monsterinfo.currentmove == &widow_move_attack_rail_l)
 		flash = MZ2_WIDOW_RAIL_LEFT;
 	else if (self.monsterinfo.currentmove == &widow_move_attack_rail_r)
 		flash = MZ2_WIDOW_RAIL_RIGHT;
+	else
+		flash = MZ2_WIDOW_RAIL;
 
-	start = G_ProjectSource (self.s.origin, monster_flash_offset[flash], forward, right);
+	vector start = G_ProjectSource (self.s.origin, monster_flash_offset[flash], forward, right);
 
 	// calc direction to where we targeted
-	dir = self.pos1 - start;
+	vector dir = self.pos1 - start;
 	VectorNormalize (dir);
 
 	monster_fire_railgun (self, start, dir, WIDOW_RAIL_DAMAGE*widow_damage_multiplier, 100, flash);
 	self.timestamp = level.framenum + (int)(RAIL_TIME * BASE_FRAMERATE);
 }
 
-static void WidowSaveLoc (entity self)
+static void(entity self) WidowSaveLoc =
 {
 	self.pos1 = self.enemy.s.origin;	//save for aiming the shot
 	self.pos1[2] += self.enemy.viewheight;
 }
 
-static void widow_start_rail (entity self)
+static void(entity self) widow_start_rail =
 {
 	self.monsterinfo.aiflags |= AI_MANUAL_STEERING;
 }
 
-static void widow_rail_done (entity self)
+static void(entity self) widow_rail_done =
 {
 	self.monsterinfo.aiflags &= ~AI_MANUAL_STEERING;
 }
 
-static void widow_attack_rail (entity self)
+static void(entity self) widow_attack_rail =
 {
-	float	enemy_angle = target_angle (self);
+	float enemy_angle = target_angle (self);
 
 	if (enemy_angle < -15)
 		self.monsterinfo.currentmove = &widow_move_attack_rail_l;
@@ -583,12 +563,12 @@ static mframe_t widow_frames_attack_rail_l [] =
 	{ ai_charge, 0, widow_rail_done }
 };
 
-void widow_start_spawn (entity self)
+void(entity self) widow_start_spawn =
 {
 	self.monsterinfo.aiflags |= AI_MANUAL_STEERING;
 }
 
-void widow_done_spawn (entity self)
+void(entity self) widow_done_spawn =
 {
 	self.monsterinfo.aiflags &= ~AI_MANUAL_STEERING;
 }
@@ -642,14 +622,14 @@ static mframe_t widow_frames_pain_light [] =
 };
 static var mmove_t widow_move_pain_light = { FRAME_pain201, FRAME_pain203 };
 
-static void spawn_out_start (entity self)
+static void(entity self) spawn_out_start =
 {
-	vector startpoint,f,r,u;
 	self.wait = level.framenum + (2.0 * BASE_FRAMERATE);
 
+	vector f, r, u;
 	AngleVectors (self.s.angles, &f, &r, &u);
 
-	startpoint = G_ProjectSource2 (self.s.origin, beameffects[0], f, r, u);
+	vector startpoint = G_ProjectSource2 (self.s.origin, beameffects[0], f, r, u);
 	gi.WriteByte (svc_temp_entity);
 	gi.WriteByte (TE_WIDOWBEAMOUT);
 	gi.WriteShort (20001);
@@ -666,12 +646,12 @@ static void spawn_out_start (entity self)
 	gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/bwidowbeamout.wav"), 1, ATTN_NORM, 0);
 }
 
-static void spawn_out_do (entity self)
+static void(entity self) spawn_out_do =
 {
-	vector startpoint,f,r,u;
-
+	vector f, r, u;
 	AngleVectors (self.s.angles, &f, &r, &u);
-	startpoint = G_ProjectSource2 (self.s.origin, beameffects[0], f, r, u);
+
+	vector startpoint = G_ProjectSource2 (self.s.origin, beameffects[0], f, r, u);
 	gi.WriteByte (svc_temp_entity);
 	gi.WriteByte (TE_WIDOWSPLASH);
 	gi.WritePosition (startpoint);
@@ -691,7 +671,6 @@ static void spawn_out_do (entity self)
 	gi.multicast (startpoint, MULTICAST_PVS);
 
 	Widowlegs_Spawn (self.s.origin, self.s.angles);
-	
 	G_FreeEdict (self);
 }
 
@@ -731,7 +710,7 @@ static mframe_t widow_frames_death [] =
 };
 static var mmove_t widow_move_death = { FRAME_death01, FRAME_death31 };
 
-static void widow_attack_kick (entity self)
+static void(entity self) widow_attack_kick =
 {
 	static const vector aim = '100 0 4';
 
@@ -739,7 +718,6 @@ static void widow_attack_kick (entity self)
 		fire_hit (self, aim, (50 + (Q_rand() % 6)), 500);
 	else	// not as much kick if they're in the air .. makes it harder to land on her head
 		fire_hit (self, aim, (50 + (Q_rand() % 6)), 250);
-
 }
 
 static mframe_t widow_frames_attack_kick [] =
@@ -755,13 +733,13 @@ static mframe_t widow_frames_attack_kick [] =
 };
 static var mmove_t widow_move_attack_kick = { FRAME_kick01, FRAME_kick08 };
 
-static void widow_stand (entity self)
+static void(entity self) widow_stand =
 {
 	gi.sound (self, CHAN_WEAPON, gi.soundindex ("widow/laugh.wav"), 1, ATTN_NORM, 0);
 	self.monsterinfo.currentmove = &widow_move_stand;
 }
 
-static void widow_run (entity self)
+static void(entity self) widow_run =
 {
 	self.monsterinfo.aiflags &= ~AI_HOLD_FRAME;
 
@@ -771,21 +749,20 @@ static void widow_run (entity self)
 		self.monsterinfo.currentmove = &widow_move_run;
 }
 
-static void widow_walk (entity self)
+static void(entity self) widow_walk =
 {
 	self.monsterinfo.currentmove = &widow_move_walk;
 }
 
-void WidowCalcSlots (entity self)
+void(entity self) WidowCalcSlots =
 {
-	int old_slots;
-
-	old_slots = self.monsterinfo.monster_slots;
+	int old_slots = self.monsterinfo.monster_slots;
 
 	switch (skill.intVal)
 	{
 		case 0:
 		case 1:
+		default:
 			self.monsterinfo.monster_slots = 3;
 			break;
 		case 2:
@@ -794,20 +771,17 @@ void WidowCalcSlots (entity self)
 		case 3:
 			self.monsterinfo.monster_slots = 6;
 			break;
-		default:
-			self.monsterinfo.monster_slots = 3;
-			break;
 	}
+
 	if (coop.intVal)
-		self.monsterinfo.monster_slots = mini (6, self.monsterinfo.monster_slots + (skill.intVal*(CountPlayers()-1)));
+		self.monsterinfo.monster_slots = mini(6, self.monsterinfo.monster_slots + (skill.intVal * (CountPlayers() - 1)));
 }
 
-static void widow_attack (entity self)
+static void(entity self) widow_attack =
 {
-	float	luck;
-	bool rail_frames = false, blaster_frames = false, blocked = false, anger = false;
-
 	self.movetarget = 0;
+
+	bool rail_frames = false, blaster_frames = false, blocked = false, anger = false;
 
 	if (self.monsterinfo.aiflags & AI_BLOCKED)
 	{
@@ -890,7 +864,8 @@ static void widow_attack (entity self)
 	if ((rail_frames) || (blaster_frames))
 		return;
 
-	luck = random();
+	float luck = random();
+
 	if (SELF_SLOTS_LEFT(self) >= 2)
 	{
 		if ((luck <= 0.40) && (self.monsterinfo.pause_framenum + (int)(BLASTER_TIME * BASE_FRAMERATE) <= level.framenum))
@@ -903,21 +878,18 @@ static void widow_attack (entity self)
 		else
 			self.monsterinfo.currentmove = &widow_move_spawn;
 	}
-	else
+	else if (level.framenum < self.timestamp)
+		self.monsterinfo.currentmove = &widow_move_attack_pre_blaster;
+	else if ((luck <= 0.50) || (level.framenum + (int)(BLASTER_TIME * BASE_FRAMERATE) >= self.monsterinfo.pause_framenum))
 	{
-		if (level.framenum < self.timestamp)
-			self.monsterinfo.currentmove = &widow_move_attack_pre_blaster;
-		else if ((luck <= 0.50) || (level.framenum + (int)(BLASTER_TIME * BASE_FRAMERATE) >= self.monsterinfo.pause_framenum))
-		{
-			gi.sound (self, CHAN_WEAPON, sound_rail, 1, ATTN_NORM, 0);
-			self.monsterinfo.currentmove = &widow_move_attack_pre_rail;
-		}
-		else // holdout to blaster
-			self.monsterinfo.currentmove = &widow_move_attack_pre_blaster;
+		gi.sound (self, CHAN_WEAPON, sound_rail, 1, ATTN_NORM, 0);
+		self.monsterinfo.currentmove = &widow_move_attack_pre_rail;
 	}
+	else // holdout to blaster
+		self.monsterinfo.currentmove = &widow_move_attack_pre_blaster;
 }
 
-static void widow_pain (entity self, entity other, float kick, int damage)
+static void(entity self, entity other, float kick, int damage) widow_pain =
 {
 	if (self.health < (self.max_health / 2))
 		self.s.skinnum = 1;
@@ -955,7 +927,7 @@ static void widow_pain (entity self, entity other, float kick, int damage)
 	}
 }
 
-static void widow_dead (entity self)
+static void(entity self) widow_dead =
 {
 	self.mins = '-56 -56 0';
 	self.maxs = '56 56 80';
@@ -965,7 +937,7 @@ static void widow_dead (entity self)
 	gi.linkentity (self);
 }
 
-static void widow_die (entity self, entity inflictor, entity attacker, int damage, vector point)
+static void(entity self, entity inflictor, entity attacker, int damage, vector point) widow_die =
 {
 	self.deadflag = DEAD_DEAD;
 	self.takedamage = false;
@@ -976,37 +948,38 @@ static void widow_die (entity self, entity inflictor, entity attacker, int damag
 	self.monsterinfo.currentmove = &widow_move_death;
 }
 
-static void widow_melee (entity self)
+static void(entity self) widow_melee =
 {
 	self.monsterinfo.currentmove = &widow_move_attack_kick;
 }
 
-static void WidowGoinQuad (entity self, int framenum)
+static inline void(entity self, int framenum) WidowGoinQuad =
 {
 	self.monsterinfo.quad_framenum = framenum;
 	widow_damage_multiplier = 4;
 }
 
-static void WidowDouble (entity self, int framenum)
+static inline void(entity self, int framenum) WidowDouble =
 {
 	self.monsterinfo.double_framenum = framenum;
 	widow_damage_multiplier = 2;
 }
 
-static void WidowPent (entity self, int framenum)
+static inline void(entity self, int framenum) WidowPent =
 {
 	self.monsterinfo.invincible_framenum = framenum;
 }
 
-static void WidowPowerArmor (entity self)
+static INLINE void(entity self) WidowPowerArmor =
 {
 	self.monsterinfo.power_armor_type = POWER_ARMOR_SHIELD;
+
 	// I don't like this, but it works
 	if (self.monsterinfo.power_armor_power <= 0)
 		self.monsterinfo.power_armor_power += 250 * skill.intVal;
 }
 
-static void WidowRespondPowerup (entity self, entity other)
+static void(entity self, entity other) WidowRespondPowerup =
 {
 	if (other.s.effects & EF_QUAD)
 	{
@@ -1047,71 +1020,47 @@ static void WidowRespondPowerup (entity self, entity other)
 	}
 }
 
-void WidowPowerups (entity self)
+void(entity self) WidowPowerups =
 {
-	int player;
-	entity ent;
-
 	if (!coop.intVal)
-		WidowRespondPowerup (self, self.enemy);
-	else
 	{
-		// in coop, check for pents, then quads, then doubles
-		for (player = 1; player <= game.maxclients; player++)
-		{
-			ent = itoe(player);
-			if (!ent.inuse)
-				continue;
-			if (!ent.is_client)
-				continue;
-			if (ent.s.effects & EF_PENT)
-			{
-				WidowRespondPowerup (self, ent);
-				return;
-			}
-		}
+		WidowRespondPowerup (self, self.enemy);
+		return;
+	}
 
-		for (player = 1; player <= game.maxclients; player++)
+	// in coop, check for pents, then quads, then doubles
+	entity best = world;
+	
+	for (int player = 1; player <= game.maxclients; player++)
+	{
+		entity ent = itoe(player);
+		if (!ent.inuse)
+			continue;
+		if (!ent.is_client)
+			continue;
+		if (ent.s.effects & EF_PENT)
 		{
-			ent = itoe(player);
-			if (!ent.inuse)
-				continue;
-			if (!ent.is_client)
-				continue;
-			if (ent.s.effects & EF_QUAD)
-			{
-				WidowRespondPowerup (self, ent);
-				return;
-			}
+			best = ent;
+			break;
 		}
-
-		for (player = 1; player <= game.maxclients; player++)
+		else if (ent.s.effects & EF_QUAD)
 		{
-			ent = itoe(player);
-			if (!ent.inuse)
-				continue;
-			if (!ent.is_client)
-				continue;
-			if (ent.s.effects & EF_DOUBLE)
-			{
-				WidowRespondPowerup (self, ent);
-				return;
-			}
+			if (!best || (best.s.effects & EF_DOUBLE))
+				best = ent;
+		}
+		else if (ent.s.effects & EF_DOUBLE)
+		{
+			if (!best)
+				best = ent;
 		}
 	}
+
+	if (best)
+		WidowRespondPowerup (self, best);
 }
 
-static bool Widow_CheckAttack (entity self)
+static bool(entity self) Widow_CheckAttack =
 {
-	vector	spot1, spot2;
-	vector	temp;
-	float	chance;
-	trace_t	tr;
-	bool	enemy_infront;
-	int	enemy_range;
-	float	enemy_yaw;
-	float	real_enemy_range;
-
 	if (!self.enemy)
 		return false;
 
@@ -1129,11 +1078,7 @@ static bool Widow_CheckAttack (entity self)
 			case FRAME_walk07:
 			case FRAME_walk08:
 			case FRAME_walk12:
-				{
-//					if ((g_showlogic) && (g_showlogic.value))
-//						gi.dprintf ("Not in good walk frame (%d), not attacking\n", (self.s.frame - FRAME_walk01+1));
 					return false;
-				}
 			default:
 				break;
 		}
@@ -1151,11 +1096,12 @@ static bool Widow_CheckAttack (entity self)
 	if (self.enemy.health > 0)
 	{
 	// see if any entities are in the way of the shot
-		spot1 = self.s.origin;
+		vector spot1 = self.s.origin;
 		spot1[2] += self.viewheight;
-		spot2 = self.enemy.s.origin;
+		vector spot2 = self.enemy.s.origin;
 		spot2[2] += self.enemy.viewheight;
 
+		trace_t	tr;
 		gi.traceline(&tr, spot1, spot2, self, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA);
 
 		// do we have a clear shot?
@@ -1174,15 +1120,15 @@ static bool Widow_CheckAttack (entity self)
 		}
 	}
 	
-	enemy_infront = infront(self, self.enemy);
+	bool enemy_infront = infront(self, self.enemy);
 
-	enemy_range = range(self, self.enemy);
-	temp = self.enemy.s.origin - self.s.origin;
-	enemy_yaw = vectoyaw(temp);
+	range_t enemy_range = range(self, self.enemy);
+	vector temp = self.enemy.s.origin - self.s.origin;
+	float enemy_yaw = vectoyaw(temp);
 
 	self.ideal_yaw = enemy_yaw;
 
-	real_enemy_range = realrange (self, self.enemy);
+	float real_enemy_range = realrange (self, self.enemy);
 
 	if (real_enemy_range <= (MELEE_DISTANCE+20))
 	{
@@ -1198,30 +1144,22 @@ static bool Widow_CheckAttack (entity self)
 
 	if (level.framenum < self.monsterinfo.attack_finished)
 		return false;
+
+	float chance;
 		
 	if (self.monsterinfo.aiflags & AI_STAND_GROUND)
-	{
 		chance = 0.4;
-	}
 	else if (enemy_range == RANGE_MELEE)
-	{
 		chance = 0.8;
-	}
 	else if (enemy_range == RANGE_NEAR)
-	{
 		chance = 0.7;
-	}
 	else if (enemy_range == RANGE_MID)
-	{
 		chance = 0.6;
-	}
 	else
-	{
 		chance = 0.5;
-	}
 
 	// PGM - go ahead and shoot every time if it's a info_notnull
-	if ((random () < chance) || (self.enemy.solid == SOLID_NOT))
+	if ((random() < chance) || (self.enemy.solid == SOLID_NOT))
 	{
 		self.monsterinfo.attack_state = AS_MISSILE;
 		return true;
@@ -1230,7 +1168,7 @@ static bool Widow_CheckAttack (entity self)
 	return false;
 }
 
-static bool widow_blocked (entity self, float dist)
+static bool(entity self, float dist) widow_blocked =
 {
 	// if we get blocked while we're in our run/attack mode, turn on a meaningless (in this context)AI flag, 
 	// and call attack to get a new attack sequence.  make sure to turn it off when we're done.
@@ -1240,20 +1178,19 @@ static bool widow_blocked (entity self, float dist)
 	if (self.monsterinfo.currentmove == &widow_move_run_attack)
 	{
 		self.monsterinfo.aiflags |= AI_TARGET_ANGER;
+
 		if (self.monsterinfo.checkattack(self))
 			self.monsterinfo.attack(self);
 		else
 			self.monsterinfo.run(self);
+
 		return true;
 	}
 
-	if(blocked_checkshot (self, 0.25 + (0.05 * skill.intVal)))
-		return true;
-
-	return false;
+	return blocked_checkshot (self, 0.25 + (0.05 * skill.intVal));
 }
 
-static void WidowPrecache ()
+static void() WidowPrecache =
 {
 	// cache in all of the stalker stuff, widow stuff, spawngro stuff, gibs
 	gi.soundindex ("stalker/pain.wav");	
@@ -1317,10 +1254,9 @@ static void WidowPrecache ()
 	}
 }
 
-
 /*QUAKED monster_widow (1 .5 0) (-40 -40 0) (40 40 144) Ambush Trigger_Spawn Sight
 */
-API_FUNC static void SP_monster_widow (entity self)
+API_FUNC static void(entity self) SP_monster_widow =
 {
 	if (deathmatch.intVal)
 	{

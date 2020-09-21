@@ -112,7 +112,6 @@ object to be repaired.
 The default delay is 1 second
 "delay" the delay in seconds for spark to occur
 */
-
 static void(entity ent) object_repair_fx =
 {
 	ent.nextthink = level.framenum + (int)(ent.delay * BASE_FRAMERATE);
@@ -129,7 +128,6 @@ static void(entity ent) object_repair_fx =
 		gi.WriteByte (0xe0 + (Q_rand()&7));
 		gi.multicast (ent.s.origin, MULTICAST_PVS);
 	}
-	
 }
 
 static void(entity ent) object_repair_dead =

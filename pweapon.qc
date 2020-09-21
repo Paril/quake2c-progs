@@ -42,16 +42,12 @@ PROGS_LOCAL void(entity ent) P_DamageModifier =
 
 PROGS_LOCAL void(entity, bool) weapon_grenade_fire;
 
-PROGS_LOCAL vector(entity ent, vector point, vector distance, vector forward, vector right) P_ProjectSource =
-{
-	vector _distance;
+const vector handedness_scales = '1 -1 0';
 
-	_distance = distance;
-	if (ent.client.pers.hand == LEFT_HANDED)
-		_distance.y *= -1f;
-	else if (ent.client.pers.hand == CENTER_HANDED)
-		_distance.y = 0;
-	return G_ProjectSource(point, _distance, forward, right);
+PROGS_LOCAL INLINE vector(entity ent, vector point, vector distance, vector forward, vector right) P_ProjectSource =
+{
+	vector scaled_dist = [ distance[0], distance[1] * handedness_scales[ent.client.pers.hand], distance[2] ];
+	return G_ProjectSource(point, scaled_dist, forward, right);
 }
 
 
@@ -71,8 +67,10 @@ void(entity who, vector where, player_noise_t type) PlayerNoise =
 {
 	entity	noise;
 
-	if (type == PNOISE_WEAPON) {
-		if (who.client.silencer_shots) {
+	if (type == PNOISE_WEAPON)
+	{
+		if (who.client.silencer_shots)
+		{
 			who.client.silencer_shots--;
 			return;
 		}
@@ -650,10 +648,8 @@ PROGS_LOCAL Weapon_Generic_Func Weapon_Generic =
 				return;
 			}
 
-			if (is_pause_frame) {
-				if (is_pause_frame(ent.client.ps.gunframe) && (Q_rand() & 15))
-					return;
-			}
+			if (is_pause_frame && is_pause_frame(ent.client.ps.gunframe) && (Q_rand() & 15))
+				return;
 
 			ent.client.ps.gunframe++;
 			return;

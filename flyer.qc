@@ -457,7 +457,7 @@ static void(entity self) flyer_attack =
 	else // circle strafe
 	{
 		if (random () <= 0.5) // switch directions
-			self.monsterinfo.lefty = 1 - self.monsterinfo.lefty;
+			self.monsterinfo.lefty = !self.monsterinfo.lefty;
 		self.monsterinfo.attack_state = AS_SLIDING;
 		self.monsterinfo.currentmove = &flyer_move_attack3;
 	}
@@ -517,8 +517,6 @@ static void(entity self, entity other, float kick, int damage) flyer_pain =
 		self.monsterinfo.currentmove = &flyer_move_pain3;
 	}
 }
-
-void(entity self) BecomeExplosion1;
 
 static void(entity self, entity inflictor, entity attacker, int damage, vector point) flyer_die =
 {

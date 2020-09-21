@@ -20,9 +20,9 @@ static var mmove_t carrier_move_pain_heavy = { FRAME_death01, FRAME_death10 };
 static var mmove_t carrier_move_pain_light = { FRAME_spawn01, FRAME_spawn04 };
 static var mmove_t carrier_move_death = { FRAME_death01, FRAME_death16 };
 
-const float CARRIER_ROCKET_TIME		= 2;		// number of seconds between rocket shots
-const int CARRIER_ROCKET_SPEED		= 750;
-const int NUM_FLYERS_SPAWNED		= 6;		// max # of flyers he can spawn
+const float CARRIER_ROCKET_TIME	= 2;		// number of seconds between rocket shots
+const int CARRIER_ROCKET_SPEED	= 750;
+const int NUM_FLYERS_SPAWNED	= 6;		// max # of flyers he can spawn
 const float RAIL_FIRE_TIME		= 3;
 
 static int	sound_pain1;
@@ -33,26 +33,24 @@ static int	sound_sight;
 static int	sound_rail;
 static int	sound_spawn;
 
-PROGS_LOCAL_STATIC float	orig_yaw_speed;
+PROGS_LOCAL_STATIC float orig_yaw_speed;
 
 static const vector flyer_mins = '-16 -16 -24';
 static const vector flyer_maxs = '16 16 16';
 
-static void carrier_sight (entity self, entity other)
+static void(entity self, entity other) carrier_sight =
 {
 	gi.sound (self, CHAN_VOICE, sound_sight, 1, ATTN_NORM, 0);
 }
 
-static void CarrierPredictiveRocket(entity self)
+static INLINE void(entity self) CarrierPredictiveRocket =
 {
-	vector	forward, right;
-	vector	start;
-	vector	dir;
-
+	vector forward, right;
 	AngleVectors (self.s.angles, &forward, &right, 0);
 
 //1
-	start = G_ProjectSource (self.s.origin, monster_flash_offset[MZ2_CARRIER_ROCKET_1], forward, right);
+	vector start = G_ProjectSource (self.s.origin, monster_flash_offset[MZ2_CARRIER_ROCKET_1], forward, right);
+	vector dir;
 	PredictAim (self.enemy, start, CARRIER_ROCKET_SPEED, false, -0.3, &dir, 0);
 	monster_fire_rocket (self, start, dir, 50, CARRIER_ROCKET_SPEED, MZ2_CARRIER_ROCKET_1);
 
@@ -72,31 +70,25 @@ static void CarrierPredictiveRocket(entity self)
 	monster_fire_rocket (self, start, dir, 50, CARRIER_ROCKET_SPEED, MZ2_CARRIER_ROCKET_4);
 }
 
-static void CarrierRocket (entity self)
+static void(entity self) CarrierRocket =
 {
-	vector	forward, right;
-	vector	start;
-	vector	dir;
-	vector	vec;
-
-	if(self.enemy)
-	{
-		if(self.enemy.is_client && random() < 0.5)
-		{
-			CarrierPredictiveRocket(self);
-			return;
-		}
-	}
-	else
+	if (!self.enemy)
 		return;
 
+	if (self.enemy.is_client && random() < 0.5)
+	{
+		CarrierPredictiveRocket(self);
+		return;
+	}
+
+	vector forward, right;
 	AngleVectors (self.s.angles, &forward, &right, 0);
 
 //1
-	start = G_ProjectSource (self.s.origin, monster_flash_offset[MZ2_CARRIER_ROCKET_1], forward, right);
-	vec = self.enemy.s.origin;
+	vector start = G_ProjectSource (self.s.origin, monster_flash_offset[MZ2_CARRIER_ROCKET_1], forward, right);
+	vector vec = self.enemy.s.origin;
 	vec[2] -= 15;
-	dir = vec - start;
+	vector dir = vec - start;
 	VectorNormalize (dir);
 	dir += 0.4 * right;
 	VectorNormalize (dir);
@@ -130,19 +122,14 @@ static void CarrierRocket (entity self)
 	VectorNormalize (dir);
 	monster_fire_rocket (self, start, dir, 50, 500, MZ2_CARRIER_ROCKET_4);
 }
+
 //
 // this is the smarts for the rocket launcher in coop
 //
 // if there is a player behind/below the carrier, and we can shoot, and we can trace a LOS to them ..
 // pick one of the group, and let it rip
-static void CarrierCoopCheck (entity self)
+static void(entity self) CarrierCoopCheck =
 {
-	// no more than 4 players in coop, so..
-	entity targets[4];
-	int	num_targets = 0, target, player;
-	entity	ent;
-	trace_t	tr;
-
 	// if we're not in coop, this is a noop
 	if (!coop.intVal)
 		return;
@@ -150,18 +137,21 @@ static void CarrierCoopCheck (entity self)
 	if (self.wait > level.framenum)
 		return;
 
-	memclear (targets, 4*sizeof(entity));
+	// no more than 4 players in coop, so..
+	entity targets[4] = { 0 };
+	int	num_targets = 0;
 
 	// cycle through players
-	for (player = 1; player <= game.maxclients; player++)
+	for (int player = 1; player <= game.maxclients; player++)
 	{
-		ent = itoe(player);
+		entity ent = itoe(player);
 		if (!ent.inuse)
 			continue;
 		if (!ent.is_client)
 			continue;
 		if (inback(self, ent) || below(self, ent))
 		{
+			trace_t	tr;
 			gi.traceline(&tr, self.s.origin, ent.s.origin, self, MASK_SOLID);
 			if (tr.fraction == 1.0)
 				targets[num_targets++] = ent;
@@ -171,46 +161,30 @@ static void CarrierCoopCheck (entity self)
 	if (!num_targets)
 		return;
 
-	// get a number from 0 to (num_targets-1)
-	target = Q_rand() % num_targets;
-	
-	// just in case we got a 1.0 from random
-	if (target == num_targets)
-		target--;
-
 	// make sure to prevent rapid fire rockets
 	self.wait = level.framenum + (CARRIER_ROCKET_TIME * BASE_FRAMERATE);
 
 	// save off the real enemy
-	ent = self.enemy;
+	entity ent = self.enemy;
 	// set the new guy as temporary enemy
-	self.enemy = targets[target];
+	self.enemy = targets[Q_rand_uniform(num_targets)];
 	CarrierRocket (self);
 	// put the real enemy back
 	self.enemy = ent;
 }
 
-static void CarrierGrenade (entity self)
+static void(entity self) CarrierGrenade =
 {
-	vector	start;
-	vector	forward, right, up;
-	vector	aim;
-	int	flash_number;
-	float	direction;		// from lower left to upper right, or lower right to upper left
-	float	spreadR = 0, spreadU = 0;
-	int	mytime;
-
 	CarrierCoopCheck(self);
 
 	if (!self.enemy)
 		return;
 
-	if (random() < 0.5)
-		direction = -1.0;
-	else
-		direction = 1.0;
+	// from lower left to upper right, or lower right to upper left
+	int direction = (random() < 0.5) ? -1.0 : 1.0;
 
-	mytime = (int)((level.framenum - self.timestamp) / (0.4 * BASE_FRAMERATE));
+	int mytime = (int)((level.framenum - self.timestamp) / (0.4 * BASE_FRAMERATE));
+	float spreadR = 0, spreadU = 0;
 
 	if (mytime == 0)
 	{
@@ -227,40 +201,34 @@ static void CarrierGrenade (entity self)
 	else if (mytime == 3)
 		spreadU = 0.1;
 
+	vector forward, right, up;
 	AngleVectors (self.s.angles, &forward, &right, &up);
-	start = G_ProjectSource (self.s.origin, monster_flash_offset[MZ2_CARRIER_GRENADE], forward, right);
 
-	aim = self.enemy.s.origin - start;
+	vector start = G_ProjectSource (self.s.origin, monster_flash_offset[MZ2_CARRIER_GRENADE], forward, right);
+	vector aim = self.enemy.s.origin - start;
 	VectorNormalize (aim);
 
 	aim += spreadR * right;
 	aim += spreadU * up;
 
-	if(aim[2] > 0.15)
+	if (aim[2] > 0.15)
 		aim[2] = 0.15;
-	else if(aim[2] < -0.5)
+	else if (aim[2] < -0.5)
 		aim[2] = -0.5;
 
-	flash_number = MZ2_GUNNER_GRENADE_1;
-	monster_fire_grenade (self, start, aim, 50, 600, flash_number);
+	monster_fire_grenade (self, start, aim, 50, 600, MZ2_GUNNER_GRENADE_1);
 }
 
-static void carrier_firebullet_right (entity self)
+static void(entity self, monster_muzzleflash_t manual, monster_muzzleflash_t auto, float lead) carrier_firebullet =
 {
-	vector	forward, right, target;
-	vector	start;
-	int	flashnum;
-
 	// if we're in manual steering mode, it means we're leaning down .. use the lower shot
-	if (self.monsterinfo.aiflags & AI_MANUAL_STEERING)
-		flashnum = MZ2_CARRIER_MACHINEGUN_R2;
-	else
-		flashnum = MZ2_CARRIER_MACHINEGUN_R1;
+	int	flashnum = (self.monsterinfo.aiflags & AI_MANUAL_STEERING) ? manual : auto;
 
+	vector forward, right;
 	AngleVectors (self.s.angles, &forward, &right, 0);
-	start = G_ProjectSource (self.s.origin, monster_flash_offset[flashnum], forward, right);
+	vector start = G_ProjectSource (self.s.origin, monster_flash_offset[flashnum], forward, right);
 
-	target = self.enemy.s.origin + (0.2 * self.enemy.velocity);
+	vector target = self.enemy.s.origin + (lead * self.enemy.velocity);
 	target[2] += self.enemy.viewheight;
 
 	forward = target - start;
@@ -269,104 +237,75 @@ static void carrier_firebullet_right (entity self)
 	monster_fire_bullet (self, start, forward, 6, 4, DEFAULT_BULLET_HSPREAD*3, DEFAULT_BULLET_VSPREAD, flashnum);
 }	
 
-static void carrier_firebullet_left (entity self)
-{
-	vector	forward, right, target;
-	vector	start;
-	int	flashnum;
-
-	// if we're in manual steering mode, it means we're leaning down .. use the lower shot
-	if (self.monsterinfo.aiflags & AI_MANUAL_STEERING)
-		flashnum = MZ2_CARRIER_MACHINEGUN_L2;
-	else
-		flashnum = MZ2_CARRIER_MACHINEGUN_L1;
-	
-	AngleVectors (self.s.angles, &forward, &right, 0);
-	start = G_ProjectSource (self.s.origin, monster_flash_offset[flashnum], forward, right);
-
-	target = self.enemy.s.origin + (-0.2 * self.enemy.velocity);
-	target[2] += self.enemy.viewheight;
-
-	forward =  target - start;
-	VectorNormalize (forward);
-
-	monster_fire_bullet (self, start, forward, 6, 4, DEFAULT_BULLET_HSPREAD*3, DEFAULT_BULLET_VSPREAD, flashnum);
-}	
-
-static void CarrierMachineGun (entity self)
+static void(entity self) CarrierMachineGun =
 {
 	CarrierCoopCheck(self);
 	if (!self.enemy)
 		return;
 
-	carrier_firebullet_left(self);
-	carrier_firebullet_right(self);
+	carrier_firebullet(self, MZ2_CARRIER_MACHINEGUN_L2, MZ2_CARRIER_MACHINEGUN_L1, -0.2);
+	carrier_firebullet(self, MZ2_CARRIER_MACHINEGUN_R2, MZ2_CARRIER_MACHINEGUN_R1, 0.2);
 }	
 
-static void CarrierSpawn (entity self)
+static void(entity self) CarrierSpawn =
 {
-	vector	f, r, offset, startpoint, spawnpoint;
-	entity	ent;
-	int	mytime;
-
-	offset = '105 0 -58';
+	vector f, r;
 	AngleVectors (self.s.angles, &f, &r, 0);
 
-	startpoint = G_ProjectSource (self.s.origin, offset, f, r);
+	vector startpoint = G_ProjectSource (self.s.origin, '105 0 -58', f, r);
 
 	// the +0.1 is because level.time is sometimes a little low
-	mytime = (int)((level.framenum + (0.1 * BASE_FRAMERATE) - self.timestamp) / (0.5 * BASE_FRAMERATE));
+	int mytime = (int)((level.framenum + (0.1 * BASE_FRAMERATE) - self.timestamp) / (0.5 * BASE_FRAMERATE));
 
-	if (FindSpawnPoint (startpoint, flyer_mins, flyer_maxs, &spawnpoint, 32))
+	vector spawnpoint;
+
+	if (!FindSpawnPoint (startpoint, flyer_mins, flyer_maxs, &spawnpoint, 32))
+		return;
+
+	// the second flier should be a kamikaze flyer
+	entity ent = CreateMonster (spawnpoint, self.s.angles, (mytime != 2) ? "monster_flyer" : "monster_kamikaze");
+
+	if (!ent)
+		return;
+
+	gi.sound (self, CHAN_BODY, sound_spawn, 1, ATTN_NONE, 0);
+
+	self.monsterinfo.monster_slots--;
+
+	ent.nextthink = level.framenum;
+	ent.think (ent);
+	
+	ent.monsterinfo.aiflags |= AI_SPAWNED_CARRIER|AI_DO_NOT_COUNT|AI_IGNORE_SHOTS;
+	ent.monsterinfo.commander = self;
+
+	if ((self.enemy.inuse) && (self.enemy.health > 0))
 	{
-		// the second flier should be a kamikaze flyer
-		if (mytime != 2)
-			ent = CreateMonster (spawnpoint, self.s.angles, "monster_flyer");
-		else
-			ent = CreateMonster (spawnpoint, self.s.angles, "monster_kamikaze");
-
-		if (!ent)
-			return;
-
-		gi.sound (self, CHAN_BODY, sound_spawn, 1, ATTN_NONE, 0);
-
-		self.monsterinfo.monster_slots--;
-
-		ent.nextthink = level.framenum;
-		ent.think (ent);
-		
-		ent.monsterinfo.aiflags |= AI_SPAWNED_CARRIER|AI_DO_NOT_COUNT|AI_IGNORE_SHOTS;
-		ent.monsterinfo.commander = self;
-
-		if ((self.enemy.inuse) && (self.enemy.health > 0))
+		ent.enemy = self.enemy;
+		FoundTarget (ent);
+		if (mytime == 1)
 		{
-			ent.enemy = self.enemy;
-			FoundTarget (ent);
-			if (mytime == 1)
-			{
-				ent.monsterinfo.lefty = 0;
-				ent.monsterinfo.attack_state = AS_SLIDING;
-				ent.monsterinfo.currentmove = &flyer_move_attack3;
-			}
-			else if (mytime == 2)
-			{
-				ent.monsterinfo.lefty = 0;
-				ent.monsterinfo.attack_state = AS_STRAIGHT;
-				ent.monsterinfo.currentmove = &flyer_move_kamikaze;
-				ent.mass = 100;
-				ent.monsterinfo.aiflags |= AI_CHARGING;
-			}
-			else if (mytime == 3)
-			{
-				ent.monsterinfo.lefty = 1;
-				ent.monsterinfo.attack_state = AS_SLIDING;
-				ent.monsterinfo.currentmove = &flyer_move_attack3;
-			}
+			ent.monsterinfo.lefty = false;
+			ent.monsterinfo.attack_state = AS_SLIDING;
+			ent.monsterinfo.currentmove = &flyer_move_attack3;
+		}
+		else if (mytime == 2)
+		{
+			ent.monsterinfo.lefty = false;
+			ent.monsterinfo.attack_state = AS_STRAIGHT;
+			ent.monsterinfo.currentmove = &flyer_move_kamikaze;
+			ent.mass = 100;
+			ent.monsterinfo.aiflags |= AI_CHARGING;
+		}
+		else if (mytime == 3)
+		{
+			ent.monsterinfo.lefty = true;
+			ent.monsterinfo.attack_state = AS_SLIDING;
+			ent.monsterinfo.currentmove = &flyer_move_attack3;
 		}
 	}
 }
 
-static void carrier_prep_spawn (entity self)
+static void(entity self) carrier_prep_spawn =
 {
 	CarrierCoopCheck(self);
 	self.monsterinfo.aiflags |= AI_MANUAL_STEERING;
@@ -375,7 +314,7 @@ static void carrier_prep_spawn (entity self)
 	CarrierMachineGun(self);
 }
 
-static void carrier_spawn_check (entity self)
+static void(entity self) carrier_spawn_check =
 {
 	CarrierCoopCheck(self);
 	CarrierMachineGun(self);
@@ -391,15 +330,12 @@ static void carrier_spawn_check (entity self)
 	self.monsterinfo.nextframe = FRAME_spawn08;
 }
 
-static void carrier_ready_spawn (entity self)
+static void(entity self) carrier_ready_spawn =
 {
-	float	current_yaw;
-	vector	offset, f, r, startpoint, spawnpoint;
-
 	CarrierCoopCheck(self);
 	CarrierMachineGun(self);
 
-	current_yaw = anglemod(self.s.angles[YAW]);
+	float current_yaw = anglemod(self.s.angles[YAW]);
 
 	if (fabs(current_yaw - self.ideal_yaw) > 0.1)
 	{
@@ -410,30 +346,30 @@ static void carrier_ready_spawn (entity self)
 
 	self.monsterinfo.aiflags &= ~AI_HOLD_FRAME;
 
-	offset = '105 0 -58';
+	vector f, r;
 	AngleVectors (self.s.angles, &f, &r, 0);
-	startpoint = G_ProjectSource (self.s.origin, offset, f, r);
+
+	vector startpoint = G_ProjectSource (self.s.origin, '105 0 -58', f, r);
+	vector spawnpoint;
+
 	if (FindSpawnPoint (startpoint, flyer_mins, flyer_maxs, &spawnpoint, 32))
 		SpawnGrow_Spawn (spawnpoint, 0);
 }
 
-static void carrier_start_spawn (entity self)
+static void(entity self) carrier_start_spawn =
 {
-	int	mytime;
-	float	enemy_yaw;
-	vector	temp;
-
 	CarrierCoopCheck(self);
+
 	if (!orig_yaw_speed)
 		orig_yaw_speed = self.yaw_speed;
 
 	if (!self.enemy)
 		return;
 
-	mytime = (int)((level.framenum - self.timestamp) / (0.5 * BASE_FRAMERATE));
+	int mytime = (int)((level.framenum - self.timestamp) / (0.5 * BASE_FRAMERATE));
 
-	temp = self.enemy.s.origin - self.s.origin;
-	enemy_yaw = vectoyaw(temp);
+	vector temp = self.enemy.s.origin - self.s.origin;
+	float enemy_yaw = vectoyaw(temp);
 
 	// note that the offsets are based on a forward of 105 from the end angle
 	if (mytime == 0)
@@ -446,37 +382,35 @@ static void carrier_start_spawn (entity self)
 	CarrierMachineGun (self);
 }
 
-static void CarrierRail (entity self)
+static void(entity self) CarrierRail =
 {
-	vector	start;
-	vector	dir;
-	vector	forward, right;
-
 	CarrierCoopCheck(self);
+
+	vector forward, right;
 	AngleVectors (self.s.angles, &forward, &right, 0);
-	start = G_ProjectSource (self.s.origin, monster_flash_offset[MZ2_CARRIER_RAILGUN], forward, right);
 
 	// calc direction to where we targeted
-	dir = self.pos1 - start;
+	vector start = G_ProjectSource (self.s.origin, monster_flash_offset[MZ2_CARRIER_RAILGUN], forward, right);
+	vector dir = self.pos1 - start;
 	VectorNormalize (dir);
 
 	monster_fire_railgun (self, start, dir, 50, 100, MZ2_CARRIER_RAILGUN);
 	self.monsterinfo.attack_finished = level.framenum + (int)(RAIL_FIRE_TIME * BASE_FRAMERATE);
 }
 
-static void CarrierSaveLoc (entity self)
+static void(entity self) CarrierSaveLoc =
 {
 	CarrierCoopCheck(self);
 	self.pos1 = self.enemy.s.origin;	//save for aiming the shot
 	self.pos1[2] += self.enemy.viewheight;
 }
 
-static void carrier_stand (entity self)
+static void(entity self) carrier_stand =
 {
 	self.monsterinfo.currentmove = &carrier_move_stand;
 }
 
-static void carrier_run (entity self)
+static void(entity self) carrier_run =
 {
 	self.monsterinfo.aiflags &= ~AI_HOLD_FRAME;
 
@@ -486,30 +420,21 @@ static void carrier_run (entity self)
 		self.monsterinfo.currentmove = &carrier_move_run;
 }
 
-static void carrier_walk (entity self)
+static void(entity self) carrier_walk =
 {
 	self.monsterinfo.currentmove = &carrier_move_walk;
 }
 
-static void CarrierMachineGunHold (entity self)
+static void(entity self) carrier_attack =
 {
-	CarrierMachineGun (self);
-}
-
-static void carrier_attack (entity self)
-{
-	vector	vec;
-	float	range, luck;
-	bool	enemy_inback, enemy_infront, enemy_below;
-	
 	self.monsterinfo.aiflags &= ~AI_HOLD_FRAME;
 
 	if ((!self.enemy) || (!self.enemy.inuse))
 		return;
 
-	enemy_inback = inback(self, self.enemy);
-	enemy_infront = infront (self, self.enemy);
-	enemy_below = below (self, self.enemy);
+	bool enemy_inback = inback(self, self.enemy);
+	bool enemy_infront = infront (self, self.enemy);
+	bool enemy_below = below (self, self.enemy);
 
 	if (self.bad_area)
 	{
@@ -545,8 +470,8 @@ static void carrier_attack (entity self)
 
 	if (enemy_infront)
 	{
-		vec = self.enemy.s.origin - self.s.origin;
-		range = VectorLength (vec);
+		float range = VectorLength (self.enemy.s.origin - self.s.origin);
+
 		if (range <= 125)
 		{
 			if ((random() < 0.8) || (level.framenum < self.monsterinfo.attack_finished))
@@ -559,7 +484,8 @@ static void carrier_attack (entity self)
 		}
 		else if (range < 600)
 		{
-			luck = random();
+			float luck = random();
+
 			if (self.monsterinfo.monster_slots > 2)
 			{
 				if (luck <= 0.20)
@@ -574,24 +500,22 @@ static void carrier_attack (entity self)
 				else
 					self.monsterinfo.currentmove = &carrier_move_spawn;
 			}
-			else
+			else if (luck <= 0.30)
+				self.monsterinfo.currentmove = &carrier_move_attack_pre_mg;
+			else if (luck <= 0.65)
+				self.monsterinfo.currentmove = &carrier_move_attack_pre_gren;
+			else if (level.framenum >= self.monsterinfo.attack_finished)
 			{
-				if (luck <= 0.30)
-					self.monsterinfo.currentmove = &carrier_move_attack_pre_mg;
-				else if (luck <= 0.65)
-					self.monsterinfo.currentmove = &carrier_move_attack_pre_gren;
-				else if (level.framenum >= self.monsterinfo.attack_finished)
-				{
-					gi.sound (self, CHAN_WEAPON, sound_rail, 1, ATTN_NORM, 0);
-					self.monsterinfo.currentmove = &carrier_move_attack_rail;
-				}
-				else
-					self.monsterinfo.currentmove = &carrier_move_attack_pre_mg;
+				gi.sound (self, CHAN_WEAPON, sound_rail, 1, ATTN_NORM, 0);
+				self.monsterinfo.currentmove = &carrier_move_attack_rail;
 			}
+			else
+				self.monsterinfo.currentmove = &carrier_move_attack_pre_mg;
 		}
 		else // won't use grenades at this range
 		{
-			luck = random();
+			float luck = random();
+
 			if (self.monsterinfo.monster_slots > 2)
 			{
 				if (luck < 0.3)
@@ -606,34 +530,29 @@ static void carrier_attack (entity self)
 				else
 					self.monsterinfo.currentmove = &carrier_move_spawn;
 			}
+			else if ((luck < 0.45) || (level.framenum < self.monsterinfo.attack_finished))
+				self.monsterinfo.currentmove = &carrier_move_attack_pre_mg;
 			else
 			{
-				if ((luck < 0.45) || (level.framenum < self.monsterinfo.attack_finished))
-					self.monsterinfo.currentmove = &carrier_move_attack_pre_mg;
-				else
-				{
-					gi.sound (self, CHAN_WEAPON, sound_rail, 1, ATTN_NORM, 0);
-					self.monsterinfo.currentmove = &carrier_move_attack_rail;
-				}
+				gi.sound (self, CHAN_WEAPON, sound_rail, 1, ATTN_NORM, 0);
+				self.monsterinfo.currentmove = &carrier_move_attack_rail;
 			}
 		}
 	}
 	else if ((enemy_below) || (enemy_inback))
-	{
 		self.monsterinfo.currentmove = &carrier_move_attack_rocket;
-	}
 }
 
-static void carrier_attack_mg (entity self)
+static void(entity self) carrier_attack_mg =
 {
 	CarrierCoopCheck(self);
 	self.monsterinfo.currentmove = &carrier_move_attack_mg;
 }
 
-static void carrier_reattack_mg (entity self)
+static void(entity self) carrier_reattack_mg =
 {
 	CarrierCoopCheck(self);
-	if ( infront(self, self.enemy) )
+	if (infront(self, self.enemy))
 		if (random() <= 0.5)
 			if ((random() < 0.7) || (self.monsterinfo.monster_slots <= 2))
 				self.monsterinfo.currentmove = &carrier_move_attack_mg;
@@ -646,18 +565,18 @@ static void carrier_reattack_mg (entity self)
 }
 
 
-static void carrier_attack_gren (entity self)
+static void(entity self) carrier_attack_gren =
 {
 	CarrierCoopCheck(self);
 	self.timestamp = level.framenum;
 	self.monsterinfo.currentmove = &carrier_move_attack_gren;
 }
 
-static void carrier_reattack_gren (entity self)
+static void(entity self) carrier_reattack_gren =
 {
 	CarrierCoopCheck(self);
 
-	if ( infront(self, self.enemy) )
+	if (infront(self, self.enemy))
 		if (self.timestamp + (1.3 * BASE_FRAMERATE) > level.framenum ) // four grenades
 		{
 			self.monsterinfo.currentmove = &carrier_move_attack_gren;
@@ -667,10 +586,8 @@ static void carrier_reattack_gren (entity self)
 	self.monsterinfo.currentmove = &carrier_move_attack_post_gren;
 }
 
-static void carrier_pain (entity self, entity other, float kick, int damage)
+static void(entity self, entity other, float kick, int damage) carrier_pain =
 {
-	bool changed = false;
-
 	if (self.health < (self.max_health / 2))
 		self.s.skinnum = 1;
 
@@ -681,6 +598,8 @@ static void carrier_pain (entity self, entity other, float kick, int damage)
 		return;
 
 	self.pain_debounce_framenum = level.framenum + (5 * BASE_FRAMERATE);
+
+	bool changed = false;
 
 	if (damage < 10)
 		gi.sound (self, CHAN_VOICE, sound_pain3, 1, ATTN_NONE, 0);
@@ -708,7 +627,7 @@ static void carrier_pain (entity self, entity other, float kick, int damage)
 	}
 }
 
-static void carrier_dead (entity self)
+static void(entity self) carrier_dead =
 {
 	self.mins = '-56 -56 0';
 	self.maxs = '56 56 80';
@@ -718,7 +637,7 @@ static void carrier_dead (entity self)
 	gi.linkentity (self);
 }
 
-static void carrier_die (entity self, entity inflictor, entity attacker, int damage, vector point)
+static void(entity self, entity inflictor, entity attacker, int damage, vector point) carrier_die =
 {
 	gi.sound (self, CHAN_VOICE, sound_death, 1, ATTN_NONE, 0);
 	self.deadflag = DEAD_DEAD;
@@ -727,24 +646,17 @@ static void carrier_die (entity self, entity inflictor, entity attacker, int dam
 	self.monsterinfo.currentmove = &carrier_move_death;
 }
 
-static bool Carrier_CheckAttack (entity self)
+static bool(entity self) Carrier_CheckAttack =
 {
-	vector	spot1, spot2;
-	vector	temp;
-	float	chance = 0;
-	trace_t	tr;
-	bool	enemy_infront, enemy_inback, enemy_below;
-	int			enemy_range;
-	float		enemy_yaw;
-
 	if (self.enemy.health > 0)
 	{
 	// see if any entities are in the way of the shot
-		spot1 = self.s.origin;
+		vector spot1 = self.s.origin;
 		spot1[2] += self.viewheight;
-		spot2 = self.enemy.s.origin;
+		vector spot2 = self.enemy.s.origin;
 		spot2[2] += self.enemy.viewheight;
 
+		trace_t	tr;
 		gi.traceline(&tr, spot1, spot2, self, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_SLIME|CONTENTS_LAVA);
 
 		// do we have a clear shot?
@@ -758,20 +670,18 @@ static bool Carrier_CheckAttack (entity self)
 			}
 				
 			// PGM - we want them to go ahead and shoot at info_notnulls if they can.
-			if(self.enemy.solid != SOLID_NOT || tr.fraction < 1.0)		//PGM
+			if (self.enemy.solid != SOLID_NOT || tr.fraction < 1.0)		//PGM
 				return false;
 		}
 	}
 	
-	enemy_infront = infront(self, self.enemy);
-	enemy_inback = inback(self, self.enemy);
-	enemy_below = below (self, self.enemy);
+	bool enemy_infront = infront(self, self.enemy);
+	bool enemy_inback = inback(self, self.enemy);
+	bool enemy_below = below (self, self.enemy);
 
-	enemy_range = range(self, self.enemy);
-	temp = self.enemy.s.origin - self.s.origin;
-	enemy_yaw = vectoyaw(temp);
+	float enemy_range = range(self, self.enemy);
 
-	self.ideal_yaw = enemy_yaw;
+	self.ideal_yaw = vectoyaw(self.enemy.s.origin - self.s.origin);
 
 	// PMM - shoot out the back if appropriate
 	if ((enemy_inback) || (!enemy_infront && enemy_below))
@@ -796,26 +706,18 @@ static bool Carrier_CheckAttack (entity self)
 		return true;
 	}
 
+	float chance = 0;
+
 	if (self.monsterinfo.aiflags & AI_STAND_GROUND)
-	{
 		chance = 0.4;
-	}
 	else if (enemy_range == RANGE_MELEE)
-	{
 		chance = 0.8;
-	}
 	else if (enemy_range == RANGE_NEAR)
-	{
 		chance = 0.8;
-	}
 	else if (enemy_range == RANGE_MID)
-	{
 		chance = 0.8;
-	}
 	else if (enemy_range == RANGE_FAR)
-	{
 		chance = 0.5;
-	}
 
 	// PGM - go ahead and shoot every time if it's a info_notnull
 	if ((random () < chance) || (self.enemy.solid == SOLID_NOT))
@@ -1024,7 +926,7 @@ static mframe_t carrier_frames_death [] =
 	{ ai_move,	0,	BossExplode }
 };
 
-void CarrierPrecache ()
+static void() CarrierPrecache =
 {
 	gi.soundindex ("flyer/flysght1.wav");
 	gi.soundindex ("flyer/flysrch1.wav");
@@ -1077,7 +979,6 @@ void CarrierPrecache ()
 	}
 }
 
-
 /*QUAKED monster_carrier (1 .5 0) (-56 -56 -44) (56 56 44) Ambush Trigger_Spawn Sight
 */
 void SP_monster_carrier (entity self)
@@ -1092,7 +993,6 @@ void SP_monster_carrier (entity self)
 	sound_pain2 = gi.soundindex ("carrier/pain_lg.wav");
 	sound_pain3 = gi.soundindex ("carrier/pain_sm.wav");
 	sound_death = gi.soundindex ("carrier/death.wav");
-//	sound_search1 = gi.soundindex ("bosshovr/bhvunqv1.wav");
 	sound_rail = gi.soundindex ("gladiator/railgun.wav");
 	sound_sight = gi.soundindex ("carrier/sight.wav");
 	sound_spawn = gi.soundindex ("medic_commander/monsterspawn1.wav");
@@ -1106,10 +1006,10 @@ void SP_monster_carrier (entity self)
 	self.maxs = '56 56 44';
 
 	// 2000 - 4000 health
-	self.health = maxi (2000, 2000 + 1000*(skill.intVal-1));
+	self.health = maxi (2000, 2000 + 1000 * (skill.intVal - 1));
 	// add health in coop (500 * skill)
 	if (coop.intVal)
-		self.health += 500*(skill.intVal);	
+		self.health += 500 * skill.intVal;	
 
 	self.gib_health = -200;
 	self.mass = 1000;
@@ -1139,21 +1039,14 @@ void SP_monster_carrier (entity self)
 
 	flymonster_start (self);
 
-	self.monsterinfo.attack_finished = 0;
-	switch ((int)skill.intVal)
+	self.monsterinfo.attack_finished = 6;
+	switch (skill.intVal)
 	{
 	case 0:
 		self.monsterinfo.monster_slots = 3;
 		break;
-	case 1:
-	case 2:
-		self.monsterinfo.monster_slots = 6;
-		break;
 	case 3:
 		self.monsterinfo.monster_slots = 9;
-		break;
-	default:
-		self.monsterinfo.monster_slots = 6;
 		break;
 	}
 }

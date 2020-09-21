@@ -248,7 +248,7 @@ void(entity self, float dist) ai_charge =
 			if (M_walkmove (self, self.ideal_yaw + ofs, dist))
 				return;
 				
-			self.monsterinfo.lefty = 1 - self.monsterinfo.lefty;
+			self.monsterinfo.lefty = !self.monsterinfo.lefty;
 			M_walkmove (self, self.ideal_yaw - ofs, dist);
 		}
 		else
@@ -385,8 +385,10 @@ bool(entity self, entity other) infront =
 
 
 //============================================================================
-// from monster.qc
-void(entity self, float time) AttackFinished;
+inline void(entity self, float time) AttackFinished =
+{
+	self.monsterinfo.attack_finished = level.framenum + (int)(time * BASE_FRAMERATE);
+}
 
 void(entity self) HuntTarget =
 {
@@ -907,7 +909,7 @@ static void(entity self, float distance) ai_run_slide =
 	}
 #endif
 
-	self.monsterinfo.lefty = 1 - self.monsterinfo.lefty;
+	self.monsterinfo.lefty = !self.monsterinfo.lefty;
 
 #ifdef GROUND_ZERO
 	if (M_walkmove (self, self.ideal_yaw - ofs, distance))

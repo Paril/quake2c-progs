@@ -30,14 +30,9 @@ API_FUNC static void(entity ent) SP_func_areaportal =
 Misc functions
 =================
 */
-PROGS_LOCAL void(int damage, out vector v) VelocityForDamage =
+PROGS_LOCAL INLINE vector(int damage) VelocityForDamage =
 {
-	v = randomv('-100 -100 200', '100 100 300');
-
-	if (damage < 50)
-		v *= 0.7f;
-	else
-		v *= 1.2f;
+	return randomv('-100 -100 200', '100 100 300') * ((damage < 50) ? 0.7f : 1.2f);
 }
 
 PROGS_LOCAL void(entity ent) ClipGibVelocity =
@@ -104,16 +99,10 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) g
 
 void(entity self, string gibname, int damage, gib_type_t type) ThrowGib =
 {
-	entity	gib;
-	vector	vd;
-	vector	origin;
-	vector	sz;
-	float	vscale;
+	entity gib = G_Spawn();
 
-	gib = G_Spawn();
-
-	sz = self.size * 0.5f;
-	origin = self.absmin + sz;
+	vector sz = self.size * 0.5f;
+	vector origin = self.absmin + sz;
 	gib.s.origin = origin + randomv(-sz, sz);
 
 	gi.setmodel(gib, gibname);
@@ -123,17 +112,21 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowGib =
 	gib.takedamage = true;
 	gib.die = gib_die;
 
-	if (type == GIB_ORGANIC) {
+	float vscale;
+
+	if (type == GIB_ORGANIC)
+	{
 		gib.movetype = MOVETYPE_TOSS;
 		gib.touch = gib_touch;
 		vscale = 0.5f;
-	} else {
+	}
+	else
+	{
 		gib.movetype = MOVETYPE_BOUNCE;
 		vscale = 1.0f;
 	}
 
-	VelocityForDamage(damage, vd);
-	gib.velocity = self.velocity + (vscale * vd);
+	gib.velocity = self.velocity + (vscale * VelocityForDamage(damage));
 	ClipGibVelocity(gib);
 	gib.avelocity = randomv('600 600 600');
 
@@ -145,9 +138,6 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowGib =
 
 void(entity self, string gibname, int damage, gib_type_t type) ThrowHead =
 {
-	vector	vd;
-	float	vscale;
-
 	self.s.skinnum = 0;
 	self.s.frame = 0;
 	self.mins = vec3_origin;
@@ -164,17 +154,21 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowHead =
 	self.takedamage = true;
 	self.die = gib_die;
 
-	if (type == GIB_ORGANIC) {
+	float vscale;
+
+	if (type == GIB_ORGANIC)
+	{
 		self.movetype = MOVETYPE_TOSS;
 		self.touch = gib_touch;
 		vscale = 0.5f;
-	} else {
+	}
+	else
+	{
 		self.movetype = MOVETYPE_BOUNCE;
 		vscale = 1.0f;
 	}
 
-	VelocityForDamage(damage, vd);
-	self.velocity += (vscale * vd);
+	self.velocity += (vscale * VelocityForDamage(damage));
 	ClipGibVelocity(self);
 
 	self.avelocity[YAW] = random(-600f, 600f);
@@ -188,13 +182,15 @@ void(entity self, string gibname, int damage, gib_type_t type) ThrowHead =
 
 void(entity self, int damage) ThrowClientHead =
 {
-	vector	vd;
 	string	gibname;
 
-	if (Q_rand() & 1) {
+	if (Q_rand() & 1)
+	{
 		gibname = "models/objects/gibs/head2/tris.md2";
 		self.s.skinnum = 1;        // second skin is player
-	} else {
+	}
+	else
+	{
 		gibname = "models/objects/gibs/skull/tris.md2";
 		self.s.skinnum = 0;
 	}
@@ -212,13 +208,15 @@ void(entity self, int damage) ThrowClientHead =
 	self.flags |= FL_NO_KNOCKBACK;
 
 	self.movetype = MOVETYPE_BOUNCE;
-	VelocityForDamage(damage, vd);
-	self.velocity += vd;
+	self.velocity += VelocityForDamage(damage);
 
-	if (self.is_client) { // bodies in the queue don't have a client anymore
+	if (self.is_client)
+	{ // bodies in the queue don't have a client anymore
 		self.client.anim_priority = ANIM_DEATH;
 		self.client.anim_end = self.s.frame;
-	} else {
+	}
+	else
+	{
 		self.think = 0;
 		self.nextthink = 0;
 	}
@@ -259,28 +257,6 @@ void(entity self, string modelname, float speed, vector origin) ThrowDebris =
 	chunk.takedamage = true;
 	chunk.die = debris_die;
 	gi.linkentity(chunk);
-}
-
-
-void(entity self) BecomeExplosion1 =
-{
-	gi.WriteByte(svc_temp_entity);
-	gi.WriteByte(TE_EXPLOSION1);
-	gi.WritePosition(self.s.origin);
-	gi.multicast(self.s.origin, MULTICAST_PVS);
-
-	G_FreeEdict(self);
-}
-
-
-void(entity self) BecomeExplosion2 =
-{
-	gi.WriteByte(svc_temp_entity);
-	gi.WriteByte(TE_EXPLOSION2);
-	gi.WritePosition(self.s.origin);
-	gi.multicast(self.s.origin, MULTICAST_PVS);
-
-	G_FreeEdict(self);
 }
 
 /*QUAKED path_corner (.5 .3 0) (-8 -8 -8) (8 8 8) TELEPORT

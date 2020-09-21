@@ -30,15 +30,13 @@ start_on: when trigger has targetname, start active, deactivate when used.
 */
 static void(entity self, entity other, vector plane, csurface_t surf) trigger_teleport_touch =
 {
-	entity	dest;
-
-	if(/*(self.spawnflags & TELEPORT_PLAYER_ONLY) &&*/ !(other.is_client))
+	if !(other.is_client)
 		return;
 
-	if(self.delay)
+	if (self.delay)
 		return;
 
-	dest = G_Find (world, targetname, self.target);
+	entity dest = G_Find (world, targetname, self.target);
 	if !(dest)
 	{
 		gi.dprintf("Teleport Destination not found!\n");
@@ -59,7 +57,7 @@ static void(entity self, entity other, vector plane, csurface_t surf) trigger_te
 
 	// clear the velocity and hold them in place briefly
 	other.velocity = vec3_origin;
-	if(other.is_client)
+	if (other.is_client)
 	{
 		other.client.ps.pmove.pm_time = 160>>3;		// hold time
 		other.client.ps.pmove.pm_flags |= PMF_TIME_TELEPORT;
@@ -85,7 +83,7 @@ static void(entity self, entity other, vector plane, csurface_t surf) trigger_te
 
 static void(entity self, entity other, entity cactivator) trigger_teleport_use =
 {
-	if(self.delay)
+	if (self.delay)
 		self.delay = 0;
 	else
 		self.delay = 1f;
@@ -109,7 +107,6 @@ API_FUNC static void(entity self) SP_trigger_teleport =
 
 	self.solid = SOLID_TRIGGER;
 	self.movetype = MOVETYPE_NONE;
-//	self.flags |= FL_NOCLIENT;
 
 	if (self.s.angles != vec3_origin)
 		G_SetMovedir (self.s.angles, self.movedir);
@@ -130,12 +127,11 @@ TOGGLE - field is turned off and on when used.
 START_ON - field is active when spawned.
 REMOVE - field removes the disguise
 */
-
 static void(entity self, entity other, vector plane, csurface_t surf) trigger_disguise_touch =
 {
 	if (other.is_client)
 	{
-		if(self.spawnflags & 4)
+		if (self.spawnflags & 4)
 			other.flags &= ~FL_DISGUISED;
 		else
 			other.flags |= FL_DISGUISED;
@@ -144,7 +140,7 @@ static void(entity self, entity other, vector plane, csurface_t surf) trigger_di
 
 static void(entity self, entity other, entity cactivator) trigger_disguise_use =
 {
-	if(self.solid == SOLID_NOT)
+	if (self.solid == SOLID_NOT)
 		self.solid = SOLID_TRIGGER;
 	else
 		self.solid = SOLID_NOT;
@@ -154,7 +150,7 @@ static void(entity self, entity other, entity cactivator) trigger_disguise_use =
 
 API_FUNC static void(entity self) SP_trigger_disguise =
 {
-	if(self.spawnflags & 2)
+	if (self.spawnflags & 2)
 		self.solid = SOLID_TRIGGER;
 	else
 		self.solid = SOLID_NOT;

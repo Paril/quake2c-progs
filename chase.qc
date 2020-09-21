@@ -2,36 +2,33 @@ void(entity ent) ChaseNext;
 
 void(entity ent) UpdateChaseCam =
 {
-	vector	o, ownerv, goal;
-	entity	targ;
-	vector	forward, right;
-	trace_t	trace;
-	vector	angles;
-
 	// is our chase target gone?
-	if (!ent.client.chase_target.inuse
-		|| ent.client.chase_target.client.resp.spectator) {
+	if (!ent.client.chase_target.inuse || ent.client.chase_target.client.resp.spectator)
+	{
 		entity old = ent.client.chase_target;
 		ChaseNext(ent);
-		if (ent.client.chase_target == old) {
+
+		if (ent.client.chase_target == old)
+		{
 			ent.client.chase_target = world;
 			ent.client.ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 			return;
 		}
 	}
 
-	targ = ent.client.chase_target;
+	entity targ = ent.client.chase_target;
 
-	ownerv = targ.s.origin;
-
+	vector ownerv = targ.s.origin;
 	ownerv.z += targ.viewheight;
 
-	angles = targ.client.v_angle;
+	vector angles = targ.client.v_angle;
 	if (angles[PITCH] > 56)
 		angles[PITCH] = 56f;
+
+	vector forward, right;
 	AngleVectors(angles, &forward, &right, 0);
 	VectorNormalize(forward);
-	o = ownerv + (-30 * forward);
+	vector o = ownerv + (-30 * forward);
 
 	if (o.z < targ.s.origin[2] + 20f)
 		o.z = targ.s.origin[2] + 20f;
@@ -40,17 +37,17 @@ void(entity ent) UpdateChaseCam =
 	if (targ.groundentity == null_entity)
 		o.z += 16;
 
+	trace_t	trace;
 	gi.traceline(&trace, ownerv, o, targ, MASK_SOLID);
 
-	goal = trace.endpos;
-
-	goal = goal + (2 * forward);
+	vector goal = trace.endpos + (2 * forward);
 
 	// pad for floors and ceilings
 	o = goal;
 	o.z += 6;
 	gi.traceline(&trace, goal, o, targ, MASK_SOLID);
-	if (trace.fraction < 1) {
+	if (trace.fraction < 1)
+	{
 		goal = trace.endpos;
 		goal.z -= 6;
 	}
@@ -58,7 +55,8 @@ void(entity ent) UpdateChaseCam =
 	o = goal;
 	o.z -= 6;
 	gi.traceline(&trace, goal, o, targ, MASK_SOLID);
-	if (trace.fraction < 1) {
+	if (trace.fraction < 1)
+	{
 		goal = trace.endpos;
 		goal.z += 6;
 	}
@@ -71,11 +69,14 @@ void(entity ent) UpdateChaseCam =
 	ent.s.origin = goal;
 	ent.client.ps.pmove.delta_angles = targ.client.v_angle - ent.client.resp.cmd_angles;
 
-	if (targ.deadflag) {
+	if (targ.deadflag)
+	{
 		ent.client.ps.viewangles[ROLL] = 40f;
 		ent.client.ps.viewangles[PITCH] = -15f;
 		ent.client.ps.viewangles[YAW] = targ.client.killer_yaw;
-	} else {
+	}
+	else
+	{
 		ent.client.ps.viewangles = targ.client.v_angle;
 		ent.client.v_angle = targ.client.v_angle;
 	}
@@ -87,14 +88,13 @@ void(entity ent) UpdateChaseCam =
 
 void(entity ent) ChaseNext =
 {
-	int i;
-	entity e;
-
 	if (!ent.client.chase_target)
 		return;
 
-	i = ent.client.chase_target.s.number;
-	do {
+	int i = ent.client.chase_target.s.number;
+	entity e;
+	do
+	{
 		i++;
 		if (i > game.maxclients)
 			i = 1;
@@ -111,13 +111,11 @@ void(entity ent) ChaseNext =
 
 void(entity ent) ChasePrev =
 {
-	int i;
-	entity e;
-
 	if (!ent.client.chase_target)
 		return;
 
-	i = ent.client.chase_target.s.number;
+	int i = ent.client.chase_target.s.number;
+	entity e;
 	do {
 		i--;
 		if (i < 1)
@@ -135,12 +133,12 @@ void(entity ent) ChasePrev =
 
 void(entity ent) GetChaseTarget =
 {
-	int i;
-	entity other;
-
-	for (i = 1; i <= game.maxclients; i++) {
-		other = itoe(i);
-		if (other.inuse && !other.client.resp.spectator) {
+	for (int i = 1; i <= game.maxclients; i++)
+	{
+		entity other = itoe(i);
+		
+		if (other.inuse && !other.client.resp.spectator)
+		{
 			ent.client.chase_target = other;
 			ent.client.update_chase = true;
 			UpdateChaseCam(ent);

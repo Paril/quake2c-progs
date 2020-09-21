@@ -1,7 +1,6 @@
 #ifdef THE_RECKONING
 
-// RAFAEL
-void(entity self, vector start, vector dir, int damage, int speed, int flashtype, int effect) monster_fire_blueblaster =
+inline void(entity self, vector start, vector dir, int damage, int speed, int flashtype, int effect) monster_fire_blueblaster =
 {
 	fire_blaster (self, start, dir, damage, speed, effect, false);
 
@@ -11,8 +10,7 @@ void(entity self, vector start, vector dir, int damage, int speed, int flashtype
 	gi.multicast (start, MULTICAST_PVS);
 }	
 
-// RAFAEL
-void(entity self, vector start, vector dir, int damage, int speed, int flashtype, int effect) monster_fire_ionripper =
+inline void(entity self, vector start, vector dir, int damage, int speed, int flashtype, int effect) monster_fire_ionripper =
 {
 	fire_ionripper (self, start, dir, damage, speed, effect);
 
@@ -22,8 +20,7 @@ void(entity self, vector start, vector dir, int damage, int speed, int flashtype
 	gi.multicast (start, MULTICAST_PVS);
 }
 
-// RAFAEL
-void(entity self, vector start, vector dir, int damage, int speed, int flashtype) monster_fire_heat =
+inline void(entity self, vector start, vector dir, int damage, int speed, int flashtype) monster_fire_heat =
 {
 	fire_heat (self, start, dir, damage, speed, damage, damage);
 
@@ -33,29 +30,18 @@ void(entity self, vector start, vector dir, int damage, int speed, int flashtype
 	gi.multicast (start, MULTICAST_PVS);
 }
 
-// RAFAEL
 void(entity self) dabeam_hit =
 {
-	entity	ignore;
-	vector	start;
-	vector	end;
-	trace_t	tr = { 0 };
-	int	count;
-	static const vector lmins = '-4 -4 -4';
-	static const vector lmaxs = '4 4 4';
-
-	if (self.spawnflags & 0x80000000)
-		count = 8;
-	else
-		count = 4;
-
-	ignore = self;
-	start = self.s.origin;
-	end = start + (self.movedir * 2048);
+	int count = (self.spawnflags & 0x80000000) ? 8 : 4;
+	entity ignore = self;
+	vector start = self.s.origin;
+	vector end = start + (self.movedir * 2048);
+	trace_t	tr;
 	
-	while(1)
+	do
 	{
 		gi.traceline(&tr, start, end, ignore, CONTENTS_SOLID|CONTENTS_MONSTER|CONTENTS_DEADMONSTER);
+
 		if (!tr.ent)
 			break;
 
@@ -64,13 +50,11 @@ void(entity self) dabeam_hit =
 			T_Damage (tr.ent, self, self.owner, self.movedir, tr.endpos, vec3_origin, self.dmg, skill.intVal, DAMAGE_ENERGY, MOD_TARGET_LASER);
 
 		if (self.dmg < 0) // healer ray
-		{
 			// when player is at 100 health
 			// just undo health fix
 			// keeping fx
 			if (tr.ent.is_client && tr.ent.health > 100)
 				tr.ent.health += self.dmg; 
-		}
 		
 		// if we hit something that's not a monster or player or is immune to lasers, we're done
 		if (!(tr.ent.svflags & SVF_MONSTER) && (!tr.ent.is_client))
@@ -91,8 +75,7 @@ void(entity self) dabeam_hit =
 
 		ignore = tr.ent;
 		start = tr.endpos;
-	}
-
+	} while (1);
 
 	self.s.old_origin = tr.endpos;
 	self.nextthink = level.framenum + 1;
@@ -103,9 +86,6 @@ void(entity self) dabeam_hit =
 // RAFAEL
 void(entity self) monster_dabeam =
 {
-	vector	last_movedir;
-	vector	point;
-	
 	self.movetype = MOVETYPE_NONE;
 	self.solid = SOLID_NOT;
 	self.s.renderfx |= RF_BEAM|RF_TRANSLUCENT;
@@ -120,12 +100,15 @@ void(entity self) monster_dabeam =
 
 	if (self.enemy)
 	{
-		last_movedir = self.movedir;
-		point = self.enemy.absmin + (self.enemy.size * 0.5);
+		vector last_movedir = self.movedir;
+		vector point = self.enemy.absmin + (self.enemy.size * 0.5);
+
 		if (self.owner.monsterinfo.aiflags & AI_MEDIC)
 			point[0] += sin(level.time) * 8;
+
 		self.movedir = point - self.s.origin;
 		VectorNormalize (self.movedir);
+
 		if (self.movedir != last_movedir)
 			self.spawnflags |= 0x80000000;
 	}

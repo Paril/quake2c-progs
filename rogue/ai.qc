@@ -1104,10 +1104,7 @@ void(entity self, entity attacker, float eta, trace_t *tr) M_MonsterDodge =
 
 			vector diff = tr.endpos - self.s.origin;
 
-			if (right * diff < 0)
-				self.monsterinfo.lefty = 0;
-			else
-				self.monsterinfo.lefty = 1;
+			self.monsterinfo.lefty = (right * diff) >= 0;
 	
 			// if we are currently ducked, unduck
 

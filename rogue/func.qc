@@ -23,15 +23,10 @@ static void(entity self) fd_secret_move1;
 
 static void(entity self, entity other, entity cactivator) fd_secret_use =
 {
-	entity	ent;
-
-	if (self.flags & FL_TEAMSLAVE)
-		return;
-
 	// trigger all paired doors
-	for (ent = self ; ent ; ent = ent.teamchain)
-		Move_Calc(ent, ent.moveinfo.start_origin, fd_secret_move1);
-
+	if !(self.flags & FL_TEAMSLAVE)
+		for (entity ent = self; ent; ent = ent.teamchain)
+			Move_Calc(ent, ent.moveinfo.start_origin, fd_secret_move1);
 }
 
 static void(entity self, entity inflictor, entity attacker, int damage, vector point) fd_secret_killed =
@@ -67,7 +62,7 @@ static void(entity self) fd_secret_move4;
 // Wait here until time to go back...
 static void(entity self) fd_secret_move3 =
 {
-	if (!(self.spawnflags & SEC_OPEN_ONCE))
+	if !(self.spawnflags & SEC_OPEN_ONCE)
 	{
 		self.nextthink = level.framenum + (int)(self.wait * BASE_FRAMERATE);
 		self.think = fd_secret_move4;
@@ -110,7 +105,7 @@ static void(entity self) fd_secret_done =
 
 static void(entity self, entity other) secret_blocked =
 {
-	if (!(self.flags & FL_TEAMSLAVE))
+	if !(self.flags & FL_TEAMSLAVE)
 		T_Damage (other, self, self, vec3_origin, other.s.origin, vec3_origin, self.dmg, 0, 0, MOD_CRUSH);
 }
 
@@ -126,7 +121,7 @@ static void(entity self, entity other, vector plane, csurface_t surf) secret_tou
 	if (other.health <= 0)
 		return;
 
-	if (!(other.is_client))
+	if (!other.is_client)
 		return;
 
 	if (self.monsterinfo.attack_finished > level.framenum)
@@ -137,7 +132,6 @@ static void(entity self, entity other, vector plane, csurface_t surf) secret_tou
 	if (self.message)
 		gi.centerprintf (other, self.message);
 }
-
 
 /*QUAKED func_door_secret2 (0 .5 .8) ? open_once 1st_left 1st_down no_shoot always_shoot slide_right slide_forward
 Basic secret door. Slides back, then to the left. Angle determines direction.
@@ -156,20 +150,18 @@ wait = # of seconds before coming back (5 default)
 dmg  = damage to inflict when blocked (2 default)
 
 */
-
 API_FUNC static void(entity ent) SP_func_door_secret2 =
 {
-	vector	forward,right,up;
-	float	lrSize = 0, fbSize = 0;
-
 	ent.moveinfo.sound_start = gi.soundindex  ("doors/dr1_strt.wav");
 	ent.moveinfo.sound_middle = gi.soundindex  ("doors/dr1_mid.wav");
 	ent.moveinfo.sound_end = gi.soundindex  ("doors/dr1_end.wav");
 
 	if (!ent.dmg)
 		ent.dmg = 2;
-		
+
+	vector forward,right,up;
 	AngleVectors(ent.s.angles, &forward, &right, &up);
+
 	ent.move_origin = ent.s.origin;
 	ent.move_angles = ent.s.angles;
 
@@ -177,6 +169,8 @@ API_FUNC static void(entity ent) SP_func_door_secret2 =
 	ent.movetype = MOVETYPE_PUSH;
 	ent.solid = SOLID_BSP;
 	gi.setmodel (ent, ent.model);
+
+	float lrSize, fbSize;
 
 	if(ent.move_angles[1] == 0 || ent.move_angles[1] == 180)
 	{
@@ -191,6 +185,7 @@ API_FUNC static void(entity ent) SP_func_door_secret2 =
 	else
 	{
 		gi.dprintf("Secret door not at 0,90,180,270!\n");
+		lrSize = fbSize = 0;
 	}
 
 	if (ent.spawnflags & SEC_MOVE_FORWARD)
@@ -203,7 +198,7 @@ API_FUNC static void(entity ent) SP_func_door_secret2 =
 	else
 		right *= -lrSize;
 
-	if(ent.spawnflags & SEC_1ST_DOWN)
+	if (ent.spawnflags & SEC_1ST_DOWN)
 	{
 		ent.moveinfo.start_origin = ent.s.origin + forward;
 		ent.moveinfo.end_origin = ent.moveinfo.start_origin + right;
@@ -243,7 +238,7 @@ enumflags : int
 
 static void(entity self) force_wall_think =
 {
-	if(!self.wait)
+	if (!self.wait)
 	{
 		gi.WriteByte (svc_temp_entity);
 		gi.WriteByte (TE_FORCEWALL);
@@ -259,7 +254,7 @@ static void(entity self) force_wall_think =
 
 static void(entity self, entity other, entity cactivator) force_wall_use =
 {
-	if(!self.wait)
+	if (!self.wait)
 	{
 		self.wait = 1f;
 		self.think = 0;
@@ -290,13 +285,12 @@ API_FUNC static void(entity ent) SP_func_force_wall =
 {
 	gi.setmodel (ent, ent.model);
 
-	ent.offset[0] = (ent.absmax[0] + ent.absmin[0]) / 2;
-	ent.offset[1] = (ent.absmax[1] + ent.absmin[1]) / 2;
-	ent.offset[2] = (ent.absmax[2] + ent.absmin[2]) / 2;
+	ent.offset = (ent.absmax + ent.absmin) * 0.5f;
 
 	ent.pos1[2] = ent.absmax[2];
 	ent.pos2[2] = ent.absmax[2];
-	if(ent.size[0] > ent.size[1])
+
+	if (ent.size[0] > ent.size[1])
 	{
 		ent.pos1[0] = ent.absmin[0];
 		ent.pos2[0] = ent.absmax[0];
@@ -311,13 +305,13 @@ API_FUNC static void(entity ent) SP_func_force_wall =
 		ent.pos2[1] = ent.absmax[1];
 	}
 	
-	if(!ent.style)
+	if (!ent.style)
 		ent.style = 208;
 
 	ent.movetype = MOVETYPE_NONE;
 	ent.wait = 1f;
 
-	if(ent.spawnflags & FWALL_START_ON)
+	if (ent.spawnflags & FWALL_START_ON)
 	{
 		ent.solid = SOLID_BSP;
 		ent.think = force_wall_think;
@@ -327,7 +321,6 @@ API_FUNC static void(entity ent) SP_func_force_wall =
 		ent.solid = SOLID_NOT;
 
 	ent.use = force_wall_use;
-
 	ent.svflags = SVF_NOCLIENT;
 	
 	gi.linkentity(ent);
@@ -357,19 +350,15 @@ static void(entity ent) plat2_go_up;
 
 void(entity ent) plat2_spawn_danger_area =
 {
-	vector cmins, cmaxs;
-
-	cmins = ent.mins;
-	cmaxs = ent.maxs;
+	vector cmaxs = ent.maxs;
 	cmaxs[2] = ent.mins[2] + 64f;
 
-	SpawnBadArea(cmins, cmaxs, 0, ent);
+	SpawnBadArea(ent.mins, cmaxs, 0, ent);
 }
 
 void(entity ent) plat2_kill_danger_area =
 {
 	entity t = world;
-
 	while ((t = G_Find (t, classname, "bad_area")))
 		if (t.owner == ent)
 			G_FreeEdict(t);
@@ -383,22 +372,25 @@ static void(entity ent) plat2_hit_top =
 			gi.sound (ent, CHAN_NO_PHS_ADD+CHAN_VOICE, ent.moveinfo.sound_end, 1, ATTN_STATIC, 0);
 		ent.s.sound = 0;
 	}
+
 	ent.moveinfo.state = STATE_TOP;
 
-	if(ent.plat2flags & PLAT2_CALLED)
+	if (ent.plat2flags & PLAT2_CALLED)
 	{
 		ent.plat2flags = PLAT2_WAITING;
-		if(!(ent.spawnflags & PLAT2_TOGGLE))
+
+		if (!(ent.spawnflags & PLAT2_TOGGLE))
 		{
 			ent.think = plat2_go_down;
 			ent.nextthink = level.framenum + (int)(5.0 * BASE_FRAMERATE);
 		}
-		if(deathmatch.intVal)
+
+		if (deathmatch.intVal)
 			ent.last_move_framenum = level.framenum - (int)(1.0 * BASE_FRAMERATE);
 		else
 			ent.last_move_framenum = level.framenum - (int)(2.0 * BASE_FRAMERATE);
 	}
-	else if(!(ent.spawnflags & PLAT2_TOP) && !(ent.spawnflags & PLAT2_TOGGLE))
+	else if (!(ent.spawnflags & PLAT2_TOP) && !(ent.spawnflags & PLAT2_TOGGLE))
 	{
 		ent.plat2flags = 0;
 		ent.think = plat2_go_down;
@@ -424,15 +416,17 @@ static void(entity ent) plat2_hit_bottom =
 	}
 	ent.moveinfo.state = STATE_BOTTOM;
 	
-	if(ent.plat2flags & PLAT2_CALLED)
+	if (ent.plat2flags & PLAT2_CALLED)
 	{
 		ent.plat2flags = PLAT2_WAITING;
-		if(!(ent.spawnflags & PLAT2_TOGGLE))
+
+		if (!(ent.spawnflags & PLAT2_TOGGLE))
 		{
 			ent.think = plat2_go_up;
 			ent.nextthink = level.framenum + (int)(5.0 * BASE_FRAMERATE);
 		}
-		if(deathmatch.intVal)
+
+		if (deathmatch.intVal)
 			ent.last_move_framenum = level.framenum - (int)(1.0 * BASE_FRAMERATE);
 		else
 			ent.last_move_framenum = level.framenum - (int)(2.0 * BASE_FRAMERATE);
@@ -486,9 +480,6 @@ static void(entity ent) plat2_go_up =
 
 static void(entity ent, entity other) plat2_operate =
 {
-	int	otherState;
-	float	pauseTime;
-	float	platCenter;
 	entity trigger = ent;
 	ent = ent.enemy;	// now point at the plat, not the trigger
 
@@ -498,37 +489,41 @@ static void(entity ent, entity other) plat2_operate =
 	if ((ent.last_move_framenum + (2 * BASE_FRAMERATE)) > level.framenum)
 		return;
 
-	platCenter = (trigger.absmin[2] + trigger.absmax[2]) / 2;
+	float platCenter = (trigger.absmin[2] + trigger.absmax[2]) / 2;
+	int otherState;
 
-	if(ent.moveinfo.state == STATE_TOP)
+	if (ent.moveinfo.state == STATE_TOP)
 	{
-		otherState = STATE_TOP;
-		if(ent.spawnflags & PLAT2_BOX_LIFT)
+		if (ent.spawnflags & PLAT2_BOX_LIFT)
 		{
-			if(platCenter > other.s.origin[2])
+			if (platCenter > other.s.origin[2])
 				otherState = STATE_BOTTOM;
+			else
+				otherState = STATE_TOP;
 		}
 		else
 		{
-			if(trigger.absmax[2] > other.s.origin[2])
+			if (trigger.absmax[2] > other.s.origin[2])
 				otherState = STATE_BOTTOM;
+			else
+				otherState = STATE_TOP;
 		}
 	}
+	else if (other.s.origin[2] > platCenter)
+		otherState = STATE_TOP;
 	else
-	{
 		otherState = STATE_BOTTOM;
-		if(other.s.origin[2] > platCenter)
-			otherState = STATE_TOP;
-	}
 
 	ent.plat2flags = PLAT2_MOVING;
 
-	if(deathmatch.intVal)
+	float pauseTime;
+
+	if (deathmatch.intVal)
 		pauseTime = 0.3;
 	else
 		pauseTime = 0.5;
 
-	if(ent.moveinfo.state != otherState)
+	if (ent.moveinfo.state != otherState)
 	{
 		ent.plat2flags |= PLAT2_CALLED;
 		pauseTime = 0.1;
@@ -550,7 +545,7 @@ static void(entity ent, entity other, vector plane, csurface_t surf) Touch_Plat_
 		return;
 
 	// PMM - don't let non-monsters activate plat2s
-	if ((!(other.svflags & SVF_MONSTER)) && (!other.is_client))
+	if (!(other.svflags & SVF_MONSTER) && !other.is_client)
 		return;
 	
 	plat2_operate(ent, other);
@@ -558,18 +553,18 @@ static void(entity ent, entity other, vector plane, csurface_t surf) Touch_Plat_
 
 static void(entity self, entity other) plat2_blocked =
 {
-	if (!(other.svflags & SVF_MONSTER) && (!other.is_client))
+	if (!(other.svflags & SVF_MONSTER) && !other.is_client)
 	{
 		// give it a chance to go away on it's own terms (like gibs)
 		T_Damage (other, self, self, vec3_origin, other.s.origin, vec3_origin, 100000, 1, 0, MOD_CRUSH);
 		// if it's still there, nuke it
-		if(other && other.inuse)
+		if (other && other.inuse)
 			BecomeExplosion1 (other);
 		return;
 	}
 
 	// gib dead things
-	if(other.health < 1)
+	if (other.health < 1)
 		T_Damage(other, self, self, vec3_origin, other.s.origin, vec3_origin, 100, 1, 0, MOD_CRUSH);
 
 	T_Damage (other, self, self, vec3_origin, other.s.origin, vec3_origin, self.dmg, 1, 0, MOD_CRUSH);
@@ -582,42 +577,34 @@ static void(entity self, entity other) plat2_blocked =
 
 static void(entity ent, entity other, entity cactivator) Use_Plat2  =
 { 
-	entity	trigger;
-	int	i;
-
-	if(ent.moveinfo.state > STATE_BOTTOM)
+	if (ent.moveinfo.state > STATE_BOTTOM)
 		return;
-	if((ent.last_move_framenum + (2 * BASE_FRAMERATE)) > level.framenum)
+	if ((ent.last_move_framenum + (2 * BASE_FRAMERATE)) > level.framenum)
 		return;
 
-	for (i = 1; i < globals.num_edicts; i++)
+	for (int i = game.maxclients + 1; i < globals.num_edicts; i++)
 	{
-		trigger = itoe(i);
+		entity trigger = itoe(i);
 		if (!trigger.inuse)
 			continue;
-		if (trigger.touch == Touch_Plat_Center2)
+		if (trigger.touch == Touch_Plat_Center2 && trigger.enemy == ent)
 		{
-			if (trigger.enemy == ent)
-			{
-				plat2_operate (trigger, cactivator);
-				return;
-			}
-		} 
+			plat2_operate (trigger, cactivator);
+			return;
+		}
 	}
 }
 
 static void(entity ent, entity other, entity cactivator) plat2_activate =
 {
-	entity trigger;
-
 	ent.use = Use_Plat2;
 
-	trigger = plat_spawn_inside_trigger (ent);	// the "start moving" trigger	
+	entity trigger = plat_spawn_inside_trigger (ent);	// the "start moving" trigger	
 
-	trigger.maxs[0]+=10;
-	trigger.maxs[1]+=10;
-	trigger.mins[0]-=10;
-	trigger.mins[1]-=10;
+	trigger.maxs[0] += 10;
+	trigger.maxs[1] += 10;
+	trigger.mins[0] -= 10;
+	trigger.mins[1] -= 10;
 
 	gi.linkentity (trigger);
 	
@@ -649,8 +636,6 @@ If the "height" key is set, that will determine the amount the plat moves, inste
 */
 API_FUNC static void(entity ent) SP_func_plat2 =
 {
-	entity trigger;
-
 	ent.s.angles = vec3_origin;
 	ent.solid = SOLID_BSP;
 	ent.movetype = MOVETYPE_PUSH;
@@ -681,7 +666,6 @@ API_FUNC static void(entity ent) SP_func_plat2 =
 		ent.decel *= 2;
 	}
 
-
 	//PMM Added to kill things it's being blocked by 
 	if (!ent.dmg)
 		ent.dmg = 2;
@@ -697,27 +681,24 @@ API_FUNC static void(entity ent) SP_func_plat2 =
 
 	ent.moveinfo.state = STATE_TOP;
 
-	if(ent.targetname)
-	{
+	if (ent.targetname)
 		ent.use = plat2_activate;
-	}
 	else
 	{
 		ent.use = Use_Plat2;
 
-		trigger = plat_spawn_inside_trigger (ent);	// the "start moving" trigger	
+		entity trigger = plat_spawn_inside_trigger (ent);	// the "start moving" trigger	
 
-		// PGM - debugging??
-		trigger.maxs[0]+=10;
-		trigger.maxs[1]+=10;
-		trigger.mins[0]-=10;
-		trigger.mins[1]-=10;
+		trigger.maxs[0] += 10;
+		trigger.maxs[1] += 10;
+		trigger.mins[0] -= 10;
+		trigger.mins[1] -= 10;
 
 		gi.linkentity (trigger);
 
 		trigger.touch = Touch_Plat_Center2;		// Override trigger touch function
 
-		if(!(ent.spawnflags & PLAT2_TOP))
+		if (!(ent.spawnflags & PLAT2_TOP))
 		{
 			ent.s.origin = ent.pos2;
 			ent.moveinfo.state = STATE_BOTTOM;

@@ -6,10 +6,6 @@
 
 PROGS_LOCAL_STATIC void(entity ent) weapon_ionripper_fire =
 {
-	vector	start;
-	vector	forward, right;
-	vector	offset;
-	vector	tempang;
 	int	damage;
 	int	kick;
 
@@ -31,17 +27,17 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_ionripper_fire =
 		kick *= damage_multiplier;
 	}
 
-	tempang = ent.client.v_angle;
+	vector tempang = ent.client.v_angle;
 	tempang[YAW] += crandom();
 
+	vector forward, right;
 	AngleVectors (tempang, &forward, &right, 0);
 	
 	ent.client.kick_origin = forward * -3;
 	ent.client.kick_angles[0] = -3f;
 
-	offset = [ 16, 7, ent.viewheight - 8 ];
-
-	start = P_ProjectSource (ent, ent.s.origin, offset, forward, right);
+	vector offset = [ 16, 7, ent.viewheight - 8 ];
+	vector start = P_ProjectSource (ent, ent.s.origin, offset, forward, right);
 
 	fire_ionripper (ent, start, forward, damage, 500, EF_IONRIPPER);
 
@@ -82,18 +78,10 @@ void(entity ent) Weapon_Ionripper =
 
 PROGS_LOCAL_STATIC void(entity ent) weapon_phalanx_fire =
 {
-	vector	start;
-	vector	forward, right, up;
-	vector	offset;
-	vector	v;
 	int	kick = 12;
-	int	damage;
-	float	damage_radius;
-	int	radius_damage;
-
-	damage = 70 + (int)(random(10.0));
-	radius_damage = 120;
-	damage_radius = 120f;
+	int damage = 70 + (int)(random(10.0));
+	int radius_damage = 120;
+	float damage_radius = 120f;
 	
 	if (is_quad)
 	{
@@ -101,19 +89,22 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_phalanx_fire =
 		radius_damage *= damage_multiplier;
 	}
 
+	vector forward, right;
 	AngleVectors (ent.client.v_angle, &forward, &right, 0);
 
 	ent.client.kick_origin = forward * -2;
 	ent.client.kick_angles[0] = -2f;
 
-	offset = [ 0, 8, ent.viewheight - 8 ];
-	start = P_ProjectSource (ent, ent.s.origin, offset, forward, right);
+	vector offset = [ 0, 8, ent.viewheight - 8 ];
+	vector start = P_ProjectSource (ent, ent.s.origin, offset, forward, right);
 
 	if (ent.client.ps.gunframe == 8)
 	{
-		v[PITCH] = ent.client.v_angle[PITCH];
-		v[YAW]   = ent.client.v_angle[YAW] - 1.5;
-		v[ROLL]  = ent.client.v_angle[ROLL];
+		vector v = [ent.client.v_angle[PITCH],
+					ent.client.v_angle[YAW] - 1.5,
+					ent.client.v_angle[ROLL]];
+
+		vector up;
 		AngleVectors (v, &forward, &right, &up);
 		
 		radius_damage = 30;
@@ -126,10 +117,13 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_phalanx_fire =
 	}
 	else
 	{
-		v[PITCH] = ent.client.v_angle[PITCH];
-		v[YAW]   = ent.client.v_angle[YAW] + 1.5;
-		v[ROLL]  = ent.client.v_angle[ROLL];
+		vector v = [ent.client.v_angle[PITCH],
+					ent.client.v_angle[YAW] + 1.5,
+					ent.client.v_angle[ROLL]];
+
+		vector up;
 		AngleVectors (v, &forward, &right, &up);
+
 		fire_plasma (ent, start, forward, damage, 725, damage_radius, radius_damage);
 
 		// send muzzle flash
@@ -175,24 +169,19 @@ const int TRAP_MAXSPEED	= GRENADE_MAXSPEED;
 
 PROGS_LOCAL void(entity ent, bool held) weapon_trap_fire =
 {
-	vector	offset;
-	vector	forward, right;
-	vector	start;
 	int	damage = 125;
-	float	timer;
-	int	speed;
-	float	radius;
+	float radius = damage + 40f;
 
-	radius = damage + 40f;
 	if (is_quad)
 		damage *= damage_multiplier;
 
-	offset = [ 8, 8, ent.viewheight - 8 ];
+	vector offset = [ 8, 8, ent.viewheight - 8 ];
+	vector forward, right;
 	AngleVectors (ent.client.v_angle, &forward, &right, 0);
-	start = P_ProjectSource (ent, ent.s.origin, offset, forward, right);
+	vector start = P_ProjectSource (ent, ent.s.origin, offset, forward, right);
 
-	timer = (ent.client.trap_framenum - level.framenum) * FRAMETIME;
-	speed = (int)(TRAP_MINSPEED + (TRAP_TIMER - timer) * ((TRAP_MAXSPEED - TRAP_MINSPEED) / TRAP_TIMER));
+	float timer = (ent.client.trap_framenum - level.framenum) * FRAMETIME;
+	int speed = (int)(TRAP_MINSPEED + (TRAP_TIMER - timer) * ((TRAP_MAXSPEED - TRAP_MINSPEED) / TRAP_TIMER));
 	fire_trap (ent, start, forward, damage, speed, timer, radius, held);
 
 	ent.client.pers.inventory[ent.client.ammo_index]--;
@@ -217,32 +206,31 @@ void(entity ent) Weapon_Trap =
 
 	if (ent.client.weaponstate == WEAPON_READY)
 	{
-		if ( ((ent.client.latched_buttons|ent.client.buttons) & BUTTON_ATTACK) )
+		if ((ent.client.latched_buttons|ent.client.buttons) & BUTTON_ATTACK)
 		{
 			ent.client.latched_buttons &= ~BUTTON_ATTACK;
+
 			if (ent.client.pers.inventory[ent.client.ammo_index])
 			{
 				ent.client.ps.gunframe = 1;
 				ent.client.weaponstate = WEAPON_FIRING;
 				ent.client.trap_framenum = 0;
+				return;
 			}
-			else
+
+			if (level.framenum >= ent.pain_debounce_framenum)
 			{
-				if (level.framenum >= ent.pain_debounce_framenum)
-				{
-					gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/noammo.wav"), 1, ATTN_NORM, 0);
-					ent.pain_debounce_framenum = level.framenum + 1 * BASE_FRAMERATE;
-				}
-				NoAmmoWeaponChange (ent);
+				gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/noammo.wav"), 1, ATTN_NORM, 0);
+				ent.pain_debounce_framenum = level.framenum + 1 * BASE_FRAMERATE;
 			}
+
+			NoAmmoWeaponChange (ent);
 			return;
 		}
 
 		if ((ent.client.ps.gunframe == 29) || (ent.client.ps.gunframe == 34) || (ent.client.ps.gunframe == 39) || (ent.client.ps.gunframe == 48))
-		{
-			if (Q_rand()&15)
+			if (Q_rand() & 15)
 				return;
-		}
 
 		if (++ent.client.ps.gunframe > 48)
 			ent.client.ps.gunframe = 16;

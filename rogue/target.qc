@@ -24,14 +24,12 @@ Creates a steam effect (particles w/ velocity in a line).
   208 - slime
   232 - blood
 */
-
 static void(entity self, entity other, entity cactivator) use_target_steam =
 {
 	static int	nextid;
-	vector		point;
 
 	if (nextid > 20000)
-		nextid = nextid %20000;
+		nextid = nextid % 20000;
 
 	nextid++;
 	
@@ -45,12 +43,12 @@ static void(entity self, entity other, entity cactivator) use_target_steam =
 
 	if (self.enemy)
 	{
-		point = self.enemy.absmin + (self.enemy.size * 0.5);
+		vector point = self.enemy.absmin + (self.enemy.size * 0.5);
 		self.movedir = point - self.s.origin;
 		VectorNormalize (self.movedir);
 	}
 
-	point = self.s.origin + (self.movedir * self.plat2flags * 0.5);
+	vector point = self.s.origin + (self.movedir * self.plat2flags * 0.5);
 	if (self.wait > 100)
 	{
 		gi.WriteByte (svc_temp_entity);
@@ -59,34 +57,32 @@ static void(entity self, entity other, entity cactivator) use_target_steam =
 		gi.WriteByte (self.count);
 		gi.WritePosition (self.s.origin);
 		gi.WriteDir (self.movedir);
-		gi.WriteByte (self.sounds&0xff);
-		gi.WriteShort ( (int)(self.plat2flags) );
-		gi.WriteLong ( (int)(self.wait) );
+		gi.WriteByte (self.sounds & 0xff);
+		gi.WriteShort (self.plat2flags);
+		gi.WriteLong ((int)self.wait);
 		gi.multicast (self.s.origin, MULTICAST_PVS);
 	}
 	else
 	{
 		gi.WriteByte (svc_temp_entity);
 		gi.WriteByte (TE_STEAM);
-		gi.WriteShort ((int)-1);
+		gi.WriteShort (-1);
 		gi.WriteByte (self.count);
 		gi.WritePosition (self.s.origin);
 		gi.WriteDir (self.movedir);
-		gi.WriteByte (self.sounds&0xff);
-		gi.WriteShort ( (int)(self.plat2flags) );
+		gi.WriteByte (self.sounds & 0xff);
+		gi.WriteShort (self.plat2flags);
 		gi.multicast (self.s.origin, MULTICAST_PVS);
 	}
 }
 
 static void(entity self) target_steam_start =
 {
-	entity ent;
-
 	self.use = use_target_steam;
 
 	if (self.target)
 	{
-		ent = G_Find (world, targetname, self.target);
+		entity ent = G_Find (world, targetname, self.target);
 		if !(ent)
 			gi.dprintf ("%s at %s: %s is a bad target\n", self.classname, vtos(self.s.origin), self.target);
 		self.enemy = ent;
@@ -132,39 +128,37 @@ static void(entity self) SP_target_steam =
 
 static void(entity self, entity other, entity cactivator) target_anger_use =
 {
+	entity ctarget = G_Find(world, targetname, self.killtarget);
+
+	if (!ctarget)
+		return;
+
+	// Make whatever a "good guy" so the monster will try to kill it!
+	ctarget.monsterinfo.aiflags |= AI_GOOD_GUY;
+	ctarget.svflags |= SVF_MONSTER;
+	ctarget.health = 300;
+
 	entity t = world;
-	entity ctarget = G_Find (t, targetname, self.killtarget);
-
-	if (ctarget && self.target)
+	while ((t = G_Find (t, targetname, self.target)))
 	{
-		// Make whatever a "good guy" so the monster will try to kill it!
-		ctarget.monsterinfo.aiflags |= AI_GOOD_GUY;
-		ctarget.svflags |= SVF_MONSTER;
-		ctarget.health = 300;
-
-		t = world;
-		while ((t = G_Find (t, targetname, self.target)))
+		if (t == self)
+			gi.dprintf ("WARNING: entity used itself.\n");
+		else if (t.use)
 		{
-			if (t == self)
-				gi.dprintf ("WARNING: entity used itself.\n");
-			else if (t.use)
-			{
-				if (t.health < 0)
-					return;
-
-				t.enemy = ctarget;
-				t.monsterinfo.aiflags |= AI_TARGET_ANGER;
-				FoundTarget (t);
-			}
-
-			if (!self.inuse)
-			{
-				gi.dprintf("entity was removed while using targets\n");
+			if (t.health < 0)
 				return;
-			}
+
+			t.enemy = ctarget;
+			t.monsterinfo.aiflags |= AI_TARGET_ANGER;
+			FoundTarget (t);
+		}
+
+		if (!self.inuse)
+		{
+			gi.dprintf("entity was removed while using targets\n");
+			return;
 		}
 	}
-
 }
 
 /*QUAKED target_anger (1 0 0) (-8 -8 -8) (8 8 8)
@@ -196,16 +190,13 @@ API_FUNC static void(entity self) SP_target_anger =
 // ***********************************
 // target_killplayers
 // ***********************************
-
 static void(entity self, entity other, entity cactivator) target_killplayers_use =
 {
-	int	i;
-	entity	ent, player;
-
 	// kill the players
-	for (i=0 ; i<game.maxclients ; i++)
+	for (int i = 0; i < game.maxclients; i++)
 	{
-		player = itoe(1 + i);
+		entity player = itoe(1 + i);
+
 		if (!player.inuse)
 			continue;
 
@@ -214,9 +205,10 @@ static void(entity self, entity other, entity cactivator) target_killplayers_use
 	}
 
 	// kill any visible monsters
-	for (i = 0; i < globals.num_edicts; i++)
+	for (int i = game.maxclients + 1; i < globals.num_edicts; i++)
 	{
-		ent = itoe(i);
+		entity ent = itoe(i);
+
 		if (!ent.inuse)
 			continue;
 		if (ent.health < 1)
@@ -226,14 +218,14 @@ static void(entity self, entity other, entity cactivator) target_killplayers_use
 		
 		for (int j = 0; j < game.maxclients; j++)
 		{
-			player = itoe(j + 1);
-			if(!player.inuse)
+			entity player = itoe(j + 1);
+
+			if (!player.inuse)
 				continue;
 			
-			if(visible(player, ent))
+			if (visible(player, ent))
 			{
-				T_Damage (ent, self, self, vec3_origin, ent.s.origin, vec3_origin, 
-							ent.health, 0, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
+				T_Damage (ent, self, self, vec3_origin, ent.s.origin, vec3_origin, ent.health, 0, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
 				break;
 			}
 		}

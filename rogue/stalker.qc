@@ -9,7 +9,7 @@ static int	sound_punch_hit1;
 static int	sound_punch_hit2;
 static int	sound_idle;
 
-inline bool(entity ent) STALKER_ON_CEILING =
+static inline bool(entity ent) STALKER_ON_CEILING =
 {
 	return ent.gravityVector[2] > 0;
 }
@@ -18,13 +18,9 @@ inline bool(entity ent) STALKER_ON_CEILING =
 //=========================
 static bool(entity self) stalker_ok_to_transition =
 {
-	trace_t		trace;
-	vector		pt, start;
-	float		max_dist;
-	float		margin;
-	float		end_height;
+	float		max_dist, margin;
 
-	if(STALKER_ON_CEILING(self))
+	if (STALKER_ON_CEILING(self))
 	{
 		max_dist = -384f;
 		margin = self.mins[2] - 8;
@@ -39,8 +35,10 @@ static bool(entity self) stalker_ok_to_transition =
 		margin = self.maxs[2] + 8;
 	}
 
-	pt = self.s.origin;
+	vector pt = self.s.origin;
 	pt[2] += max_dist;
+
+	trace_t trace;
 	gi.trace(&trace, self.s.origin, self.mins, self.maxs, pt, self, MASK_MONSTERSOLID);
 
 	if(trace.fraction == 1.0 || 
@@ -59,19 +57,19 @@ static bool(entity self) stalker_ok_to_transition =
 		}
 	}
 
-	end_height = trace.endpos[2];
+	float end_height = trace.endpos[2];
 
 	// check the four corners, tracing only to the endpoint of the center trace (vertically).
 	pt[0] = self.absmin[0];
 	pt[1] = self.absmin[1];
 	pt[2] = trace.endpos[2] + margin;	// give a little margin of error to allow slight inclines
-	start = pt;
+	vector start = pt;
 	start[2] = self.s.origin[2];
 	gi.traceline(&trace, start, pt, self, MASK_MONSTERSOLID);
-	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
+	if (trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 		return false;
 
-	if(fabs(end_height + margin - trace.endpos[2]) > 8)
+	if (fabs(end_height + margin - trace.endpos[2]) > 8)
 		return false;
 
 	pt[0] = self.absmax[0];
@@ -79,10 +77,10 @@ static bool(entity self) stalker_ok_to_transition =
 	start = pt;
 	start[2] = self.s.origin[2];
 	gi.traceline(&trace, start, pt, self, MASK_MONSTERSOLID);
-	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
+	if (trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 		return false;
 
-	if(fabs(end_height + margin - trace.endpos[2]) > 8)
+	if (fabs(end_height + margin - trace.endpos[2]) > 8)
 		return false;
 
 	pt[0] = self.absmax[0];
@@ -90,10 +88,10 @@ static bool(entity self) stalker_ok_to_transition =
 	start = pt;
 	start[2] = self.s.origin[2];
 	gi.traceline(&trace, start, pt, self, MASK_MONSTERSOLID);
-	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
+	if (trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 		return false;
 
-	if(fabs(end_height + margin - trace.endpos[2]) > 8)
+	if (fabs(end_height + margin - trace.endpos[2]) > 8)
 		return false;
 
 	pt[0] = self.absmin[0];
@@ -101,10 +99,10 @@ static bool(entity self) stalker_ok_to_transition =
 	start = pt;
 	start[2] = self.s.origin[2];
 	gi.traceline(&trace, start, pt, self, MASK_MONSTERSOLID);
-	if(trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
+	if (trace.fraction == 1.0 || !(trace.contents & CONTENTS_SOLID) || (trace.ent != world))
 		return false;
 
-	if(fabs(end_height + margin - trace.endpos[2]) > 8)
+	if (fabs(end_height + margin - trace.endpos[2]) > 8)
 		return false;
 
 	return true;
@@ -281,7 +279,7 @@ static mframe_t stalker_frames_reactivate [] =
 };
 static var mmove_t stalker_move_false_death_end = { FRAME_reactive01, FRAME_reactive04, stalker_run };
 
-static void(entity self) stalker_reactivate =
+static inline void(entity self) stalker_reactivate =
 {
 	self.monsterinfo.aiflags &= ~AI_STAND_GROUND;
 	self.monsterinfo.currentmove = &stalker_move_false_death_end;
@@ -291,12 +289,10 @@ static void(entity self) stalker_heal =
 {
 	self.health += maxi(1, skill.intVal);
 
-//	gi.dprintf("stalker_heal: %d\n", self.health);
-
 	if (self.health > (self.max_health/2))
 		self.s.skinnum = 0;
 
-	if(self.health >= self.max_health)
+	if (self.health >= self.max_health)
 	{
 		self.health = self.max_health;
 		stalker_reactivate(self);
@@ -339,7 +335,7 @@ static mframe_t stalker_frames_false_death_start [] =
 };
 static var mmove_t stalker_move_false_death_start = { FRAME_death01, FRAME_death09, stalker_false_death };
 
-static void(entity self) stalker_false_death_start =
+static inline void(entity self) stalker_false_death_start =
 {
 	self.s.angles[2] = 0;
 	self.gravityVector = '0 0 -1';
@@ -361,7 +357,16 @@ static mframe_t stalker_frames_pain [] =
 };
 static var mmove_t stalker_move_pain = { FRAME_pain01, FRAME_pain04, stalker_run };
 
-static void(entity self) stalker_dodge_jump;
+static var mmove_t	stalker_move_jump_straightup = { FRAME_jump04, FRAME_jump07, stalker_run };
+
+//===================
+// stalker_dodge_jump - abstraction so pain function can trigger a dodge jump too without
+//		faking the inputs to stalker_dodge
+//===================
+static inline void(entity self) stalker_dodge_jump =
+{
+	self.monsterinfo.currentmove = &stalker_move_jump_straightup;
+}
 
 static void(entity self, entity other, float kick, int damage) stalker_pain =
 {
@@ -373,9 +378,6 @@ static void(entity self, entity other, float kick, int damage) stalker_pain =
 
 	if (skill.intVal == 3)
 		return;		// no pain anims in nightmare
-
-//	if (self.monsterinfo.aiflags & AI_DODGING)
-//		monster_done_dodge (self);
 
 	if (self.groundentity == null_entity)
 		return;
@@ -428,18 +430,13 @@ static void(entity self) stalker_jump_straightup;
 // ******************
 static void(entity self) stalker_shoot_attack =
 {
-	vector	offset, start, f, r, dir;
-	vector	end;
-	float	time, dist;
-	trace_t	trace;
-
-	if(!has_valid_enemy(self))
+	if (!has_valid_enemy(self))
 		return;
 
-	if(self.groundentity != null_entity && random() < 0.33)
+	if (self.groundentity != null_entity && random() < 0.33)
 	{
-		dir = self.enemy.s.origin - self.s.origin;
-		dist = VectorLength (dir);
+		vector dir = self.enemy.s.origin - self.s.origin;
+		float dist = VectorLength (dir);
 
 		if((dist > 256) || (random() < 0.5))
 			stalker_do_pounce(self, self.enemy.s.origin);
@@ -447,28 +444,27 @@ static void(entity self) stalker_shoot_attack =
 			stalker_jump_straightup (self);
 	}
 
-	// FIXME -- keep this but use a custom one
-//	if (!infront(self, self.enemy))
-//		return;
-
+	vector f, r;
 	AngleVectors (self.s.angles, &f, &r, 0);
-	offset = '24 0 6';
-	start = G_ProjectSource (self.s.origin, offset, f, r);
+	vector start = G_ProjectSource (self.s.origin, '24 0 6', f, r);
 
-	dir = self.enemy.s.origin - start;
+	vector dir = self.enemy.s.origin - start;
+	vector end;
 
-	if(random() < (0.20 + 0.1 * skill.intVal))
+	if (random() < (0.20 + 0.1 * skill.intVal))
 	{
-		dist = VectorLength(dir);
-		time = dist / 1000;
+		float dist = VectorLength(dir);
+		float time = dist / 1000;
 		end = self.enemy.s.origin + (self.enemy.velocity * time);
 		dir = end - start;
 	}
 	else
 		end = self.enemy.s.origin;
 
+	trace_t	trace;
 	gi.traceline(&trace, start, end, self, MASK_SHOT);
-	if(trace.ent == self.enemy || trace.ent == world)
+
+	if (trace.ent == self.enemy || trace.ent == world)
 		monster_fire_blaster2(self, start, dir, 15, 800, MZ2_STALKER_BLASTER, EF_BLASTER);
 }
 
@@ -489,7 +485,7 @@ static var mmove_t stalker_move_shoot = { FRAME_run01, FRAME_run04, stalker_run 
 
 static void(entity self) stalker_attack_ranged =
 {
-	if(!has_valid_enemy(self))
+	if (!has_valid_enemy(self))
 		return;
 
 	// PMM - circle strafe stuff
@@ -498,21 +494,19 @@ static void(entity self) stalker_attack_ranged =
 	else
 	{
 		if (random () <= 0.5) // switch directions
-			self.monsterinfo.lefty = 1 - self.monsterinfo.lefty;
+			self.monsterinfo.lefty = !self.monsterinfo.lefty;
 		self.monsterinfo.attack_state = AS_SLIDING;
 	}
+
 	self.monsterinfo.currentmove = &stalker_move_shoot;
 }
 
 // ******************
 // close combat
 // ******************
-
 static void(entity self) stalker_swing_attack =
 {
-	static const vector aim = [ MELEE_DISTANCE, 0, 0 ];
-
-	if (fire_hit (self, aim, (5 + (Q_rand() % 5)), 50))
+	if (fire_hit (self, [ MELEE_DISTANCE, 0, 0 ], (5 + (Q_rand() % 5)), 50))
 		if (self.s.frame < FRAME_attack08)
 			gi.sound (self, CHAN_WEAPON, sound_punch_hit2, 1, ATTN_NORM, 0);
 		else
@@ -548,7 +542,7 @@ static void(entity self) stalker_attack_melee =
 	if (!has_valid_enemy(self))
 		return;
 
-	if(random() < 0.5)
+	if (random() < 0.5)
 		self.monsterinfo.currentmove = &stalker_move_swing_l;
 	else
 		self.monsterinfo.currentmove = &stalker_move_swing_r;
@@ -564,48 +558,44 @@ const float FAUX_GRAVITY	= 800.0f;
 // ====================
 static vector(vector start, vector end, float velocity) calcJumpAngle =
 {
-	float	distV, distH;
-	float	one, cosU;
-	float	l, U;
-	vector	dist;
-	vector	angles;
+	vector dist = end - start;
+	float distH = sqrt(dist[0]*dist[0] + dist[1]*dist[1]);
+	float distV = dist[2];
+	if (distV < 0)
+		distV = -distV;
 
-	dist = end - start;
-	distH = sqrt(dist[0]*dist[0] + dist[1]*dist[1]);
-	distV = dist[2];
-	if(distV < 0)
-		distV = 0 - distV;
+	vector angles;
 
-	if(distV)
+	if (distV)
 	{
-		l = sqrt(distH*distH + distV*distV);
-		U = atan(distV / distH);
-		if(dist[2] > 0)
-			U = 0.0f - U;
+		float l = sqrt(distH*distH + distV*distV);
+		float U = atan(distV / distH);
+		if (dist[2] > 0)
+			U = -U;
 
 		angles[2] = 0.0f;
 
-		cosU = cos(U);
-		one = l * FAUX_GRAVITY * (cosU * cosU);
+		float cosU = cos(U);
+		float one = l * FAUX_GRAVITY * (cosU * cosU);
 		one = one / (velocity * velocity);
 		one = one - sin(U);
 		angles[0] = asin(one);
-		if(isnan(angles[0]))
+		if (isnan(angles[0]))
 			angles[2] = 1.0;
 		angles[1] = M_PI - angles[0];
-		if(isnan(angles[1]))
+		if (isnan(angles[1]))
 			angles[2] = 1.0;
 
-		angles[0] = RAD2DEG ( (angles[0] - U) / 2.0 );
-		angles[1] = RAD2DEG ( (angles[1] - U) / 2.0 );
+		angles[0] = RAD2DEG((angles[0] - U) / 2.0);
+		angles[1] = RAD2DEG((angles[1] - U) / 2.0);
 	}
 	else
 	{
-		l = sqrt(distH*distH + distV*distV);
+		float l = sqrt(distH*distH + distV*distV);
 
 		angles[2] = 0.0f;
 
-		one = l * FAUX_GRAVITY;
+		float one = l * FAUX_GRAVITY;
 		one = one / (velocity * velocity);
 		angles[0] = asin(one);
 		if(isnan(angles[0]))
@@ -625,7 +615,6 @@ static vector(vector start, vector end, float velocity) calcJumpAngle =
 // ====================
 static bool(entity self, entity target, vector dest) stalker_check_lz =
 {
-	vector	jumpLZ;
 	if ((gi.pointcontents(dest) & MASK_WATER) || (target.waterlevel))
 		return false;
 
@@ -634,25 +623,24 @@ static bool(entity self, entity target, vector dest) stalker_check_lz =
 
 	// check under the player's four corners
 	// if they're not solid, bail.
-	jumpLZ[0] = self.enemy.mins[0];
-	jumpLZ[1] = self.enemy.mins[1];
-	jumpLZ[2] = self.enemy.mins[2] - 0.25;
-	if( !(gi.pointcontents (jumpLZ) & MASK_SOLID) )
+	vector jumpLZ = self.enemy.mins;
+	jumpLZ[2] -= 0.25;
+	if (!(gi.pointcontents (jumpLZ) & MASK_SOLID))
 		return false;
 
 	jumpLZ[0] = self.enemy.maxs[0];
 	jumpLZ[1] = self.enemy.mins[1];
-	if( !(gi.pointcontents (jumpLZ) & MASK_SOLID) )
+	if (!(gi.pointcontents (jumpLZ) & MASK_SOLID))
 		return false;
 
 	jumpLZ[0] = self.enemy.maxs[0];
 	jumpLZ[1] = self.enemy.maxs[1];
-	if( !(gi.pointcontents (jumpLZ) & MASK_SOLID) )
+	if (!(gi.pointcontents (jumpLZ) & MASK_SOLID))
 		return false;
 
 	jumpLZ[0] = self.enemy.mins[0];
 	jumpLZ[1] = self.enemy.maxs[1];
-	if( !(gi.pointcontents (jumpLZ) & MASK_SOLID) )
+	if (!(gi.pointcontents (jumpLZ) & MASK_SOLID))
 		return false;
 
 	return true;
@@ -662,67 +650,61 @@ static bool(entity self, entity target, vector dest) stalker_check_lz =
 // ====================
 static bool(entity self, vector dest) stalker_do_pounce =
 {
-	vector	forward, right;
-	vector	dist;
-	float	length;
-	vector	jumpAngles;
-	vector	jumpLZ;
-	float	cvelocity = 400.1f;
-	trace_t	trace;
-	bool	preferHighJump;
-
 	// don't pounce when we're on the ceiling
-	if(STALKER_ON_CEILING(self))
+	if (STALKER_ON_CEILING(self))
 		return false;
 
-	if(!stalker_check_lz (self, self.enemy, dest))
+	if (!stalker_check_lz (self, self.enemy, dest))
 		return false;
 
-	dist = dest - self.s.origin;
+	vector dist = dest - self.s.origin;
 	
 	// make sure we're pointing in that direction 15deg margin of error.
-	jumpAngles = vectoangles (dist);
+	vector jumpAngles = vectoangles (dist);
 	if (fabs(jumpAngles[YAW] - self.s.angles[YAW]) > 45)
 		return false;			// not facing the player...
 
 	self.ideal_yaw = jumpAngles[YAW];
 	M_ChangeYaw(self);
 
-	length = VectorLength(dist);
-	if(length > 450)
+	float length = VectorLength(dist);
+	if (length > 450)
 		return false;			// can't jump that far...
 
-	jumpLZ = dest;
-
-	preferHighJump = false;
+	vector jumpLZ = dest;
+	bool preferHighJump = false;
 
 	// if we're having to jump up a distance, jump a little too high to compensate.
-	if(dist[2] >= 32.0)
+	if (dist[2] >= 32.0)
 	{
 		preferHighJump = true;
 		jumpLZ[2] += 32f;
 	}
 
+	trace_t	trace;
 	gi.traceline(&trace, self.s.origin, dest, self, MASK_MONSTERSOLID);
 
-	if((trace.fraction < 1) && (trace.ent != self.enemy))
+	if ((trace.fraction < 1) && (trace.ent != self.enemy))
 		preferHighJump = true;
 
 	// find a valid angle/velocity combination
+	float cvelocity = 400.1f;
+
 	while (cvelocity <= 800)
 	{
 		jumpAngles = calcJumpAngle(self.s.origin, jumpLZ, cvelocity);
 
-		if ((!isnan(jumpAngles[0])) || (!isnan(jumpAngles[1])))
+		if (!isnan(jumpAngles[0]) || !isnan(jumpAngles[1]))
 			break;
 		
 		cvelocity += 200;
 	}
 
-	if (!preferHighJump && (!isnan(jumpAngles[0])) )
+	if (!preferHighJump && (!isnan(jumpAngles[0])))
 	{
-		AngleVectors (self.s.angles, &forward, &right, 0);
-		VectorNormalize(forward) ;
+		vector forward;
+		AngleVectors (self.s.angles, &forward, 0, 0);
+		VectorNormalize(forward);
 
 		self.velocity = forward * (cvelocity * cos(DEG2RAD(jumpAngles[0])));
 		self.velocity[2] = cvelocity * sin(DEG2RAD(jumpAngles[0])) + (0.5 * sv_gravity.floatVal * FRAMETIME);
@@ -730,10 +712,11 @@ static bool(entity self, vector dest) stalker_do_pounce =
 		return true;
 	}
 
-	if(!isnan(jumpAngles[1]))
+	if (!isnan(jumpAngles[1]))
 	{
-		AngleVectors (self.s.angles, &forward, &right, 0);
-		VectorNormalize(forward) ;
+		vector forward;
+		AngleVectors (self.s.angles, &forward, 0, 0);
+		VectorNormalize(forward);
 
 		self.velocity = forward * (cvelocity * cos(DEG2RAD(jumpAngles[1])));
 		self.velocity[2] = cvelocity * sin(DEG2RAD(jumpAngles[1])) + (0.5 * sv_gravity.floatVal * FRAMETIME);
@@ -762,17 +745,17 @@ static void(entity self) stalker_jump_straightup =
 		{
 			self.gravityVector[2] = -1f;
 			self.s.angles[2] += 180.0;
-			if(self.s.angles[2] > 360.0)
+			if (self.s.angles[2] > 360.0)
 				self.s.angles[2] -= 360.0;
 			self.groundentity = null_entity;
 		}
 	}
 	else if (self.groundentity != null_entity)	// make sure we're standing on SOMETHING...
 	{
-		self.velocity[0] += ((random() * 10) - 5);
-		self.velocity[1] += ((random() * 10) - 5);
+		self.velocity[0] += random(-5f, 5f);
+		self.velocity[1] += random(-5f, 5f);
 		self.velocity[2] += -400 * self.gravityVector[2];
-		if(stalker_ok_to_transition(self))
+		if (stalker_ok_to_transition(self))
 		{
 			self.gravityVector[2] = 1f;
 			self.s.angles[2] = 180.0;
@@ -789,12 +772,12 @@ static void(entity self) stalker_jump_wait_land =
 		stalker_shoot_attack(self);
 	}
 
-	if(self.groundentity == null_entity)
+	if (self.groundentity == null_entity)
 	{
 		self.gravity = 1.3f;
 		self.monsterinfo.nextframe = self.s.frame;
 
-		if(monster_jump_finished (self))
+		if (monster_jump_finished (self))
 		{
 			self.gravity = 1f;
 			self.monsterinfo.nextframe = self.s.frame + 1;
@@ -814,16 +797,6 @@ static mframe_t stalker_frames_jump_straightup [] =
 	{ ai_move, -1 },
 	{ ai_move, -1 }
 };
-static var mmove_t	stalker_move_jump_straightup = { FRAME_jump04, FRAME_jump07, stalker_run };
-
-//===================
-// stalker_dodge_jump - abstraction so pain function can trigger a dodge jump too without
-//		faking the inputs to stalker_dodge
-//===================
-static void(entity self) stalker_dodge_jump =
-{
-	self.monsterinfo.currentmove = &stalker_move_jump_straightup;
-}
 
 static mframe_t stalker_frames_dodge_run [] =
 {
@@ -864,10 +837,9 @@ static void(entity self, entity attacker, float eta, trace_t *tr) stalker_dodge 
 //===================
 static void(entity self) stalker_jump_down =
 {
-	vector	forward,up;
+	monster_jump_start(self);
 
-	monster_jump_start (self);
-
+	vector forward, up;
 	AngleVectors (self.s.angles, &forward, 0, &up);
 	self.velocity += (forward * 100);
 	self.velocity += (up * 300);
@@ -877,10 +849,9 @@ static void(entity self) stalker_jump_down =
 //===================
 static void(entity self) stalker_jump_up =
 {
-	vector	forward,up;
-
 	monster_jump_start (self);
 
+	vector forward,up;
 	AngleVectors (self.s.angles, &forward, 0, &up);
 	self.velocity += (forward * 200);
 	self.velocity += (up * 450);
@@ -921,10 +892,10 @@ static var mmove_t stalker_move_jump_down = { FRAME_jump01, FRAME_jump07, stalke
 //============
 static void(entity self) stalker_jump =
 {
-	if(!self.enemy)
+	if (!self.enemy)
 		return;
 
-	if(self.enemy.s.origin[2] >= self.s.origin[2])
+	if (self.enemy.s.origin[2] >= self.s.origin[2])
 		self.monsterinfo.currentmove = &stalker_move_jump_up;
 	else
 		self.monsterinfo.currentmove = &stalker_move_jump_down;
@@ -936,38 +907,34 @@ static void(entity self) stalker_jump =
 // ******************
 static bool(entity self, float dist) stalker_blocked =
 {
-	bool	onCeiling;
-
-	if(!has_valid_enemy(self))
+	if (!has_valid_enemy(self))
 		return false;
 
-	onCeiling = false;
-	if(self.gravityVector[2] > 0)
-		onCeiling = true;
+	bool onCeiling = (self.gravityVector[2] > 0);
 
-	if(!onCeiling)
+	if (!onCeiling)
 	{
-		if(blocked_checkshot(self, 0.25 + (0.05 * skill.floatVal)))
+		if (blocked_checkshot(self, 0.25 + (0.05 * skill.floatVal)))
 			return true;
 
-		if(visible (self, self.enemy))
+		if (visible (self, self.enemy))
 		{
 			stalker_do_pounce(self, self.enemy.s.origin);
 			return true;
 		}
 
-		if(blocked_checkjump (self, dist, 256, 68))
+		if (blocked_checkjump (self, dist, 256, 68))
 		{
 			stalker_jump (self);
 			return true;
 		}
 
-		if(blocked_checkplat (self, dist))
+		if (blocked_checkplat (self, dist))
 			return true;
 	}
-	else if(blocked_checkshot(self, 0.25 + (0.05 * skill.floatVal) ))
+	else if (blocked_checkshot(self, 0.25 + (0.05 * skill.floatVal) ))
 		return true;
-	else if(stalker_ok_to_transition(self))
+	else if (stalker_ok_to_transition(self))
 	{
 		self.gravityVector[2] = -1f;
 		self.s.angles[2] += 180.0;
@@ -1013,8 +980,6 @@ static var mmove_t stalker_move_death = { FRAME_death01, FRAME_death09, stalker_
 
 static void(entity self, entity inflictor, entity attacker, int damage, vector point) stalker_die =
 {
-	int		n;
-
 // dude bit it, make him fall!
 	self.movetype = MOVETYPE_TOSS;
 	self.s.angles[2] = 0;
@@ -1024,9 +989,9 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 	if (self.health <= self.gib_health)
 	{
 		gi.sound (self, CHAN_VOICE, gi.soundindex ("misc/udeath.wav"), 1, ATTN_NORM, 0);
-		for (n= 0; n < 2; n++)
+		for (int n = 0; n < 2; n++)
 			ThrowGib (self, "models/objects/gibs/bone/tris.md2", damage, GIB_ORGANIC);
-		for (n= 0; n < 4; n++)
+		for (int n = 0; n < 4; n++)
 			ThrowGib (self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
 		ThrowHead (self, "models/objects/gibs/head2/tris.md2", damage, GIB_ORGANIC);
 		self.deadflag = DEAD_DEAD;
@@ -1104,7 +1069,7 @@ API_FUNC static void(entity self) SP_monster_stalker =
 	self.solid = SOLID_BBOX;
 
 	self.health = 250;
-	self.gib_health = -50;		// FIXME 
+	self.gib_health = -50;
 	self.mass = 250;
 
 	self.pain = stalker_pain;
@@ -1127,7 +1092,7 @@ API_FUNC static void(entity self) SP_monster_stalker =
 
 	self.monsterinfo.aiflags |= AI_WALK_WALLS;
 
-	if(self.spawnflags & 8)
+	if (self.spawnflags & 8)
 	{
 		self.s.angles[2] = 180f;
 		self.gravityVector[2] = 1f;

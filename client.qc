@@ -36,10 +36,9 @@ static void(entity self) SP_FixCoopSpots =
 
 static void(entity self) SP_CreateCoopSpots =
 {
-	entity spot;
-
-	if (level.mapname == "security") {
-		spot = G_Spawn();
+	if (level.mapname == "security")
+	{
+		entity spot = G_Spawn();
 		spot.classname = "info_player_coop";
 		spot.s.origin[0] = 188f - 64f;
 		spot.s.origin[1] = -164f;
@@ -62,8 +61,6 @@ static void(entity self) SP_CreateCoopSpots =
 		spot.s.origin[2] = 80f;
 		spot.targetname = "jail3";
 		spot.s.angles[1] = 90f;
-
-		return;
 	}
 }
 
@@ -75,7 +72,8 @@ API_FUNC static void(entity self) SP_info_player_start =
 {
 	if (!coop.intVal)
 		return;
-	if (striequals(level.mapname, "security"))
+
+	if (level.mapname == "security")
 	{
 		// invoke one of our gross, ugly, disgusting hacks
 		self.think = SP_CreateCoopSpots;
@@ -90,10 +88,12 @@ potential spawning position for deathmatch games
 */
 API_FUNC static void(entity self) SP_info_player_deathmatch =
 {
-	if (!deathmatch.intVal) {
+	if (!deathmatch.intVal)
+	{
 		G_FreeEdict(self);
 		return;
 	}
+
 	SP_misc_teleporter_dest(self);
 }
 
@@ -102,25 +102,27 @@ potential spawning position for coop games
 */
 API_FUNC static void(entity self) SP_info_player_coop =
 {
-	if (!coop.intVal) {
+	if (!coop.intVal)
+	{
 		G_FreeEdict(self);
 		return;
 	}
 
-	if ((striequals(level.mapname, "jail2"))   ||
-		(striequals(level.mapname, "jail4"))   ||
-		(striequals(level.mapname, "mine1"))   ||
-		(striequals(level.mapname, "mine2"))   ||
-		(striequals(level.mapname, "mine3"))   ||
-		(striequals(level.mapname, "mine4"))   ||
-		(striequals(level.mapname, "lab"))     ||
-		(striequals(level.mapname, "boss1"))   ||
-		(striequals(level.mapname, "fact3"))   ||
-		(striequals(level.mapname, "biggun"))  ||
-		(striequals(level.mapname, "space"))   ||
-		(striequals(level.mapname, "command")) ||
-		(striequals(level.mapname, "power2")) ||
-		(striequals(level.mapname, "strike"))) {
+	if (level.mapname == "jail2"   ||
+		level.mapname == "jail4"   ||
+		level.mapname == "mine1"   ||
+		level.mapname == "mine2"   ||
+		level.mapname == "mine3"   ||
+		level.mapname == "mine4"   ||
+		level.mapname == "lab"     ||
+		level.mapname == "boss1"   ||
+		level.mapname == "fact3"   ||
+		level.mapname == "biggun"  ||
+		level.mapname == "space"   ||
+		level.mapname == "command" ||
+		level.mapname == "power2"  ||
+		level.mapname == "strike")
+	{
 		// invoke one of our gross, ugly, disgusting hacks
 		self.think = SP_FixCoopSpots;
 		self.nextthink = level.framenum + 1;
@@ -159,48 +161,57 @@ static void(entity self, entity other, float kick, int damage) player_pain =
 	// player pain is handled at the end of the frame in P_DamageFeedback
 }
 
+typedef enum : int
+{
+	GENDER_MALE,
+	GENDER_FEMALE,
+	GENDER_NEUTRAL
+} gender_t;
 
-static bool(entity ent) IsFemale =
+static gender_t(entity ent) GetGender =
 {
 	if (!ent.is_client)
-		return false;
+		return GENDER_MALE;
 	
 	string info = Info_ValueForKey(ent.client.pers.userinfo, "gender");
+
 	if (strat(info, 0) == 'f' || strat(info, 0) == 'F')
-		return true;
-	return false;
-}
+		return GENDER_FEMALE;
+	else if (strat(info, 0) != 'm' && strat(info, 0) != 'm')
+		return GENDER_NEUTRAL;
 
-static bool(entity ent) IsNeutral =
-{
-	if (!ent.is_client)
-		return false;
-
-	string info = Info_ValueForKey(ent.client.pers.userinfo, "gender");
-	if (strat(info, 0) != 'f' && strat(info, 0) != 'F' && strat(info, 0) != 'm' && strat(info, 0) != 'M')
-		return true;
-	return false;
+	return GENDER_MALE;
 }
 
 PROGS_LOCAL means_of_death_t meansOfDeath;
 
 static void(entity self, entity inflictor, entity attacker) ClientObituary =
 {
-	int	mod;
-	string	message;
-	string	message2;
-	int	ff;
-
 	if (coop.intVal && attacker.is_client)
 		meansOfDeath |= MOD_FRIENDLY_FIRE;
 
-	if (deathmatch.intVal || coop.intVal) {
-		ff = meansOfDeath & MOD_FRIENDLY_FIRE;
-		mod = meansOfDeath & ~MOD_FRIENDLY_FIRE;
-		message = 0;
-		message2 = 0;
+	if (deathmatch.intVal || coop.intVal)
+	{
+		int ff = meansOfDeath & MOD_FRIENDLY_FIRE;
+		int mod = meansOfDeath & ~MOD_FRIENDLY_FIRE;
+		string message = 0;
+		string message2 = 0;
+		gender_t gender = GetGender(self);
 
-		switch (mod) {
+		static const string their[] = {
+			"his",
+			"her",
+			"their"
+		};
+
+		static const string themself[] = {
+			"himself",
+			"herself",
+			"themself"
+		};
+
+		switch (mod)
+		{
 		case MOD_SUICIDE:
 			message = "suicides";
 			break;
@@ -238,60 +249,43 @@ static void(entity self, entity inflictor, entity attacker) ClientObituary =
 			message = "was in the wrong place";
 			break;
 #ifdef THE_RECKONING
-		// RAFAEL
 		case MOD_GEKK:
 		case MOD_BRAINTENTACLE:
 			message = "... that's gotta hurt!";
 			break;
 #endif
 		}
-		if (attacker == self) {
-			switch (mod) {
+
+		if (attacker == self)
+		{
+			switch (mod)
+			{
 			case MOD_HELD_GRENADE:
 				message = "tried to put the pin back in";
 				break;
 			case MOD_HG_SPLASH:
 			case MOD_G_SPLASH:
-				if (IsNeutral(self))
-					message = "tripped on its own grenade";
-				else if (IsFemale(self))
-					message = "tripped on her own grenade";
-				else
-					message = "tripped on his own grenade";
+				message = va("tripped on %s own grenade", their[gender]);
 				break;
 			case MOD_R_SPLASH:
-				if (IsNeutral(self))
-					message = "blew itself up";
-				else if (IsFemale(self))
-					message = "blew herself up";
-				else
-					message = "blew himself up";
+				message = va("blew %s up", themself[gender]);
 				break;
 			case MOD_BFG_BLAST:
 				message = "should have used a smaller gun";
 				break;
 #ifdef THE_RECKONING
-			// RAFAEL 03-MAY-98
 			case MOD_TRAP:
-				if (IsNeutral(self))
-					message = "sucked into its own trap";
-				else if (IsFemale(self))
-					message = "sucked into her own trap";
-				else
-					message = "sucked into his own trap";
+				message = va("was sucked into %s own trap", their[gender]);
 				break;
 #endif
 			default:
-				if (IsNeutral(self))
-					message = "killed itself";
-				else if (IsFemale(self))
-					message = "killed herself";
-				else
-					message = "killed himself";
+				message = va("killed %s", themself[gender]);
 				break;
 			}
 		}
-		if (message) {
+
+		if (message)
+		{
 			gi.bprintf(PRINT_MEDIUM, "%s %s.\n", self.client.pers.netname, message);
 			if (deathmatch.intVal)
 				self.client.resp.score--;
@@ -300,7 +294,8 @@ static void(entity self, entity inflictor, entity attacker) ClientObituary =
 		}
 
 		self.enemy = attacker;
-		if (attacker && attacker.is_client) {
+		if (attacker && attacker.is_client)
+		{
 			switch (mod) {
 			case MOD_BLASTER:
 				message = "was blasted by";
@@ -372,14 +367,14 @@ static void(entity self, entity inflictor, entity attacker) ClientObituary =
 				break;
 #ifdef THE_RECKONING
 			case MOD_RIPPER:
-				message = "ripped to shreds by";
+				message = "was ripped to shreds by";
 				message2 = "'s ripper gun";
 				break;
 			case MOD_PHALANX:
 				message = "was evaporated by";
 				break;
 			case MOD_TRAP:
-				message = "caught in";
+				message = "was caught in";
 				message2 = "'s trap";
 				break;
 #endif
@@ -418,9 +413,13 @@ static void(entity self, entity inflictor, entity attacker) ClientObituary =
 				break;
 #endif
 			}
-			if (message) {
+
+			if (message)
+			{
 				gi.bprintf(PRINT_MEDIUM, "%s %s %s%s\n", self.client.pers.netname, message, attacker.client.pers.netname, message2);
-				if (deathmatch.intVal) {
+
+				if (deathmatch.intVal)
+				{
 					if (ff)
 						attacker.client.resp.score--;
 					else
@@ -432,39 +431,28 @@ static void(entity self, entity inflictor, entity attacker) ClientObituary =
 	}
 
 	gi.bprintf(PRINT_MEDIUM, "%s died.\n", self.client.pers.netname);
+
 	if (deathmatch.intVal)
 		self.client.resp.score--;
 }
 
 static void(entity self) TossClientWeapon =
 {
-	gitem_t 	*it;
-	entity		drop;
-	bool		quad;
-	float		spread;
-
 	if (!deathmatch.intVal)
 		return;
 
-	it = self.client.pers.weapon;
+	gitem_t *it = self.client.pers.weapon;
 
 	if (!self.client.pers.inventory[self.client.ammo_index] || it->pickup_name == "Blaster")
 		it = 0;
 
-	if (!(dmflags.intVal & DF_QUAD_DROP))
-		quad = false;
-	else
-		quad = (self.client.quad_framenum > (level.framenum + 10));
+	bool quad = (dmflags.intVal & DF_QUAD_DROP) && (self.client.quad_framenum > (level.framenum + 10));
 		
 #ifdef THE_RECKONING
-	// RAFAEL
-	bool		quadfire;
-
-	if (!(dmflags.intVal & DF_QUADFIRE_DROP))
-		quadfire = false;
-	else
-		quadfire = (self.client.quadfire_framenum > (level.framenum + 10));
+	bool quadfire = (dmflags.intVal & DF_QUADFIRE_DROP) && (self.client.quadfire_framenum > (level.framenum + 10));
 #endif
+
+	float spread;
 
 	if (it && quad)
 		spread = 22.5f;
@@ -478,7 +466,7 @@ static void(entity self) TossClientWeapon =
 	if (it)
 	{
 		self.client.v_angle[YAW] -= spread;
-		drop = Drop_Item(self, it);
+		entity drop = Drop_Item(self, it);
 		self.client.v_angle[YAW] += spread;
 		drop.spawnflags = DROPPED_PLAYER_ITEM;
 	}
@@ -486,7 +474,7 @@ static void(entity self) TossClientWeapon =
 	if (quad)
 	{
 		self.client.v_angle[YAW] += spread;
-		drop = Drop_Item(self, FindItemByClassname("item_quad"));
+		entity drop = Drop_Item(self, FindItemByClassname("item_quad"));
 		self.client.v_angle[YAW] -= spread;
 		drop.spawnflags |= DROPPED_PLAYER_ITEM;
 
@@ -496,11 +484,10 @@ static void(entity self) TossClientWeapon =
 	}
 	
 #ifdef THE_RECKONING
-	// RAFAEL
 	if (quadfire)
 	{
 		self.client.v_angle[YAW] += spread;
-		drop = Drop_Item (self, FindItemByClassname ("item_quadfire"));
+		entity drop = Drop_Item (self, FindItemByClassname ("item_quadfire"));
 		self.client.v_angle[YAW] -= spread;
 		drop.spawnflags |= DROPPED_PLAYER_ITEM;
 
@@ -518,18 +505,12 @@ LookAtKiller
 */
 void(entity self, entity inflictor, entity attacker) LookAtKiller =
 {
-	vector	dir;
-
-	if (attacker && attacker != world && attacker != self) {
-		dir = attacker.s.origin - self.s.origin;
-	} else if (inflictor && inflictor != world && inflictor != self) {
-		dir = inflictor.s.origin - self.s.origin;
-	} else {
+	if (attacker && attacker != self)
+		self.client.killer_yaw = vectoyaw(attacker.s.origin - self.s.origin);
+	else if (inflictor && inflictor != self)
+		self.client.killer_yaw = vectoyaw(inflictor.s.origin - self.s.origin);
+	else
 		self.client.killer_yaw = self.s.angles[YAW];
-		return;
-	}
-
-	self.client.killer_yaw = vectoyaw(dir);
 }
 
 // from hud.qc
@@ -563,18 +544,21 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 
 	self.svflags |= SVF_DEADMONSTER;
 
-	if (!self.deadflag) {
+	if (!self.deadflag)
+	{
 		self.client.respawn_framenum = (int)(level.framenum + 1.0f * BASE_FRAMERATE);
 		LookAtKiller(self, inflictor, attacker);
 		self.client.ps.pmove.pm_type = PM_DEAD;
 		ClientObituary(self, inflictor, attacker);
 		TossClientWeapon(self);
+
 		if (deathmatch.intVal)
 			Cmd_Help_f(self);       // show scores
 
 		// clear inventory
 		// this is kind of ugly, but it's how we want to handle keys in coop
-		for (int n = 0; n < itemlist.length; n++) {
+		for (int n = 0; n < itemlist.length; n++)
+		{
 			if (coop.intVal && itemlist[n].flags & IT_KEY)
 				self.client.resp.coop_respawn.inventory[n] = self.client.pers.inventory[n];
 			self.client.pers.inventory[n] = 0;
@@ -594,7 +578,7 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 #ifdef GROUND_ZERO
 	self.client.double_framenum = 0;
 	// if we've been killed by the tracker, GIB!
-	if((meansOfDeath & ~MOD_FRIENDLY_FIRE) == MOD_TRACKER)
+	if ((meansOfDeath & ~MOD_FRIENDLY_FIRE) == MOD_TRACKER)
 	{
 		self.health = -100;
 		damage = 400;
@@ -607,11 +591,11 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 
 	if (self.health < -40)
 	{
+		// gib
 #ifdef GROUND_ZERO
 		if (!(self.flags & FL_NOGIB))
 		{
 #endif
-			// gib
 			gi.sound(self, CHAN_BODY, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
 			for (int n = 0; n < 4; n++)
 				ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
@@ -624,34 +608,36 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 
 		self.takedamage = false;
 	}
-	else
+	else if (!self.deadflag) // normal death
 	{
-		// normal death
-		if (!self.deadflag) {
-			static int i;
+		static int i;
 
-			i = (i + 1) % 3;
-			// start a death animation
-			self.client.anim_priority = ANIM_DEATH;
-			if (self.client.ps.pmove.pm_flags & PMF_DUCKED) {
-				self.s.frame = FRAME_crdeath1 - 1;
-				self.client.anim_end = FRAME_crdeath5;
-			} else switch (i) {
-				case 0:
-					self.s.frame = FRAME_death101 - 1;
-					self.client.anim_end = FRAME_death106;
-					break;
-				case 1:
-					self.s.frame = FRAME_death201 - 1;
-					self.client.anim_end = FRAME_death206;
-					break;
-				case 2:
-					self.s.frame = FRAME_death301 - 1;
-					self.client.anim_end = FRAME_death308;
-					break;
-				}
-			gi.sound(self, CHAN_VOICE, gi.soundindex(va("*death%i.wav", (Q_rand() % 4) + 1)), 1, ATTN_NORM, 0);
+		i = (i + 1) % 3;
+
+		// start a death animation
+		self.client.anim_priority = ANIM_DEATH;
+		if (self.client.ps.pmove.pm_flags & PMF_DUCKED)
+		{
+			self.s.frame = FRAME_crdeath1 - 1;
+			self.client.anim_end = FRAME_crdeath5;
 		}
+		else switch (i)
+		{
+		case 0:
+			self.s.frame = FRAME_death101 - 1;
+			self.client.anim_end = FRAME_death106;
+			break;
+		case 1:
+			self.s.frame = FRAME_death201 - 1;
+			self.client.anim_end = FRAME_death206;
+			break;
+		case 2:
+			self.s.frame = FRAME_death301 - 1;
+			self.client.anim_end = FRAME_death308;
+			break;
+		}
+
+		gi.sound(self, CHAN_VOICE, gi.soundindex(va("*death%i.wav", (Q_rand() % 4) + 1)), 1, ATTN_NORM, 0);
 	}
 
 	self.deadflag = DEAD_DEAD;
@@ -768,17 +754,11 @@ Returns the distance to the nearest player from the given spot
 */
 static float(entity spot) PlayersRangeFromSpot =
 {
-	entity	player;
-	float	bestplayerdistance;
-	vector	v;
-	int	n;
-	float	playerdistance;
+	float bestplayerdistance = 9999999f;
 
-	bestplayerdistance = 9999999f;
-
-	for (n = 1; n <= game.maxclients; n++)
+	for (int n = 1; n <= game.maxclients; n++)
 	{
-		player = itoe(n);
+		entity player = itoe(n);
 
 		if (!player.inuse)
 			continue;
@@ -786,8 +766,7 @@ static float(entity spot) PlayersRangeFromSpot =
 		if (player.health <= 0)
 			continue;
 
-		v = spot.s.origin - player.s.origin;
-		playerdistance = VectorLength(v);
+		float playerdistance = VectorDistance(spot.s.origin, player.s.origin);
 
 		if (playerdistance < bestplayerdistance)
 			bestplayerdistance = playerdistance;
@@ -850,7 +829,6 @@ static entity() SelectRandomDeathmatchSpawnPoint =
 /*
 ================
 SelectFarthestDeathmatchSpawnPoint
-
 ================
 */
 static entity() SelectFarthestDeathmatchSpawnPoint =
@@ -889,29 +867,18 @@ static entity() SelectDeathmatchSpawnPoint =
 #ifdef GROUND_ZERO
 static entity(entity ent) SelectLavaCoopSpawnPoint =
 {
-	int	index;
-	entity	spot = world;
-	float	lavatop;
-	entity	lava;
-	entity	pointWithLeastLava;
-	float	lowest;
-	entity	spawnPoints[64] = { 0 };
-	vector	center;
-	int	numPoints;
-	entity	highestlava;
-
-	lavatop = -99999f;
-	highestlava = world;
+	float lavatop = -99999f;
+	entity highestlava = world;
 
 	// first, find the highest lava
 	// remember that some will stop moving when they've filled their
 	// areas...
-	lava = world;
+	entity lava = world;
 	while ((lava = G_Find (lava, classname, "func_door")))
 	{
-		center = (lava.absmax + lava.absmin) * 0.5f;
+		vector center = (lava.absmax + lava.absmin) * 0.5f;
 
-		if(lava.spawnflags & 2 && (gi.pointcontents(center) & MASK_WATER))
+		if (lava.spawnflags & 2 && (gi.pointcontents(center) & MASK_WATER))
 		{
 			if (lava.absmax[2] > lavatop)
 			{
@@ -929,31 +896,34 @@ static entity(entity ent) SelectLavaCoopSpawnPoint =
 	lavatop = highestlava.absmax[2] + 64;
 
 	// find all the lava spawn points and store them in spawnPoints[]
-	spot = world;
-	numPoints = 0;
+	entity spot = world;
+	int numPoints = 0;
+	entity spawnPoints[64] = { 0 };
+
 	while ((spot = G_Find (spot, classname, "info_player_coop_lava")))
 	{
-		if(numPoints == 64)
+		if (numPoints == 64)
 			break;
 
 		spawnPoints[numPoints++] = spot;
 	}
 
-	if(numPoints < 1)
+	if (numPoints < 1)
 		return world;
 
 	// walk up the sorted list and return the lowest, open, non-lava spawn point
 	spot = world;
-	lowest = 999999f;
-	pointWithLeastLava = world;
-	for (index = 0; index < numPoints; index++)
+	float lowest = 999999f;
+	entity pointWithLeastLava = world;
+
+	for (int index = 0; index < numPoints; index++)
 	{
-		if(spawnPoints[index].s.origin[2] < lavatop)
+		if (spawnPoints[index].s.origin[2] < lavatop)
 			continue;
 
-		if(PlayersRangeFromSpot(spawnPoints[index]) > 32)
+		if (PlayersRangeFromSpot(spawnPoints[index]) > 32)
 		{
-			if(spawnPoints[index].s.origin[2] < lowest)
+			if (spawnPoints[index].s.origin[2] < lowest)
 			{
 				// save the last point
 				pointWithLeastLava = spawnPoints[index];
@@ -979,24 +949,18 @@ static entity(entity ent) SelectCoopSpawnPoint =
 		return SelectLavaCoopSpawnPoint (ent);
 #endif
 
-	int	index;
-	entity	spot = world;
-	string	target;
-
-	index = ent.s.number - 1;
+	int index = ent.s.number - 1;
 	
 	// player 0 starts in normal player spawn point
 	if !(index)
 		return world;
 
-	spot = world;
+	entity spot = world;
 
 	// assume there are four coop spots at each spawnpoint
 	while ((spot = G_Find(spot, classname, "info_player_coop")))
 	{
-		target = spot.targetname;
-
-		if (stricmp(game.spawnpoint, target) == 0)
+		if (stricmp(game.spawnpoint, spot.targetname) == 0)
 		{
 			// this is a coop spawn point for one of the clients here
 			index--;
@@ -1058,12 +1022,12 @@ static void(entity ent, out vector origin, out vector angles) SelectSpawnPoint =
 	angles = spot.s.angles;
 }
 
-void InitBodyQue(void)
+void() InitBodyQue =
 {
-	int     i;
-	
 	level.body_que = 0;
-	for (i = 0; i < BODY_QUEUE_SIZE ; i++) {
+
+	for (int i = 0; i < BODY_QUEUE_SIZE; i++)
+	{
 		entity ent = G_Spawn();
 		ent.classname = "bodyque";
 	}
@@ -1071,11 +1035,10 @@ void InitBodyQue(void)
 
 static void(entity self, entity inflictor, entity attacker, int damage, vector point) body_die =
 {
-	int n;
-	
-	if (self.health < -40) {
+	if (self.health < -40)
+	{
 		gi.sound(self, CHAN_BODY, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
-		for (n = 0; n < 4; n++)
+		for (int n = 0; n < 4; n++)
 			ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
 		self.s.origin[2] -= 48f;
 		ThrowClientHead(self, damage);
@@ -1092,7 +1055,8 @@ static void(entity ent) CopyToBodyQue =
 	level.body_que = (level.body_que + 1) % BODY_QUEUE_SIZE;
 	
 	// send an effect on the removed body
-	if (body.s.modelindex) {
+	if (body.s.modelindex)
+	{
 		gi.WriteByte(svc_temp_entity);
 		gi.WriteByte(TE_BLOOD);
 		gi.WritePosition(body.s.origin);
@@ -1131,7 +1095,8 @@ void(entity self) PutClientInServer;
 
 void(entity self) respawn =
 {
-	if (deathmatch.intVal || coop.intVal) {
+	if (deathmatch.intVal || coop.intVal)
+	{
 		// spectator's don't leave bodies
 		if (self.movetype != MOVETYPE_NOCLIP)
 			CopyToBodyQue(self);
@@ -1146,7 +1111,6 @@ void(entity self) respawn =
 		self.client.ps.pmove.pm_time = 14;
 
 		self.client.respawn_framenum = level.framenum;
-
 		return;
 	}
 
@@ -1160,13 +1124,12 @@ void(entity self) respawn =
  */
 static void(entity ent) spectator_respawn =
 {
-	int i, numspec;
-
 	// if the user wants to become a spectator, make sure he doesn't
 	// exceed max_spectators
-
-	if (ent.client.pers.spectator) {
+	if (ent.client.pers.spectator)
+	{
 		string value = Info_ValueForKey(ent.client.pers.userinfo, "spectator");
+
 		if (spectator_password.str &&
 			spectator_password.str != "none" &&
 			spectator_password.str != value)
@@ -1180,11 +1143,14 @@ static void(entity ent) spectator_respawn =
 		}
 
 		// count spectators
+		int i, numspec;
+
 		for (i = 1, numspec = 0; i <= game.maxclients; i++)
 			if (itoe(i).inuse && itoe(i).client.pers.spectator)
 				numspec++;
 
-		if (numspec >= maxspectators.intVal) {
+		if (numspec >= maxspectators.intVal)
+		{
 			gi.cprintf(ent, PRINT_HIGH, "Server spectator limit is full.");
 			ent.client.pers.spectator = false;
 			// reset his spectator var
@@ -1193,10 +1159,13 @@ static void(entity ent) spectator_respawn =
 			gi.unicast(ent, true);
 			return;
 		}
-	} else {
+	}
+	else
+	{
 		// he was a spectator and wants to join the game
 		// he must have the right password
 		string value = Info_ValueForKey(ent.client.pers.userinfo, "password");
+
 		if (password.str &&
 			password.str != "none" &&
 			password.str != value)
@@ -1217,7 +1186,8 @@ static void(entity ent) spectator_respawn =
 	PutClientInServer(ent);
 
 	// add a teleportation effect
-	if (!ent.client.pers.spectator)  {
+	if (!ent.client.pers.spectator)
+	{
 		// send effect
 		gi.WriteByte(svc_muzzleflash);
 		gi.WriteShort(ent.s.number);
@@ -1257,16 +1227,15 @@ static void(entity ent) PutClientInServer =
 {
 	static const vector player_mins = '-16 -16 -24';
 	static const vector player_maxs = ' 16  16  32';
-	vector spawn_origin, spawn_angles;
-	client_persistant_t saved;
-	client_respawn_t    resp;
 
 	// find a spawn point
 	// do it before setting health back up, so farthest
 	// ranging doesn't count this client
+	vector spawn_origin, spawn_angles;
 	SelectSpawnPoint(ent, spawn_origin, spawn_angles);
 
 	// deathmatch wipes most client data every spawn
+	client_respawn_t    resp;
 	if (deathmatch.intVal)
 	{
 		string userinfo = ent.client.pers.userinfo;
@@ -1291,6 +1260,7 @@ static void(entity ent) PutClientInServer =
 	}
 
 	// clear everything but the persistant data
+	client_persistant_t saved;
 	memcpy(&saved, &ent.client.pers, sizeof(saved));
 	memclear(&ent.client, sizeof(ent.client));
 	memcpy(&ent.client.pers, &saved, sizeof(saved));
@@ -1425,9 +1395,7 @@ static void(entity ent) ClientBeginDeathmatch =
 	PutClientInServer(ent);
 
 	if (level.intermission_framenum)
-	{
 		MoveClientToIntermission(ent);
-	}
 	else
 	{
 		// send effect
@@ -1500,9 +1468,8 @@ The game can override any of the settings in place
 void(entity ent, string userinfo) ClientUserinfoChanged =
 {
 	// check for malformed or illegal info strings
-	if (!Info_Validate(userinfo)) {
+	if (!Info_Validate(userinfo))
 		userinfo = "\\name\\badinfo\\skin\\male/grunt";
-	}
 	
 	// set name
 	string str = Info_ValueForKey(userinfo, "name");
@@ -1525,9 +1492,7 @@ void(entity ent, string userinfo) ClientUserinfoChanged =
 	
 	// fov
 	if (deathmatch.intVal && (dmflags.intVal & DF_FIXED_FOV))
-	{
 		ent.client.ps.fov = 90.f;
-	}
 	else
 	{
 		ent.client.ps.fov = stof(Info_ValueForKey(userinfo, "fov"));
@@ -1539,9 +1504,8 @@ void(entity ent, string userinfo) ClientUserinfoChanged =
 	
 	// handedness
 	str = Info_ValueForKey(userinfo, "hand");
-	if (!strempty(str)) {
-		ent.client.pers.hand = stoi(str);
-	}
+	if (!strempty(str))
+		ent.client.pers.hand = maxi(RIGHT_HANDED, mini(CENTER_HANDED, stoi(str)));
 	
 	// save off the userinfo in case we want to check something later
 	ent.client.pers.userinfo = userinfo;
@@ -1636,7 +1600,6 @@ bool(entity ent, inout string userinfo) ClientConnect =
 	return true;
 };
 
-
 /*
 ===========
 ClientDisconnect
@@ -1653,7 +1616,8 @@ void(entity ent) ClientDisconnect =
 	gi.bprintf(PRINT_HIGH, "%s disconnected\n", ent.client.pers.netname);
 	
 	// send effect
-	if (ent.inuse) {
+	if (ent.inuse)
+	{
 		gi.WriteByte(svc_muzzleflash);
 		gi.WriteShort(ent.s.number);
 		gi.WriteByte(MZ_LOGOUT);
@@ -1699,13 +1663,10 @@ void(entity) Think_Weapon;
 
 void(entity ent, usercmd_t ucmd) ClientThink =
 {
-	entity	other;
-	int	i;
-	pmove_t	pm;
-
 	level.current_entity = ent;
 
-	if (level.intermission_framenum) {
+	if (level.intermission_framenum)
+	{
 		ent.client.ps.pmove.pm_type = PM_FREEZE;
 		// can exit intermission after five seconds
 		if (level.framenum > level.intermission_framenum + 5.0f * BASE_FRAMERATE
@@ -1716,9 +1677,11 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 
 	pm_passent = ent;
 
-	if (ent.client.chase_target) {
+	if (ent.client.chase_target)
 		ent.client.resp.cmd_angles = ucmd.angles;
-	} else {
+	else
+	{
+		pmove_t	pm;
 
 		// set up for pmove
 		if (ent.movetype == MOVETYPE_NOCLIP)
@@ -1766,7 +1729,8 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 
 		ent.client.resp.cmd_angles = ucmd.angles;
 
-		if (ent.groundentity != null_entity && pm.groundentity == null_entity && (pm.cmd.upmove >= 10) && (pm.waterlevel == 0)) {
+		if (ent.groundentity != null_entity && pm.groundentity == null_entity && (pm.cmd.upmove >= 10) && (pm.waterlevel == 0))
+		{
 			gi.sound(ent, CHAN_VOICE, gi.soundindex("*jump1.wav"), 1, ATTN_NORM, 0);
 			PlayerNoise(ent, ent.s.origin, PNOISE_SELF);
 		}
@@ -1778,11 +1742,14 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 		if (pm.groundentity != null_entity)
 			ent.groundentity_linkcount = pm.groundentity.linkcount;
 
-		if (ent.deadflag) {
+		if (ent.deadflag)
+		{
 			ent.client.ps.viewangles[ROLL] = 40f;
 			ent.client.ps.viewangles[PITCH] = -15f;
 			ent.client.ps.viewangles[YAW] = ent.client.killer_yaw;
-		} else {
+		}
+		else
+		{
 			ent.client.v_angle = pm.viewangles;
 			ent.client.ps.viewangles = pm.viewangles;
 		}
@@ -1804,7 +1771,6 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 				continue;
 			other.touch(other, ent, vec3_origin, null_surface);
 		}
-
 	}
 
 	ent.client.oldbuttons = ent.client.buttons;
@@ -1816,39 +1782,48 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 	ent.light_level = ucmd.lightlevel;
 
 	// fire weapon from final position if needed
-	if (ent.client.latched_buttons & BUTTON_ATTACK) {
-		if (ent.client.resp.spectator) {
-
+	if (ent.client.latched_buttons & BUTTON_ATTACK)
+	{
+		if (ent.client.resp.spectator)
+		{
 			ent.client.latched_buttons = 0;
 
-			if (ent.client.chase_target) {
+			if (ent.client.chase_target)
+			{
 				ent.client.chase_target = world;
 				ent.client.ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
-			} else
+			}
+			else
 				GetChaseTarget(ent);
-
-		} else if (!ent.client.weapon_thunk) {
+		}
+		else if (!ent.client.weapon_thunk)
+		{
 			ent.client.weapon_thunk = true;
 			Think_Weapon(ent);
 		}
 	}
 
-	if (ent.client.resp.spectator) {
-		if (ucmd.upmove >= 10) {
-			if (!(ent.client.ps.pmove.pm_flags & PMF_JUMP_HELD)) {
+	if (ent.client.resp.spectator)
+	{
+		if (ucmd.upmove >= 10)
+		{
+			if (!(ent.client.ps.pmove.pm_flags & PMF_JUMP_HELD))
+			{
 				ent.client.ps.pmove.pm_flags |= PMF_JUMP_HELD;
 				if (ent.client.chase_target)
 					ChaseNext(ent);
 				else
 					GetChaseTarget(ent);
 			}
-		} else
+		}
+		else
 			ent.client.ps.pmove.pm_flags &= ~PMF_JUMP_HELD;
 	}
 
 	// update chase cam if being followed
-	for (i = 1; i <= game.maxclients; i++) {
-		other = itoe(i);
+	for (int i = 1; i <= game.maxclients; i++)
+	{
+		entity other = itoe(i);
 		if (other.inuse && other.client.chase_target == ent)
 			UpdateChaseCam(other);
 	}
@@ -1867,14 +1842,13 @@ any other entities in the world.
 */
 void(entity ent) ClientBeginServerFrame =
 {
-	int         buttonMask;
-
 	if (level.intermission_framenum)
 		return;
 
 	if (deathmatch.intVal &&
 		ent.client.pers.spectator != ent.client.resp.spectator &&
-		(level.framenum - ent.client.respawn_framenum) >= 5 * BASE_FRAMERATE) {
+		(level.framenum - ent.client.respawn_framenum) >= 5 * BASE_FRAMERATE)
+	{
 		spectator_respawn(ent);
 		return;
 	}
@@ -1885,9 +1859,13 @@ void(entity ent) ClientBeginServerFrame =
 	else
 		ent.client.weapon_thunk = false;
 
-	if (ent.deadflag) {
+	if (ent.deadflag)
+	{
 		// wait for any button just going down
-		if (level.framenum > ent.client.respawn_framenum) {
+		if (level.framenum > ent.client.respawn_framenum)
+		{
+			int buttonMask;
+
 			// in deathmatch, only wait for attack button
 			if (deathmatch.intVal)
 				buttonMask = BUTTON_ATTACK;
@@ -1895,11 +1873,13 @@ void(entity ent) ClientBeginServerFrame =
 				buttonMask = -1;
 
 			if ((ent.client.latched_buttons & buttonMask) ||
-				(deathmatch.intVal && (dmflags.intVal & DF_FORCE_RESPAWN))) {
+				(deathmatch.intVal && (dmflags.intVal & DF_FORCE_RESPAWN)))
+			{
 				respawn(ent);
 				ent.client.latched_buttons = 0;
 			}
 		}
+
 		return;
 	}
 

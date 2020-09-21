@@ -3,10 +3,10 @@
 #ifdef THE_RECKONING
 API_FUNC void(entity ent, gitem_t *it) Use_QuadFire =
 {
-	int		timeout;
-
 	ent.client.pers.inventory[it->id]--;
 	ValidateSelectedItem (ent);
+
+	int timeout;
 
 	if (quad_fire_drop_timeout_hack)
 	{

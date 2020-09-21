@@ -419,7 +419,7 @@ struct monsterinfo_t
 	int					trail_framenum;
 	vector				last_sighting;
 	ai_attack_state_t	attack_state;
-	int					lefty;
+	bool				lefty;
 	int					idle_framenum;
 	int					linkcount;
 	

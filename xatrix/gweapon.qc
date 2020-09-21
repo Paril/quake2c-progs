@@ -7,7 +7,7 @@ static void(entity self) ionripper_sparks =
 	gi.WriteByte (0);
 	gi.WritePosition (self.s.origin);
 	gi.WriteDir (vec3_origin);
-	gi.WriteByte (0xe4 + (Q_rand()&3));
+	gi.WriteByte (0xe4 + (Q_rand() & 3));
 	gi.multicast (self.s.origin, MULTICAST_PVS);
 
 	G_FreeEdict (self);
@@ -36,12 +36,9 @@ static void(entity self, entity other, vector normal, csurface_t surf) ionripper
 
 PROGS_LOCAL void(entity self, vector start, vector dir, int damage, int speed, entity_effects_t effect) fire_ionripper =
 {
-	entity ion;
-	trace_t tr;
-
 	VectorNormalize (dir);
 
-	ion = G_Spawn ();
+	entity ion = G_Spawn ();
 	ion.s.origin = ion.s.old_origin = start;
 	ion.s.angles = vectoangles (dir);
 	ion.velocity = dir * speed;
@@ -66,23 +63,20 @@ PROGS_LOCAL void(entity self, vector start, vector dir, int damage, int speed, e
 	if (self.is_client)
 		check_dodge (self, ion.s.origin, dir, speed);
 
+	trace_t tr;
 	gi.traceline(&tr, self.s.origin, ion.s.origin, ion, MASK_SHOT);
 	if (tr.fraction < 1.0)
 	{
 		ion.s.origin += dir * -10;
 		ion.touch (ion, tr.ent, vec3_origin, null_surface);
 	}
-
 }
 
 static void(entity self) heat_think =
 {
+	float	oldlen = 0;
 	entity	target = world;
 	entity	aquire = world;
-	vector	vec = vec3_origin;
-	vector	oldang;
-	float	len;
-	float	oldlen = 0;
 
 	// acquire new target
 	while ((target = findradius (target, self.s.origin, 1024)))
@@ -98,8 +92,8 @@ static void(entity self) heat_think =
 		if (!infront (self, target))
 			continue;
 
-		vec = self.s.origin - target.s.origin;
-		len = VectorLength (vec);
+		vector vec = self.s.origin - target.s.origin;
+		float len = VectorLength (vec);
 
 		if (!aquire || len < oldlen)
 		{
@@ -111,8 +105,8 @@ static void(entity self) heat_think =
 
 	if (aquire)
 	{
-		oldang = self.s.angles;
-		vec = aquire.s.origin - self.s.origin;
+		vector oldang = self.s.angles;
+		vector vec = aquire.s.origin - self.s.origin;
 		
 		self.s.angles = vectoangles (vec);
 		
@@ -124,18 +118,15 @@ static void(entity self) heat_think =
 	self.nextthink = level.framenum + 1;
 }
 
-void(entity self, vector start, vector dir, int damage, int speed, float damage_radius, int radius_damage) fire_heat =
+inline void(entity self, vector start, vector dir, int damage, int speed, float damage_radius, int radius_damage) fire_heat =
 {
 	entity heat = fire_rocket(self, start, dir, damage, speed, damage_radius, radius_damage);
-	
 	heat.nextthink = level.framenum + 1;
 	heat.think = heat_think;
 }
 
 static void(entity ent, entity other, vector normal, csurface_t surf) plasma_touch =
 {
-	vector	origin;
-
 	if (other == ent.owner)
 		return;
 
@@ -149,7 +140,7 @@ static void(entity ent, entity other, vector normal, csurface_t surf) plasma_tou
 		PlayerNoise(ent.owner, ent.s.origin, PNOISE_IMPACT);
 
 	// calculate position for the explosion entity
-	origin = ent.s.origin + (ent.velocity * -0.02);
+	vector origin = ent.s.origin + (ent.velocity * -0.02);
 
 	if (other.takedamage)
 		T_Damage (other, ent, ent.owner, ent.velocity, ent.s.origin, normal, ent.dmg, 0, 0, MOD_PHALANX);
@@ -166,9 +157,7 @@ static void(entity ent, entity other, vector normal, csurface_t surf) plasma_tou
 
 void(entity self, vector start, vector dir, int damage, int speed, float damage_radius, int radius_damage) fire_plasma =
 {
-	entity plasma;
-
-	plasma = G_Spawn();
+	entity plasma = G_Spawn();
 	plasma.s.origin = start;
 	plasma.movedir = dir;
 	plasma.s.angles = vectoangles (dir);
@@ -195,8 +184,6 @@ void(entity self, vector start, vector dir, int damage, int speed, float damage_
 	gi.linkentity (plasma);
 }
 
-// from misc.qc
-void(entity self) BecomeExplosion1;
 // from xatrix/item.qc
 API_FUNC void(entity self) SP_item_foodcube;
 
@@ -210,9 +197,11 @@ static void(entity ent) Trap_Gib_Think =
 
 	vector forward;
 	AngleVectors (ent.s.angles, &forward, 0, 0);
+
 	float angle = DEG2RAD(ent.dmg_radius + ent.owner.delay) * 4.f;
 	ent.s.origin = ([ -cos(angle), sin(angle), 0 ] * (ent.owner.wait * 0.5f)) + ent.owner.s.origin + forward;
 	ent.s.origin[2] = ent.owner.s.origin[2] + ent.owner.wait;
+
 	gi.linkentity (ent);
 
 	ent.nextthink = level.framenum + 1;
@@ -350,8 +339,10 @@ static void(entity ent) Trap_Think =
 		best.s.origin[2] += 1;
 		best.groundentity = null_entity;
 	}
+
 	vector vec = ent.s.origin - best.s.origin;
 	float len = VectorLength (vec);
+
 	if (best.is_client)
 	{
 		VectorNormalize (vec);
@@ -378,11 +369,12 @@ static void(entity ent) Trap_Think =
 		ent.wait = 64f;
 		ent.s.old_origin = ent.s.origin;
 		ent.timestamp = level.framenum + 30 * BASE_FRAMERATE;
+
 		if (deathmatch.intVal)
 			ent.mass = (int)(best.mass * 0.25f);
 		else
 			ent.mass = (int)(best.mass * 0.1f);
-		// ok spawn the food cube
+
 		ent.s.frame = 5;
 		return;
 	}
@@ -390,18 +382,14 @@ static void(entity ent) Trap_Think =
 	BecomeExplosion1(ent);
 }
 
-
 // RAFAEL
 void(entity self, vector start, vector aimdir, int damage, int speed, float timer, float damage_radius, bool held) fire_trap =
 {
-	entity	trap;
-	vector	dir;
-	vector	forward, right, up;
+	vector dir = vectoangles (aimdir);
+	vector right, up;
+	AngleVectors (dir, 0, &right, &up);
 
-	dir = vectoangles (aimdir);
-	AngleVectors (dir, &forward, &right, &up);
-
-	trap = G_Spawn();
+	entity trap = G_Spawn();
 	trap.s.origin = start;
 	trap.velocity = aimdir * speed;
 	trap.velocity += random(190f, 210f) * up;
@@ -419,9 +407,7 @@ void(entity self, vector start, vector aimdir, int damage, int speed, float time
 	trap.dmg = damage;
 	trap.dmg_radius = damage_radius;
 	trap.classname = "htrap";
-	// RAFAEL 16-APR-98
 	trap.s.sound = gi.soundindex ("weapons/traploop.wav");
-	// END 16-APR-98
 	if (held)
 		trap.spawnflags = 3;
 	else
@@ -430,10 +416,7 @@ void(entity self, vector start, vector aimdir, int damage, int speed, float time
 	if (timer <= 0.0)
 		Grenade_Explode (trap);
 	else
-	{
-		// gi.sound (self, CHAN_WEAPON, gi.soundindex ("weapons/trapdown.wav"), 1, ATTN_NORM, 0);
 		gi.linkentity (trap);
-	}
 	
 	trap.timestamp = level.framenum + 30 * BASE_FRAMERATE;
 

@@ -67,10 +67,10 @@ typedef enum : int
 	AMMO_TOTAL
 } ammo_t;
 
-enum gitem_id_t : int
+typedef enum : int
 {
 	ITEM_NONE
-};
+} gitem_id_t;
 
 // armor types
 typedef enum : int
@@ -460,7 +460,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		WEAP_CHAINGUN,
 		0,
 		0,
-		/* precache */ "weapons/chngnu1a.wav weapons/chngnl1a.wav weapons/machgf3b.wav` weapons/chngnd1a.wav"
+		/* precache */ "weapons/chngnu1a.wav weapons/chngnl1a.wav weapons/machgf3b.wav weapons/chngnd1a.wav"
 	},
 
 	/*QUAKED ammo_grenades (.3 .3 1) (-16 -16 -16) (16 16 16)

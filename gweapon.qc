@@ -615,6 +615,9 @@ fire_rail
 */
 void(entity self, vector start, vector aimdir, int damage, int kick) fire_rail =
 {
+	if (gi.pointcontents (start) & MASK_SOLID)
+		return;
+
 	vector	from;
 	vector	end;
 	trace_t	tr = { 0 };

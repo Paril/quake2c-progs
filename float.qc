@@ -494,7 +494,7 @@ static void floater_attack(entity self)
 	else // circle strafe
 	{
 		if (random () <= 0.5) // switch directions
-			self.monsterinfo.lefty = 1 - self.monsterinfo.lefty;
+			self.monsterinfo.lefty = !self.monsterinfo.lefty;
 		self.monsterinfo.attack_state = AS_SLIDING;
 		self.monsterinfo.currentmove = &floater_move_attack1a;
 	}

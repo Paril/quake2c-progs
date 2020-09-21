@@ -1,3 +1,84 @@
+const vector MOVEDIR_UP		= [ 0, 0, 1 ];
+const vector MOVEDIR_DOWN	= [ 0, 0, -1 ];
+
+/*
+=================
+G_InitEdict
+
+Marks an entity as active, and sets up some default parameters.
+=================
+*/
+inline void(entity e) G_InitEdict =
+{
+	e.inuse = true;
+	e.classname = "noclass";
+	e.gravity = 1.0f;
+	e.groundentity = null_entity;
+	
+#ifdef GROUND_ZERO
+	e.gravityVector = MOVEDIR_DOWN;
+#endif
+};
+
+/*
+=================
+G_Spawn
+
+Either finds a free edict, or allocates a new one.
+Try to avoid reusing an entity that was recently freed, because it
+can cause the client to think the entity morphed into something else
+instead of being removed and recreated, which can cause interpolated
+angles and bad trails.
+=================
+*/
+entity G_Spawn() =
+{
+	int i;
+	
+	for (i = game.maxclients + 1; i < globals.num_edicts; i++)
+	{
+		entity e = itoe(i);
+
+		// the first couple seconds of server time can involve a lot of
+		// freeing and allocating, so relax the replacement policy
+		if (!e.inuse && (e.freeframenum < (2 * BASE_FRAMERATE) || (level.framenum - e.freeframenum) > (int)(0.5f * BASE_FRAMERATE)))
+		{
+		    G_InitEdict(e);
+		    return e;
+		}
+	}
+
+	if (i == game.maxentities)
+		gi.error(__FUNC__": no free edicts");
+
+	entity e = itoe(i);
+	globals.num_edicts++;
+	gi.SetNumEdicts(globals.num_edicts);
+	G_InitEdict(e);
+	return e;
+};
+
+const int BODY_QUEUE_SIZE = 8;
+
+/*
+=================
+G_FreeEdict
+
+Marks the edict as free
+=================
+*/
+void(entity e) G_FreeEdict =
+{
+	gi.unlinkentity(e);        // unlink from world
+	
+	if (e.s.number <= (game.maxclients + BODY_QUEUE_SIZE))
+		return;
+
+	gi.ClearEntity(e);
+	e.classname = "freed";
+	e.freeframenum = level.framenum;
+};
+
 inline vector G_ProjectSource(vector point, vector distance, vector forward, vector right)
 {
 	return point + (forward * distance.x) + (right * distance.y) + [ 0, 0, distance.z ];
@@ -112,16 +193,12 @@ entity G_PickTarget(string stargetname)
 
 // from utils.qc
 void(entity ent, entity cactivator) G_UseTargets;
-void G_FreeEdict(entity ent);
 
 static void(entity ent) Think_Delay
 {
 	G_UseTargets(ent, ent.activator);
 	G_FreeEdict(ent);
 }
-
-// from utils.qc
-entity G_Spawn();
 
 /*
 ==============================
@@ -159,7 +236,6 @@ void(entity ent, entity cactivator) G_UseTargets =
 		t.killtarget = ent.killtarget;
 		return;
 	}
-
 
 //
 // print the message
@@ -241,9 +317,7 @@ void(entity ent, entity cactivator) G_UseTargets =
 }
 
 const vector VEC_UP			= [ 0, -1, 0 ];
-const vector MOVEDIR_UP		= [ 0, 0, 1 ];
 const vector VEC_DOWN		= [ 0, -2, 0 ];
-const vector MOVEDIR_DOWN	= [ 0, 0, -1 ];
 
 void(inout vector angles, out vector movedir) G_SetMovedir =
 {
@@ -257,82 +331,24 @@ void(inout vector angles, out vector movedir) G_SetMovedir =
 	angles = vec3_origin;
 }
 
-/*
-=================
-G_InitEdict
-
-Marks an entity as active, and sets up some default parameters.
-=================
-*/
-inline void(entity e) G_InitEdict =
+inline void(entity self) BecomeExplosion1 =
 {
-	e.inuse = true;
-	e.classname = "noclass";
-	e.gravity = 1.0f;
-	e.groundentity = null_entity;
-	
-#ifdef GROUND_ZERO
-	e.gravityVector = MOVEDIR_DOWN;
-#endif
-};
+	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(TE_EXPLOSION1);
+	gi.WritePosition(self.s.origin);
+	gi.multicast(self.s.origin, MULTICAST_PVS);
 
-/*
-=================
-G_Spawn
+	G_FreeEdict(self);
+}
 
-Either finds a free edict, or allocates a new one.
-Try to avoid reusing an entity that was recently freed, because it
-can cause the client to think the entity morphed into something else
-instead of being removed and recreated, which can cause interpolated
-angles and bad trails.
-=================
-*/
-entity G_Spawn() =
+inline void(entity self) BecomeExplosion2 =
 {
-	int i;
-	
-	for (i = game.maxclients + 1; i < globals.num_edicts; i++)
-	{
-		entity e = itoe(i);
+	gi.WriteByte(svc_temp_entity);
+	gi.WriteByte(TE_EXPLOSION2);
+	gi.WritePosition(self.s.origin);
+	gi.multicast(self.s.origin, MULTICAST_PVS);
 
-		// the first couple seconds of server time can involve a lot of
-		// freeing and allocating, so relax the replacement policy
-		if (!e.inuse && (e.freeframenum < (2 * BASE_FRAMERATE) || (level.framenum - e.freeframenum) > (int)(0.5f * BASE_FRAMERATE)))
-		{
-		    G_InitEdict(e);
-		    return e;
-		}
-	}
-
-	if (i == game.maxentities)
-		gi.error(__FUNC__": no free edicts");
-
-	entity e = itoe(i);
-	globals.num_edicts++;
-	gi.SetNumEdicts(globals.num_edicts);
-	G_InitEdict(e);
-	return e;
-};
-
-const int BODY_QUEUE_SIZE = 8;
-
-/*
-=================
-G_FreeEdict
-
-Marks the edict as free
-=================
-*/
-void(entity e) G_FreeEdict =
-{
-	gi.unlinkentity(e);        // unlink from world
-	
-	if (e.s.number <= (game.maxclients + BODY_QUEUE_SIZE))
-		return;
-
-	gi.ClearEntity(e);
-	e.classname = "freed";
-	e.freeframenum = level.framenum;
+	G_FreeEdict(self);
 }
 
 /*

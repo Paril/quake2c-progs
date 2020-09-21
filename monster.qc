@@ -6,7 +6,7 @@
 // and we can mess it up based on skill.  Spread should be for normal
 // and we can tighten or loosen based on skill.  We could muck with
 // the damages too, but I'm not sure that's such a good idea.
-void(entity self, vector start, vector dir, int damage, int kick, int hspread, int vspread, int flashtype) monster_fire_bullet =
+inline void(entity self, vector start, vector dir, int damage, int kick, int hspread, int vspread, int flashtype) monster_fire_bullet =
 {
 	fire_bullet(self, start, dir, damage, kick, hspread, vspread, MOD_UNKNOWN);
 
@@ -16,7 +16,7 @@ void(entity self, vector start, vector dir, int damage, int kick, int hspread, i
 	gi.multicast(start, MULTICAST_PVS);
 }
 
-void(entity self, vector start, vector aimdir, int damage, int kick, int hspread, int vspread, int count, int flashtype) monster_fire_shotgun =
+INLINE void(entity self, vector start, vector aimdir, int damage, int kick, int hspread, int vspread, int count, int flashtype) monster_fire_shotgun =
 {
 	fire_shotgun(self, start, aimdir, damage, kick, hspread, vspread, count, MOD_UNKNOWN);
 
@@ -26,7 +26,7 @@ void(entity self, vector start, vector aimdir, int damage, int kick, int hspread
 	gi.multicast(start, MULTICAST_PVS);
 }
 
-void(entity self, vector start, vector dir, int damage, int speed, int flashtype, int effect) monster_fire_blaster =
+inline void(entity self, vector start, vector dir, int damage, int speed, int flashtype, int effect) monster_fire_blaster =
 {
 	fire_blaster(self, start, dir, damage, speed, effect, false);
 
@@ -36,7 +36,7 @@ void(entity self, vector start, vector dir, int damage, int speed, int flashtype
 	gi.multicast(start, MULTICAST_PVS);
 }
 
-void(entity self, vector start, vector aimdir, int damage, int speed, int flashtype) monster_fire_grenade =
+inline void(entity self, vector start, vector aimdir, int damage, int speed, int flashtype) monster_fire_grenade =
 {
 	fire_grenade(self, start, aimdir, damage, speed, 2.5f, damage + 40);
 
@@ -46,7 +46,7 @@ void(entity self, vector start, vector aimdir, int damage, int speed, int flasht
 	gi.multicast(start, MULTICAST_PVS);
 }
 
-void(entity self, vector start, vector dir, int damage, int speed, int flashtype) monster_fire_rocket =
+inline void(entity self, vector start, vector dir, int damage, int speed, int flashtype) monster_fire_rocket =
 {
 	fire_rocket(self, start, dir, damage, speed, damage + 20, damage);
 
@@ -56,10 +56,9 @@ void(entity self, vector start, vector dir, int damage, int speed, int flashtype
 	gi.multicast(start, MULTICAST_PVS);
 }
 
-void(entity self, vector start, vector aimdir, int damage, int kick, int flashtype) monster_fire_railgun =
+inline void(entity self, vector start, vector aimdir, int damage, int kick, int flashtype) monster_fire_railgun =
 {
-	if (!(gi.pointcontents (start) & MASK_SOLID))
-		fire_rail(self, start, aimdir, damage, kick);
+	fire_rail(self, start, aimdir, damage, kick);
 
 	gi.WriteByte(svc_muzzleflash2);
 	gi.WriteShort(self.s.number);
@@ -67,7 +66,7 @@ void(entity self, vector start, vector aimdir, int damage, int kick, int flashty
 	gi.multicast(start, MULTICAST_PVS);
 }
 
-void(entity self, vector start, vector aimdir, int damage, int speed, int kick, float damage_radius, int flashtype) monster_fire_bfg =
+inline void(entity self, vector start, vector aimdir, int damage, int speed, int kick, float damage_radius, int flashtype) monster_fire_bfg =
 {
 	fire_bfg(self, start, aimdir, damage, speed, damage_radius);
 
@@ -76,8 +75,6 @@ void(entity self, vector start, vector aimdir, int damage, int speed, int kick, 
 	gi.WriteByte(flashtype);
 	gi.multicast(start, MULTICAST_PVS);
 }
-
-
 
 //
 // Monster utility functions
@@ -110,12 +107,6 @@ void(entity self) M_FlyCheck =
 	self.think = M_FliesOn;
 	self.nextthink = level.framenum + (int)random(5f * BASE_FRAMERATE, 15f * BASE_FRAMERATE);
 }
-
-void(entity self, float time) AttackFinished =
-{
-	self.monsterinfo.attack_finished = level.framenum + (int)(time * BASE_FRAMERATE);
-}
-
 
 void(entity ent) M_CheckGround =
 {

@@ -8,26 +8,27 @@ explosions and melee attacks.
 */
 bool(entity targ, entity inflictor) CanDamage =
 {
-	vector	dest;
-	trace_t trace;
-
 // bmodels need special checking because their origin is 0,0,0
-	if (targ.movetype == MOVETYPE_PUSH) {
-		dest = targ.absmin + targ.absmax;
-		dest *= 0.5f;
+	if (targ.movetype == MOVETYPE_PUSH)
+	{
+		vector dest = (targ.absmin + targ.absmax) * 0.5f;
+		trace_t trace;
 		gi.traceline(&trace, inflictor.s.origin, dest, inflictor, MASK_SOLID);
+
 		if (trace.fraction == 1.0f)
 			return true;
 		if (trace.ent == targ)
 			return true;
+
 		return false;
 	}
 
+	trace_t trace;
 	gi.traceline(&trace, inflictor.s.origin, targ.s.origin, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
 
-	dest = targ.s.origin;
+	vector dest = targ.s.origin;
 	dest.x += 15.0f;
 	dest.y += 15.0f;
 	gi.traceline(&trace, inflictor.s.origin, dest, inflictor, MASK_SOLID);
@@ -54,7 +55,6 @@ bool(entity targ, entity inflictor) CanDamage =
 	gi.traceline(&trace, inflictor.s.origin, dest, inflictor, MASK_SOLID);
 	if (trace.fraction == 1.0f)
 		return true;
-
 
 	return false;
 }
@@ -114,8 +114,10 @@ static void(entity targ, entity inflictor, entity attacker, int damage, vector p
 		if (!(targ.monsterinfo.aiflags & AI_GOOD_GUY_MASK))
 		{
 			level.killed_monsters++;
+
 			if (coop.intVal && attacker.is_client)
 				attacker.client.resp.score++;
+
 #ifndef GROUND_ZERO
 			// medics won't heal monsters that they kill themselves
 			if (attacker.classname == "monster_medic")
@@ -124,13 +126,15 @@ static void(entity targ, entity inflictor, entity attacker, int damage, vector p
 		}
 	}
 
-	if (targ.movetype == MOVETYPE_PUSH || targ.movetype == MOVETYPE_STOP || targ.movetype == MOVETYPE_NONE) {
-		// doors, triggers, etc
+	// doors, triggers, etc
+	if (targ.movetype == MOVETYPE_PUSH || targ.movetype == MOVETYPE_STOP || targ.movetype == MOVETYPE_NONE)
+	{
 		targ.die(targ, inflictor, attacker, damage, point);
 		return;
 	}
 
-	if ((targ.svflags & SVF_MONSTER) && (targ.deadflag != DEAD_DEAD)) {
+	if ((targ.svflags & SVF_MONSTER) && (targ.deadflag != DEAD_DEAD))
+	{
 		targ.touch = 0;
 		monster_death_use(targ);
 	}
