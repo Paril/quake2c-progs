@@ -1,3 +1,8 @@
+#ifndef DEBUG
+// If you want to compile in debug mode, change this.
+//#define DEBUG 1
+#endif
+
 #pragma warning disable Q208 // we're valid darn you >:(
 #pragma warning enable F302 // uninitialised locals
 #pragma warning disable Q205
@@ -10,8 +15,35 @@
 #pragma warning error Q105 /*too few parms. The vanilla qcc didn't validate properly, hence why fteqcc normally treats it as a warning.*/
 #pragma warning error Q106 /*assignment to constant/lvalue. Define them as var if you want to initialise something.*/
 #pragma warning enable F301 /*non-utf-8 strings. Think of the foreigners! Also think of text editors that insist on screwing up your char encodings.*/
+#pragma warning disable F312 /*numerical overflow - not applicable to Quake2C*/
 
-#pragma target fte_9999
+#pragma target quake2c_9999
+
+#pragma optimise 3
+
+// this is just because kce is not allowed midcompile yet
+#define out __out
+#define used __used
+#define inout __inout
+
+#pragma flag enable lo nullemptystr subscope fastarrays assumeint verbose typeexplicit iffloat ifvector vectorlogic
+
+#ifdef DEBUG
+#pragma optimize no-constant_names_strings
+#pragma optimize no-constant_names
+#pragma optimize no-locals
+#pragma optimize no-function_names
+#pragma optimize no-filenames
+#pragma optimize no-return_only
+#pragma optimize no-compound_jumps
+#pragma optimize no-strip_functions
+#pragma optimize no-locals_overlapping
+#pragma optimize no-vectorcalls
+#pragma optimize no-class_fields
+#pragma optimize no-strip_unused_fields
+
+#pragma flag disable boundchecks
+#endif
 
 #define INLINE /*inline*/
 
