@@ -1,0 +1,1 @@
+win64-fteqcc.exe -DDEBUG
