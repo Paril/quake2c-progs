@@ -83,18 +83,32 @@ void(variant* elements, int num, int size_of_element, qsort_comparator compar, o
 #define PROGS_LOCAL nosave
 #define PROGS_LOCAL_STATIC static PROGS_LOCAL
 
-// define for mission pack support
+#ifndef GROUND_ZERO
+/* @GROUND_ZERO@ Ground Zero support. This includes all of the Ground Zero entities/weapons,
+AI improvements, etc. This also includes the g_legacy_trains cvar, which is required to make old maps work. */
 #define GROUND_ZERO
+#endif
+
+#ifndef THE_RECKONING
+/* @THE_RECKONING@ The Reckoning support. This includes all of The Reckoning entities/weapons. */
 #define THE_RECKONING
+#endif
 
-// if you want to make a mod using *optional* KMQuake2-specific features, enable this.
+#ifndef KMQUAKE2_SUPPORT
+/* @KMQUAKE2_SUPPORT@ Optional KMQuake2 features. This gives you access to file loading APIs,
+which are polyfilled for non-KMQuake2 engines. */
 #define KMQUAKE2_SUPPORT
+#endif
 
-// if you want to make a mod that uses *non-compatible* KMQuake2-specific features, enable this.
-// Note that these features will not work with other engines
+#ifndef KMQUAKE2_EXTENSIONS
+/* @KMQUAKE2_EXTENSIONS@ KMQuake2-specific features. This gives you access to certain additions
+that KMQuake2 may make. These features will not work on non-KMQuake2 engines, but your mod will still function. */
 #define KMQUAKE2_EXTENSIONS
+#endif
 
-// if you want to use your own PMove function or you're
-// using an engine that needs custom PMove, you can
-// uncomment this and edit pmove.qc
+#ifndef QUAKEC_PMOVE
+/* @QUAKEC_PMOVE@ QuakeC PMove. By default, Quake2C uses the PMove export from the engine; if you wish to create
+a custom player movement system, you can use Y here and edit pmove.qc. Please note that QuakeC PMove
+may cause significant performance degradation with lots of players. */
 //#define QUAKEC_PMOVE
+#endif
