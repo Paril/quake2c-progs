@@ -1,4 +1,3 @@
-#ifndef PRETTIFIED
 /* @SINGLE_PLAYER@ Enable single-player support. This includes monsters, save/load, and any code related to
 making AI/single player work properly. */
 #define SINGLE_PLAYER
@@ -21,8 +20,7 @@ that KMQuake2 may make. These features will not work on non-KMQuake2 engines, bu
 /* @QUAKEC_PMOVE@ QuakeC PMove. By default, Quake2C uses the PMove export from the engine; if you wish to create
 a custom player movement system, you can use Y here and edit pmove.qc. Please note that QuakeC PMove
 may cause significant performance degradation with lots of players. */
-#define QUAKEC_PMOVE
-#endif
+//#define QUAKEC_PMOVE
 
 // Uncomment to do a debug build
 //#define DEBUG
