@@ -1,5 +1,4 @@
-#ifdef GROUND_ZERO
-
+#if defined(GROUND_ZERO) && defined(SINGLE_PLAYER)
 // invisible turret drivers so we can have unmanned turrets.
 // originally designed to shoot at func_trains and such, so they
 // fire at the center of the bounding box, rather than the entity's

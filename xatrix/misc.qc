@@ -124,6 +124,7 @@ API_FUNC static void(entity ent) SP_misc_crashviper =
 	gi.linkentity (ent);
 }
 
+#ifdef SINGLE_PLAYER
 // RAFAEL
 /*QUAKED misc_viper_missile (1 0 0) (-8 -8 -8) (8 8 8)
 "dmg"	how much boom should the bomb make? the default value is 250
@@ -163,6 +164,7 @@ API_FUNC static void(entity self) SP_misc_viper_missile =
 
 	gi.linkentity (self);
 }
+#endif
 
 /*QUAKED misc_transport (1 0 0) (-8 -8 -8) (8 8 8) TRIGGER_SPAWN
 Maxx's transport at end of game

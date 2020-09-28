@@ -1,5 +1,4 @@
-#ifdef THE_RECKONING
-
+#if defined(THE_RECKONING) && defined(SINGLE_PLAYER)
 #include "m_gekk.h"
 
 static int	sound_swing;

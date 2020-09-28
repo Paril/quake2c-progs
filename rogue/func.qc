@@ -124,10 +124,10 @@ static void(entity self, entity other, vector plane, csurface_t surf) secret_tou
 	if (!other.is_client)
 		return;
 
-	if (self.monsterinfo.attack_finished > level.framenum)
+	if (self.touch_debounce_framenum > level.framenum)
 		return;
 
-	self.monsterinfo.attack_finished = level.framenum + (int)(2 * BASE_FRAMERATE);
+	self.touch_debounce_framenum = level.framenum + (int)(2 * BASE_FRAMERATE);
 	
 	if (self.message)
 		gi.centerprintf (other, self.message);
@@ -348,6 +348,7 @@ enumflags : int
 static void(entity ent) plat2_go_down;
 static void(entity ent) plat2_go_up;
 
+#ifdef SINGLE_PLAYER
 void(entity ent) plat2_spawn_danger_area =
 {
 	vector cmaxs = ent.maxs;
@@ -363,6 +364,7 @@ void(entity ent) plat2_kill_danger_area =
 		if (t.owner == ent)
 			G_FreeEdict(t);
 }
+#endif
 
 static void(entity ent) plat2_hit_top =
 {
@@ -385,10 +387,12 @@ static void(entity ent) plat2_hit_top =
 			ent.nextthink = level.framenum + (int)(5.0 * BASE_FRAMERATE);
 		}
 
-		if (deathmatch.intVal)
-			ent.last_move_framenum = level.framenum - (int)(1.0 * BASE_FRAMERATE);
-		else
+#ifdef SINGLE_PLAYER
+		if !(deathmatch.intVal)
 			ent.last_move_framenum = level.framenum - (int)(2.0 * BASE_FRAMERATE);
+		else
+#endif
+			ent.last_move_framenum = level.framenum - (int)(1.0 * BASE_FRAMERATE);
 	}
 	else if (!(ent.spawnflags & PLAT2_TOP) && !(ent.spawnflags & PLAT2_TOGGLE))
 	{
@@ -425,11 +429,13 @@ static void(entity ent) plat2_hit_bottom =
 			ent.think = plat2_go_up;
 			ent.nextthink = level.framenum + (int)(5.0 * BASE_FRAMERATE);
 		}
+#ifdef SINGLE_PLAYER
 
-		if (deathmatch.intVal)
-			ent.last_move_framenum = level.framenum - (int)(1.0 * BASE_FRAMERATE);
-		else
+		if !(deathmatch.intVal)
 			ent.last_move_framenum = level.framenum - (int)(2.0 * BASE_FRAMERATE);
+		else
+#endif
+			ent.last_move_framenum = level.framenum - (int)(1.0 * BASE_FRAMERATE);
 	}
 	else if ((ent.spawnflags & PLAT2_TOP) && !(ent.spawnflags & PLAT2_TOGGLE))
 	{
@@ -444,7 +450,9 @@ static void(entity ent) plat2_hit_bottom =
 		ent.last_move_framenum = level.framenum;
 	}
 
+#ifdef SINGLE_PLAYER
 	plat2_kill_danger_area (ent);
+#endif
 	G_UseTargets (ent, ent);
 }
 
@@ -473,8 +481,9 @@ static void(entity ent) plat2_go_up =
 	ent.moveinfo.state = STATE_UP;
 	ent.plat2flags |= PLAT2_MOVING;
 
+#ifdef SINGLE_PLAYER
 	plat2_spawn_danger_area(ent);
-
+#endif
 	Move_Calc (ent, ent.moveinfo.start_origin, plat2_hit_top);
 }
 
@@ -516,12 +525,16 @@ static void(entity ent, entity other) plat2_operate =
 
 	ent.plat2flags = PLAT2_MOVING;
 
+#ifdef SINGLE_PLAYER
 	float pauseTime;
 
-	if (deathmatch.intVal)
-		pauseTime = 0.3;
-	else
+	if !(deathmatch.intVal)
 		pauseTime = 0.5;
+	else
+		pauseTime = 0.3;
+#else
+	float pauseTime = 0.3;
+#endif
 
 	if (ent.moveinfo.state != otherState)
 	{
@@ -658,13 +671,17 @@ API_FUNC static void(entity ent) SP_func_plat2 =
 		ent.decel = 5f;
 	else
 		ent.decel *= 0.1;
+#ifdef SINGLE_PLAYER
 
 	if (deathmatch.intVal)
 	{
+#endif
 		ent.speed *= 2;
 		ent.accel *= 2;
 		ent.decel *= 2;
+#ifdef SINGLE_PLAYER
 	}
+#endif
 
 	//PMM Added to kill things it's being blocked by 
 	if (!ent.dmg)

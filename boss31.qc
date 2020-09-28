@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_boss31.h"
 
 void SP_monster_makron(entity self);
@@ -615,3 +616,4 @@ API_FUNC static void SP_monster_jorg(entity self)
 	self.monsterinfo.aiflags |= AI_IGNORE_SHOTS;
 #endif
 }
+#endif

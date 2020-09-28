@@ -1,5 +1,4 @@
-#ifdef GROUND_ZERO
-
+#if defined(GROUND_ZERO) && defined(SINGLE_PLAYER)
 /* clean up heal targets for medic */
 void(entity ent) M_SetEffects;
 
@@ -10,5 +9,4 @@ inline void(entity ent) cleanupHealTarget =
 	ent.monsterinfo.aiflags &= ~AI_RESURRECTING;
 	M_SetEffects (ent);
 }
-
 #endif

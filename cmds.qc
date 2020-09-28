@@ -19,10 +19,25 @@ string(entity ent) ClientTeam =
 
 bool(entity ent1, entity ent2) OnSameTeam =
 {
-	if (!(dmflags.intVal & (DF_MODELTEAMS | DF_SKINTEAMS)))
+	if (ent1 == ent2)
 		return false;
+	// player-only teams
+	else if (ent1.is_client && ent2.is_client)
+#ifdef SINGLE_PLAYER
+	{
+		// coop players always teamed
+		if (coop.intVal)
+			return true;
+		else if (deathmatch.intVal && (dmflags.intVal & (DF_MODELTEAMS | DF_SKINTEAMS)))
+#else
+		if (dmflags.intVal & (DF_MODELTEAMS | DF_SKINTEAMS))
+#endif
+			return ClientTeam(ent1) == ClientTeam(ent2);
+#ifdef SINGLE_PLAYER
+	}
+#endif
 
-	return ClientTeam(ent1) == ClientTeam(ent2);
+	return false;
 }
 
 static void(entity ent, int itflags) SelectNextItem =
@@ -103,7 +118,11 @@ Give items to a client
 */
 static void(entity ent) Cmd_Give_f =
 {
-	if (deathmatch.intVal && !sv_cheats.intVal)
+	if (
+#ifdef SINGLE_PLAYER
+		deathmatch.intVal && 
+#endif
+		!sv_cheats.intVal)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -229,7 +248,6 @@ static void(entity ent) Cmd_Give_f =
 	}
 }
 
-
 /*
 ==================
 Cmd_God_f
@@ -241,7 +259,11 @@ argv(0) god
 */
 static void(entity ent) Cmd_God_f =
 {
-	if (deathmatch.intVal && !sv_cheats.intVal)
+	if (
+#ifdef SINGLE_PLAYER
+		deathmatch.intVal && 
+#endif
+		!sv_cheats.intVal)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -259,7 +281,7 @@ static void(entity ent) Cmd_God_f =
 	gi.cprintf (ent, PRINT_HIGH, msg);
 }
 
-
+#ifdef SINGLE_PLAYER
 /*
 ==================
 Cmd_Notarget_f
@@ -288,7 +310,7 @@ static void(entity ent) Cmd_Notarget_f =
 
 	gi.cprintf (ent, PRINT_HIGH, msg);
 }
-
+#endif
 
 /*
 ==================
@@ -299,7 +321,11 @@ argv(0) noclip
 */
 static void(entity ent) Cmd_Noclip_f =
 {
-	if (deathmatch.intVal && !sv_cheats.intVal)
+	if (
+#ifdef SINGLE_PLAYER
+		deathmatch.intVal && 
+#endif
+		!sv_cheats.intVal)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -379,7 +405,6 @@ static void(entity ent) Cmd_Drop_f =
 		it->drop(ent, it);
 }
 
-
 /*
 =================
 Cmd_Inven_f
@@ -388,7 +413,9 @@ Cmd_Inven_f
 static void(entity ent) Cmd_Inven_f =
 {
 	ent.client.showscores = false;
+#ifdef SINGLE_PLAYER
 	ent.client.showhelp = false;
+#endif
 
 	if (ent.client.showinventory)
 	{
@@ -572,7 +599,9 @@ Cmd_PutAway_f
 static void(entity ent) Cmd_PutAway_f =
 {
 	ent.client.showscores = false;
+#ifdef SINGLE_PLAYER
 	ent.client.showhelp = false;
+#endif
 	ent.client.showinventory = false;
 }
 
@@ -793,7 +822,11 @@ bool(entity ent) ED_CallSpawn;
 
 static void(entity ent) Cmd_Spawn_f =
 {
-	if (deathmatch.intVal && !sv_cheats.intVal)
+	if (
+#ifdef SINGLE_PLAYER
+		deathmatch.intVal && 
+#endif
+		!sv_cheats.intVal)
 	{
 		gi.cprintf (ent, PRINT_HIGH, "You must run the server with '+set cheats 1' to enable this command.\n");
 		return;
@@ -850,8 +883,10 @@ void(entity ent) ClientCommand =
 		Cmd_Give_f (ent);
 	else if (striequals(cmd, "god"))
 		Cmd_God_f (ent);
+#ifdef SINGLE_PLAYER
 	else if (striequals(cmd, "notarget"))
 		Cmd_Notarget_f (ent);
+#endif
 	else if (striequals(cmd, "noclip"))
 		Cmd_Noclip_f (ent);
 	else if (striequals(cmd, "inven"))

@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_berserk.h"
 
 static int sound_pain;
@@ -472,3 +473,4 @@ API_FUNC static void(entity self) SP_monster_berserk =
 
 	walkmonster_start(self);
 }
+#endif

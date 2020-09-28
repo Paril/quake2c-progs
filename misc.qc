@@ -276,10 +276,9 @@ static void(entity self, entity other, vector plane, csurface_t surf) path_corne
 	if (other.enemy)
 		return;
 
-	if (self.pathtarget) {
-		string savetarget;
-
-		savetarget = self.target;
+	if (self.pathtarget)
+	{
+		string savetarget = self.target;
 		self.target = self.pathtarget;
 		G_UseTargets(self, other);
 		self.target = savetarget;
@@ -290,7 +289,8 @@ static void(entity self, entity other, vector plane, csurface_t surf) path_corne
 	else
 		next = world;
 
-	if (next && (next.spawnflags & 1)) {
+	if (next && (next.spawnflags & 1))
+	{
 		v = next.s.origin;
 		v.z += next.mins.z;
 		v.z -= other.mins.z;
@@ -301,24 +301,31 @@ static void(entity self, entity other, vector plane, csurface_t surf) path_corne
 
 	other.goalentity = other.movetarget = next;
 
-	if (self.wait) {
+#ifdef SINGLE_PLAYER
+	if (self.wait)
+	{
 		other.monsterinfo.pause_framenum = level.framenum + (int)(self.wait * BASE_FRAMERATE);
 		other.monsterinfo.stand(other);
 		return;
 	}
 
-	if (!other.movetarget) {
+	if (!other.movetarget)
+	{
 		other.monsterinfo.pause_framenum = INT_MAX;
 		other.monsterinfo.stand(other);
-	} else {
+	}
+	else
+	{
 		v = other.goalentity.s.origin - other.s.origin;
 		other.ideal_yaw = vectoyaw(v);
 	}
+#endif
 }
 
 API_FUNC static void(entity self) SP_path_corner =
 {
-	if (!self.targetname) {
+	if (!self.targetname)
+	{
 		gi.dprintf("path_corner with no targetname at %s\n", vtos(self.s.origin));
 		G_FreeEdict(self);
 		return;
@@ -332,6 +339,7 @@ API_FUNC static void(entity self) SP_path_corner =
 	gi.linkentity(self);
 }
 
+#ifdef SINGLE_PLAYER
 /*QUAKED point_combat (0.5 0.3 0) (-8 -8 -8) (8 8 8) Hold
 Makes this the target of a monster and it will head here
 when first activated before going after the activator.  If
@@ -344,31 +352,35 @@ static void(entity self, entity other, vector plane, csurface_t surf) point_comb
 	if (other.movetarget != self)
 		return;
 
-	if (self.target) {
+	if (self.target)
+	{
 		other.target = self.target;
 		other.goalentity = other.movetarget = G_PickTarget(other.target);
-		if (!other.goalentity) {
+		if (!other.goalentity)
+		{
 			gi.dprintf("%s at %s target %s does not exist\n", self.classname, vtos(self.s.origin), self.target);
 			other.movetarget = self;
 		}
 		self.target = 0;
-	} else if ((self.spawnflags & 1) && !(other.flags & (FL_SWIM | FL_FLY))) {
+	}
+	else if ((self.spawnflags & 1) && !(other.flags & (FL_SWIM | FL_FLY)))
+	{
 		other.monsterinfo.pause_framenum = INT_MAX;
 		other.monsterinfo.aiflags |= AI_STAND_GROUND;
 		other.monsterinfo.stand(other);
 	}
 
-	if (other.movetarget == self) {
+	if (other.movetarget == self)
+	{
 		other.target = 0;
 		other.movetarget = world;
 		other.goalentity = other.enemy;
 		other.monsterinfo.aiflags &= ~AI_COMBAT_POINT;
 	}
 
-	if (self.pathtarget) {
-		string savetarget;
-
-		savetarget = self.target;
+	if (self.pathtarget)
+	{
+		string savetarget = self.target;
 		self.target = self.pathtarget;
 		if (other.enemy && other.enemy.is_client)
 			cactivator = other.enemy;
@@ -385,7 +397,8 @@ static void(entity self, entity other, vector plane, csurface_t surf) point_comb
 
 API_FUNC static void(entity self) SP_point_combat =
 {
-	if (deathmatch.intVal) {
+	if (deathmatch.intVal)
+	{
 		G_FreeEdict(self);
 		return;
 	}
@@ -396,6 +409,7 @@ API_FUNC static void(entity self) SP_point_combat =
 	self.svflags = SVF_NOCLIENT;
 	gi.linkentity(self);
 }
+#endif
 
 /*QUAKED info_null (0 0.5 0) (-4 -4 -4) (4 4 4)
 Used as a positional target for spotlights, etc.
@@ -421,6 +435,7 @@ Default style is 0.
 If targeted, will toggle between on and off.
 Default _cone value is 10 (used to set size of light for spotlights)
 */
+#ifdef SINGLE_PLAYER
 
 const int START_OFF	= 1;
 
@@ -434,22 +449,29 @@ static void(entity self, entity other, entity cactivator) light_use =
 		self.spawnflags |= START_OFF;
 	}
 }
+#endif
 
 API_FUNC static void(entity self) SP_light =
 {
+#ifdef SINGLE_PLAYER
 	// no targeted lights in deathmatch, because they cause global messages
-	if (!self.targetname || deathmatch.intVal) {
+	if (!self.targetname || deathmatch.intVal)
+	{
+#endif
 		G_FreeEdict(self);
+#ifdef SINGLE_PLAYER
 		return;
 	}
 
-	if (self.style >= 32) {
+	if (self.style >= 32)
+	{
 		self.use = light_use;
 		if (self.spawnflags & START_OFF)
 			gi.configstring(CS_LIGHTS + self.style, "a");
 		else
 			gi.configstring(CS_LIGHTS + self.style, "m");
 	}
+#endif
 }
 
 /*QUAKED func_wall (0 .5 .8) ? TRIGGER_SPAWN TOGGLE START_ON ANIMATED ANIMATED_FAST
@@ -589,6 +611,7 @@ API_FUNC static void(entity self) SP_func_object =
 
 	gi.linkentity(self);
 }
+#ifdef SINGLE_PLAYER
 
 /*QUAKED func_explosive (0 .5 .8) ? Trigger_Spawn ANIMATED ANIMATED_FAST
 Any brush that you want to explode or break apart.  If you want an
@@ -729,7 +752,8 @@ static void(entity self, entity other, entity cactivator) func_explosive_spawn =
 
 API_FUNC static void(entity self) SP_func_explosive =
 {
-	if (deathmatch.intVal) {
+	if (deathmatch.intVal)
+	{
 		// auto-remove for deathmatch
 		G_FreeEdict(self);
 		return;
@@ -786,7 +810,6 @@ API_FUNC static void(entity self) SP_func_explosive =
 Large exploding box.  You can override its mass (100),
 health (80), and dmg (150).
 */
-
 static void(entity self, entity other, vector plane, csurface_t surf) barrel_touch =
 {
 	float	ratio;
@@ -890,7 +913,8 @@ static void(entity self) barrel_start =
 
 API_FUNC static void(entity self) SP_misc_explobox =
 {
-	if (deathmatch.intVal) {
+	if (deathmatch.intVal)
+	{
 		// auto-remove for deathmatch
 		G_FreeEdict(self);
 		return;
@@ -930,6 +954,7 @@ API_FUNC static void(entity self) SP_misc_explobox =
 
 	gi.linkentity(self);
 }
+#endif
 
 //
 // miscellaneous specialty items
@@ -940,12 +965,6 @@ API_FUNC static void(entity self) SP_misc_explobox =
 
 static void(entity ent, entity other, entity cactivator) misc_blackhole_use =
 {
-	/*
-	gi.WriteByte (svc_temp_entity);
-	gi.WriteByte (TE_BOSSTPORT);
-	gi.WritePosition (ent.s.origin);
-	gi.multicast (ent.s.origin, MULTICAST_PVS);
-	*/
 	G_FreeEdict(ent);
 }
 
@@ -953,7 +972,8 @@ static void(entity self) misc_blackhole_think =
 {
 	if (++self.s.frame < 19)
 		self.nextthink = level.framenum + 1;
-	else {
+	else
+	{
 		self.s.frame = 0;
 		self.nextthink = level.framenum + 1;
 	}
@@ -980,7 +1000,8 @@ static void(entity self) misc_eastertank_think =
 {
 	if (++self.s.frame < 293)
 		self.nextthink = level.framenum + 1;
-	else {
+	else
+	{
 		self.s.frame = 254;
 		self.nextthink = level.framenum + 1;
 	}
@@ -1005,7 +1026,8 @@ static void(entity self) misc_easterchick_think =
 {
 	if (++self.s.frame < 247)
 		self.nextthink = level.framenum + 1;
-	else {
+	else
+	{
 		self.s.frame = 208;
 		self.nextthink = level.framenum + 1;
 	}
@@ -1030,7 +1052,8 @@ static void(entity self) misc_easterchick2_think =
 {
 	if (++self.s.frame < 287)
 		self.nextthink = level.framenum + 1;
-	else {
+	else
+	{
 		self.s.frame = 248;
 		self.nextthink = level.framenum + 1;
 	}
@@ -1054,7 +1077,6 @@ API_FUNC static void(entity ent) SP_misc_easterchick2 =
 Not really a monster, this is the Tank Commander's decapitated body.
 There should be a item_commander_head that has this as it's target.
 */
-
 static void(entity self) commander_body_think =
 {
 	if (++self.s.frame < 24)
@@ -1122,6 +1144,7 @@ API_FUNC static void(entity ent) SP_misc_banner =
 	ent.think = misc_banner_think;
 	ent.nextthink = level.framenum + 1;
 }
+#ifdef SINGLE_PLAYER
 
 /*QUAKED misc_deadsoldier (1 .5 0) (-16 -16 0) (16 16 16) ON_BACK ON_STOMACH BACK_DECAP FETAL_POS SIT_DECAP IMPALED
 This is the dead player model. Comes in 6 exciting different poses!
@@ -1145,7 +1168,8 @@ static void(entity self, entity inflictor, entity attacker, int damage, vector p
 
 API_FUNC static void(entity ent) SP_misc_deadsoldier =
 {
-	if (deathmatch.intVal) {
+	if (deathmatch.intVal)
+	{
 		// auto-remove for deathmatch
 		G_FreeEdict(ent);
 		return;
@@ -1175,11 +1199,10 @@ API_FUNC static void(entity ent) SP_misc_deadsoldier =
 	ent.takedamage = true;
 	ent.svflags |= SVF_MONSTER | SVF_DEADMONSTER;
 	ent.die = misc_deadsoldier_die;
-	ent.monsterinfo.aiflags |= AI_GOOD_GUY;
 
 	gi.linkentity(ent);
 }
-
+#endif
 /*QUAKED misc_viper (1 .5 0) (-16 -16 0) (16 16 32)
 This is the Viper for the flyby bombing.
 It is trigger_spawned, so you must have something use it for it to show up.

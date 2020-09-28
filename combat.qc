@@ -58,9 +58,11 @@ bool(entity targ, entity inflictor) CanDamage =
 
 	return false;
 }
+#ifdef SINGLE_PLAYER
 
 // from monster.qc
 void(entity) monster_death_use;
+#endif
 
 /*
 ============
@@ -72,7 +74,7 @@ static void(entity targ, entity inflictor, entity attacker, int damage, vector p
 	if (targ.health < -999)
 		targ.health = -999;
 
-#ifdef GROUND_ZERO
+#if defined(GROUND_ZERO) && defined(SINGLE_PLAYER)
 	if (targ.monsterinfo.aiflags & AI_MEDIC)
 	{
 		if (targ.enemy)  // god, I hope so
@@ -86,6 +88,7 @@ static void(entity targ, entity inflictor, entity attacker, int damage, vector p
 #endif
 		targ.enemy = attacker;
 
+#ifdef SINGLE_PLAYER
 	if ((targ.svflags & SVF_MONSTER) && (targ.deadflag != DEAD_DEAD))
 	{
 #ifdef GROUND_ZERO
@@ -125,6 +128,7 @@ static void(entity targ, entity inflictor, entity attacker, int damage, vector p
 #endif
 		}
 	}
+#endif
 
 	// doors, triggers, etc
 	if (targ.movetype == MOVETYPE_PUSH || targ.movetype == MOVETYPE_STOP || targ.movetype == MOVETYPE_NONE)
@@ -133,11 +137,13 @@ static void(entity targ, entity inflictor, entity attacker, int damage, vector p
 		return;
 	}
 
+#ifdef SINGLE_PLAYER
 	if ((targ.svflags & SVF_MONSTER) && (targ.deadflag != DEAD_DEAD))
 	{
 		targ.touch = 0;
 		monster_death_use(targ);
 	}
+#endif
 
 	targ.die(targ, inflictor, attacker, damage, point);
 }
@@ -206,24 +212,30 @@ static int(entity ent, vector point, vector normal, int damage, damage_flags_t d
 
 	index = 0;  // shut up qcc
 
-	if (ent.is_client) {
+	if (ent.is_client)
+	{
 		power_armor_type = PowerArmorType(ent);
-		if (power_armor_type != POWER_ARMOR_NONE) {
+		if (power_armor_type != POWER_ARMOR_NONE)
+		{
 			index = FindItem("Cells")->id;
 			power = ent.client.pers.inventory[index];
 		}
-	} else if (ent.svflags & SVF_MONSTER) {
+	}
+#ifdef SINGLE_PLAYER
+	else if (ent.svflags & SVF_MONSTER)
+	{
 		power_armor_type = ent.monsterinfo.power_armor_type;
 		power = ent.monsterinfo.power_armor_power;
-	} else
+	}
+#endif
+	else
 		return 0;
 
-	if (power_armor_type == POWER_ARMOR_NONE)
-		return 0;
-	if (!power)
+	if (!power || power_armor_type == POWER_ARMOR_NONE)
 		return 0;
 
-	if (power_armor_type == POWER_ARMOR_SCREEN) {
+	if (power_armor_type == POWER_ARMOR_SCREEN)
+	{
 		vector	vec;
 		float	dot;
 		vector	forward;
@@ -239,7 +251,9 @@ static int(entity ent, vector point, vector normal, int damage, damage_flags_t d
 		damagePerCell = 1;
 		pa_te_type = TE_SCREEN_SPARKS;
 		damage = damage / 3;
-	} else {
+	}
+	else
+	{
 		damagePerCell = 2;
 		pa_te_type = TE_SHIELD_SPARKS;
 		damage = (2 * damage) / 3;
@@ -251,6 +265,7 @@ static int(entity ent, vector point, vector normal, int damage, damage_flags_t d
 	else
 #endif
 		save = power * damagePerCell;
+
 	if (!save)
 		return 0;
 	if (save > damage)
@@ -266,10 +281,14 @@ static int(entity ent, vector point, vector normal, int damage, damage_flags_t d
 #endif
 		power_used = save / damagePerCell;
 
+#ifdef SINGLE_PLAYER
 	if (ent.is_client)
+#endif
 		ent.client.pers.inventory[index] -= power_used;
+#ifdef SINGLE_PLAYER
 	else
 		ent.monsterinfo.power_armor_power -= power_used;
+#endif
 	return save;
 }
 
@@ -313,6 +332,7 @@ static int(entity ent, vector point, vector normal, int damage, int te_sparks, d
 	return save;
 }
 
+#ifdef SINGLE_PLAYER
 void(entity self) FoundTarget;
 
 #ifdef GROUND_ZERO
@@ -345,7 +365,8 @@ static void(entity targ, entity attacker) M_ReactToDamage =
 
 	// if we are a good guy monster and our attacker is a player
 	// or another good guy, do not get mad at them
-	if (targ.monsterinfo.aiflags & AI_GOOD_GUY) {
+	if (targ.monsterinfo.aiflags & AI_GOOD_GUY)
+	{
 		if (attacker.is_client || (attacker.monsterinfo.aiflags & AI_GOOD_GUY))
 			return;
 	}
@@ -445,16 +466,7 @@ static void(entity targ, entity attacker) M_ReactToDamage =
 			FoundTarget(targ);
 	}
 }
-
-static bool(entity target, entity attacker) CheckTeamDamage =
-{
-	//FIXME make the next line real and uncomment this block
-	// if ((ability to damage a teammate == OFF) && (targ's team == attacker's team))
-	return false;
-}
-
-// from cmds.qc
-bool(entity, entity) OnSameTeam;
+#endif
 
 void(entity targ, entity inflictor, entity attacker, vector dir, vector point, vector normal, int damage, int knockback, damage_flags_t dflags, means_of_death_t mod) T_Damage =
 {
@@ -466,28 +478,30 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 
 	if (!targ.takedamage)
 		return;
+#ifdef SINGLE_PLAYER
 
 	// easy mode takes half damage
-	if (skill.intVal == 0 && deathmatch.intVal == 0 && targ.is_client) {
+	if (!skill.intVal && !deathmatch.intVal && targ.is_client)
+	{
 		damage = (int)(damage * 0.5f);
 		if (!damage)
 			damage = 1;
 	}
+#endif
 
 	// friendly fire avoidance
 	// if enabled you can't hurt teammates (but you can hurt yourself)
 	// knockback still occurs
-	if ((targ != attacker) && ((deathmatch.intVal && (dmflags.intVal & (DF_MODELTEAMS | DF_SKINTEAMS))) || (coop.intVal && targ.is_client))) {
-		if (OnSameTeam(targ, attacker)) {
-			if ((dmflags.intVal & DF_NO_FRIENDLY_FIRE)
+	if (OnSameTeam(targ, attacker))
+	{
+		if ((dmflags.intVal & DF_NO_FRIENDLY_FIRE)
 #ifdef GROUND_ZERO
-				&& (mod != MOD_NUKE)
+			&& (mod != MOD_NUKE)
 #endif
-				)
-				damage = 0;
-			else
-				mod |= MOD_FRIENDLY_FIRE;
-		}
+			)
+			damage = 0;
+		else
+			mod |= MOD_FRIENDLY_FIRE;
 	}
 	meansOfDeath = mod;
 
@@ -504,10 +518,11 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 
 	if (targ.flags & FL_NO_KNOCKBACK)
 		knockback = 0;
-
 // figure momentum add
-	if (!(dflags & DAMAGE_NO_KNOCKBACK)) {
-		if ((knockback) && (targ.movetype != MOVETYPE_NONE) && (targ.movetype != MOVETYPE_BOUNCE) && (targ.movetype != MOVETYPE_PUSH) && (targ.movetype != MOVETYPE_STOP)) {
+	else if (knockback && !(dflags & DAMAGE_NO_KNOCKBACK))
+	{
+		if ((targ.movetype != MOVETYPE_NONE) && (targ.movetype != MOVETYPE_BOUNCE) && (targ.movetype != MOVETYPE_PUSH) && (targ.movetype != MOVETYPE_STOP))
+		{
 			vector	kvel;
 			float	calc_mass;
 
@@ -529,7 +544,8 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 	save = 0;
 
 	// check for godmode
-	if ((targ.flags & FL_GODMODE) && !(dflags & DAMAGE_NO_PROTECTION)) {
+	if ((targ.flags & FL_GODMODE) && !(dflags & DAMAGE_NO_PROTECTION))
+	{
 		take = 0;
 		save = damage;
 		SpawnDamage(te_sparks, point, normal);
@@ -537,12 +553,13 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 
 	// check for invincibility
 	if (((targ.is_client && targ.client.invincible_framenum > level.framenum) && !(dflags & DAMAGE_NO_PROTECTION))
-#ifdef GROUND_ZERO
+#if defined(GROUND_ZERO) && defined(SINGLE_PLAYER)
 		|| (((targ.svflags & SVF_MONSTER) && targ.monsterinfo.invincible_framenum > level.framenum ) && !(dflags & DAMAGE_NO_PROTECTION))
 #endif
 		)
 	{
-		if (targ.pain_debounce_framenum < level.framenum) {
+		if (targ.pain_debounce_framenum < level.framenum)
+		{
 			gi.sound(targ, CHAN_ITEM, gi.soundindex("items/protect4.wav"), 1, ATTN_NORM, 0);
 			targ.pain_debounce_framenum = level.framenum + 2 * BASE_FRAMERATE;
 		}
@@ -559,10 +576,6 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 	//treat cheat/powerup savings the same as armor
 	asave += save;
 
-	// team damage avoidance
-	if (!(dflags & DAMAGE_NO_PROTECTION) && CheckTeamDamage(targ, attacker))
-		return;
-
 #ifdef GROUND_ZERO
 	// this option will do damage both to the armor and person. originally for DPU rounds
 	if (dflags & DAMAGE_DESTROY_ARMOR)
@@ -574,10 +587,11 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 #endif
 
 // do the damage
-	if (take) {
+	if (take)
+	{
 		if ((targ.svflags & SVF_MONSTER) || (targ.is_client))
 		{
-#ifdef THE_RECKONING
+#if defined(THE_RECKONING) && defined(SINGLE_PLAYER)
 			if (targ.classname == "monster_gekk")
 				SpawnDamage (TE_GREENBLOOD, point, normal);
 			else
@@ -597,32 +611,43 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 
 		targ.health = targ.health - take;
 
-		if (targ.health <= 0) {
-			if ((targ.svflags & SVF_MONSTER) || (targ.is_client))
+		if (targ.health <= 0)
+		{
+			if ((targ.svflags & SVF_MONSTER) || targ.is_client)
 				targ.flags |= FL_NO_KNOCKBACK;
 			Killed(targ, inflictor, attacker, take, point);
 			return;
 		}
 	}
 
-	if (targ.svflags & SVF_MONSTER) {
+#ifdef SINGLE_PLAYER
+	if (targ.svflags & SVF_MONSTER)
+	{
 		M_ReactToDamage(targ, attacker
 #ifdef GROUND_ZERO
 			, inflictor
 #endif
 			);
-		if (!(targ.monsterinfo.aiflags & AI_DUCKED) && (take))
+
+		if (!(targ.monsterinfo.aiflags & AI_DUCKED) && take)
 		{
 			if (targ.pain)
 				targ.pain(targ, attacker, knockback, take);
+
 			// nightmare mode monsters don't go into pain frames often
 			if (skill.intVal == 3)
 				targ.pain_debounce_framenum = level.framenum + 5 * BASE_FRAMERATE;
 		}
-	} else if (targ.is_client) {
-		if (!(targ.flags & FL_GODMODE) && (take))
+	}
+	else
+#endif
+	if (targ.is_client)
+	{
+		if (!(targ.flags & FL_GODMODE) && take)
 			targ.pain(targ, attacker, knockback, take);
-	} else if (take) {
+	}
+	else if (take)
+	{
 		if (targ.pain)
 			targ.pain(targ, attacker, knockback, take);
 	}
@@ -630,7 +655,8 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 	// add to the damage inflicted on a player this frame
 	// the total will be turned into screen blends and view angle kicks
 	// at the end of the frame
-	if (targ.is_client) {
+	if (targ.is_client)
+	{
 		targ.client.damage_parmor += psave;
 		targ.client.damage_armor += asave;
 		targ.client.damage_blood += take;

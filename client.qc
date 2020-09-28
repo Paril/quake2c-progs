@@ -1,5 +1,6 @@
 #include "m_player.h"
 
+#ifdef SINGLE_PLAYER
 //
 // Gross, ugly, disgustuing hack section
 //
@@ -64,12 +65,13 @@ static void(entity self) SP_CreateCoopSpots =
 	}
 }
 
-
+#endif
 /*QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)
 The normal starting point for a level.
 */
 API_FUNC static void(entity self) SP_info_player_start =
 {
+#ifdef SINGLE_PLAYER
 	if (!coop.intVal)
 		return;
 
@@ -79,6 +81,7 @@ API_FUNC static void(entity self) SP_info_player_start =
 		self.think = SP_CreateCoopSpots;
 		self.nextthink = level.framenum + 1;
 	}
+#endif
 }
 
 void(entity) SP_misc_teleporter_dest;
@@ -88,15 +91,18 @@ potential spawning position for deathmatch games
 */
 API_FUNC static void(entity self) SP_info_player_deathmatch =
 {
+#ifdef SINGLE_PLAYER
 	if (!deathmatch.intVal)
 	{
 		G_FreeEdict(self);
 		return;
 	}
 
+#endif
 	SP_misc_teleporter_dest(self);
 }
 
+#ifdef SINGLE_PLAYER
 /*QUAKED info_player_coop (1 0 1) (-16 -16 -24) (16 16 32)
 potential spawning position for coop games
 */
@@ -129,7 +135,7 @@ API_FUNC static void(entity self) SP_info_player_coop =
 	}
 }
 
-
+#endif
 /*QUAKED info_player_intermission (1 0 1) (-16 -16 -24) (16 16 32)
 The deathmatch intermission point will be at one of these
 Use 'angles' instead of 'angle', so you can set pitch or roll as well as yaw.  'pitch yaw roll'
@@ -138,7 +144,7 @@ API_FUNC static void() SP_info_player_intermission =
 {
 }
 
-#ifdef GROUND_ZERO
+#if defined(GROUND_ZERO) && defined(SINGLE_PLAYER)
 /*QUAKED info_player_coop_lava (1 0 1) (-16 -16 -24) (16 16 32)
 potential spawning position for coop games on rmine2 where lava level
 needs to be checked
@@ -151,10 +157,9 @@ API_FUNC static void(entity self) SP_info_player_coop_lava =
 		return;
 	}
 }
+
 #endif
-
 //=======================================================================
-
 
 static void(entity self, entity other, float kick, int damage) player_pain =
 {
@@ -183,264 +188,266 @@ static gender_t(entity ent) GetGender =
 	return GENDER_MALE;
 }
 
+// from cmds.qc
+bool(entity, entity) OnSameTeam;
+
 PROGS_LOCAL means_of_death_t meansOfDeath;
 
 static void(entity self, entity inflictor, entity attacker) ClientObituary =
 {
-	if (coop.intVal && attacker.is_client)
+	if (OnSameTeam(self, attacker))
 		meansOfDeath |= MOD_FRIENDLY_FIRE;
 
-	if (deathmatch.intVal || coop.intVal)
+	int ff = meansOfDeath & MOD_FRIENDLY_FIRE;
+	int mod = meansOfDeath & ~MOD_FRIENDLY_FIRE;
+	string message = 0;
+	string message2 = 0;
+	gender_t gender = GetGender(self);
+
+	static const string their[] = {
+		"his",
+		"her",
+		"their"
+	};
+
+	static const string themself[] = {
+		"himself",
+		"herself",
+		"themself"
+	};
+
+	switch (mod)
 	{
-		int ff = meansOfDeath & MOD_FRIENDLY_FIRE;
-		int mod = meansOfDeath & ~MOD_FRIENDLY_FIRE;
-		string message = 0;
-		string message2 = 0;
-		gender_t gender = GetGender(self);
+	case MOD_SUICIDE:
+		message = "suicides";
+		break;
+	case MOD_FALLING:
+		message = "cratered";
+		break;
+	case MOD_CRUSH:
+		message = "was squished";
+		break;
+	case MOD_WATER:
+		message = "sank like a rock";
+		break;
+	case MOD_SLIME:
+		message = "melted";
+		break;
+	case MOD_LAVA:
+		message = "does a back flip into the lava";
+		break;
+	case MOD_EXPLOSIVE:
+	case MOD_BARREL:
+		message = "blew up";
+		break;
+	case MOD_EXIT:
+		message = "found a way out";
+		break;
+	case MOD_TARGET_LASER:
+		message = "saw the light";
+		break;
+	case MOD_TARGET_BLASTER:
+		message = "got blasted";
+		break;
+	case MOD_BOMB:
+	case MOD_SPLASH:
+	case MOD_TRIGGER_HURT:
+		message = "was in the wrong place";
+		break;
+#ifdef THE_RECKONING
+	case MOD_GEKK:
+	case MOD_BRAINTENTACLE:
+		message = "... that's gotta hurt!";
+		break;
+#endif
+	}
 
-		static const string their[] = {
-			"his",
-			"her",
-			"their"
-		};
-
-		static const string themself[] = {
-			"himself",
-			"herself",
-			"themself"
-		};
-
+	if (attacker == self)
+	{
 		switch (mod)
 		{
-		case MOD_SUICIDE:
-			message = "suicides";
+		case MOD_HELD_GRENADE:
+			message = "tried to put the pin back in";
 			break;
-		case MOD_FALLING:
-			message = "cratered";
+		case MOD_HG_SPLASH:
+		case MOD_G_SPLASH:
+			message = va("tripped on %s own grenade", their[gender]);
 			break;
-		case MOD_CRUSH:
-			message = "was squished";
+		case MOD_R_SPLASH:
+			message = va("blew %s up", themself[gender]);
 			break;
-		case MOD_WATER:
-			message = "sank like a rock";
-			break;
-		case MOD_SLIME:
-			message = "melted";
-			break;
-		case MOD_LAVA:
-			message = "does a back flip into the lava";
-			break;
-		case MOD_EXPLOSIVE:
-		case MOD_BARREL:
-			message = "blew up";
-			break;
-		case MOD_EXIT:
-			message = "found a way out";
-			break;
-		case MOD_TARGET_LASER:
-			message = "saw the light";
-			break;
-		case MOD_TARGET_BLASTER:
-			message = "got blasted";
-			break;
-		case MOD_BOMB:
-		case MOD_SPLASH:
-		case MOD_TRIGGER_HURT:
-			message = "was in the wrong place";
+		case MOD_BFG_BLAST:
+			message = "should have used a smaller gun";
 			break;
 #ifdef THE_RECKONING
-		case MOD_GEKK:
-		case MOD_BRAINTENTACLE:
-			message = "... that's gotta hurt!";
+		case MOD_TRAP:
+			message = va("was sucked into %s own trap", their[gender]);
 			break;
 #endif
+		default:
+			message = va("killed %s", themself[gender]);
+			break;
 		}
+	}
 
-		if (attacker == self)
-		{
-			switch (mod)
-			{
-			case MOD_HELD_GRENADE:
-				message = "tried to put the pin back in";
-				break;
-			case MOD_HG_SPLASH:
-			case MOD_G_SPLASH:
-				message = va("tripped on %s own grenade", their[gender]);
-				break;
-			case MOD_R_SPLASH:
-				message = va("blew %s up", themself[gender]);
-				break;
-			case MOD_BFG_BLAST:
-				message = "should have used a smaller gun";
-				break;
-#ifdef THE_RECKONING
-			case MOD_TRAP:
-				message = va("was sucked into %s own trap", their[gender]);
-				break;
+	if (message)
+	{
+		gi.bprintf(PRINT_MEDIUM, "%s %s.\n", self.client.pers.netname, message);
+#ifdef SINGLE_PLAYER
+		if (deathmatch.intVal)
 #endif
-			default:
-				message = va("killed %s", themself[gender]);
-				break;
-			}
+			self.client.resp.score--;
+		self.enemy = world;
+		return;
+	}
+
+	self.enemy = attacker;
+	if (attacker && attacker.is_client)
+	{
+		switch (mod) {
+		case MOD_BLASTER:
+			message = "was blasted by";
+			break;
+		case MOD_SHOTGUN:
+			message = "was gunned down by";
+			break;
+		case MOD_SSHOTGUN:
+			message = "was blown away by";
+			message2 = "'s super shotgun";
+			break;
+		case MOD_MACHINEGUN:
+			message = "was machinegunned by";
+			break;
+		case MOD_CHAINGUN:
+			message = "was cut in half by";
+			message2 = "'s chaingun";
+			break;
+		case MOD_GRENADE:
+			message = "was popped by";
+			message2 = "'s grenade";
+			break;
+		case MOD_G_SPLASH:
+			message = "was shredded by";
+			message2 = "'s shrapnel";
+			break;
+		case MOD_ROCKET:
+			message = "ate";
+			message2 = "'s rocket";
+			break;
+		case MOD_R_SPLASH:
+			message = "almost dodged";
+			message2 = "'s rocket";
+			break;
+		case MOD_HYPERBLASTER:
+			message = "was melted by";
+			message2 = "'s hyperblaster";
+			break;
+		case MOD_RAILGUN:
+			message = "was railed by";
+			break;
+		case MOD_BFG_LASER:
+			message = "saw the pretty lights from";
+			message2 = "'s BFG";
+			break;
+		case MOD_BFG_BLAST:
+			message = "was disintegrated by";
+			message2 = "'s BFG blast";
+			break;
+		case MOD_BFG_EFFECT:
+			message = "couldn't hide from";
+			message2 = "'s BFG";
+			break;
+		case MOD_HANDGRENADE:
+			message = "caught";
+			message2 = "'s handgrenade";
+			break;
+		case MOD_HG_SPLASH:
+			message = "didn't see";
+			message2 = "'s handgrenade";
+			break;
+		case MOD_HELD_GRENADE:
+			message = "feels";
+			message2 = "'s pain";
+			break;
+		case MOD_TELEFRAG:
+			message = "tried to invade";
+			message2 = "'s personal space";
+			break;
+#ifdef THE_RECKONING
+		case MOD_RIPPER:
+			message = "was ripped to shreds by";
+			message2 = "'s ripper gun";
+			break;
+		case MOD_PHALANX:
+			message = "was evaporated by";
+			break;
+		case MOD_TRAP:
+			message = "was caught in";
+			message2 = "'s trap";
+			break;
+#endif
+#ifdef GROUND_ZERO
+		case MOD_CHAINFIST:
+			message = "was shredded by";
+			message2 = "'s ripsaw";
+			break;
+		case MOD_DISINTEGRATOR:
+			message = "lost his grip courtesy of";
+			message2 = "'s disintegrator";
+			break;
+		case MOD_ETF_RIFLE:
+			message = "was perforated by";
+			break;
+		case MOD_HEATBEAM:
+			message = "was scorched by";
+			message2 = "'s plasma beam";
+			break;
+		case MOD_TESLA:
+			message = "was enlightened by";
+			message2 = "'s tesla mine";
+			break;
+		case MOD_PROX:
+			message = "got too close to";
+			message2 = "'s proximity mine";
+			break;
+		case MOD_NUKE:
+			message = "was nuked by";
+			message2 = "'s antimatter bomb";
+			break;
+		case MOD_TRACKER:
+			message = "was annihilated by";
+			message2 = "'s disruptor";
+			break;
+#endif
 		}
 
 		if (message)
 		{
-			gi.bprintf(PRINT_MEDIUM, "%s %s.\n", self.client.pers.netname, message);
+			gi.bprintf(PRINT_MEDIUM, "%s %s %s%s\n", self.client.pers.netname, message, attacker.client.pers.netname, message2);
+#ifdef SINGLE_PLAYER
+
 			if (deathmatch.intVal)
-				self.client.resp.score--;
-			self.enemy = world;
+			{
+#endif
+				if (ff)
+					attacker.client.resp.score--;
+				else
+					attacker.client.resp.score++;
+#ifdef SINGLE_PLAYER
+			}
+#endif
 			return;
 		}
-
-		self.enemy = attacker;
-		if (attacker && attacker.is_client)
-		{
-			switch (mod) {
-			case MOD_BLASTER:
-				message = "was blasted by";
-				break;
-			case MOD_SHOTGUN:
-				message = "was gunned down by";
-				break;
-			case MOD_SSHOTGUN:
-				message = "was blown away by";
-				message2 = "'s super shotgun";
-				break;
-			case MOD_MACHINEGUN:
-				message = "was machinegunned by";
-				break;
-			case MOD_CHAINGUN:
-				message = "was cut in half by";
-				message2 = "'s chaingun";
-				break;
-			case MOD_GRENADE:
-				message = "was popped by";
-				message2 = "'s grenade";
-				break;
-			case MOD_G_SPLASH:
-				message = "was shredded by";
-				message2 = "'s shrapnel";
-				break;
-			case MOD_ROCKET:
-				message = "ate";
-				message2 = "'s rocket";
-				break;
-			case MOD_R_SPLASH:
-				message = "almost dodged";
-				message2 = "'s rocket";
-				break;
-			case MOD_HYPERBLASTER:
-				message = "was melted by";
-				message2 = "'s hyperblaster";
-				break;
-			case MOD_RAILGUN:
-				message = "was railed by";
-				break;
-			case MOD_BFG_LASER:
-				message = "saw the pretty lights from";
-				message2 = "'s BFG";
-				break;
-			case MOD_BFG_BLAST:
-				message = "was disintegrated by";
-				message2 = "'s BFG blast";
-				break;
-			case MOD_BFG_EFFECT:
-				message = "couldn't hide from";
-				message2 = "'s BFG";
-				break;
-			case MOD_HANDGRENADE:
-				message = "caught";
-				message2 = "'s handgrenade";
-				break;
-			case MOD_HG_SPLASH:
-				message = "didn't see";
-				message2 = "'s handgrenade";
-				break;
-			case MOD_HELD_GRENADE:
-				message = "feels";
-				message2 = "'s pain";
-				break;
-			case MOD_TELEFRAG:
-				message = "tried to invade";
-				message2 = "'s personal space";
-				break;
-#ifdef THE_RECKONING
-			case MOD_RIPPER:
-				message = "was ripped to shreds by";
-				message2 = "'s ripper gun";
-				break;
-			case MOD_PHALANX:
-				message = "was evaporated by";
-				break;
-			case MOD_TRAP:
-				message = "was caught in";
-				message2 = "'s trap";
-				break;
-#endif
-#ifdef GROUND_ZERO
-
-			case MOD_CHAINFIST:
-				message = "was shredded by";
-				message2 = "'s ripsaw";
-				break;
-			case MOD_DISINTEGRATOR:
-				message = "lost his grip courtesy of";
-				message2 = "'s disintegrator";
-				break;
-			case MOD_ETF_RIFLE:
-				message = "was perforated by";
-				break;
-			case MOD_HEATBEAM:
-				message = "was scorched by";
-				message2 = "'s plasma beam";
-				break;
-			case MOD_TESLA:
-				message = "was enlightened by";
-				message2 = "'s tesla mine";
-				break;
-			case MOD_PROX:
-				message = "got too close to";
-				message2 = "'s proximity mine";
-				break;
-			case MOD_NUKE:
-				message = "was nuked by";
-				message2 = "'s antimatter bomb";
-				break;
-			case MOD_TRACKER:
-				message = "was annihilated by";
-				message2 = "'s disruptor";
-				break;
-#endif
-			}
-
-			if (message)
-			{
-				gi.bprintf(PRINT_MEDIUM, "%s %s %s%s\n", self.client.pers.netname, message, attacker.client.pers.netname, message2);
-
-				if (deathmatch.intVal)
-				{
-					if (ff)
-						attacker.client.resp.score--;
-					else
-						attacker.client.resp.score++;
-				}
-				return;
-			}
-		}
 	}
-
-	gi.bprintf(PRINT_MEDIUM, "%s died.\n", self.client.pers.netname);
-
-	if (deathmatch.intVal)
-		self.client.resp.score--;
 }
 
 static void(entity self) TossClientWeapon =
 {
+#ifdef SINGLE_PLAYER
 	if (!deathmatch.intVal)
 		return;
 
+#endif
 	gitem_t *it = self.client.pers.weapon;
 
 	if (!self.client.pers.inventory[self.client.ammo_index] || it->pickup_name == "Blaster")
@@ -552,17 +559,23 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 		ClientObituary(self, inflictor, attacker);
 		TossClientWeapon(self);
 
+#ifdef SINGLE_PLAYER
 		if (deathmatch.intVal)
+#endif
 			Cmd_Help_f(self);       // show scores
 
 		// clear inventory
 		// this is kind of ugly, but it's how we want to handle keys in coop
 		for (int n = 0; n < itemlist.length; n++)
+#ifdef SINGLE_PLAYER
 		{
 			if (coop.intVal && itemlist[n].flags & IT_KEY)
 				self.client.resp.coop_respawn.inventory[n] = self.client.pers.inventory[n];
+#endif
 			self.client.pers.inventory[n] = 0;
+#ifdef SINGLE_PLAYER
 		}
+#endif
 	}
 
 	// remove powerups
@@ -577,6 +590,7 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 	
 #ifdef GROUND_ZERO
 	self.client.double_framenum = 0;
+
 	// if we've been killed by the tracker, GIB!
 	if ((meansOfDeath & ~MOD_FRIENDLY_FIRE) == MOD_TRACKER)
 	{
@@ -699,9 +713,12 @@ static void(entity ent) InitClientResp =
 {
 	memclear(&ent.client.resp, sizeof(client_respawn_t));
 	ent.client.resp.enterframe = level.framenum;
+#ifdef SINGLE_PLAYER
 	memcpy(&ent.client.resp.coop_respawn, &ent.client.pers, sizeof(client_persistant_t));
+#endif
 }
 
+#ifdef SINGLE_PLAYER
 /*
 ==================
 SaveClientData
@@ -736,6 +753,7 @@ static void(entity ent) FetchClientEntData =
 	if (coop.intVal)
 		ent.client.resp.score = ent.client.pers.score;
 }
+#endif
 
 /*
 =======================================================================
@@ -864,6 +882,7 @@ static entity() SelectDeathmatchSpawnPoint =
 		return SelectRandomDeathmatchSpawnPoint();
 }
 
+#ifdef SINGLE_PLAYER
 #ifdef GROUND_ZERO
 static entity(entity ent) SelectLavaCoopSpawnPoint =
 {
@@ -972,7 +991,7 @@ static entity(entity ent) SelectCoopSpawnPoint =
 
 	return spot;
 }
-
+#endif
 
 /*
 ===========
@@ -983,38 +1002,31 @@ Chooses a player start, deathmatch start, coop start, etc
 */
 static void(entity ent, out vector origin, out vector angles) SelectSpawnPoint =
 {
+#ifdef SINGLE_PLAYER
 	entity spot = world;
 
 	if (deathmatch.intVal)
 		spot = SelectDeathmatchSpawnPoint();
 	else if (coop.intVal)
 		spot = SelectCoopSpawnPoint(ent);
+#else
+	entity spot = SelectDeathmatchSpawnPoint();
+#endif
 
 	// find a single player start spot
-	if !(spot)
-	{
+	if (!spot && game.spawnpoint)
 		while ((spot = G_Find(spot, classname, "info_player_start")))
-		{
-			if (!game.spawnpoint && !spot.targetname)
-				break;
-
-			if (!game.spawnpoint || !spot.targetname)
-				continue;
-
 			if (stricmp(game.spawnpoint, spot.targetname) == 0)
 				break;
-		}
 
-		if !(spot)
-			if !(game.spawnpoint)
-				// there wasn't a spawnpoint without a target, so use any
-				spot = G_Find(spot, classname, "info_player_start");
+	if !(spot)
+		// there wasn't a spawnpoint found yet
+		spot = G_Find(spot, classname, "info_player_start");
 
-		if !(spot)
-		{
-			gi.dprintf("Couldn't find spawn point \"%s\"\n", game.spawnpoint);
-			return;
-		}
+	if !(spot)
+	{
+		gi.dprintf("Couldn't find spawn point \"%s\"\n", game.spawnpoint);
+		return;
 	}
 
 	origin = spot.s.origin;
@@ -1095,27 +1107,29 @@ void(entity self) PutClientInServer;
 
 void(entity self) respawn =
 {
-	if (deathmatch.intVal || coop.intVal)
+#ifdef SINGLE_PLAYER
+	if (!deathmatch.intVal && !coop.intVal)
 	{
-		// spectator's don't leave bodies
-		if (self.movetype != MOVETYPE_NOCLIP)
-			CopyToBodyQue(self);
-		self.svflags &= ~SVF_NOCLIENT;
-		PutClientInServer(self);
-
-		// add a teleportation effect
-		self.s.event = EV_PLAYER_TELEPORT;
-
-		// hold in place briefly
-		self.client.ps.pmove.pm_flags = PMF_TIME_TELEPORT;
-		self.client.ps.pmove.pm_time = 14;
-
-		self.client.respawn_framenum = level.framenum;
+		// restart the entire server
+		gi.AddCommandString("pushmenu loadgame\n");
 		return;
 	}
 
-	// restart the entire server
-	gi.AddCommandString("pushmenu loadgame\n");
+#endif
+	// spectator's don't leave bodies
+	if (self.movetype != MOVETYPE_NOCLIP)
+		CopyToBodyQue(self);
+	self.svflags &= ~SVF_NOCLIENT;
+	PutClientInServer(self);
+
+	// add a teleportation effect
+	self.s.event = EV_PLAYER_TELEPORT;
+
+	// hold in place briefly
+	self.client.ps.pmove.pm_flags = PMF_TIME_TELEPORT;
+	self.client.ps.pmove.pm_time = 14;
+
+	self.client.respawn_framenum = level.framenum;
 }
 
 /*
@@ -1236,14 +1250,17 @@ static void(entity ent) PutClientInServer =
 
 	// deathmatch wipes most client data every spawn
 	client_respawn_t    resp;
+#ifdef SINGLE_PLAYER
 	if (deathmatch.intVal)
 	{
+#endif
 		string userinfo = ent.client.pers.userinfo;
 		
 		memcpy(&resp, &ent.client.resp, sizeof(resp));
 		
 		InitClientPersistant(ent);
 		ClientUserinfoChanged(ent, userinfo);
+#ifdef SINGLE_PLAYER
 	}
 	else if (coop.intVal)
 	{
@@ -1258,6 +1275,7 @@ static void(entity ent) PutClientInServer =
 		if (resp.score > ent.client.pers.score)
 			ent.client.pers.score = resp.score;
 	}
+#endif
 
 	// clear everything but the persistant data
 	client_persistant_t saved;
@@ -1268,8 +1286,10 @@ static void(entity ent) PutClientInServer =
 		InitClientPersistant(ent);
 	memcpy(&ent.client.resp, &resp, sizeof(resp));
 
+#ifdef SINGLE_PLAYER
 	// copy some data from the client to the entity
 	FetchClientEntData(ent);
+#endif
 
 	// clear entity values
 	ent.groundentity = null_entity;
@@ -1300,16 +1320,11 @@ static void(entity ent) PutClientInServer =
 
 	ent.client.ps.pmove.origin = spawn_origin;
 
-	if (deathmatch.intVal && (dmflags.intVal & DF_FIXED_FOV))
+	ent.client.ps.fov = stof(Info_ValueForKey(ent.client.pers.userinfo, "fov"));
+	if (ent.client.ps.fov < 1.f)
 		ent.client.ps.fov = 90.f;
-	else
-	{
-		ent.client.ps.fov = stof(Info_ValueForKey(ent.client.pers.userinfo, "fov"));
-		if (ent.client.ps.fov < 1.f)
-			ent.client.ps.fov = 90.f;
-		else if (ent.client.ps.fov > 160.f)
-			ent.client.ps.fov = 160.f;
-	}
+	else if (ent.client.ps.fov > 160.f)
+		ent.client.ps.fov = 160.f;
 
 	if (ent.client.pers.weapon)
 		ent.client.ps.gunindex = gi.modelindex(ent.client.pers.weapon->view_model);
@@ -1361,10 +1376,10 @@ static void(entity ent) PutClientInServer =
 
 	gi.linkentity(ent);
 
-#ifdef GROUND_ZERO
+#if defined(GROUND_ZERO) && defined(SINGLE_PLAYER)
 	// my tribute to cash's level-specific hacks. I hope I live
 	// up to his trailblazing cheese.
-	if(!deathmatch.intVal && level.mapname == "rboss")
+	if (!deathmatch.intVal && level.mapname == "rboss")
 	{
 		// if you get on to rboss in single player or coop, ensure
 		// the player has the nuke key. (not in DM)
@@ -1385,43 +1400,12 @@ void(entity ent) ClientEndServerFrame;
 // from hud.qc
 void(entity ent) MoveClientToIntermission;
 
-static void(entity ent) ClientBeginDeathmatch =
-{
-	G_InitEdict(ent);
-
-	InitClientResp(ent);
-
-	// locate ent at a spawn point
-	PutClientInServer(ent);
-
-	if (level.intermission_framenum)
-		MoveClientToIntermission(ent);
-	else
-	{
-		// send effect
-		gi.WriteByte(svc_muzzleflash);
-		gi.WriteShort(ent.s.number);
-		gi.WriteByte(MZ_LOGIN);
-		gi.multicast(ent.s.origin, MULTICAST_PVS);
-	}
-
-	gi.bprintf(PRINT_HIGH, "%s entered the game\n", ent.client.pers.netname);
-
-	// make sure all view stuff is valid
-	ClientEndServerFrame(ent);
-};
-
 void(entity ent) ClientBegin =
 {
-	if (deathmatch.intVal)
-	{
-		ClientBeginDeathmatch(ent);
-		return;
-	}
-
+#ifdef SINGLE_PLAYER
 	// if there is already a body waiting for us (a loadgame), just
 	// take it, otherwise spawn one from scratch
-	if (ent.inuse)
+	if (!deathmatch.value && ent.inuse)
 		// the client has cleared the client side viewangles upon
 		// connecting to the server, which is different than the
 		// state when the game is saved, so we need to compensate
@@ -1429,14 +1413,16 @@ void(entity ent) ClientBegin =
 		ent.client.ps.pmove.delta_angles = ent.client.ps.viewangles;
 	else
 	{
+#endif
 		// a spawn point will completely reinitialize the entity
 		// except for the persistant data that was initialized at
 		// ClientConnect() time
 		G_InitEdict(ent);
-		ent.classname = "player";
 		InitClientResp(ent);
 		PutClientInServer(ent);
+#ifdef SINGLE_PLAYER
 	}
+#endif
 
 	if (level.intermission_framenum)
 		MoveClientToIntermission(ent);
@@ -1477,9 +1463,13 @@ void(entity ent, string userinfo) ClientUserinfoChanged =
 	
 	// set spectator
 	str = Info_ValueForKey(userinfo, "spectator");
-	
+
 	// spectators are only supported in deathmatch
-	if (deathmatch.intVal && !strempty(str) && str != "0")
+	if (
+#ifdef SINGLE_PLAYER
+		deathmatch.intVal &&
+#endif
+		!strempty(str) && str != "0")
 		ent.client.pers.spectator = true;
 	else
 		ent.client.pers.spectator = false;
@@ -1491,16 +1481,11 @@ void(entity ent, string userinfo) ClientUserinfoChanged =
 	gi.configstring(CS_PLAYERSKINS + ent.s.number - 1, va("%s\\%s", ent.client.pers.netname, str));
 	
 	// fov
-	if (deathmatch.intVal && (dmflags.intVal & DF_FIXED_FOV))
+	ent.client.ps.fov = stof(Info_ValueForKey(userinfo, "fov"));
+	if (ent.client.ps.fov < 1.f)
 		ent.client.ps.fov = 90.f;
-	else
-	{
-		ent.client.ps.fov = stof(Info_ValueForKey(userinfo, "fov"));
-		if (ent.client.ps.fov < 1.f)
-			ent.client.ps.fov = 90.f;
-		else if (ent.client.ps.fov > 160.f)
-			ent.client.ps.fov = 160.f;
-	}
+	else if (ent.client.ps.fov > 160.f)
+		ent.client.ps.fov = 160.f;
 	
 	// handedness
 	str = Info_ValueForKey(userinfo, "hand");
@@ -1537,7 +1522,11 @@ bool(entity ent, inout string userinfo) ClientConnect =
 	// check for a spectator
 	string value = Info_ValueForKey(userinfo, "spectator");
 
-	if (deathmatch.intVal && !strempty(value) && value != "0")
+	if (
+#ifdef SINGLE_PLAYER
+		deathmatch.intVal &&
+#endif
+		!strempty(value) && value != "0")
 	{
 		if (!strempty(spectator_password.str) &&
 			spectator_password.str != "none" &&
@@ -1577,6 +1566,7 @@ bool(entity ent, inout string userinfo) ClientConnect =
 		}
 	}
 
+#ifdef SINGLE_PLAYER
 	// they can connect
 	// if there is already a body waiting for us (a loadgame), just
 	// take it, otherwise spawn one from scratch
@@ -1588,6 +1578,10 @@ bool(entity ent, inout string userinfo) ClientConnect =
 		if (!game.autosaved || !ent.client.pers.weapon)
 			InitClientPersistant(ent);
 	}
+#else
+	InitClientResp(ent);
+	InitClientPersistant(ent);
+#endif
 
 	ClientUserinfoChanged(ent, userinfo);
 
@@ -1646,6 +1640,7 @@ static void(trace_t *tr, vector start, vector mins, vector maxs, vector end) PM_
 		gi.trace(tr, start, mins, maxs, end, pm_passent, MASK_DEADSOLID);
 }
 
+#ifdef SINGLE_PLAYER
 entity() PlayerTrail_LastSpot;
 void(vector pos) PlayerTrail_Add;
 
@@ -1659,6 +1654,8 @@ typedef enum : int
 } player_noise_t;
 
 void(entity, vector, player_noise_t) PlayerNoise;
+#endif
+
 void(entity) Think_Weapon;
 
 void(entity ent, usercmd_t ucmd) ClientThink =
@@ -1730,10 +1727,14 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 		ent.client.resp.cmd_angles = ucmd.angles;
 
 		if (ent.groundentity != null_entity && pm.groundentity == null_entity && (pm.cmd.upmove >= 10) && (pm.waterlevel == 0))
+#ifdef SINGLE_PLAYER
 		{
+#endif
 			gi.sound(ent, CHAN_VOICE, gi.soundindex("*jump1.wav"), 1, ATTN_NORM, 0);
+#ifdef SINGLE_PLAYER
 			PlayerNoise(ent, ent.s.origin, PNOISE_SELF);
 		}
+#endif
 
 		ent.viewheight = (int)pm.viewheight;
 		ent.waterlevel = pm.waterlevel;
@@ -1829,9 +1830,6 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 	}
 };
 
-// from ai.qc
-bool(entity self, entity other) visible;
-
 /*
 ==============
 ClientBeginServerFrame
@@ -1845,7 +1843,10 @@ void(entity ent) ClientBeginServerFrame =
 	if (level.intermission_framenum)
 		return;
 
-	if (deathmatch.intVal &&
+	if (
+#ifdef SINGLE_PLAYER
+		deathmatch.intVal &&
+#endif
 		ent.client.pers.spectator != ent.client.resp.spectator &&
 		(level.framenum - ent.client.respawn_framenum) >= 5 * BASE_FRAMERATE)
 	{
@@ -1864,6 +1865,7 @@ void(entity ent) ClientBeginServerFrame =
 		// wait for any button just going down
 		if (level.framenum > ent.client.respawn_framenum)
 		{
+#ifdef SINGLE_PLAYER
 			int buttonMask;
 
 			// in deathmatch, only wait for attack button
@@ -1871,9 +1873,15 @@ void(entity ent) ClientBeginServerFrame =
 				buttonMask = BUTTON_ATTACK;
 			else
 				buttonMask = -1;
+#else
+			const int buttonMask = BUTTON_ATTACK;
 
-			if ((ent.client.latched_buttons & buttonMask) ||
-				(deathmatch.intVal && (dmflags.intVal & DF_FORCE_RESPAWN)))
+#endif
+			if ((ent.client.latched_buttons & buttonMask) || (
+#ifdef SINGLE_PLAYER
+				deathmatch.intVal && 
+#endif
+				(dmflags.intVal & DF_FORCE_RESPAWN)))
 			{
 				respawn(ent);
 				ent.client.latched_buttons = 0;
@@ -1882,11 +1890,13 @@ void(entity ent) ClientBeginServerFrame =
 
 		return;
 	}
+#ifdef SINGLE_PLAYER
 
 	// add player trail so monsters can follow
 	if (!deathmatch.intVal)
 		if (!visible(ent, PlayerTrail_LastSpot()))
 			PlayerTrail_Add(ent.s.old_origin);
+#endif
 
 	ent.client.latched_buttons = 0;
 }

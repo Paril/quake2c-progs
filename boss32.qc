@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_boss32.h"
 
 static int  sound_pain4;
@@ -844,3 +845,4 @@ void MakronToss(entity self)
 	ent.target = self.target;
 	ent.s.origin = self.s.origin;
 }
+#endif

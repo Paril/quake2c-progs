@@ -18,7 +18,10 @@ API_FUNC struct
 	vector	intermission_origin;
 	vector	intermission_angle;
 
-	entity	sight_client;  // changed once each frame for coop games
+	int	pic_health;
+
+#ifdef SINGLE_PLAYER
+	entity	sight_client;	// changed once each frame for coop games
 
 	entity	sight_entity;
 	int		sight_entity_framenum;
@@ -26,8 +29,6 @@ API_FUNC struct
 	int		sound_entity_framenum;
 	entity	sound2_entity;
 	int		sound2_entity_framenum;
-
-	int	pic_health;
 
 	int	total_secrets;
 	int	found_secrets;
@@ -38,13 +39,15 @@ API_FUNC struct
 	int	total_monsters;
 	int	killed_monsters;
 
-	entity	current_entity;    // entity running from G_RunFrame
-
-	int	body_que;           // dead bodies
 	int	power_cubes;        // ugly necessity for coop
 
 #ifdef GROUND_ZERO
 	entity	disguise_violator;
 	int		disguise_violation_framenum;
 #endif
+#endif
+
+	entity	current_entity;	// entity running from G_RunFrame
+
+	int	body_que;           // dead bodies
 } level;

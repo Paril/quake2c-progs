@@ -1,5 +1,5 @@
+#ifdef SINGLE_PLAYER
 #include "m_float.h"
-
 
 static int  sound_attack2;
 static int  sound_attack3;
@@ -627,3 +627,4 @@ API_FUNC static void SP_monster_floater(entity self)
 
 	flymonster_start(self);
 }
+#endif

@@ -89,7 +89,7 @@ API_FUNC static void(entity ent) SP_target_speaker =
 	gi.linkentity(ent);
 }
 
-
+#ifdef SINGLE_PLAYER
 //==========================================================
 
 static void(entity ent, entity other, entity cactivator) Use_Target_Help =
@@ -107,13 +107,15 @@ When fired, the "message" key becomes the current personal computer string, and 
 */
 API_FUNC static void(entity ent) SP_target_help =
 {
-	if (deathmatch.intVal) {
+	if (deathmatch.intVal)
+	{
 		// auto-remove for deathmatch
 		G_FreeEdict(ent);
 		return;
 	}
 
-	if (!ent.message) {
+	if (!ent.message)
+	{
 		gi.dprintf("%s with no message at %s\n", ent.classname, vtos(ent.s.origin));
 		G_FreeEdict(ent);
 		return;
@@ -139,7 +141,8 @@ static void(entity ent, entity other, entity cactivator) use_target_secret =
 
 API_FUNC static void(entity ent) SP_target_secret =
 {
-	if (deathmatch.intVal) {
+	if (deathmatch.intVal)
+	{
 		// auto-remove for deathmatch
 		G_FreeEdict(ent);
 		return;
@@ -177,7 +180,8 @@ static void(entity ent, entity other, entity cactivator) use_target_goal =
 
 API_FUNC static void(entity ent) SP_target_goal =
 {
-	if (deathmatch.intVal) {
+	if (deathmatch.intVal)
+	{
 		// auto-remove for deathmatch
 		G_FreeEdict(ent);
 		return;
@@ -190,6 +194,7 @@ API_FUNC static void(entity ent) SP_target_goal =
 	ent.svflags = SVF_NOCLIENT;
 	level.total_goals++;
 }
+#endif
 
 //==========================================================
 
@@ -247,41 +252,51 @@ static void(entity self, entity other, entity cactivator) use_target_changelevel
 	if (level.intermission_framenum)
 		return;     // already activated
 
-	if (!deathmatch.intVal && !coop.intVal) {
+#ifdef SINGLE_PLAYER
+	if (!deathmatch.intVal && !coop.intVal)
+	{
 		if (itoe(1).health <= 0)
 			return;
 	}
 
 	// if noexit, do a ton of damage to other
-	if (deathmatch.intVal && !(dmflags.intVal & DF_ALLOW_EXIT) && other != world) {
-		T_Damage(other, self, self, vec3_origin, other.s.origin, vec3_origin, 10 * other.max_health, 1000, 0, MOD_EXIT);
-		return;
-	}
+	if (deathmatch.intVal)
+	{
+#endif
+		if (!(dmflags.intVal & DF_ALLOW_EXIT) && other != world)
+		{
+			T_Damage(other, self, self, vec3_origin, other.s.origin, vec3_origin, 10 * other.max_health, 1000, 0, MOD_EXIT);
+			return;
+		}
 
-	// if multiplayer, let everyone know who hit the exit
-	if (deathmatch.intVal) {
+		// if multiplayer, let everyone know who hit the exit
 		if (cactivator && cactivator.is_client)
 			gi.bprintf(PRINT_HIGH, "%s exited the level.\n", cactivator.client.pers.netname);
+#ifdef SINGLE_PLAYER
 	}
 
 	// if going to a new unit, clear cross triggers
 	if (strstr(self.map, "*") != -1)
 		game.serverflags &= ~(SFL_CROSS_TRIGGER_MASK);
+#endif
 
 	BeginIntermission(self);
 }
 
 API_FUNC static void(entity ent) SP_target_changelevel =
 {
-	if (!ent.map) {
+	if (!ent.map)
+	{
 		gi.dprintf("target_changelevel with no map at %s\n", vtos(ent.s.origin));
 		G_FreeEdict(ent);
 		return;
 	}
 
+#ifdef SINGLE_PLAYER
 	// ugly hack because *SOMEBODY* screwed up their map
 	if (striequals(level.mapname, "fact1") && striequals(ent.map, "fact3"))
 		ent.map = "fact3$secret1";
+#endif
 
 	ent.use = use_target_changelevel;
 	ent.svflags = SVF_NOCLIENT;
@@ -412,7 +427,7 @@ API_FUNC static void(entity self) SP_target_blaster =
 	self.svflags = SVF_NOCLIENT;
 }
 
-
+#ifdef SINGLE_PLAYER
 //==========================================================
 
 /*QUAKED target_crosslevel_trigger (.5 .5 .5) (-8 -8 -8) (8 8 8) trigger1 trigger2 trigger3 trigger4 trigger5 trigger6 trigger7 trigger8
@@ -453,6 +468,7 @@ API_FUNC static void(entity self) SP_target_crosslevel_target =
 	self.think = target_crosslevel_target_think;
 	self.nextthink = level.framenum + (int)(self.delay * BASE_FRAMERATE);
 }
+#endif
 
 //==========================================================
 
@@ -632,6 +648,7 @@ API_FUNC static void(entity self) SP_target_laser =
 	self.think = target_laser_start;
 	self.nextthink = level.framenum + 1 * BASE_FRAMERATE;
 }
+#ifdef SINGLE_PLAYER
 
 //==========================================================
 
@@ -642,18 +659,16 @@ message     two letters; starting lightlevel and ending lightlevel
 
 static void(entity self) target_lightramp_think =
 {
-	string	s;
 	float   diff = (level.framenum - self.timestamp) * FRAMETIME;
 
-	s = va("%c", (int)('a' + self.movedir.x + diff * self.movedir.z));
+	string s = va("%c", (int)('a' + self.movedir.x + diff * self.movedir.z));
 	gi.configstring(CS_LIGHTS + self.enemy.style, s);
 
-	if (diff < self.speed) {
+	if (diff < self.speed)
 		self.nextthink = level.framenum + 1;
-	} else if (self.spawnflags & 1) {
-		int temp;
-
-		temp = (int)self.movedir.x;
+	else if (self.spawnflags & 1)
+	{
+		int temp = (int)self.movedir.x;
 		self.movedir.x = self.movedir.y;
 		self.movedir.y = (float)temp;
 		self.movedir.z *= -1;
@@ -692,13 +707,15 @@ static void(entity self, entity other, entity cactivator) target_lightramp_use =
 
 API_FUNC static void(entity self) SP_target_lightramp =
 {
-	if (!self.message || strlen(self.message) != 2 || strat(self.message, 0) < 'a' || strat(self.message, 0) > 'z' || strat(self.message, 1) < 'a' || strat(self.message, 1) > 'z' || strat(self.message, 0) == strat(self.message, 1)) {
+	if (!self.message || strlen(self.message) != 2 || strat(self.message, 0) < 'a' || strat(self.message, 0) > 'z' || strat(self.message, 1) < 'a' || strat(self.message, 1) > 'z' || strat(self.message, 0) == strat(self.message, 1))
+	{
 		gi.dprintf("target_lightramp has bad ramp (%s) at %s\n", self.message, vtos(self.s.origin));
 		G_FreeEdict(self);
 		return;
 	}
 
-	if (deathmatch.intVal) {
+	if (deathmatch.intVal)
+	{
 		G_FreeEdict(self);
 		return;
 	}
@@ -717,7 +734,7 @@ API_FUNC static void(entity self) SP_target_lightramp =
 	self.movedir.y = (float)(strat(self.message, 1) - 'a');
 	self.movedir.z = (self.movedir.y - self.movedir.x) / self.speed;
 }
-
+#endif
 //==========================================================
 
 /*QUAKED target_earthquake (1 0 0) (-8 -8 -8) (8 8 8)
@@ -729,9 +746,6 @@ All players and monsters are affected.
 
 static void(entity self) target_earthquake_think =
 {
-	int     i;
-	entity e;
-
 	if (
 #ifdef GROUND_ZERO
 		self.noise_index &&
@@ -742,8 +756,9 @@ static void(entity self) target_earthquake_think =
 		self.last_move_framenum = level.framenum + (int)(0.5f * BASE_FRAMERATE);
 	}
 
-	for (i = 1; i < globals.num_edicts; i++) {
-		e = itoe(i);
+	for (int i = 1; i < globals.num_edicts; i++)
+	{
+		entity e = itoe(i);
 		if (!e.inuse)
 			continue;
 		if (!e.is_client)

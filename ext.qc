@@ -83,6 +83,12 @@ void(variant* elements, int num, int size_of_element, qsort_comparator compar, o
 #define PROGS_LOCAL nosave
 #define PROGS_LOCAL_STATIC static PROGS_LOCAL
 
+#ifndef SINGLE_PLAYER
+/* @SINGLE_PLAYER@ Enable single-player support. This includes monsters, save/load, and any code related to
+making AI/single player work properly. */
+//#define SINGLE_PLAYER
+#endif
+
 #ifndef GROUND_ZERO
 /* @GROUND_ZERO@ Ground Zero support. This includes all of the Ground Zero entities/weapons,
 AI improvements, etc. This also includes the g_legacy_trains cvar, which is required to make old maps work. */

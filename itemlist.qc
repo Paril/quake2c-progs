@@ -4,14 +4,12 @@ typedef enumflags : int
 	IT_WEAPON,       // use makes active weapon
 	IT_AMMO,
 	IT_ARMOR,
+#ifdef SINGLE_PLAYER
 	IT_STAY_COOP,
 	IT_KEY,
-	IT_POWERUP
-	
-#ifdef GROUND_ZERO
-	, IT_MELEE
 #endif
-} item_flags_t;
+	IT_POWERUP
+} gitem_flags_t;
 
 // gitem_t.weapmodel for weapons indicates model index
 typedef enum : int
@@ -118,19 +116,19 @@ struct gitem_t
 	
 	// client side info
 	string	icon;
-	string	pickup_name;   // for printing on pickup
-	int		count_width;    // number of digits to display by icon
+	string	pickup_name;	// for printing on pickup
+	int		count_width;	// number of digits to display by icon
 	
-	int				quantity;       // for ammo how much, for weapons how much is used per shot
-	string			ammo;          // for weapons
-	item_flags_t	flags;          // IT_* flags
+	int				quantity;	// for ammo how much, for weapons how much is used per shot
+	string			ammo;		// for weapons
+	gitem_flags_t	flags;		// IT_* flags
 	
 	weap_model_t	weapmodel;      // weapon model index (for weapons)
 	
 	gitem_armor_id_t	info_id;
 	int					tag;
 	
-	string	precaches;     // string of all models, sounds, and images this item will use
+	string	precaches;	// string of all models, sounds, and images this item will use
 
 	// set at load time
 	pickup_func			pickup;
@@ -143,6 +141,11 @@ struct gitem_t
 };
 
 //======================================================================
+#ifdef SINGLE_PLAYER
+const gitem_flags_t IT_WEAPON_MASK = IT_WEAPON | IT_STAY_COOP;
+#else
+const gitem_flags_t IT_WEAPON_MASK = IT_WEAPON;
+#endif
 
 PROGS_LOCAL var gitem_t itemlist[] =
 {
@@ -314,7 +317,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,
 		0,
 		0,
-		IT_WEAPON | IT_STAY_COOP,
+		IT_WEAPON_MASK,
 		WEAP_BLASTER,
 		0,
 		0,
@@ -325,24 +328,24 @@ PROGS_LOCAL var gitem_t itemlist[] =
 	/*QUAKED weapon_chainfist (.3 .3 1) (-16 -16 -16) (16 16 16) TRIGGER_SPAWN
 	*/
 	{
-		"weapon_chainfist",									// classname
-		"Pickup_Weapon",										// pickup function
-		"Use_Weapon",											// use function
-		"Drop_Weapon",										// drop function
-		"Weapon_ChainFist",									// weapon think function
-		"misc/w_pkup.wav",									// pick up sound
-		"models/weapons/g_chainf/tris.md2", EF_ROTATE,		// world model, world model flags
-		"models/weapons/v_chainf/tris.md2",					// view model
-		"w_chainfist",										// icon
-		"Chainfist",										// name printed when picked up 
-		0,													// number of digits for statusbar
-		0,													// amount used / contained
+		"weapon_chainfist",								// classname
+		"Pickup_Weapon",								// pickup function
+		"Use_Weapon",									// use function
+		"Drop_Weapon",									// drop function
+		"Weapon_ChainFist",								// weapon think function
+		"misc/w_pkup.wav",								// pick up sound
+		"models/weapons/g_chainf/tris.md2", EF_ROTATE,	// world model, world model flags
+		"models/weapons/v_chainf/tris.md2",				// view model
+		"w_chainfist",									// icon
+		"Chainfist",									// name printed when picked up 
+		0,												// number of digits for statusbar
+		0,												// amount used / contained
 		0,												// ammo type used 
-		IT_WEAPON | IT_MELEE,								// inventory flags
-		WEAP_CHAINFIST,										// visible weapon
+		IT_WEAPON_MASK,									// inventory flags
+		WEAP_CHAINFIST,									// visible weapon
 		0,												// info (void *)
-		1,													// tag
-		"weapons/sawidle.wav weapons/sawhit.wav",			// precaches
+		1,												// tag
+		"weapons/sawidle.wav weapons/sawhit.wav",		// precaches
 	},
 #endif
 
@@ -362,7 +365,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,
 		1,
 		"Shells",
-		IT_WEAPON | IT_STAY_COOP,
+		IT_WEAPON_MASK,
 		WEAP_SHOTGUN,
 		0,
 		0,
@@ -385,7 +388,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,
 		2,
 		"Shells",
-		IT_WEAPON | IT_STAY_COOP,
+		IT_WEAPON_MASK,
 		WEAP_SUPERSHOTGUN,
 		0,
 		0,
@@ -408,7 +411,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,
 		1,
 		"Bullets",
-		IT_WEAPON | IT_STAY_COOP,
+		IT_WEAPON_MASK,
 		WEAP_MACHINEGUN,
 		0,
 		0,
@@ -429,13 +432,13 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		"models/weapons/v_etf_rifle/tris.md2",			// view model
 		"w_etf_rifle",						// icon
 		"ETF Rifle",						// name printed when picked up 
-		0,							// number of digits for statusbar
-		1,							// amount used / contained
+		0,									// number of digits for statusbar
+		1,									// amount used / contained
 		"Flechettes",						// ammo type used 
-		IT_WEAPON,						// inventory flags
+		IT_WEAPON_MASK,						// inventory flags
 		WEAP_ETFRIFLE,						// visible weapon
-		0,							// info (void *)
-		0,							// tag
+		0,									// info (void *)
+		0,									// tag
 		"weapons/nail1.wav models/proj/flechette/tris.md2",	// precaches
 	},
 #endif
@@ -456,7 +459,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,
 		1,
 		"Bullets",
-		IT_WEAPON | IT_STAY_COOP,
+		IT_WEAPON_MASK,
 		WEAP_CHAINGUN,
 		0,
 		0,
@@ -503,7 +506,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 /* width */		3,
 		1,
 		"trap",
-		IT_AMMO|IT_WEAPON,
+		IT_AMMO | IT_WEAPON,
 		0,
 		0,
 		AMMO_TRAP,
@@ -552,7 +555,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,
 		1,
 		"Grenades",
-		IT_WEAPON | IT_STAY_COOP,
+		IT_WEAPON_MASK,
 		WEAP_GRENADELAUNCHER,
 		0,
 		0,
@@ -576,7 +579,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,													// number of digits for statusbar
 		1,													// amount used
 		"Prox",												// ammo type used
-		IT_WEAPON,											// inventory flags
+		IT_WEAPON_MASK,										// inventory flags
 		WEAP_PROXLAUNCH,									// visible weapon
 		0,												// info (void *)
 		AMMO_PROX,											// tag
@@ -600,7 +603,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,
 		1,
 		"Rockets",
-		IT_WEAPON | IT_STAY_COOP,
+		IT_WEAPON_MASK,
 		WEAP_ROCKETLAUNCHER,
 		0,
 		0,
@@ -623,7 +626,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,
 		1,
 		"Cells",
-		IT_WEAPON | IT_STAY_COOP,
+		IT_WEAPON_MASK,
 		WEAP_HYPERBLASTER,
 		0,
 		0,
@@ -647,7 +650,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,
 		2,
 		"Cells",
-		IT_WEAPON,
+		IT_WEAPON_MASK,
 		WEAP_BOOMER,
 		0,
 		0,
@@ -673,7 +676,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		// FIXME - if this changes, change it in NoAmmoWeaponChange as well
 		2,													// amount used / contained
 		"Cells",											// ammo type used 
-		IT_WEAPON,											// inventory flags
+		IT_WEAPON_MASK,										// inventory flags
 		WEAP_PLASMA,										// visible weapon
 		0,												// info (void *)
 		0,													// tag
@@ -697,7 +700,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,
 		1,
 		"Slugs",
-		IT_WEAPON | IT_STAY_COOP,
+		IT_WEAPON_MASK,
 		WEAP_RAILGUN,
 		0,
 		0,
@@ -721,7 +724,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,
 		1,
 		"Mag Slug",
-		IT_WEAPON,
+		IT_WEAPON_MASK,
 		WEAP_PHALANX,
 		0,
 		0,
@@ -745,7 +748,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,
 		50,
 		"Cells",
-		IT_WEAPON | IT_STAY_COOP,
+		IT_WEAPON_MASK,
 		WEAP_BFG,
 		0,
 		0,
@@ -769,7 +772,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,													// number of digits for statusbar
 		1,													// amount used / contained
 		"Rounds",
-		IT_WEAPON,											// inventory flags
+		IT_WEAPON_MASK,											// inventory flags
 		WEAP_DISRUPTOR,										// visible weapon
 		0,												// info (void *)
 		1,													// tag
@@ -1101,7 +1104,11 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		/* width */     2,
 		60,
 		0,
+#ifdef SINGLE_PLAYER
 		IT_STAY_COOP | IT_POWERUP,
+#else
+		IT_POWERUP,
+#endif
 		0,
 		0,
 		0,
@@ -1124,7 +1131,11 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		/* width */     2,
 		60,
 		0,
+#ifdef SINGLE_PLAYER
 		IT_STAY_COOP | IT_POWERUP,
+#else
+		IT_POWERUP,
+#endif
 		0,
 		0,
 		0,
@@ -1301,9 +1312,11 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		/* precache */ ""
 	},
 
+#ifdef SINGLE_PLAYER
 	//
 	// KEYS
 	//
+	
 	/*QUAKED key_data_cd (0 .5 .8) (-16 -16 -16) (16 16 16)
 	key for computer centers
 	*/
@@ -1594,6 +1607,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,													// tag
 		0,												// precaches
 	},
+#endif
 #endif
 
 	{

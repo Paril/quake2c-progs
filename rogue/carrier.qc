@@ -1,4 +1,4 @@
-#ifdef GROUND_ZERO
+#if defined(GROUND_ZERO) && defined(SINGLE_PLAYER)
 // self.timestamp used for frame calculations in grenade & spawn code
 // self.wait used to prevent rapid refire of rocket launcher
 

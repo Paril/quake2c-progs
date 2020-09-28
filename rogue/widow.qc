@@ -1,4 +1,4 @@
-#ifdef GROUND_ZERO
+#if defined(GROUND_ZERO) && defined(SINGLE_PLAYER)
 // self.timestamp used to prevent rapid fire of railgun
 // self.plat2flags used for fire count (flashes)
 // self.monsterinfo.pausetime used for timing of blaster shots

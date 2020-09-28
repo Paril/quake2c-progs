@@ -112,14 +112,16 @@ static void(string entities, inout int entities_offset, entity ent) ED_ParseEdic
 };
 
 // these are only used by the spawn function
+#ifdef SINGLE_PLAYER
 const int SPAWNFLAG_NOT_EASY		= 0x00000100;
 const int SPAWNFLAG_NOT_MEDIUM		= 0x00000200;
 const int SPAWNFLAG_NOT_HARD		= 0x00000400;
+#endif
 const int SPAWNFLAG_NOT_DEATHMATCH	= 0x00000800;
+#ifdef SINGLE_PLAYER
 const int SPAWNFLAG_NOT_COOP		= 0x00001000;
-
-// from client.qc
-void() SaveClientData;
+#endif
+const int SPAWNFLAG_NOT_MASK		= 0x00001F00; // mask of all of the NOT_ flags
 
 /*
 ===============
@@ -322,12 +324,16 @@ parsing textual entity definitions out of an ent file.
 */
 void PreSpawnEntities()
 {
+#ifdef SINGLE_PLAYER
 	SaveClientData();
+#endif
 }
 
 void(string mapname, string entities, string spawnpoint) SpawnEntities =
 {
 	int entities_offset = 0;
+
+#ifdef SINGLE_PLAYER
 	int skill_level = skill.intVal;
 
 	if (skill_level < 0)
@@ -336,6 +342,7 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 		skill_level = 3;
 	if (skill.intVal != skill_level)
 		gi.cvar_forceset("skill", itos(skill_level));
+#endif
 
 	memclear(&level, sizeof(level));
 	level.mapname = mapname;
@@ -365,21 +372,25 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 		
 		ED_ParseEdict(entities, entities_offset, ent);
 
+#ifdef SINGLE_PLAYER
 		// yet another map hack
 		if (striequals(level.mapname, "command") && striequals(ent.classname, "trigger_once") && striequals(ent.model, "*27"))
 			ent.spawnflags &= ~SPAWNFLAG_NOT_HARD;
-			
+#endif
 		// remove things (except the world) from different skill levels or deathmatch
 		if (ent != world)
 		{
+#ifdef SINGLE_PLAYER
 			if (deathmatch.intVal)
 			{
+#endif
 				if (ent.spawnflags & SPAWNFLAG_NOT_DEATHMATCH)
 				{
 					G_FreeEdict(ent);
 					inhibit++;
 					continue;
 				}
+#ifdef SINGLE_PLAYER
 			}
 			else
 			{
@@ -395,7 +406,7 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 				// is this true in only rogue maps?
 #endif
 
-				if (	((skill_level == 0) && (ent.spawnflags & SPAWNFLAG_NOT_EASY)) ||
+				if (((skill_level == 0) && (ent.spawnflags & SPAWNFLAG_NOT_EASY)) ||
 					((skill_level == 1) && (ent.spawnflags & SPAWNFLAG_NOT_MEDIUM)) ||
 					(((skill_level == 2) || (skill_level == 3)) && (ent.spawnflags & SPAWNFLAG_NOT_HARD)))
 				{
@@ -404,8 +415,8 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 					continue;
 				}
 			}
-
-			ent.spawnflags &= ~(SPAWNFLAG_NOT_EASY | SPAWNFLAG_NOT_MEDIUM | SPAWNFLAG_NOT_HARD | SPAWNFLAG_NOT_COOP | SPAWNFLAG_NOT_DEATHMATCH);
+#endif
+			ent.spawnflags &= ~SPAWNFLAG_NOT_MASK;
 		}
 
 		if (!ED_CallSpawn(ent))
@@ -423,6 +434,7 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 	gi.dprintf("%i entities inhibited\n", inhibit);
 
 	G_FindTeams();
+#ifdef SINGLE_PLAYER
 
 	PlayerTrail_Init();
 
@@ -430,12 +442,14 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 	if (!deathmatch.intVal)
 		InitHintPaths();
 #endif
+#endif
 };
 
 void() PostSpawnEntities =
 {
 };
 
+#ifdef SINGLE_PLAYER
 //===================================================================
 
 PROGS_LOCAL_STATIC const string single_statusbar =
@@ -495,6 +509,7 @@ PROGS_LOCAL_STATIC const string single_statusbar =
 "   pic 11 "
 "endif "
 ;
+#endif
 
 PROGS_LOCAL_STATIC const string dm_statusbar =
 "yb -24 "
@@ -605,10 +620,12 @@ API_FUNC static void(entity ent) SP_worldspawn =
 
 	// make some data visible to the server
 
-	if (ent.message) {
+	if (ent.message)
+	{
 		gi.configstring(CS_NAME, ent.message);
 		level.level_name = ent.message;
-	} else
+	}
+	else
 		level.level_name = level.mapname;
 
 	if (st.sky)
@@ -625,13 +642,12 @@ API_FUNC static void(entity ent) SP_worldspawn =
 	gi.configstring(CS_MAXCLIENTS, va("%i", game.maxclients));
 
 	// status bar program
-	if (deathmatch.intVal)
-		gi.configstring(CS_STATUSBAR, dm_statusbar);
-	else
+#ifdef SINGLE_PLAYER
+	if (!deathmatch.intVal)
 		gi.configstring(CS_STATUSBAR, single_statusbar);
-
-	//---------------
-
+	else
+#endif
+		gi.configstring(CS_STATUSBAR, dm_statusbar);
 
 	// help icon for statusbar
 	gi.imageindex("i_help");
@@ -731,7 +747,9 @@ API_FUNC static void(entity ent) SP_worldspawn =
 	gi.soundindex("items/protect4.wav");
 	gi.soundindex("weapons/noammo.wav");
 
+#ifdef SINGLE_PLAYER
 	gi.soundindex("infantry/inflies1.wav");
+#endif
 
 	sm_meat_index = gi.modelindex("models/objects/gibs/sm_meat/tris.md2");
 	gi.modelindex("models/objects/gibs/arm/tris.md2");

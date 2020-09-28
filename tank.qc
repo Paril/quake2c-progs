@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_tank.h"
 
 static int  sound_thud;
@@ -978,3 +979,4 @@ API_FUNC static void SP_monster_tank_commander(entity self)
 {
 	SP_monster_tank(self);
 }
+#endif

@@ -8,12 +8,18 @@ API_FUNC bool(entity ent, entity other) Pickup_Nuke =
 	if (quantity >= 1)
 		return false;
 
+#ifdef SINGLE_PLAYER
 	if (coop.intVal && (citem->flags & IT_STAY_COOP) && quantity > 0)
 		return false;
+#endif
 
 	other.client.pers.inventory[citem->id]++;
 
+#ifdef SINGLE_PLAYER
 	if (deathmatch.intVal && !(ent.spawnflags & DROPPED_ITEM))
+#else
+	if !(ent.spawnflags & DROPPED_ITEM)
+#endif
 		SetRespawn (ent, citem->quantity);
 
 	return true;

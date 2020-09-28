@@ -1,5 +1,4 @@
-#ifdef GROUND_ZERO
-
+#if defined(GROUND_ZERO) && defined(SINGLE_PLAYER)
 #include "m_widow2.h"
 
 const float DISRUPT_TIME		= 3;

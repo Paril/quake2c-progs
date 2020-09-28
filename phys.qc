@@ -367,7 +367,7 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 
 	pusher.pushed.origin = pusher.s.origin;
 	pusher.pushed.angles = pusher.s.angles;
-#if USE_SMOOTH_DELTA_ANGLES
+#ifdef USE_SMOOTH_DELTA_ANGLES
 	if (pusher.is_client)
 		pusher.pushed.deltayaw = pusher.client.ps.pmove.delta_angles[YAW];
 #endif
@@ -413,7 +413,7 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 			// move this entity
 			check.pushed.origin = check.s.origin;
 			check.pushed.angles = check.s.angles;
-#if USE_SMOOTH_DELTA_ANGLES
+#ifdef USE_SMOOTH_DELTA_ANGLES
 			if (check.is_client)
 				check.pushed.deltayaw = check.client.ps.pmove.delta_angles[YAW];
 #endif
@@ -422,7 +422,7 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 
 			// try moving the contacted entity
 			check.s.origin += move;
-#if USE_SMOOTH_DELTA_ANGLES
+#ifdef USE_SMOOTH_DELTA_ANGLES
 			if (check.is_client) {
 				// FIXME: doesn't rotate monsters?
 				// FIXME: skuller: needs client side interpolation
@@ -473,7 +473,7 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 			entity p = pushed_list[pi];
 			p.s.origin = p.pushed.origin;
 			p.s.angles = p.pushed.angles;
-#if USE_SMOOTH_DELTA_ANGLES
+#ifdef USE_SMOOTH_DELTA_ANGLES
 			if (p.is_client) {
 				p.client.ps.pmove.delta_angles[YAW] = p.pushed.deltayaw;
 			}
@@ -717,6 +717,7 @@ static void(entity ent) SV_Physics_Toss =
 	}
 }
 
+#ifdef SINGLE_PLAYER
 /*
 ===============================================================================
 
@@ -739,45 +740,29 @@ FIXME: is this true?
 */
 
 //FIXME: hacked in for E3 demo
-const float sv_stopspeed	= 100f;
-const float sv_friction		= 6f;
+const float sv_stopspeed		= 100f;
+const float sv_friction			= 6f;
 const float sv_waterfriction	= 1f;
 
 static void(entity ent) SV_AddRotationalFriction =
 {
-	float	adjustment;
-
 	ent.s.angles += (FRAMETIME * ent.avelocity);
-	adjustment = FRAMETIME * sv_stopspeed * sv_friction;
+	float adjustment = FRAMETIME * sv_stopspeed * sv_friction;
 
-	if (ent.avelocity.x > 0) {
-		ent.avelocity.x -= adjustment;
-		if (ent.avelocity.x < 0)
-			ent.avelocity.x = 0;
-	} else {
-		ent.avelocity.x += adjustment;
-		if (ent.avelocity.x > 0)
-			ent.avelocity.x = 0;
-	}
-	
-	if (ent.avelocity.y > 0) {
-		ent.avelocity.y -= adjustment;
-		if (ent.avelocity.y < 0)
-			ent.avelocity.y = 0;
-	} else {
-		ent.avelocity.y += adjustment;
-		if (ent.avelocity.y > 0)
-			ent.avelocity.y = 0;
-	}
-	
-	if (ent.avelocity.z > 0) {
-		ent.avelocity.z -= adjustment;
-		if (ent.avelocity.z < 0)
-			ent.avelocity.z = 0;
-	} else {
-		ent.avelocity.z += adjustment;
-		if (ent.avelocity.z > 0)
-			ent.avelocity.z = 0;
+	for (int i = 0; i < 3; i++)
+	{
+		if (ent.avelocity[i] > 0)
+		{
+			ent.avelocity[i] -= adjustment;
+			if (ent.avelocity[i] < 0)
+				ent.avelocity[i] = 0;
+		}
+		else
+		{
+			ent.avelocity[i] += adjustment;
+			if (ent.avelocity[i] > 0)
+				ent.avelocity[i] = 0;
+		}
 	}
 }
 
@@ -809,9 +794,10 @@ static void(entity ent) SV_Physics_Step =
 	// add gravity except:
 	//   flying monsters
 	//   swimming monsters who are in the water
-	if (! wasonground)
+	if (!wasonground)
 		if (!(ent.flags & FL_FLY))
-			if (!((ent.flags & FL_SWIM) && (ent.waterlevel > 2))) {
+			if (!((ent.flags & FL_SWIM) && (ent.waterlevel > 2)))
+			{
 				if (ent.velocity.z < sv_gravity.floatVal * -0.1f)
 					hitsound = true;
 				if (ent.waterlevel == 0)
@@ -831,7 +817,8 @@ static void(entity ent) SV_Physics_Step =
 	}
 
 	// friction for flying monsters that have been given vertical velocity
-	if ((ent.flags & FL_SWIM) && (ent.velocity.z != 0)) {
+	if ((ent.flags & FL_SWIM) && (ent.velocity.z != 0))
+	{
 		speed = fabs(ent.velocity.z);
 		control = speed < sv_stopspeed ? sv_stopspeed : speed;
 		newspeed = speed - (FRAMETIME * control * sv_waterfriction * ent.waterlevel);
@@ -841,11 +828,13 @@ static void(entity ent) SV_Physics_Step =
 		ent.velocity.z *= newspeed;
 	}
 
-	if (ent.velocity) {
+	if (ent.velocity)
+	{
 		// apply friction
 		// let dead monsters who aren't completely onground slide
 		if ((wasonground) || (ent.flags & (FL_SWIM | FL_FLY)))
-			if (!(ent.health <= 0 && !M_CheckBottom(ent))) {
+			if (!(ent.health <= 0 && !M_CheckBottom(ent)))
+			{
 				speed = sqrt(ent.velocity.x * ent.velocity.x + ent.velocity.y * ent.velocity.y);
 				if (speed) {
 					friction = sv_friction;
@@ -888,6 +877,7 @@ static void(entity ent) SV_Physics_Step =
 	if (ent.inuse)
 		SV_RunThink(ent);
 }
+#endif
 
 //============================================================================
 /*
@@ -912,6 +902,7 @@ void(entity ent) G_RunEntity =
 	case MOVETYPE_NOCLIP:
 		SV_Physics_Noclip(ent);
 		break;
+#ifdef SINGLE_PLAYER
 	case MOVETYPE_STEP: {
 #ifdef GROUND_ZERO
 		trace_t	trace;
@@ -928,6 +919,7 @@ void(entity ent) G_RunEntity =
 		}
 #endif
 		break; }
+#endif
 	case MOVETYPE_TOSS:
 	case MOVETYPE_BOUNCE:
 	case MOVETYPE_FLY:

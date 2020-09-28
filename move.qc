@@ -1,3 +1,5 @@
+#ifdef SINGLE_PLAYER
+
 #ifdef GROUND_ZERO
 entity	new_bad;
 #endif
@@ -109,8 +111,7 @@ SV_movestep
 
 Called by monster program code.
 The move will be adjusted for slopes and stairs, but if the move isn't
-possible, no move is done, false is returned, and
-pr_global_struct.trace_normal is set to the normal of the blocking wall
+possible, no move is done and false is returned
 =============
 */
 //FIXME since we need to test end position contents here, can we avoid doing
@@ -720,3 +721,5 @@ bool(entity ent, float yaw, float dist) M_walkmove =
 	return SV_movestep(ent, move, true);
 #endif
 }
+
+#endif

@@ -83,7 +83,7 @@ const int MAX_ENT_CLUSTERS = 16;
 {
 	SVF_NOCLIENT,		// don't send entity to clients, even if it has effects
 	SVF_DEADMONSTER,	// treat as CONTENTS_DEADMONSTER for collision
-	SVF_MONSTER		// treat as CONTENTS_MONSTER for collision
+	SVF_MONSTER			// treat as CONTENTS_MONSTER for collision
 
 #ifdef GROUND_ZERO
 	, SVF_DAMAGEABLE
@@ -112,7 +112,9 @@ const int MAX_ENT_CLUSTERS = 16;
 	MOVETYPE_STOP,          // no clip to world, stops on box contact
 
 	MOVETYPE_WALK,          // gravity
+#ifdef SINGLE_PLAYER
 	MOVETYPE_STEP,          // gravity, special edge handling
+#endif
 	MOVETYPE_FLY,
 	MOVETYPE_TOSS,          // gravity
 	MOVETYPE_FLYMISSILE,    // extra size to monsters
@@ -126,15 +128,18 @@ const int MAX_ENT_CLUSTERS = 16;
 // edict.flags
 .enumflags : int
 {
+#ifdef SINGLE_PLAYER
 	FL_FLY,
-	FL_SWIM,	// implied immunity to drowning
+	FL_SWIM,		// implied immunity to drowning
+	FL_NOTARGET,
+	FL_PARTIALGROUND,
+#endif
+
 	FL_IMMUNE_LASER,
 	FL_INWATER,
 	FL_GODMODE,
-	FL_NOTARGET,
 	FL_IMMUNE_SLIME,
 	FL_IMMUNE_LAVA,
-	FL_PARTIALGROUND,
 	FL_WATERJUMP,
 	FL_TEAMSLAVE,
 	FL_NO_KNOCKBACK,
@@ -142,17 +147,20 @@ const int MAX_ENT_CLUSTERS = 16;
 
 #ifdef GROUND_ZERO
 	FL_MECHANICAL,	// entity is mechanical, use sparks not blood
-	FL_SAM_RAIMI,	// entity is in sam raimi cam mode
+#ifdef SINGLE_PLAYER
 	FL_DISGUISED,	// entity is in disguise, monsters will not recognize.
-	FL_NOGIB,	// player has been vaporized by a nuke, drop no gibs
+#endif
+	FL_NOGIB,		// player has been vaporized by a nuke, drop no gibs
 #endif
 	
-	FL_RESPAWN,
+	FL_RESPAWN
 
+#ifdef SINGLE_PLAYER
 #ifdef GROUND_ZERO
-	FL_VISIBLE_MASK = FL_NOTARGET | FL_DISGUISED
+	, FL_VISIBLE_MASK = FL_NOTARGET | FL_DISGUISED
 #else
-	FL_VISIBLE_MASK = FL_NOTARGET
+	, FL_VISIBLE_MASK = FL_NOTARGET
+#endif
 #endif
 }		flags;
 
@@ -311,6 +319,9 @@ struct moveinfo_t
 	void(entity)	endfunc;
 };
 
+.moveinfo_t		moveinfo;
+
+#ifdef SINGLE_PLAYER
 struct mframe_t
 {
 	void(entity, float)	aifunc;
@@ -378,14 +389,6 @@ typedef enum : int
 	, AS_BLIND	// PMM - used by boss code to do nasty things even if it can't see you
 #endif
 } ai_attack_state_t;
-
-// power armor types
-typedef enum : int
-{
-	POWER_ARMOR_NONE,
-	POWER_ARMOR_SCREEN,
-	POWER_ARMOR_SHIELD,
-} power_armor_type_t;
 
 #ifdef GROUND_ZERO
 typedef void(entity, entity, float, trace_t *) mdodgefunc;
@@ -457,7 +460,6 @@ struct monsterinfo_t
 };
 
 .monsterinfo_t	monsterinfo;
-.moveinfo_t		moveinfo;
 
 #ifdef GROUND_ZERO
 // this determines how long to wait after a duck to duck again.  this needs to be longer than
@@ -473,6 +475,7 @@ inline int(entity self) SELF_SLOTS_LEFT =
 
 #ifdef THE_RECKONING
 .int	orders;
+#endif
 #endif
 	
 // player_state_t.refdef flags
@@ -576,7 +579,6 @@ struct client_persistant_t
 	// values saved and restored from edicts when changing levels
 	int	health;
 	int	max_health;
-	int	savedFlags;
 	
 	int	selected_item;
 	int	inventory[itemlist.length];
@@ -586,12 +588,15 @@ struct client_persistant_t
 	
 	gitem_t	*weapon;
 	gitem_t	*lastweapon;
-	
-	int	power_cubes;    // used for tracking the cubes in coop games
+
 	int	score;          // for calculating total unit score in coop games
-	
+
+#ifdef SINGLE_PLAYER
+	int	power_cubes;    // used for tracking the cubes in coop games
+	int	savedFlags;
 	int	game_helpchanged;
 	int	helpchanged;
+#endif
 	
 	bool	spectator;      // client is a spectator
 };
@@ -599,7 +604,9 @@ struct client_persistant_t
 // client data that stays across deathmatch respawns
 struct client_respawn_t
 {
+#ifdef SINGLE_PLAYER
 	client_persistant_t	coop_respawn;   // what to set client.pers to on a respawn
+#endif
 
 	int		enterframe;         // level.framenum the client entered the game
 	int		score;              // frags, etc
@@ -642,8 +649,10 @@ struct gclient_t
 	
 	bool	showscores;         // set layout stat
 	bool	showinventory;      // set layout stat
+#ifdef SINGLE_PLAYER
 	bool	showhelp;
 	bool	showhelpicon;
+#endif
 	
 	int	ammo_index;
 	
@@ -725,17 +734,17 @@ struct gclient_t
 	int		ir_framenum;
 	int		nuke_framenum;
 	int		tracker_pain_framenum;
-	entity	owned_sphere;		// this points to the player's sphere
 #endif
 };
 
 .gclient_t	client;
 .bool		is_client;	// read-only, set by the engine
 
+// used to store pre-push state
 .struct
 {
 	vector	origin, angles;
-#if USE_SMOOTH_DELTA_ANGLES
+#ifdef USE_SMOOTH_DELTA_ANGLES
 	float	deltayaw;
 #endif
 } pushed;

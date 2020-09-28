@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_boss32.h"
 
 static void Use_Boss3(entity ent, entity other, entity activator)
@@ -45,3 +46,4 @@ API_FUNC static void SP_monster_boss3_stand(entity self)
 	self.nextthink = level.framenum + 1;
 	gi.linkentity(self);
 }
+#endif

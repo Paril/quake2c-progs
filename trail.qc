@@ -1,3 +1,5 @@
+#ifdef SINGLE_PLAYER
+
 /*
 ==============================================================================
 
@@ -25,10 +27,11 @@ void() PlayerTrail_Init =
 {
 	int     n;
 
-	if (deathmatch.intVal /* FIXME || coop */)
+	if (deathmatch.intVal)
 		return;
 
-	for (n = 0; n < TRAIL_LENGTH; n++) {
+	for (n = 0; n < TRAIL_LENGTH; n++)
+	{
 		trail[n] = G_Spawn();
 		trail[n].classname = "player_trail";
 	}
@@ -46,7 +49,6 @@ void(vector spot) PlayerTrail_Add =
 		return;
 
 	trail[trail_head].s.origin = spot;
-
 	trail[trail_head].timestamp = level.framenum;
 
 	temp = spot - trail[PREV(trail_head)].s.origin;
@@ -74,20 +76,19 @@ entity(entity self) PlayerTrail_PickFirst =
 	if (!trail_active)
 		return world;
 
-	for (marker = trail_head, n = TRAIL_LENGTH; n; n--) {
+	for (marker = trail_head, n = TRAIL_LENGTH; n; n--)
+	{
 		if (trail[marker].timestamp <= self.monsterinfo.trail_framenum)
 			marker = NEXT(marker);
 		else
 			break;
 	}
 
-	if (visible(self, trail[marker])) {
+	if (visible(self, trail[marker]))
 		return trail[marker];
-	}
 
-	if (visible(self, trail[PREV(marker)])) {
+	if (visible(self, trail[PREV(marker)]))
 		return trail[PREV(marker)];
-	}
 
 	return trail[marker];
 }
@@ -114,3 +115,5 @@ entity() PlayerTrail_LastSpot =
 {
 	return trail[PREV(trail_head)];
 }
+
+#endif

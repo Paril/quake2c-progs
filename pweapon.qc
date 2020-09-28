@@ -20,22 +20,19 @@ PROGS_LOCAL void(entity ent) P_DamageModifier =
 	{
 		damage_multiplier *= 4;
 		is_quad = true;
-
 #ifdef GROUND_ZERO
+
 		// if we're quad and DF_NO_STACK_DOUBLE is on, return now.
 		if (dmflags.intVal & DF_NO_STACK_DOUBLE)
 			return;
 #endif
 	}
-	
 #ifdef GROUND_ZERO
+
 	if (ent.client.double_framenum > level.framenum)
 	{
-		if (deathmatch.intVal || damage_multiplier == 1)
-		{
-			damage_multiplier *= 2;
-			is_quad = true;
-		}
+		damage_multiplier *= 2;
+		is_quad = true;
 	}
 #endif
 }
@@ -50,7 +47,7 @@ PROGS_LOCAL INLINE vector(entity ent, vector point, vector distance, vector forw
 	return G_ProjectSource(point, scaled_dist, forward, right);
 }
 
-
+#ifdef SINGLE_PLAYER
 /*
 ===============
 PlayerNoise
@@ -93,7 +90,8 @@ void(entity who, vector where, player_noise_t type) PlayerNoise =
 	}
 #endif
 
-	if (!who.mynoise) {
+	if (!who.mynoise)
+	{
 		noise = G_Spawn();
 		noise.classname = "player_noise";
 		noise.mins = '-8 -8 -8';
@@ -111,11 +109,14 @@ void(entity who, vector where, player_noise_t type) PlayerNoise =
 		who.mynoise2 = noise;
 	}
 
-	if (type == PNOISE_SELF || type == PNOISE_WEAPON) {
+	if (type == PNOISE_SELF || type == PNOISE_WEAPON)
+	{
 		noise = who.mynoise;
 		level.sound_entity = noise;
 		level.sound_entity_framenum = level.framenum;
-	} else { // type == PNOISE_IMPACT
+	}
+	else
+	{ // type == PNOISE_IMPACT
 		noise = who.mynoise2;
 		level.sound2_entity = noise;
 		level.sound2_entity_framenum = level.framenum;
@@ -127,21 +128,26 @@ void(entity who, vector where, player_noise_t type) PlayerNoise =
 	noise.last_sound_framenum = level.framenum;
 	gi.linkentity(noise);
 }
-
+#endif
 
 API_FUNC static bool(entity ent, entity other) Pickup_Weapon =
 {
 	int	index = ent.item->id;
 
-	if (((dmflags.intVal & DF_WEAPONS_STAY) || coop.intVal)
-		&& other.client.pers.inventory[index]) {
+#ifdef SINGLE_PLAYER
+	if (((dmflags.intVal & DF_WEAPONS_STAY) || coop.intVal) &&
+#else
+	if ((dmflags.intVal & DF_WEAPONS_STAY) &&
+#endif
+		other.client.pers.inventory[index])
+	{
 		if (!(ent.spawnflags & (DROPPED_ITEM | DROPPED_PLAYER_ITEM)))
 			return false;   // leave the weapon for others to pickup
 	}
 
 	other.client.pers.inventory[index]++;
 
-	if (!(ent.spawnflags & DROPPED_ITEM))
+	if !(ent.spawnflags & DROPPED_ITEM)
 	{
 		// give them some ammo with it
 		if (ent.item->ammo)
@@ -150,23 +156,29 @@ API_FUNC static bool(entity ent, entity other) Pickup_Weapon =
 			Add_Ammo(other, ammo, ammo->quantity);
 		}
 
-		if (!(ent.spawnflags & DROPPED_PLAYER_ITEM))
+		if !(ent.spawnflags & DROPPED_PLAYER_ITEM)
 		{
+#ifdef SINGLE_PLAYER
 			if (deathmatch.intVal)
 			{
+#endif
 				if (dmflags.intVal & DF_WEAPONS_STAY)
 					ent.flags |= FL_RESPAWN;
 				else
 					SetRespawn(ent, 30);
+#ifdef SINGLE_PLAYER
 			}
 			if (coop.intVal)
 				ent.flags |= FL_RESPAWN;
+#endif
 		}
 	}
 
-	if (other.client.pers.weapon != ent.item &&
-		(other.client.pers.inventory[index] == 1) &&
-		(!deathmatch.intVal || other.client.pers.weapon == FindItem("blaster")))
+	if (other.client.pers.weapon != ent.item && (other.client.pers.inventory[index] == 1) && (
+#ifdef SINGLE_PLAYER
+		!deathmatch.intVal || 
+#endif
+		other.client.pers.weapon == FindItem("blaster")))
 		other.client.newweapon = ent.item;
 
 	return true;
@@ -398,7 +410,7 @@ static const string blaster_chain[] = { "Blaster", "Chainfist" };
 static const string bfg_chain[] = { "BFG10k", "Disruptor" };
 #endif
 
-#if (defined(GROUND_ZERO) && defined(THE_RECKONING))
+#if defined(GROUND_ZERO) && defined(THE_RECKONING)
 static const string grenade_chain[] = { "Grenades", "Trap", "Tesla"};
 static const string hyperblaster_chain[] = { "HyperBlaster", "Ionripper", "Plasma Beam" };
 #elif defined(GROUND_ZERO)
@@ -874,8 +886,10 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_grenadelauncher_fire =
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
 
 	ent.client.ps.gunframe++;
+#ifdef SINGLE_PLAYER
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
+#endif
 
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
 		ent.client.pers.inventory[ent.client.ammo_index]--;
@@ -936,8 +950,10 @@ PROGS_LOCAL_STATIC void(entity ent) Weapon_RocketLauncher_Fire =
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
 
 	ent.client.ps.gunframe++;
+#ifdef SINGLE_PLAYER
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
+#endif
 
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
 		ent.client.pers.inventory[ent.client.ammo_index]--;
@@ -993,19 +1009,25 @@ PROGS_LOCAL_STATIC void(entity ent, vector g_offset, int damage, bool hyper, int
 	else
 		gi.WriteByte(MZ_BLASTER | is_silenced);
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
+#ifdef SINGLE_PLAYER
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
+#endif
 }
 
 
 PROGS_LOCAL_STATIC void(entity ent) Weapon_Blaster_Fire =
 {
-	int     damage;
-
-	if (deathmatch.intVal)
-		damage = 15;
-	else
+#ifdef SINGLE_PLAYER
+	int damage;
+	if !(deathmatch.intVal)
 		damage = 10;
+	else
+		damage = 15;
+
+#else
+	const int damage = 15;
+#endif
 	Blaster_Fire(ent, vec3_origin, damage, false, EF_BLASTER);
 	ent.client.ps.gunframe++;
 }
@@ -1028,46 +1050,54 @@ void(entity ent) Weapon_Blaster =
 
 PROGS_LOCAL_STATIC void(entity ent) Weapon_HyperBlaster_Fire =
 {
-	float	rotation;
-	vector	offset;
-	int	effect;
-	int	damage;
-
 	ent.client.weapon_sound = gi.soundindex("weapons/hyprbl1a.wav");
 
-	if (!(ent.client.buttons & BUTTON_ATTACK)) {
+	if (!(ent.client.buttons & BUTTON_ATTACK))
 		ent.client.ps.gunframe++;
-	} else {
-		if (! ent.client.pers.inventory[ent.client.ammo_index]) {
-			if (level.framenum >= ent.pain_debounce_framenum) {
+	else
+	{
+		if (! ent.client.pers.inventory[ent.client.ammo_index])
+		{
+			if (level.framenum >= ent.pain_debounce_framenum)
+			{
 				gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/noammo.wav"), 1, ATTN_NORM, 0);
 				ent.pain_debounce_framenum = level.framenum + 1 * BASE_FRAMERATE;
 			}
 			NoAmmoWeaponChange(ent);
-		} else {
-			rotation = (ent.client.ps.gunframe - 5) * (M_PI / 3);
-			offset.x = -4f * sin(rotation);
-			offset.y = 0;
-			offset.z = 4f * cos(rotation);
+		}
+		else
+		{
+			float rotation = (ent.client.ps.gunframe - 5) * (M_PI / 3);
+			vector offset = [ -4f * sin(rotation), 0, 4f * cos(rotation) ];
+			int effect;
 
 			if ((ent.client.ps.gunframe == 6) || (ent.client.ps.gunframe == 9))
 				effect = EF_HYPERBLASTER;
 			else
 				effect = 0;
-			if (deathmatch.intVal)
-				damage = 15;
-			else
+
+#ifdef SINGLE_PLAYER
+			if !(deathmatch.intVal)
 				damage = 20;
+			else
+				damage = 15;
+				
+#else
+			const int damage = 15;
+#endif
 			Blaster_Fire(ent, offset, damage, true, effect);
 
 			if (!(dmflags.intVal & DF_INFINITE_AMMO))
 				ent.client.pers.inventory[ent.client.ammo_index]--;
 
 			ent.client.anim_priority = ANIM_ATTACK;
-			if (ent.client.ps.pmove.pm_flags & PMF_DUCKED) {
+			if (ent.client.ps.pmove.pm_flags & PMF_DUCKED)
+			{
 				ent.s.frame = FRAME_crattak1 - 1;
 				ent.client.anim_end = FRAME_crattak9;
-			} else {
+			}
+			else
+			{
 				ent.s.frame = FRAME_attack1 - 1;
 				ent.client.anim_end = FRAME_attack8;
 			}
@@ -1079,11 +1109,11 @@ PROGS_LOCAL_STATIC void(entity ent) Weapon_HyperBlaster_Fire =
 			ent.client.ps.gunframe = 6;
 	}
 
-	if (ent.client.ps.gunframe == 12) {
+	if (ent.client.ps.gunframe == 12)
+	{
 		gi.sound(ent, CHAN_AUTO, gi.soundindex("weapons/hyprbd1a.wav"), 1, ATTN_NORM, 0);
 		ent.client.weapon_sound = 0;
 	}
-
 }
 
 void(entity ent) Weapon_HyperBlaster = 
@@ -1146,13 +1176,16 @@ PROGS_LOCAL_STATIC void(entity ent) Machinegun_Fire =
 	
 	ent.client.kick_origin[0] = random(-0.35f, 0.35f);
 	ent.client.kick_angles[0] = ent.client.machinegun_shots * -1.5f;
+#ifdef SINGLE_PLAYER
 
 	// raise the gun as it is firing
-	if (!deathmatch.intVal) {
+	if (!deathmatch.intVal)
+	{
 		ent.client.machinegun_shots++;
 		if (ent.client.machinegun_shots > 9)
 			ent.client.machinegun_shots = 9;
 	}
+#endif
 
 	// get start / end positions
 	angles = ent.client.v_angle + ent.client.kick_angles;
@@ -1166,8 +1199,10 @@ PROGS_LOCAL_STATIC void(entity ent) Machinegun_Fire =
 	gi.WriteShort(ent.s.number);
 	gi.WriteByte(MZ_MACHINEGUN | is_silenced);
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
+#ifdef SINGLE_PLAYER
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
+#endif
 
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
 		ent.client.pers.inventory[ent.client.ammo_index]--;
@@ -1199,66 +1234,78 @@ void(entity ent) Weapon_Machinegun =
 
 PROGS_LOCAL_STATIC void(entity ent) Chaingun_Fire =
 {
-	int	i;
-	int	shots;
-	vector	start = vec3_origin;
-	vector	forward, right, up;
-	float	r, u;
-	vector	offset;
-	int	damage;
-	int	kick = 2;
+	vector		start = vec3_origin;
+	vector		forward, right, up;
+	float		r, u;
+	vector		offset;
+	int			kick = 2;
+#ifdef SINGLE_PLAYER
+	int			damage;
 
-	if (deathmatch.intVal)
-		damage = 6;
-	else
+	if !(deathmatch.intVal)
 		damage = 8;
+	else
+		damage = 6;
+#else
+	int			damage = 6;
+#endif
 
 	if (ent.client.ps.gunframe == 5)
 		gi.sound(ent, CHAN_AUTO, gi.soundindex("weapons/chngnu1a.wav"), 1, ATTN_IDLE, 0);
 
-	if ((ent.client.ps.gunframe == 14) && !(ent.client.buttons & BUTTON_ATTACK)) {
+	if ((ent.client.ps.gunframe == 14) && !(ent.client.buttons & BUTTON_ATTACK))
+	{
 		ent.client.ps.gunframe = 32;
 		ent.client.weapon_sound = 0;
 		return;
 	}
 	else if ((ent.client.ps.gunframe == 21) && (ent.client.buttons & BUTTON_ATTACK)
-			   && ent.client.pers.inventory[ent.client.ammo_index]) {
+			   && ent.client.pers.inventory[ent.client.ammo_index])
 		ent.client.ps.gunframe = 15;
-	} else {
+	else
 		ent.client.ps.gunframe++;
-	}
 
-	if (ent.client.ps.gunframe == 22) {
+	if (ent.client.ps.gunframe == 22)
+	{
 		ent.client.weapon_sound = 0;
 		gi.sound(ent, CHAN_AUTO, gi.soundindex("weapons/chngnd1a.wav"), 1, ATTN_IDLE, 0);
-	} else {
-		ent.client.weapon_sound = gi.soundindex("weapons/chngnl1a.wav");
 	}
+	else
+		ent.client.weapon_sound = gi.soundindex("weapons/chngnl1a.wav");
 
 	ent.client.anim_priority = ANIM_ATTACK;
-	if (ent.client.ps.pmove.pm_flags & PMF_DUCKED) {
+	if (ent.client.ps.pmove.pm_flags & PMF_DUCKED)
+	{
 		ent.s.frame = FRAME_crattak1 - (ent.client.ps.gunframe & 1);
 		ent.client.anim_end = FRAME_crattak9;
-	} else {
+	}
+	else
+	{
 		ent.s.frame = FRAME_attack1 - (ent.client.ps.gunframe & 1);
 		ent.client.anim_end = FRAME_attack8;
 	}
 
+	int shots;
+
 	if (ent.client.ps.gunframe <= 9)
 		shots = 1;
-	else if (ent.client.ps.gunframe <= 14) {
+	else if (ent.client.ps.gunframe <= 14)
+	{
 		if (ent.client.buttons & BUTTON_ATTACK)
 			shots = 2;
 		else
 			shots = 1;
-	} else
+	}
+	else
 		shots = 3;
 
 	if (ent.client.pers.inventory[ent.client.ammo_index] < shots)
 		shots = ent.client.pers.inventory[ent.client.ammo_index];
 
-	if (!shots) {
-		if (level.framenum >= ent.pain_debounce_framenum) {
+	if (!shots)
+	{
+		if (level.framenum >= ent.pain_debounce_framenum)
+		{
 			gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/noammo.wav"), 1, ATTN_NORM, 0);
 			ent.pain_debounce_framenum = level.framenum + 1 * BASE_FRAMERATE;
 		}
@@ -1266,7 +1313,8 @@ PROGS_LOCAL_STATIC void(entity ent) Chaingun_Fire =
 		return;
 	}
 
-	if (is_quad) {
+	if (is_quad)
+	{
 		damage *= damage_multiplier;
 		kick *= damage_multiplier;
 	}
@@ -1274,7 +1322,8 @@ PROGS_LOCAL_STATIC void(entity ent) Chaingun_Fire =
 	ent.client.kick_origin = randomv('-0.35 -0.35 -0.35', '0.35 0.35 0.35');
 	ent.client.kick_angles = randomv('-0.7 -0.7 -0.7', '0.7 0.7 0.7');
 
-	for (i = 0 ; i < shots ; i++) {
+	for (int i = 0; i < shots; i++)
+	{
 		// get start / end positions
 		AngleVectors(ent.client.v_angle, &forward, &right, &up);
 		r = random(3f, 11f);
@@ -1290,8 +1339,10 @@ PROGS_LOCAL_STATIC void(entity ent) Chaingun_Fire =
 	gi.WriteShort(ent.s.number);
 	gi.WriteByte((MZ_CHAINGUN1 + shots - 1) | is_silenced);
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
+#ifdef SINGLE_PLAYER
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
+#endif
 
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
 		ent.client.pers.inventory[ent.client.ammo_index] -= shots;
@@ -1343,15 +1394,13 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_shotgun_fire =
 	offset = [ 0, 8,  ent.viewheight - 8 ];
 	start = P_ProjectSource(ent, ent.s.origin, offset, forward, right);
 
-	if (is_quad) {
+	if (is_quad)
+	{
 		damage *= damage_multiplier;
 		kick *= damage_multiplier;
 	}
 
-	if (deathmatch.intVal)
-		fire_shotgun(ent, start, forward, damage, kick, 500, 500, DEFAULT_DEATHMATCH_SHOTGUN_COUNT, MOD_SHOTGUN);
-	else
-		fire_shotgun(ent, start, forward, damage, kick, 500, 500, DEFAULT_SHOTGUN_COUNT, MOD_SHOTGUN);
+	fire_shotgun(ent, start, forward, damage, kick, 500, 500, DEFAULT_SHOTGUN_COUNT, MOD_SHOTGUN);
 
 	// send muzzle flash
 	gi.WriteByte(svc_muzzleflash);
@@ -1360,7 +1409,9 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_shotgun_fire =
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
 
 	ent.client.ps.gunframe++;
+#ifdef SINGLE_PLAYER
 	PlayerNoise(ent, start, PNOISE_WEAPON);
+#endif
 
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
 		ent.client.pers.inventory[ent.client.ammo_index]--;
@@ -1419,7 +1470,9 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_supershotgun_fire =
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
 
 	ent.client.ps.gunframe++;
+#ifdef SINGLE_PLAYER
 	PlayerNoise(ent, start, PNOISE_WEAPON);
+#endif
 
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
 		ent.client.pers.inventory[ent.client.ammo_index] -= 2;
@@ -1452,33 +1505,40 @@ RAILGUN
 
 PROGS_LOCAL_STATIC void(entity ent) weapon_railgun_fire =
 {
-	vector	start;
-	vector	forward, right;
-	vector	offset;
+#ifdef SINGLE_PLAYER
 	int	damage;
 	int	kick;
 
-	if (deathmatch.intVal) {
+	if (deathmatch.intVal)
+	{
 		// normal damage is too extreme in dm
 		damage = 100;
 		kick = 200;
-	} else {
+	}
+	else
+	{
 		damage = 150;
 		kick = 250;
 	}
+#else
+	int damage = 150;
+	int kick = 250;
+#endif
 
-	if (is_quad) {
+	if (is_quad)
+	{
 		damage *= damage_multiplier;
 		kick *= damage_multiplier;
 	}
 
+	vector forward, right;
 	AngleVectors(ent.client.v_angle, &forward, &right, 0);
 
 	ent.client.kick_origin = forward * -3;
 	ent.client.kick_angles[0] = -3f;
 
-	offset = [ 0, 7,  ent.viewheight - 8 ];
-	start = P_ProjectSource(ent, ent.s.origin, offset, forward, right);
+	vector offset = [ 0, 7,  ent.viewheight - 8 ];
+	vector start = P_ProjectSource(ent, ent.s.origin, offset, forward, right);
 	fire_rail(ent, start, forward, damage, kick);
 
 	// send muzzle flash
@@ -1488,7 +1548,9 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_railgun_fire =
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
 
 	ent.client.ps.gunframe++;
+#ifdef SINGLE_PLAYER
 	PlayerNoise(ent, start, PNOISE_WEAPON);
+#endif
 
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
 		ent.client.pers.inventory[ent.client.ammo_index]--;
@@ -1523,20 +1585,25 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_bfg_fire =
 {
 	vector	offset, start;
 	vector	forward, right;
-	int	damage;
 	float	damage_radius = 1000f;
+#ifdef SINGLE_PLAYER
+	int		damage;
 
-	if (deathmatch.intVal)
-		damage = 200;
-	else
+	if !(deathmatch.intVal)
 		damage = 500;
+	else
+		damage = 200;
+#else
+	int		damage = 200;
+#endif
 
 	AngleVectors(ent.client.v_angle, &forward, &right, 0);
 
 	offset = [ 8, 8, ent.viewheight - 8 ];
 	start = P_ProjectSource(ent, ent.s.origin, offset, forward, right);
 
-	if (ent.client.ps.gunframe == 9) {
+	if (ent.client.ps.gunframe == 9)
+	{
 		// send muzzle flash
 		gi.WriteByte(svc_muzzleflash);
 		gi.WriteShort(ent.s.number);
@@ -1544,14 +1611,17 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_bfg_fire =
 		gi.multicast(ent.s.origin, MULTICAST_PVS);
 
 		ent.client.ps.gunframe++;
+#ifdef SINGLE_PLAYER
 
 		PlayerNoise(ent, start, PNOISE_WEAPON);
+#endif
 		return;
 	}
 
 	// cells can go down during windup (from power armor hits), so
 	// check again and abort firing if we don't have enough now
-	if (ent.client.pers.inventory[ent.client.ammo_index] < 50) {
+	if (ent.client.pers.inventory[ent.client.ammo_index] < 50)
+	{
 		ent.client.ps.gunframe++;
 		return;
 	}
@@ -1568,8 +1638,10 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_bfg_fire =
 	fire_bfg(ent, start, forward, damage, 400, damage_radius);
 
 	ent.client.ps.gunframe++;
+#ifdef SINGLE_PLAYER
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
+#endif
 
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
 		ent.client.pers.inventory[ent.client.ammo_index] -= 50;

@@ -115,6 +115,7 @@ API_FUNC static void(entity self) SP_trigger_teleport =
 	gi.linkentity (self);
 }
 
+#ifdef SINGLE_PLAYER
 // ***************************
 // TRIGGER_DISGUISE
 // ***************************
@@ -162,7 +163,7 @@ API_FUNC static void(entity self) SP_trigger_disguise =
 
 	gi.setmodel (self, self.model);
 	gi.linkentity(self);
-
 }
+#endif
 
 #endif

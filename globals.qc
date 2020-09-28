@@ -9,7 +9,7 @@ struct
 const entity world;
 
 // this is a special value that can be used to distinguish the world
-// from a literal null entity. The only place this is really required in Q2
+// from a literal null entity. The only place this is used in Quake2C
 // is for groundentity, which may be null *or* world (or other entity).
 const entity null_entity = itoe(-1);
 
@@ -17,10 +17,12 @@ int snd_fry;
 int sm_meat_index;
 
 // global cvars
+#ifdef SINGLE_PLAYER
 cvar_t  deathmatch;
 cvar_t  coop;
-cvar_t  dmflags;
 cvar_t  skill;
+#endif
+cvar_t  dmflags;
 cvar_t  fraglimit;
 cvar_t  timelimit;
 cvar_t  password;

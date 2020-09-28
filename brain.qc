@@ -1,5 +1,5 @@
+#ifdef SINGLE_PLAYER
 #include "m_brain.h"
-
 
 static int  sound_chest_open;
 static int  sound_tentacles_extend;
@@ -809,3 +809,4 @@ API_FUNC static void SP_monster_brain(entity self) {
 
 	walkmonster_start(self);
 }
+#endif

@@ -6,20 +6,25 @@
 
 PROGS_LOCAL_STATIC void(entity ent) weapon_ionripper_fire =
 {
+#ifdef SINGLE_PLAYER
 	int	damage;
 	int	kick;
 
-	if (deathmatch.intVal)
+	if !(deathmatch.intVal)
+	{
+		damage = 50;
+		kick = 60;
+	}
+	else
 	{
 		// tone down for deathmatch
 		damage = 30;
 		kick = 40;
 	}
-	else
-	{
-		damage = 50;
-		kick = 60;
-	}
+#else
+	int damage = 30;
+	int kick = 40;
+#endif
 	
 	if (is_quad)
 	{
@@ -48,7 +53,9 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_ionripper_fire =
 	gi.multicast (ent.s.origin, MULTICAST_PVS);
 
 	ent.client.ps.gunframe++;
+#ifdef SINGLE_PLAYER
 	PlayerNoise (ent, start, PNOISE_WEAPON);
+#endif
 
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
 		ent.client.pers.inventory[ent.client.ammo_index] -= ent.client.pers.weapon->quantity;
@@ -131,8 +138,10 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_phalanx_fire =
 		gi.WriteShort (ent.s.number);
 		gi.WriteByte (MZ_PHALANX | is_silenced);
 		gi.multicast (ent.s.origin, MULTICAST_PVS);
+#ifdef SINGLE_PLAYER
 		
 		PlayerNoise(ent, start, PNOISE_WEAPON);
+#endif
 	}
 	
 	ent.client.ps.gunframe++;

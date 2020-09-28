@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_flipper.h"
 
 static int  sound_chomp;
@@ -365,3 +366,4 @@ API_FUNC static void SP_monster_flipper(entity self)
 
 	swimmonster_start(self);
 }
+#endif

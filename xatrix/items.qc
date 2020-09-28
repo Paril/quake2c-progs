@@ -28,7 +28,11 @@ API_FUNC void(entity ent, gitem_t *it) Use_QuadFire =
 // RAFAEL
 API_FUNC void(entity self) SP_item_foodcube =
 {
+#ifdef SINGLE_PLAYER
 	if (deathmatch.intVal && (dmflags.intVal & DF_NO_HEALTH))
+#else
+	if (dmflags.intVal & DF_NO_HEALTH)
+#endif
 	{
 		G_FreeEdict (self);
 		return;

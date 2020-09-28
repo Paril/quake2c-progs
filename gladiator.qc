@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_gladiator.h"
 
 static int  sound_pain1;
@@ -453,3 +454,4 @@ API_FUNC static void SP_monster_gladb(entity self)
 {
 	SP_monster_gladiator(self);
 }
+#endif

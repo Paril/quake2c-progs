@@ -1,5 +1,4 @@
-#ifdef THE_RECKONING
-
+#if defined(THE_RECKONING) && defined(SINGLE_PLAYER)
 #include "m_fixbot.h"
 
 const int MZ2_fixbot_BLASTER_1 = MZ2_HOVER_BLASTER_1;

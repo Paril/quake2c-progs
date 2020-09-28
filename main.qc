@@ -47,9 +47,14 @@ static void() InitGame =
 	
 	maxclients = gi.cvar("maxclients", "4", CVAR_SERVERINFO | CVAR_LATCH);
 	maxspectators = gi.cvar("maxspectators", "4", CVAR_SERVERINFO);
+#ifdef SINGLE_PLAYER
 	deathmatch = gi.cvar("deathmatch", "0", CVAR_LATCH);
 	coop = gi.cvar("coop", "0", CVAR_LATCH);
 	skill = gi.cvar("skill", "1", CVAR_LATCH);
+#else
+	gi.cvar("deathmatch", "1", CVAR_NOSET);
+	gi.cvar_forceset("deathmatch", "1");
+#endif
 	maxentities = gi.cvar("maxentities", "1024", CVAR_LATCH);
 	
 	// change anytime vars
@@ -224,6 +229,7 @@ static void() CheckNeedPass =
 		gi.cvar_set("needpass", va("%d", need));
 	}
 }
+#ifdef SINGLE_PLAYER
 
 /*
 =================
@@ -232,29 +238,32 @@ CheckDMRules
 */
 static void() CheckDMRules =
 {
-	int         i;
-
 	if (level.intermission_framenum)
 		return;
 
 	if (!deathmatch.intVal)
 		return;
 
-	if (timelimit.intVal) {
-		if (level.time >= timelimit.intVal * 60) {
+	if (timelimit.intVal)
+	{
+		if (level.time >= timelimit.intVal * 60)
+		{
 			gi.bprintf(PRINT_HIGH, "Timelimit hit.\n");
 			EndDMLevel();
 			return;
 		}
 	}
 
-	if (fraglimit.intVal) {
-		for (i = 0 ; i < maxclients.intVal ; i++) {
+	if (fraglimit.intVal)
+	{
+		for (int i = 0 ; i < maxclients.intVal ; i++)
+		{
 			entity cl = itoe(i + 1);
 			if (!cl.inuse)
 				continue;
 
-			if (cl.client.resp.score >= fraglimit.intVal) {
+			if (cl.client.resp.score >= fraglimit.intVal)
+			{
 				gi.bprintf(PRINT_HIGH, "Fraglimit hit.\n");
 				EndDMLevel();
 				return;
@@ -262,6 +271,7 @@ static void() CheckDMRules =
 		}
 	}
 }
+#endif
 
 /*
 =============
@@ -307,9 +317,11 @@ static void() RunFrame =
 {
 	level.framenum++;
 	level.time = level.framenum * FRAMETIME;
-	
+
+#ifdef SINGLE_PLAYER
 	// choose a client for monsters to target this frame
 	AI_SetSightClient();
+#endif
 	
 	// exit intermissions
 	if (level.exitintermission)
@@ -334,23 +346,30 @@ static void() RunFrame =
 		ent.s.old_origin = ent.s.origin;
 		
 		// if the ground entity moved, make sure we are still on it
-		if ((ent.groundentity != null_entity) && (ent.groundentity.linkcount != ent.groundentity_linkcount)) {
+		if ((ent.groundentity != null_entity) && (ent.groundentity.linkcount != ent.groundentity_linkcount))
+#ifdef SINGLE_PLAYER
+		{
+#endif
 			ent.groundentity = null_entity;
-			if (!(ent.flags & (FL_SWIM | FL_FLY)) && (ent.svflags & SVF_MONSTER)) {
+#ifdef SINGLE_PLAYER
+			if (!(ent.flags & (FL_SWIM | FL_FLY)) && (ent.svflags & SVF_MONSTER))
 				M_CheckGround(ent);
-			}
 		}
+#endif
 	
-		if (i > 0 && i <= game.maxclients) {
+		if (i > 0 && i <= game.maxclients)
+		{
 			ClientBeginServerFrame(ent);
 			continue;
 		}
 	
 		G_RunEntity(ent);
 	}
-	
+#ifdef SINGLE_PLAYER
+
 	// see if it is time to end a deathmatch
 	CheckDMRules();
+#endif
 	
 	// see if needpass needs updated
 	CheckNeedPass();
@@ -361,15 +380,19 @@ static void() RunFrame =
 
 static void(bool autosave) PreWriteGame =
 {
+#ifdef SINGLE_PLAYER
 	if (!autosave)
 		SaveClientData();
 
 	game.autosaved = autosave;
+#endif
 };
 
 static void(bool autosave) PostWriteGame =
 {
+#ifdef SINGLE_PLAYER
 	game.autosaved = false;
+#endif
 };
 
 static void() PreReadGame =

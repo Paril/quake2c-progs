@@ -121,7 +121,7 @@ static void(entity self) SP_target_steam =
 		target_steam_start (self);
 }
 
-
+#ifdef SINGLE_PLAYER
 //==========================================================
 // target_anger
 //==========================================================
@@ -186,6 +186,7 @@ API_FUNC static void(entity self) SP_target_anger =
 	self.use = target_anger_use;
 	self.svflags = SVF_NOCLIENT;
 }
+#endif
 
 // ***********************************
 // target_killplayers
@@ -241,6 +242,7 @@ API_FUNC static void(entity self) SP_target_killplayers =
 	self.use = target_killplayers_use;
 	self.svflags = SVF_NOCLIENT;
 }
+#ifdef SINGLE_PLAYER
 
 /*QUAKED target_blacklight (1 0 1) (-16 -16 -24) (16 16 24) 
 Pulsing black light with sphere in the center
@@ -291,5 +293,5 @@ API_FUNC static void(entity ent) SP_target_orb =
 	ent.s.effects |= EF_SPHERETRANS;
 	gi.linkentity (ent);
 }
-
+#endif
 #endif

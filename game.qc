@@ -15,10 +15,16 @@ const server_flags_t SFL_CROSS_TRIGGER_MASK	= 0x000000ff;
 
 API_FUNC struct game_locals_t
 {
+#ifdef SINGLE_PLAYER
 	string	helpmessage1;
 	string	helpmessage2;
-	int		helpchanged;	// flash F1 icon if non 0, play sound
-					// and increment only if 1, 2, or 3
+	int		helpchanged;	// flash F1 icon if non 0, play sound; increment only if 1, 2, or 3
+	
+	// cross level triggers
+	server_flags_t	serverflags;
+	
+	bool	autosaved;
+#endif
 	
 	// can't store spawnpoint in level, because
 	// it would get overwritten by the savegame restore
@@ -27,11 +33,6 @@ API_FUNC struct game_locals_t
 	// store latched cvars here that we want to get at often
 	int	maxclients;
 	int	maxentities;
-	
-	// cross level triggers
-	server_flags_t	serverflags;
-	
-	bool	autosaved;
 } game;
 
 #define itoe(num) ((entity)(variant)(num))
@@ -60,7 +61,7 @@ enumflags : int
 	DF_ALLOW_EXIT,
 	DF_INFINITE_AMMO,
 	DF_QUAD_DROP,
-	DF_FIXED_FOV,
+	DF_FIXED_FOV,		// unused in Quake2C; this is outdated and unnecessary
 
 // RAFAEL
 	DF_QUADFIRE_DROP,
@@ -166,6 +167,5 @@ const int DEFAULT_BULLET_HSPREAD			= 300;
 const int DEFAULT_BULLET_VSPREAD			= 500;
 const int DEFAULT_SHOTGUN_HSPREAD			= 1000;
 const int DEFAULT_SHOTGUN_VSPREAD			= 500;
-const int DEFAULT_DEATHMATCH_SHOTGUN_COUNT	= 12;
 const int DEFAULT_SHOTGUN_COUNT				= 12;
 const int DEFAULT_SSHOTGUN_COUNT			= 20;

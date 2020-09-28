@@ -191,7 +191,7 @@ API_FUNC static void(entity self) SP_trigger_relay =
 	self.use = trigger_relay_use;
 }
 
-
+#ifdef SINGLE_PLAYER
 /*
 ==============================================================================
 
@@ -223,30 +223,38 @@ static void(entity self, entity other, entity cactivator) trigger_key_use =
 	}
 
 	gi.sound(cactivator, CHAN_AUTO, gi.soundindex("misc/keyuse.wav"), 1, ATTN_NORM, 0);
+
 	if (coop.intVal)
 	{
 		int     player;
 		entity	ent;
 
-		if (self.item->classname == "key_power_cube") {
+		if (self.item->classname == "key_power_cube")
+		{
 			int cube;
 
 			for (cube = 0; cube < 8; cube++)
 				if (cactivator.client.pers.power_cubes & (1 << cube))
 					break;
-			for (player = 1; player <= game.maxclients; player++) {
+
+			for (player = 1; player <= game.maxclients; player++)
+			{
 				ent = itoe(player);
 				if (!ent.inuse)
 					continue;
 				if (!ent.is_client)
 					continue;
-				if (ent.client.pers.power_cubes & (1 << cube)) {
+				if (ent.client.pers.power_cubes & (1 << cube))
+				{
 					ent.client.pers.inventory[index]--;
 					ent.client.pers.power_cubes &= ~(1 << cube);
 				}
 			}
-		} else {
-			for (player = 1; player <= game.maxclients; player++) {
+		}
+		else
+		{
+			for (player = 1; player <= game.maxclients; player++)
+			{
 				ent = itoe(player);
 				if (!ent.inuse)
 					continue;
@@ -255,9 +263,9 @@ static void(entity self, entity other, entity cactivator) trigger_key_use =
 				ent.client.pers.inventory[index] = 0;
 			}
 		}
-	} else {
-		cactivator.client.pers.inventory[index]--;
 	}
+	else
+		cactivator.client.pers.inventory[index]--;
 
 	G_UseTargets(self, cactivator);
 
@@ -266,18 +274,22 @@ static void(entity self, entity other, entity cactivator) trigger_key_use =
 
 API_FUNC static void(entity self) SP_trigger_key =
 {
-	if (!st.item) {
+	if (!st.item)
+	{
 		gi.dprintf("no key item for trigger_key at %s\n", vtos(self.s.origin));
 		return;
 	}
+	
 	self.item = FindItemByClassname(st.item);
 
-	if (!self.item) {
+	if (!self.item)
+	{
 		gi.dprintf("item %s not found for trigger_key at %s\n", st.item, vtos(self.s.origin));
 		return;
 	}
 
-	if (!self.target) {
+	if (!self.target)
+	{
 		gi.dprintf("%s at %s has no target\n", self.classname, vtos(self.s.origin));
 		return;
 	}
@@ -287,7 +299,7 @@ API_FUNC static void(entity self) SP_trigger_key =
 
 	self.use = trigger_key_use;
 }
-
+#endif
 
 /*
 ==============================================================================
@@ -644,7 +656,7 @@ API_FUNC static void(entity self) SP_trigger_gravity =
 	gi.linkentity(self);
 }
 
-
+#ifdef SINGLE_PLAYER
 /*
 ==============================================================================
 
@@ -658,7 +670,6 @@ Walking monsters that touch this will jump in the direction of the trigger's ang
 "speed" default to 200, the speed thrown forward
 "height" default to 200, the speed thrown upwards
 */
-
 static void(entity self, entity other, vector plane, csurface_t surf) trigger_monsterjump_touch =
 {
 	if (other.flags & (FL_FLY | FL_SWIM))
@@ -691,3 +702,4 @@ API_FUNC static void(entity self) SP_trigger_monsterjump =
 	self.touch = trigger_monsterjump_touch;
 	self.movedir.z = (float)st.height;
 }
+#endif

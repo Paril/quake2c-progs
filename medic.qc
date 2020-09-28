@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_medic.h"
 
 #ifdef GROUND_ZERO
@@ -1671,4 +1672,5 @@ API_FUNC static void SP_monster_medic_commander (entity self)
 	SP_monster_medic(self);
 	self.s.skinnum = 2;
 }
+#endif
 #endif

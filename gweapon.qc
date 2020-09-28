@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 /*
 =================
 check_dodge
@@ -32,7 +33,6 @@ void(entity self, vector start, vector dir, int speed) check_dodge =
 	}
 }
 
-
 /*
 =================
 fire_hit
@@ -52,24 +52,24 @@ bool(entity self, vector aim, int damage, int kick) fire_hit =
 	//see if enemy is in range
 	dir = self.enemy.s.origin - self.s.origin;
 	range = VectorLength(dir);
+
 	if (range > aim.x)
 		return false;
 
-	if (aim.y > self.mins.x && aim.y < self.maxs.x) {
+	if (aim.y > self.mins.x && aim.y < self.maxs.x)
 		// the hit is straight on so back the range up to the edge of their bbox
 		range -= self.enemy.maxs.x;
-	} else {
-		// this is a side hit so adjust the "right" value out to the edge of their bbox
-		if (aim.y < 0)
-			aim.y = self.enemy.mins.x;
-		else
-			aim.y = self.enemy.maxs.x;
-	}
+	// this is a side hit so adjust the "right" value out to the edge of their bbox
+	else if (aim.y < 0)
+		aim.y = self.enemy.mins.x;
+	else
+		aim.y = self.enemy.maxs.x;
 
 	point = self.s.origin + (range * dir);
 
 	gi.traceline(&tr, self.s.origin, point, self, MASK_SHOT);
-	if (tr.fraction < 1) {
+	if (tr.fraction < 1)
+	{
 		if (!tr.ent.takedamage)
 			return false;
 		// if it will hit any client/monster then hit the one we wanted to hit
@@ -98,6 +98,7 @@ bool(entity self, vector aim, int damage, int kick) fire_hit =
 		self.enemy.groundentity = null_entity;
 	return true;
 }
+#endif
 
 /*
 =================
@@ -119,7 +120,8 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 	int	content_mask = MASK_SHOT | MASK_WATER;
 	
 	gi.traceline(&tr, self.s.origin, start, self, MASK_SHOT);
-	if (!(tr.fraction < 1.0f)) {
+	if (!(tr.fraction < 1.0f))
+	{
 		dir = vectoangles(aimdir);
 
 		AngleVectors(dir, &forward, &right, &up);
@@ -130,7 +132,8 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 		end += (r * right);
 		end += (u * up);
 
-		if (gi.pointcontents(start) & MASK_WATER) {
+		if (gi.pointcontents(start) & MASK_WATER)
+		{
 			water = true;
 			water_start = start;
 			content_mask &= ~MASK_WATER;
@@ -139,26 +142,31 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 		gi.traceline(&tr, start, end, self, content_mask);
 
 		// see if we hit water
-		if (tr.contents & MASK_WATER) {
+		if (tr.contents & MASK_WATER)
+		{
 			int     color;
 
 			water = true;
 			water_start = tr.endpos;
 
-			if (start != tr.endpos) {
-				if (tr.contents & CONTENTS_WATER) {
+			if (start != tr.endpos)
+			{
+				if (tr.contents & CONTENTS_WATER)
+				{
 					if (tr.surface.name == "*brwater")
 						color = SPLASH_BROWN_WATER;
 					else
 						color = SPLASH_BLUE_WATER;
-				} else if (tr.contents & CONTENTS_SLIME)
+				}
+				else if (tr.contents & CONTENTS_SLIME)
 					color = SPLASH_SLIME;
 				else if (tr.contents & CONTENTS_LAVA)
 					color = SPLASH_LAVA;
 				else
 					color = SPLASH_UNKNOWN;
 
-				if (color != SPLASH_UNKNOWN) {
+				if (color != SPLASH_UNKNOWN)
+				{
 					gi.WriteByte(svc_temp_entity);
 					gi.WriteByte(TE_SPLASH);
 					gi.WriteByte(8);
@@ -185,27 +193,31 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 	}
 
 	// send gun puff / flash
-	if (!((tr.surface) && (tr.surface.flags & SURF_SKY))) {
-		if (tr.fraction < 1.0f) {
-			if (tr.ent.takedamage) {
+	if (!(tr.surface && (tr.surface.flags & SURF_SKY)))
+	{
+		if (tr.fraction < 1.0f)
+		{
+			if (tr.ent.takedamage)
 				T_Damage(tr.ent, self, self, aimdir, tr.endpos, tr.normal, damage, kick, DAMAGE_BULLET, mod);
-			} else {
-				if (strncmp(tr.surface.name, "sky", 3) != 0) {
-					gi.WriteByte(svc_temp_entity);
-					gi.WriteByte(te_impact);
-					gi.WritePosition(tr.endpos);
-					gi.WriteDir(tr.normal);
-					gi.multicast(tr.endpos, MULTICAST_PVS);
+			else if (strncmp(tr.surface.name, "sky", 3) != 0)
+			{
+				gi.WriteByte(svc_temp_entity);
+				gi.WriteByte(te_impact);
+				gi.WritePosition(tr.endpos);
+				gi.WriteDir(tr.normal);
+				gi.multicast(tr.endpos, MULTICAST_PVS);
 
-					if (self.is_client)
-						PlayerNoise(self, tr.endpos, PNOISE_IMPACT);
-				}
+#ifdef SINGLE_PLAYER
+				if (self.is_client)
+					PlayerNoise(self, tr.endpos, PNOISE_IMPACT);
+#endif
 			}
 		}
 	}
 
 	// if went through water, determine where the end and make a bubble trail
-	if (water) {
+	if (water)
+	{
 		vector	pos;
 
 		dir = tr.endpos - water_start;
@@ -251,9 +263,7 @@ Shoots shotgun pellets.  Used by shotgun and super shotgun.
 */
 void(entity self, vector start, vector aimdir, int damage, int kick, int hspread, int vspread, int count, means_of_death_t mod) fire_shotgun =
 {
-	int     i;
-
-	for (i = 0; i < count; i++)
+	for (int i = 0; i < count; i++)
 		fire_lead(self, start, aimdir, damage, kick, TE_SHOTGUN, hspread, vspread, mod);
 }
 
@@ -272,21 +282,27 @@ static void(entity self, entity other, vector normal, csurface_t surf) blaster_t
 	if (other == self.owner)
 		return;
 
-	if (surf && (surf.flags & SURF_SKY)) {
+	if (surf && (surf.flags & SURF_SKY))
+	{
 		G_FreeEdict(self);
 		return;
 	}
+#ifdef SINGLE_PLAYER
 
 	if (self.owner.is_client)
 		PlayerNoise(self.owner, self.s.origin, PNOISE_IMPACT);
+#endif
 
-	if (other.takedamage) {
+	if (other.takedamage)
+	{
 		if (self.spawnflags & 1)
 			mod = MOD_HYPERBLASTER;
 		else
 			mod = MOD_BLASTER;
 		T_Damage(other, self, self.owner, self.velocity, self.s.origin, normal, self.dmg, 1, DAMAGE_ENERGY, mod);
-	} else {
+	}
+	else
+	{
 		gi.WriteByte(svc_temp_entity);
 #ifdef THE_RECKONING
 		if (self.s.effects & EF_BLUEHYPERBLASTER)	// Knightmare- this was checking bit TE_BLUEHYPERBLASTER
@@ -343,12 +359,15 @@ void(entity self, vector start, vector dir, int damage, int speed, int effect, b
 		bolt.spawnflags = 1;
 	gi.linkentity(bolt);
 
+#ifdef SINGLE_PLAYER
 	if (self.is_client)
 		check_dodge(self, bolt.s.origin, dir, speed);
+#endif
 
 	gi.traceline(&tr, self.s.origin, bolt.s.origin, bolt, MASK_SHOT);
 	
-	if (tr.fraction < 1.0f) {
+	if (tr.fraction < 1.0f)
+	{
 		bolt.s.origin += (-10 * dir);
 		bolt.touch(bolt, tr.ent, vec3_origin, null_surface);
 	}
@@ -364,12 +383,15 @@ void(entity ent) Grenade_Explode =
 {
 	vector	origin;
 	int	mod;
+#ifdef SINGLE_PLAYER
 
 	if (ent.owner.is_client)
 		PlayerNoise(ent.owner, ent.s.origin, PNOISE_IMPACT);
+#endif
 
 	//FIXME: if we are onground then raise our Z just a bit since we are a point?
-	if (ent.enemy) {
+	if (ent.enemy)
+	{
 		float	points;
 		vector	v;
 		vector dir;
@@ -396,12 +418,15 @@ void(entity ent) Grenade_Explode =
 
 	origin = ent.s.origin + (-0.02f * ent.velocity);
 	gi.WriteByte(svc_temp_entity);
-	if (ent.waterlevel) {
+	if (ent.waterlevel)
+	{
 		if (ent.groundentity != null_entity)
 			gi.WriteByte(TE_GRENADE_EXPLOSION_WATER);
 		else
 			gi.WriteByte(TE_ROCKET_EXPLOSION_WATER);
-	} else {
+	}
+	else
+	{
 		if (ent.groundentity != null_entity)
 			gi.WriteByte(TE_GRENADE_EXPLOSION);
 		else
@@ -418,20 +443,24 @@ static void(entity ent, entity other, vector plane, csurface_t surf) Grenade_Tou
 	if (other == ent.owner)
 		return;
 
-	if (surf && (surf.flags & SURF_SKY)) {
+	if (surf && (surf.flags & SURF_SKY))
+	{
 		G_FreeEdict(ent);
 		return;
 	}
 
-	if (!other.takedamage) {
-		if (ent.spawnflags & 1) {
+	if (!other.takedamage)
+	{
+		if (ent.spawnflags & 1)
+		{
 			if (random() > 0.5f)
 				gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/hgrenb1a.wav"), 1, ATTN_NORM, 0);
 			else
 				gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/hgrenb2a.wav"), 1, ATTN_NORM, 0);
-		} else {
-			gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/grenlb1b.wav"), 1, ATTN_NORM, 0);
 		}
+		else
+			gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/grenlb1b.wav"), 1, ATTN_NORM, 0);
+
 		return;
 	}
 
@@ -515,7 +544,8 @@ void(entity self, vector start, vector aimdir, int damage, int speed, float time
 
 	if (timer <= 0.0f)
 		Grenade_Explode(grenade);
-	else {
+	else
+	{
 		gi.sound(self, CHAN_WEAPON, gi.soundindex("weapons/hgrent1a.wav"), 1, ATTN_NORM, 0);
 		gi.linkentity(grenade);
 	}
@@ -537,29 +567,34 @@ static void(entity ent, entity other, vector normal, csurface_t surf) rocket_tou
 	if (other == ent.owner)
 		return;
 
-	if (surf && (surf.flags & SURF_SKY)) {
+	if (surf && (surf.flags & SURF_SKY))
+	{
 		G_FreeEdict(ent);
 		return;
 	}
+#ifdef SINGLE_PLAYER
 
 	if (ent.owner.is_client)
 		PlayerNoise(ent.owner, ent.s.origin, PNOISE_IMPACT);
+#endif
 
 	// calculate position for the explosion entity
 	origin = ent.s.origin + (-0.02f * ent.velocity);
 
-	if (other.takedamage) {
+	if (other.takedamage)
 		T_Damage(other, ent, ent.owner, ent.velocity, ent.s.origin, normal, ent.dmg, 0, 0, MOD_ROCKET);
-	} else {
-		// don't throw any debris in net games
-		if (!deathmatch.intVal && !coop.intVal) {
-			if ((surf) && !(surf.flags & (SURF_WARP | SURF_TRANS33 | SURF_TRANS66 | SURF_FLOWING))) {
-				n = Q_rand() % 5;
-				while (n--)
-					ThrowDebris(ent, "models/objects/debris2/tris.md2", 2, ent.s.origin);
-			}
+#ifdef SINGLE_PLAYER
+	// don't throw any debris in net games
+	else if (!deathmatch.intVal && !coop.intVal)
+	{
+		if ((surf) && !(surf.flags & (SURF_WARP | SURF_TRANS33 | SURF_TRANS66 | SURF_FLOWING)))
+		{
+			n = Q_rand() % 5;
+			while (n--)
+				ThrowDebris(ent, "models/objects/debris2/tris.md2", 2, ent.s.origin);
 		}
 	}
+#endif
 
 	T_RadiusDamage(ent, ent.owner, ent.radius_dmg, other, ent.dmg_radius, MOD_R_SPLASH);
 
@@ -600,8 +635,10 @@ entity(entity self, vector start, vector dir, int damage, int speed, float damag
 	rocket.s.sound = gi.soundindex("weapons/rockfly.wav");
 	rocket.classname = "rocket";
 
+#ifdef SINGLE_PLAYER
 	if (self.is_client)
 		check_dodge(self, rocket.s.origin, dir, speed);
+#endif
 
 	gi.linkentity(rocket);
 	return rocket;
@@ -661,17 +698,19 @@ void(entity self, vector start, vector aimdir, int damage, int kick) fire_rail =
 	gi.WritePosition(start);
 	gi.WritePosition(tr.endpos);
 	gi.multicast(self.s.origin, MULTICAST_PHS);
-//  gi.multicast (start, MULTICAST_PHS);
-	if (water) {
+	if (water)
+	{
 		gi.WriteByte(svc_temp_entity);
 		gi.WriteByte(TE_RAILTRAIL);
 		gi.WritePosition(start);
 		gi.WritePosition(tr.endpos);
 		gi.multicast(tr.endpos, MULTICAST_PHS);
 	}
+#ifdef SINGLE_PLAYER
 
 	if (self.is_client)
 		PlayerNoise(self, tr.endpos, PNOISE_IMPACT);
+#endif
 }
 
 
@@ -687,7 +726,8 @@ static void(entity self) bfg_explode =
 	vector	v;
 	float	dist;
 
-	if (self.s.frame == 0) {
+	if (self.s.frame == 0)
+	{
 		// the BFG effect
 		ent = world;
 		while ((ent = findradius(ent, self.s.origin, self.dmg_radius)))
@@ -728,13 +768,16 @@ static void(entity self, entity other, vector normal, csurface_t surf) bfg_touch
 	if (other == self.owner)
 		return;
 
-	if (surf && (surf.flags & SURF_SKY)) {
+	if (surf && (surf.flags & SURF_SKY))
+	{
 		G_FreeEdict(self);
 		return;
 	}
+#ifdef SINGLE_PLAYER
 
 	if (self.owner.is_client)
 		PlayerNoise(self.owner, self.s.origin, PNOISE_IMPACT);
+#endif
 
 	// core explosion - prevents firing it into the wall/floor
 	if (other.takedamage)
@@ -769,13 +812,16 @@ static void(entity self) bfg_think =
 	vector	dir;
 	vector	start;
 	vector	end;
-	int     dmg;
 	trace_t	tr = { 0 };
+#ifdef SINGLE_PLAYER
 
-	if (deathmatch.intVal)
-		dmg = 5;
-	else
+	if !(deathmatch.intVal)
 		dmg = 10;
+	else
+		dmg = 5;
+#else
+	const int dmg = 5;
+#endif
 
 	ent = world;
 	while ((ent = findradius(ent, self.s.origin, 256)))
@@ -804,7 +850,8 @@ static void(entity self) bfg_think =
 		ignore = self;
 		start = self.s.origin;
 		end = start + (2048 * dir);
-		while (1) {
+		while (1)
+		{
 			gi.traceline(&tr, start, end, ignore, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_DEADMONSTER);
 
 			if (!tr.ent)
@@ -819,7 +866,8 @@ static void(entity self) bfg_think =
 #ifdef GROUND_ZERO
 				&& !(tr.ent.svflags & SVF_DAMAGEABLE)
 #endif
-				) {
+				)
+			{
 				gi.WriteByte(svc_temp_entity);
 				gi.WriteByte(TE_LASER_SPARKS);
 				gi.WriteByte(4);
@@ -875,8 +923,10 @@ void(entity self, vector start, vector dir, int damage, int speed, float damage_
 	bfg.teammaster = bfg;
 	bfg.teamchain = world;
 
+#ifdef SINGLE_PLAYER
 	if (self.is_client)
 		check_dodge(self, bfg.s.origin, dir, speed);
+#endif
 
 	gi.linkentity(bfg);
 }

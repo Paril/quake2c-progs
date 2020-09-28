@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_flyer.h"
 
 static int  sound_sight;
@@ -659,4 +660,5 @@ API_FUNC static void SP_monster_kamikaze (entity self)
 	self.s.effects |= EF_ROCKET;
 	self.mass = 100;
 }
+#endif
 #endif

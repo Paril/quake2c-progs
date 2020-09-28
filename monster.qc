@@ -1,11 +1,8 @@
+#ifdef SINGLE_PLAYER
 //
 // monster weapons
 //
 
-//FIXME mosnters should call these with a totally accurate direction
-// and we can mess it up based on skill.  Spread should be for normal
-// and we can tighten or loosen based on skill.  We could muck with
-// the damages too, but I'm not sure that's such a good idea.
 inline void(entity self, vector start, vector dir, int damage, int kick, int hspread, int vspread, int flashtype) monster_fire_bullet =
 {
 	fire_bullet(self, start, dir, damage, kick, hspread, vspread, MOD_UNKNOWN);
@@ -814,4 +811,5 @@ void(entity self) stationarymonster_start =
 	self.think = stationarymonster_start_go;
 	monster_start (self);
 }
+#endif
 #endif

@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_mutant.h"
 
 static int  sound_swing;
@@ -698,3 +699,4 @@ API_FUNC static void SP_monster_mutant(entity self)
 	self.monsterinfo.scale = MODEL_SCALE;
 	walkmonster_start(self);
 }
+#endif

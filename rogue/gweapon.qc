@@ -15,9 +15,11 @@ static void(entity self, entity other, vector normal, csurface_t surf) flechette
 		G_FreeEdict (self);
 		return;
 	}
+#ifdef SINGLE_PLAYER
 
 	if (self.is_client)
 		PlayerNoise(self.owner, self.s.origin, PNOISE_IMPACT);
+#endif
 
 	if (other.takedamage)
 	{
@@ -61,8 +63,10 @@ void(entity self, vector start, vector dir, int damage, int speed, int kick) fir
 
 	gi.linkentity (flechette);
 	
+#ifdef SINGLE_PLAYER
 	if (self.is_client)
 		check_dodge (self, flechette.s.origin, dir, speed);
+#endif
 }
 
 // **************************
@@ -86,10 +90,14 @@ static void(entity ent) Prox_Explode =
 	entity cowner = ent;
 
 	if (ent.teammaster)
+#ifdef SINGLE_PLAYER
 	{
+#endif
 		cowner = ent.teammaster;
+#ifdef SINGLE_PLAYER
 		PlayerNoise(cowner, ent.s.origin, PNOISE_IMPACT);
 	}
+#endif
 
 	// play quad sound if appopriate
 	if (ent.dmg > PROX_DAMAGE)
@@ -194,13 +202,18 @@ static void(entity ent) prox_open =
 			// or it's a player start point
 			// and we can see it
 			// blow up
-			if (((((search.svflags & SVF_MONSTER) || (search.is_client)) && (search.health > 0)) || 
-					((deathmatch.intVal) && (
-						(search.classname == "info_player_deathmatch") ||
-						(search.classname == "info_player_start") ||
-						(search.classname == "info_player_coop") ||
-						(search.classname == "misc_teleporter_dest"))))
-				&& (visible (search, ent)))
+			if ((((((search.svflags & SVF_MONSTER) || search.is_client) && (search.health > 0)) ||
+#ifdef SINGLE_PLAYER
+					(deathmatch.intVal &&
+#endif
+						(search.classname == "info_player_deathmatch" ||
+						search.classname == "info_player_start" ||
+						search.classname == "info_player_coop" ||
+						search.classname == "misc_teleporter_dest")))
+#ifdef SINGLE_PLAYER
+					)
+#endif
+				&& visible(search, ent))
 			{
 				gi.sound (ent, CHAN_VOICE, gi.soundindex ("weapons/proxwarn.wav"), 1, ATTN_NORM, 0);
 				Prox_Explode (ent);
@@ -526,9 +539,11 @@ static void(entity inflictor, entity attacker, float damage, entity ignore, floa
 
 static void(entity ent) Nuke_Explode =
 {
+#ifdef SINGLE_PLAYER
 	if (ent.teammaster.is_client)
 		PlayerNoise(ent.teammaster, ent.s.origin, PNOISE_IMPACT);
 
+#endif
 	T_RadiusNukeDamage(ent, ent.teammaster, ent.dmg, ent, ent.dmg_radius, MOD_NUKE);
 
 	if (ent.dmg > NUKE_DAMAGE)
@@ -754,7 +769,7 @@ static void(entity self) tesla_blow =
 
 static void(entity self) tesla_think_active =
 {
-	if(level.framenum > self.air_finished_framenum)
+	if (level.framenum > self.air_finished_framenum)
 	{
 		tesla_remove(self);
 		return;
@@ -770,30 +785,32 @@ static void(entity self) tesla_think_active =
 
 	int num = gi.BoxEdicts(entities, self.teamchain.absmin, self.teamchain.absmax, MAX_EDICTS, AREA_SOLID);
 
-	for(int i = 0; i < num; i++)
+	for (int i = 0; i < num; i++)
 	{
 		// if the tesla died while zapping things, stop zapping.
 		if(!self.inuse)
 			break;
 
 		entity hit = entities[i];
-		if(!hit.inuse)
+		if (!hit.inuse)
 			continue;
-		if(hit == self)
+		if (hit == self)
 			continue;
-		if(hit.health < 1)
+		if (hit.health < 1)
 			continue;
+#ifdef SINGLE_PLAYER
 		// don't hit clients in single-player or coop
-		if(hit.is_client)
+		if (hit.is_client)
 			if (coop.intVal || !deathmatch.intVal)
 				continue;
-		if(!(hit.svflags & (SVF_MONSTER | SVF_DAMAGEABLE)) && !hit.is_client)
+#endif
+		if (!(hit.svflags & (SVF_MONSTER | SVF_DAMAGEABLE)) && !hit.is_client)
 			continue;
 	
 		trace_t tr;
 		gi.traceline(&tr, start, hit.s.origin, self, MASK_SHOT);
 
-		if(tr.fraction == 1 || tr.ent == hit)
+		if (tr.fraction == 1 || tr.ent == hit)
 		{
 			vector dir = hit.s.origin - start;
 			
@@ -801,11 +818,13 @@ static void(entity self) tesla_think_active =
 			if (self.dmg > TESLA_DAMAGE)
 				gi.sound(self, CHAN_ITEM, gi.soundindex("items/damage3.wav"), 1, ATTN_NORM, 0);
 
+#ifdef SINGLE_PLAYER
 			// PGM - don't do knockback to walking monsters
-			if((hit.svflags & SVF_MONSTER) && !(hit.flags & (FL_FLY|FL_SWIM)))
+			if ((hit.svflags & SVF_MONSTER) && !(hit.flags & (FL_FLY|FL_SWIM)))
 				T_Damage (hit, self, self.teammaster, dir, tr.endpos, tr.normal,
 					self.dmg, 0, 0, MOD_TESLA);
 			else
+#endif
 				T_Damage (hit, self, self.teammaster, dir, tr.endpos, tr.normal,
 					self.dmg, TESLA_KNOCKBACK, 0, MOD_TESLA);
 
@@ -828,43 +847,40 @@ static void(entity self) tesla_think_active =
 
 static void(entity self) tesla_activate =
 {
-	entity	trigger;
-	entity	search;
-
 	if (gi.pointcontents (self.s.origin) & (CONTENTS_SLIME|CONTENTS_LAVA|CONTENTS_WATER))
 	{
 		tesla_blow (self);
 		return;
 	}
-
+	
+#ifdef SINGLE_PLAYER
 	// only check for spawn points in deathmatch
 	if (deathmatch.intVal)
 	{
-		search = world;
+#endif
+		entity search = world;
 		while ((search = findradius(search, self.s.origin, 1.5*TESLA_DAMAGE_RADIUS)))
 		{
 			// if it's a monster or player with health > 0
 			// or it's a deathmatch start point
 			// and we can see it
 			// blow up
-			if(search.classname)
+			if (search.classname &&
+				(search.classname == "info_player_deathmatch"
+				|| search.classname == "info_player_start"
+				|| search.classname == "info_player_coop"
+				|| search.classname == "misc_teleporter_dest")
+				&& visible(search, self))
 			{
-				if (   ( (search.classname == "info_player_deathmatch")
-					|| (search.classname == "info_player_start")
-					|| (search.classname == "info_player_coop")
-					|| (search.classname == "misc_teleporter_dest")
-					) 
-					&& (visible (search, self))
-				   )
-				{
-					tesla_remove (self);
-					return;
-				}
+				tesla_remove (self);
+				return;
 			}
 		}
+#ifdef SINGLE_PLAYER
 	}
+#endif
 
-	trigger = G_Spawn();
+	entity trigger = G_Spawn();
 	trigger.s.origin = self.s.origin;
 	trigger.mins = [ -TESLA_DAMAGE_RADIUS, -TESLA_DAMAGE_RADIUS, self.mins[2] ];
 	trigger.maxs = [ TESLA_DAMAGE_RADIUS, TESLA_DAMAGE_RADIUS, TESLA_DAMAGE_RADIUS ];
@@ -877,8 +893,10 @@ static void(entity self) tesla_activate =
 	gi.linkentity (trigger);
 
 	self.s.angles = vec3_origin;
+#ifdef SINGLE_PLAYER
 	// clear the owner if in deathmatch
 	if (deathmatch.intVal)
+#endif
 		self.owner = 0;
 	self.teamchain = trigger;
 	self.think = tesla_think_active;
@@ -905,27 +923,28 @@ static void(entity ent) tesla_think =
 		ent.s.frame = 14;
 		ent.think = tesla_activate;
 		ent.nextthink = level.framenum + 1;
+		return;
 	}
-	else
+
+	if (ent.s.frame > 9)
 	{
-		if(ent.s.frame > 9)
+		if (ent.s.frame == 10)
+#ifdef SINGLE_PLAYER
 		{
-			if(ent.s.frame == 10)
-			{
-				if (ent.owner && ent.owner.is_client)
-				{
-					PlayerNoise(ent.owner, ent.s.origin, PNOISE_WEAPON);		// PGM
-				}
-				ent.s.skinnum = 1;
-			}
-			else if(ent.s.frame == 12)
-				ent.s.skinnum = 2;
-			else if(ent.s.frame == 14)
-				ent.s.skinnum = 3;
+			if (ent.owner && ent.owner.is_client)
+				PlayerNoise(ent.owner, ent.s.origin, PNOISE_WEAPON);		// PGM
+#endif
+			ent.s.skinnum = 1;
+#ifdef SINGLE_PLAYER
 		}
-		ent.think = tesla_think;
-		ent.nextthink = level.framenum + 1;
+#endif
+		else if(ent.s.frame == 12)
+			ent.s.skinnum = 2;
+		else if(ent.s.frame == 14)
+			ent.s.skinnum = 3;
 	}
+	ent.think = tesla_think;
+	ent.nextthink = level.framenum + 1;
 }
 
 static void(entity ent, entity other, vector normal, csurface_t surf) tesla_lava =
@@ -978,10 +997,12 @@ void(entity self, vector start, vector aimdir, int damage_multiplier, int speed)
 	// blow up on contact with lava & slime code
 	tesla.touch = tesla_lava;
 
-	if (deathmatch.intVal)
-		tesla.health = 20;
+#ifdef SINGLE_PLAYER
+	if !(deathmatch.intVal)
+		tesla.health = 30;
 	else
-		tesla.health = 30;		// FIXME - change depending on skill?
+#endif
+		tesla.health = 20;
 
 	tesla.takedamage = true;
 	tesla.die = tesla_die;
@@ -1055,9 +1076,11 @@ static void(entity self, vector start, vector aimdir, vector offset, int damage,
 			gi.WritePosition (tr.endpos);
 			gi.WriteDir (tr.normal);
 			gi.multicast (tr.endpos, MULTICAST_PVS);
+#ifdef SINGLE_PLAYER
 
 			if (self.is_client)
 				PlayerNoise(self, tr.endpos, PNOISE_IMPACT);
+#endif
 		}
 	}
 
@@ -1138,9 +1161,11 @@ static void(entity self, entity other, vector normal, csurface_t surf) blaster2_
 		G_FreeEdict (self);
 		return;
 	}
+#ifdef SINGLE_PLAYER
 
 	if (self.owner && self.owner.is_client)
 		PlayerNoise(self.owner, self.s.origin, PNOISE_IMPACT);
+#endif
 
 	if (other.takedamage)
 	{
@@ -1203,8 +1228,10 @@ void(entity self, vector start, vector dir, int damage, int speed, int effect, b
 	bolt.classname = "bolt";
  	gi.linkentity (bolt);
 
+#ifdef SINGLE_PLAYER
 	if (self.is_client)
 		check_dodge (self, bolt.s.origin, dir, speed);
+#endif
 
 	trace_t	tr;
 	gi.traceline (&tr, self.s.origin, bolt.s.origin, bolt, MASK_SHOT);
@@ -1301,9 +1328,11 @@ static void(entity self, entity other, vector normal, csurface_t surf) tracker_t
 		G_FreeEdict (self);
 		return;
 	}
+#ifdef SINGLE_PLAYER
 
 	if (self.is_client)
 		PlayerNoise(self.owner, self.s.origin, PNOISE_IMPACT);
+#endif
 
 	if (other.takedamage)
 	{
@@ -1315,8 +1344,10 @@ static void(entity self, entity other, vector normal, csurface_t surf) tracker_t
 				// now this does no damage, just knockback
 				T_Damage (other, self, self.owner, self.velocity, self.s.origin, normal,
 							0, (self.dmg*3), TRACKER_IMPACT_FLAGS, MOD_TRACKER);
-				
+
+#ifdef SINGLE_PLAYER
 				if (!(other.flags & (FL_FLY|FL_SWIM)))
+#endif
 					other.velocity[2] += 140;
 				
 				float damagetime = (self.dmg * FRAMETIME) / TRACKER_DAMAGE_TIME;
@@ -1366,7 +1397,6 @@ static void(entity self) tracker_fly =
 	VectorNormalize (dir);
 	self.s.angles = vectoangles(dir);
 	self.velocity = dir * self.speed;
-	self.monsterinfo.saved_goal = dest;
 
 	self.nextthink = level.framenum + 1;
 }
@@ -1405,8 +1435,10 @@ void(entity self, vector start, vector dir, int damage, int cspeed, entity cenem
 		bolt.think = G_FreeEdict;
 	}
 
+#ifdef SINGLE_PLAYER
 	if (self.is_client)
 		check_dodge (self, bolt.s.origin, dir, cspeed);
+#endif
 
 	trace_t tr;
 	gi.traceline(&tr, self.s.origin, bolt.s.origin, bolt, MASK_SHOT);

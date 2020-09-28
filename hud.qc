@@ -11,7 +11,9 @@ void(entity ent, entity killer) DeathmatchScoreboardMessage;
 
 void(entity ent) MoveClientToIntermission =
 {
+#ifdef SINGLE_PLAYER
 	if (deathmatch.intVal || coop.intVal)
+#endif
 		ent.client.showscores = true;
 	ent.s.origin = level.intermission_origin;
 	ent.client.ps.pmove.origin = level.intermission_origin;
@@ -52,13 +54,17 @@ void(entity ent) MoveClientToIntermission =
 	ent.solid = SOLID_NOT;
 
 	gi.linkentity(ent);
-	// add the layout
 
-	if (deathmatch.intVal || coop.intVal) {
+	// add the layout
+#ifdef SINGLE_PLAYER
+	if (deathmatch.intVal || coop.intVal)
+	{
+#endif
 		DeathmatchScoreboardMessage(ent, world);
 		gi.unicast(ent, true);
+#ifdef SINGLE_PLAYER
 	}
-
+#endif
 }
 
 void(entity targ) BeginIntermission =
@@ -68,7 +74,9 @@ void(entity targ) BeginIntermission =
 	if (level.intermission_framenum)
 		return;     // already activated
 
+#ifdef SINGLE_PLAYER
 	game.autosaved = false;
+#endif
 
 	// respawn any dead clients
 	for (int i = 0 ; i < game.maxclients ; i++)
@@ -83,6 +91,7 @@ void(entity targ) BeginIntermission =
 	level.intermission_framenum = level.framenum;
 	level.changemap = targ.map;
 
+#ifdef SINGLE_PLAYER
 	if (strstr(level.changemap, "*") != -1)
 	{
 		if (coop.intVal)
@@ -109,6 +118,7 @@ void(entity targ) BeginIntermission =
 			return;
 		}
 	}
+#endif
 
 	level.exitintermission = 0;
 
@@ -257,12 +267,15 @@ Display the scoreboard
 void(entity ent) Cmd_Score_f =
 {
 	ent.client.showinventory = false;
+#ifdef SINGLE_PLAYER
 	ent.client.showhelp = false;
 
 	if (!deathmatch.intVal && !coop.intVal)
 		return;
+#endif
 
-	if (ent.client.showscores) {
+	if (ent.client.showscores)
+	{
 		ent.client.showscores = false;
 		return;
 	}
@@ -271,7 +284,7 @@ void(entity ent) Cmd_Score_f =
 	DeathmatchScoreboard(ent);
 }
 
-
+#ifdef SINGLE_PLAYER
 /*
 ==================
 HelpComputer
@@ -315,7 +328,7 @@ static void(entity ent) HelpComputer =
 	gi.WriteString(str);
 	gi.unicast(ent, true);
 }
-
+#endif
 
 /*
 ==================
@@ -326,8 +339,10 @@ Display the current help message
 */
 void(entity ent) Cmd_Help_f =
 {
+#ifdef SINGLE_PLAYER
 	// this is for backwards compatability
-	if (deathmatch.intVal) {
+	if (deathmatch.intVal)
+	{
 		Cmd_Score_f(ent);
 		return;
 	}
@@ -343,6 +358,9 @@ void(entity ent) Cmd_Help_f =
 	ent.client.showhelp = true;
 	ent.client.pers.helpchanged = 0;
 	HelpComputer(ent);
+#else
+	Cmd_Score_f(ent);
+#endif
 }
 
 
@@ -485,19 +503,25 @@ void(entity ent) G_SetStats =
 	// layouts
 	//
 	ent.client.ps.stats[STAT_LAYOUTS] = 0;
+#ifdef SINGLE_PLAYER
 
-	if (deathmatch.intVal) {
-		if (ent.client.pers.health <= 0 || level.intermission_framenum
-			|| ent.client.showscores)
+	if (deathmatch.intVal)
+	{
+#endif
+		if (ent.client.pers.health <= 0 || level.intermission_framenum || ent.client.showscores)
 			ent.client.ps.stats[STAT_LAYOUTS] |= 1;
 		if (ent.client.showinventory && ent.client.pers.health > 0)
 			ent.client.ps.stats[STAT_LAYOUTS] |= 2;
-	} else {
+#ifdef SINGLE_PLAYER
+	}
+	else
+	{
 		if (ent.client.showscores || ent.client.showhelp)
 			ent.client.ps.stats[STAT_LAYOUTS] |= 1;
 		if (ent.client.showinventory && ent.client.pers.health > 0)
 			ent.client.ps.stats[STAT_LAYOUTS] |= 2;
 	}
+#endif
 
 	//
 	// frags
@@ -507,10 +531,12 @@ void(entity ent) G_SetStats =
 	//
 	// help icon / current weapon if not shown
 	//
+#ifdef SINGLE_PLAYER
 	if (ent.client.pers.helpchanged && (level.framenum & 8))
 		ent.client.ps.stats[STAT_HELPICON] = gi.imageindex("i_help");
-	else if ((ent.client.pers.hand == CENTER_HANDED || ent.client.ps.fov > 91)
-			 && ent.client.pers.weapon)
+	else
+#endif
+	if ((ent.client.pers.hand == CENTER_HANDED || ent.client.ps.fov > 91) && ent.client.pers.weapon)
 		ent.client.ps.stats[STAT_HELPICON] = gi.imageindex(ent.client.pers.weapon->icon);
 	else
 		ent.client.ps.stats[STAT_HELPICON] = 0;

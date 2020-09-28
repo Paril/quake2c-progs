@@ -1,5 +1,5 @@
+#ifdef SINGLE_PLAYER
 #include "m_insane.h"
-
 
 static int  sound_fist;
 static int  sound_shake;
@@ -666,3 +666,4 @@ API_FUNC static void SP_misc_insane(entity self)
 		self.s.skinnum = Q_rand() % 3;
 	}
 }
+#endif

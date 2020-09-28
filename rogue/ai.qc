@@ -1,10 +1,4 @@
-#ifdef GROUND_ZERO
-
-inline float(entity self, entity other) realrange =
-{
-	return VectorLength(self.s.origin - other.s.origin);
-}
-
+#if defined(GROUND_ZERO) && defined(SINGLE_PLAYER)
 //===============================
 // BLOCKED Logic
 //===============================

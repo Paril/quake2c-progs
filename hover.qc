@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_hover.h"
 
 static int  sound_pain1;
@@ -624,7 +625,6 @@ API_FUNC static void SP_monster_hover(entity self)
 	self.monsterinfo.stand = hover_stand;
 	self.monsterinfo.walk = hover_walk;
 	self.monsterinfo.run = hover_run;
-//  self.monsterinfo.dodge = hover_dodge;
 	self.monsterinfo.attack = hover_start_attack;
 	self.monsterinfo.sight = hover_sight;
 	self.monsterinfo.search = hover_search;
@@ -643,4 +643,5 @@ API_FUNC static void SP_monster_daedalus(entity self)
 	SP_monster_hover(self);
 	self.s.skinnum = 2;
 }
+#endif
 #endif

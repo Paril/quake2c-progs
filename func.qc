@@ -354,7 +354,7 @@ static void(entity ent) plat_hit_top =
 	ent.nextthink = level.framenum + 3 * BASE_FRAMERATE;
 }
 
-#ifdef GROUND_ZERO
+#if defined(GROUND_ZERO) && defined(SINGLE_PLAYER)
 void(entity ent) plat2_kill_danger_area;
 void(entity ent) plat2_spawn_danger_area;
 #endif
@@ -367,8 +367,8 @@ static void(entity ent) plat_hit_bottom =
 		ent.s.sound = 0;
 	}
 	ent.moveinfo.state = STATE_BOTTOM;
+#if defined(GROUND_ZERO) && defined(SINGLE_PLAYER)
 
-#ifdef GROUND_ZERO
 	plat2_kill_danger_area (ent);
 #endif
 }
@@ -382,8 +382,8 @@ static void(entity ent) plat_go_down =
 	}
 	ent.moveinfo.state = STATE_DOWN;
 	Move_Calc(ent, ent.moveinfo.end_origin, plat_hit_bottom);
+#if defined(GROUND_ZERO) && defined(SINGLE_PLAYER)
 
-#ifdef GROUND_ZERO
 	plat2_spawn_danger_area(ent);
 #endif
 }
@@ -1315,7 +1315,9 @@ API_FUNC static void(entity ent) SP_func_door =
 
 	if (!ent.speed)
 		ent.speed = 100f;
+#ifdef SINGLE_PLAYER
 	if (deathmatch.intVal)
+#endif
 		ent.speed *= 2;
 
 	if (!ent.accel)

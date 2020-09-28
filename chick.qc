@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_chick.h"
 
 static int  sound_missile_prelaunch;
@@ -890,4 +891,5 @@ API_FUNC static void(entity self) SP_monster_chick_heat =
 	SP_monster_chick (self);
 	self.s.skinnum = 3;
 }
+#endif
 #endif

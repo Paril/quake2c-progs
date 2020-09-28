@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_parasite.h"
 
 static int  sound_pain1;
@@ -626,3 +627,4 @@ API_FUNC static void SP_monster_parasite(entity self)
 
 	walkmonster_start(self);
 }
+#endif

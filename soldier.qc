@@ -1,5 +1,5 @@
+#ifdef SINGLE_PLAYER
 #include "m_soldier.h"
-
 
 PROGS_LOCAL_STATIC int  sound_idle;
 PROGS_LOCAL_STATIC int  sound_sight1;
@@ -1781,4 +1781,5 @@ API_FUNC static void(entity self) SP_monster_soldier_lasergun =
 	self.gib_health = -30;
 		
 }
+#endif
 #endif

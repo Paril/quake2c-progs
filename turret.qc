@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 void AnglesNormalize(inout vector vec)
 {
 	while (vec[0] > 360)
@@ -383,3 +384,4 @@ API_FUNC static void SP_turret_driver(entity self)
 
 	gi.linkentity(self);
 }
+#endif

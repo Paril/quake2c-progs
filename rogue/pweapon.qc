@@ -168,12 +168,16 @@ static const int CHAINFIST_REACH = 64;
 
 static void(entity ent) weapon_chainfist_fire =
 {
+#ifdef SINGLE_PLAYER
 	int	damage;
 
-	if (deathmatch.intVal)
-		damage = 30;
-	else
+	if !(deathmatch.intVal)
 		damage = 15;
+	else
+		damage = 30;
+#else
+	int damage = 30;
+#endif
 
 	if (is_quad)
 		damage *= damage_multiplier;
@@ -190,8 +194,10 @@ static void(entity ent) weapon_chainfist_fire =
 	vector start = P_ProjectSource (ent, ent.s.origin, offset, forward, right);
 
 	fire_player_melee (ent, start, forward, CHAINFIST_REACH, damage, 100, MOD_CHAINFIST);
+#ifdef SINGLE_PLAYER
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
+#endif
 
 	ent.client.ps.gunframe++;
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
@@ -283,12 +289,16 @@ API_FUNC void(entity ent) Weapon_ChainFist =
 //
 static void(entity self) weapon_tracker_fire =
 {
+#ifdef SINGLE_PLAYER
 	int	 damage;
 
-	if (deathmatch.intVal)
-		damage = 30;
-	else
+	if !(deathmatch.intVal)
 		damage = 45;
+	else
+		damage = 30;
+#else
+	int damage = 30;
+#endif
 
 	if (is_quad)
 		damage *= damage_multiplier;		//pgm
@@ -322,8 +332,10 @@ static void(entity self) weapon_tracker_fire =
 	gi.WriteShort (self.s.number);
 	gi.WriteByte (MZ_TRACKER);
 	gi.multicast (self.s.origin, MULTICAST_PVS);
+#ifdef SINGLE_PLAYER
 
 	PlayerNoise(self, start, PNOISE_WEAPON);
+#endif
 
 	self.client.ps.gunframe++;
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
@@ -402,8 +414,10 @@ static void(entity ent) weapon_etf_rifle_fire =
 	gi.WriteShort (ent.s.number);
 	gi.WriteByte (MZ_ETF_RIFLE);
 	gi.multicast (ent.s.origin, MULTICAST_PVS);
+#ifdef SINGLE_PLAYER
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
+#endif
 
 	ent.client.ps.gunframe++;
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
@@ -454,12 +468,17 @@ static void(entity ent) Heatbeam_Fire =
 		return;
 	}
 
-	int	damage = 15, kick;
+	int	damage = 15;
+#ifdef SINGLE_PLAYER
+	int kick;
 
-	if (deathmatch.intVal)  // really knock 'em around in deathmatch
-		kick = 75;
-	else
+	if !(deathmatch.intVal)  // really knock 'em around in deathmatch
 		kick = 30;
+	else
+		kick = 75;
+#else
+	int kick = 75;
+#endif
 
 	ent.client.ps.gunframe++;
 	ent.client.ps.gunindex = gi.modelindex ("models/weapons/v_beamer2/tris.md2");
@@ -488,8 +507,10 @@ static void(entity ent) Heatbeam_Fire =
 	gi.WriteShort (ent.s.number);
 	gi.WriteByte (MZ_HEATBEAM | is_silenced);
 	gi.multicast (ent.s.origin, MULTICAST_PVS);
+#ifdef SINGLE_PLAYER
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
+#endif
 
 	if (!(dmflags.intVal & DF_INFINITE_AMMO))
 		ent.client.pers.inventory[ent.client.ammo_index] -= ent.client.pers.weapon->quantity;

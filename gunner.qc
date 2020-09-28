@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_gunner.h"
 
 static int  sound_pain;
@@ -968,3 +969,4 @@ API_FUNC static void(entity self) SP_monster_gunner =
 
 	walkmonster_start(self);
 }
+#endif

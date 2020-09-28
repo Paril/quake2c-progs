@@ -1,4 +1,4 @@
-#ifdef GROUND_ZERO
+#if defined(GROUND_ZERO) && defined(SINGLE_PLAYER)
 
 inline void(entity self, vector start, vector dir, int damage, int speed, int flashtype, int effect) monster_fire_blaster2 =
 {

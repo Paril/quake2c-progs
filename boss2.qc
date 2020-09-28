@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_boss2.h"
 
 static int  sound_pain1;
@@ -662,3 +663,4 @@ API_FUNC static void SP_monster_boss2(entity self)
 
 	flymonster_start(self);
 }
+#endif

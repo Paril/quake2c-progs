@@ -421,3 +421,55 @@ bool(entity ent) KillBox =
 
 	return true;        // all clear
 };
+
+/*
+=============
+visible
+
+returns 1 if the entity is visible to self, even if not infront ()
+=============
+*/
+bool(entity self, entity other) visible =
+{
+	vector	spot1;
+	vector	spot2;
+	trace_t trace;
+	
+	spot1 = self.s.origin;
+	spot1.z += self.viewheight;
+	spot2 = other.s.origin;
+	spot2.z += other.viewheight;
+	gi.traceline(&trace, spot1, spot2, self, MASK_OPAQUE);
+	
+	if (trace.fraction == 1.0f || trace.ent == other)
+		return true;
+	return false;
+}
+
+/*
+=============
+infront
+
+returns 1 if the entity is in front (in sight) of self
+=============
+*/
+bool(entity self, entity other) infront =
+{
+	vector	vec;
+	float	dot;
+	vector	forward;
+
+	AngleVectors(self.s.angles, &forward, 0, 0);
+	vec = other.s.origin - self.s.origin;
+	VectorNormalize(vec);
+	dot = vec * forward;
+
+	if (dot > 0.3f)
+		return true;
+	return false;
+}
+
+inline float(entity self, entity other) realrange =
+{
+	return VectorDistance(self.s.origin, other.s.origin);
+}

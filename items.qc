@@ -146,16 +146,20 @@ API_FUNC static bool(entity ent, entity other) Pickup_Powerup =
 {
 	int	quantity = other.client.pers.inventory[ent.item->id];
 
+#ifdef SINGLE_PLAYER
 	if ((skill.intVal == 1 && quantity >= 2) || (skill.intVal >= 2 && quantity >= 1))
 		return false;
 
 	if (coop.intVal && (ent.item->flags & IT_STAY_COOP) && quantity > 0)
 		return false;
+#endif
 
 	other.client.pers.inventory[ent.item->id]++;
 
+#ifdef SINGLE_PLAYER
 	if (deathmatch.intVal)
 	{
+#endif
 		if (!(ent.spawnflags & DROPPED_ITEM))
 			SetRespawn(ent, ent.item->quantity);
 
@@ -178,7 +182,9 @@ API_FUNC static bool(entity ent, entity other) Pickup_Powerup =
 			if (ent.item->use)
 				ent.item->use(other, ent.item);
 		}
+#ifdef SINGLE_PLAYER
 	}
+#endif
 
 	return true;
 }
@@ -200,13 +206,19 @@ static inline void(entity ent, gitem_t *it) Drop_General =
 
 static bool(entity ent, entity other) Pickup_Adrenaline
 {
+#ifdef SINGLE_PLAYER
 	if (!deathmatch.intVal)
 		other.max_health += 1;
 
+#endif
 	if (other.health < other.max_health)
 		other.health = other.max_health;
 
+#ifdef SINGLE_PLAYER
 	if (!(ent.spawnflags & DROPPED_ITEM) && deathmatch.intVal)
+#else
+	if !(ent.spawnflags & DROPPED_ITEM)
+#endif
 		SetRespawn(ent, ent.item->quantity);
 
 	return true;
@@ -216,7 +228,11 @@ API_FUNC static bool(entity ent, entity other) Pickup_AncientHead =
 {
 	other.max_health += 2;
 
+#ifdef SINGLE_PLAYER
 	if (!(ent.spawnflags & DROPPED_ITEM) && deathmatch.intVal)
+#else
+	if !(ent.spawnflags & DROPPED_ITEM)
+#endif
 		SetRespawn(ent, ent.item->quantity);
 
 	return true;
@@ -246,7 +262,11 @@ API_FUNC static bool(entity ent, entity other) Pickup_Bandolier =
 	AddAndCapAmmo(other, FindItem("Bullets"));
 	AddAndCapAmmo(other, FindItem("Shells"));
 
+#ifdef SINGLE_PLAYER
 	if (!(ent.spawnflags & DROPPED_ITEM) && deathmatch.intVal)
+#else
+	if !(ent.spawnflags & DROPPED_ITEM)
+#endif
 		SetRespawn(ent, ent.item->quantity);
 
 	return true;
@@ -274,7 +294,11 @@ API_FUNC static bool(entity ent, entity other) Pickup_Pack =
 	AddAndCapAmmo(other, FindItem("Flechettes"));
 	AddAndCapAmmo(other, FindItem("Rounds"));
 
+#ifdef SINGLE_PLAYER
 	if (!(ent.spawnflags & DROPPED_ITEM) && deathmatch.intVal)
+#else
+	if !(ent.spawnflags & DROPPED_ITEM)
+#endif
 		SetRespawn(ent, ent.item->quantity);
 
 	return true;
@@ -357,6 +381,7 @@ API_FUNC static void(entity ent, gitem_t *it) Use_Silencer =
 
 //======================================================================
 
+#ifdef SINGLE_PLAYER
 API_FUNC static bool(entity ent, entity other) Pickup_Key =
 {
 	if (coop.intVal)
@@ -384,6 +409,7 @@ API_FUNC static bool(entity ent, entity other) Pickup_Key =
 	other.client.pers.inventory[ent.item->id]++;
 	return true;
 }
+#endif
 
 //======================================================================
 
@@ -423,11 +449,21 @@ API_FUNC static bool(entity ent, entity other) Pickup_Ammo =
 	if (!Add_Ammo(other, ent.item, ammocount))
 		return false;
 
-	if (weapon && !oldcount)
-		if (other.client.pers.weapon != ent.item && (!deathmatch.intVal || other.client.pers.weapon == FindItem("blaster")))
+	if (weapon && !oldcount && other.client.pers.weapon != ent.item &&
+#ifdef SINGLE_PLAYER
+		(!deathmatch.intVal ||
+#endif
+		other.client.pers.weapon == FindItem("blaster"))
+#ifdef SINGLE_PLAYER
+		)
+#endif
 			other.client.newweapon = ent.item;
 
+#ifdef SINGLE_PLAYER
 	if (!(ent.spawnflags & (DROPPED_ITEM | DROPPED_PLAYER_ITEM)) && deathmatch.intVal)
+#else
+	if !(ent.spawnflags & (DROPPED_ITEM | DROPPED_PLAYER_ITEM))
+#endif
 		SetRespawn(ent, 30);
 
 	return true;
@@ -469,7 +505,11 @@ static void(entity self) MegaHealth_think =
 		return;
 	}
 
-	if (!(self.spawnflags & DROPPED_ITEM) && (deathmatch.intVal))
+#ifdef SINGLE_PLAYER
+	if (!(self.spawnflags & DROPPED_ITEM) && deathmatch.intVal)
+#else
+	if !(self.spawnflags & DROPPED_ITEM)
+#endif
 		SetRespawn(self, 20);
 	else
 		G_FreeEdict(self);
@@ -496,7 +536,11 @@ API_FUNC static bool(entity ent, entity other) Pickup_Health =
 		ent.svflags |= SVF_NOCLIENT;
 		ent.solid = SOLID_NOT;
 	}
-	else if (!(ent.spawnflags & DROPPED_ITEM) && (deathmatch.intVal))
+#ifdef SINGLE_PLAYER
+	else if (!(ent.spawnflags & DROPPED_ITEM) && deathmatch.intVal)
+#else
+	else if !(ent.spawnflags & DROPPED_ITEM)
+#endif
 		SetRespawn(ent, 30);
 
 	return true;
@@ -570,13 +614,25 @@ API_FUNC static bool(entity ent, entity other) Pickup_Armor =
 		}
 	}
 
-	if (!(ent.spawnflags & DROPPED_ITEM) && (deathmatch.intVal))
+#ifdef SINGLE_PLAYER
+	if (!(ent.spawnflags & DROPPED_ITEM) && deathmatch.intVal)
+#else
+	if !(ent.spawnflags & DROPPED_ITEM)
+#endif
 		SetRespawn(ent, 20);
 
 	return true;
 }
 
 //======================================================================
+
+// power armor types
+typedef enum : int
+{
+	POWER_ARMOR_NONE,
+	POWER_ARMOR_SCREEN,
+	POWER_ARMOR_SHIELD,
+} power_armor_type_t;
 
 power_armor_type_t(entity ent) PowerArmorType =
 {
@@ -615,14 +671,19 @@ API_FUNC static bool(entity ent, entity other) Pickup_PowerArmor =
 
 	other.client.pers.inventory[ent.item->id]++;
 
+#ifdef SINGLE_PLAYER
 	if (deathmatch.intVal)
 	{
+#endif
 		if !(ent.spawnflags & DROPPED_ITEM)
 			SetRespawn(ent, ent.item->quantity);
+
 		// auto-use for DM only if we didn't already have one
 		if (!quantity)
 			ent.item->use(other, ent.item);
+#ifdef SINGLE_PLAYER
 	}
+#endif
 
 	return true;
 }
@@ -688,13 +749,17 @@ void(entity ent, entity other, vector plane, csurface_t surf) Touch_Item =
 		ent.spawnflags |= ITEM_TARGETS_USED;
 	}
 
-	if (taken && (!(coop.intVal && (ent.item->flags & IT_STAY_COOP)) || (ent.spawnflags & (DROPPED_ITEM | DROPPED_PLAYER_ITEM))))
-	{
-		if (ent.flags & FL_RESPAWN)
-			ent.flags &= ~FL_RESPAWN;
-		else
-			G_FreeEdict(ent);
-	}
+	if (!taken)
+		return;
+#ifdef SINGLE_PLAYER
+	else if (coop.intVal && (ent.item->flags & IT_STAY_COOP) && !(ent.spawnflags & (DROPPED_ITEM | DROPPED_PLAYER_ITEM)))
+		return;
+#endif
+
+	if (ent.flags & FL_RESPAWN)
+		ent.flags &= ~FL_RESPAWN;
+	else
+		G_FreeEdict(ent);
 }
 
 //======================================================================
@@ -710,11 +775,16 @@ static void(entity ent, entity other, vector plane, csurface_t surf) drop_temp_t
 static void(entity ent) drop_make_touchable =
 {
 	ent.touch = Touch_Item;
+
+#ifdef SINGLE_PLAYER
 	if (deathmatch.intVal)
 	{
+#endif
 		ent.nextthink = level.framenum + 29 * BASE_FRAMERATE;
 		ent.think = G_FreeEdict;
+#ifdef SINGLE_PLAYER
 	}
+#endif
 }
 
 entity(entity ent, gitem_t *it) Drop_Item =
@@ -955,15 +1025,20 @@ void(entity ent, gitem_t *it) SpawnItem =
 #ifdef GROUND_ZERO
 		> ITEM_TRIGGER_SPAWN
 #endif
-		&& ent.classname != "key_power_cube")
+#ifdef SINGLE_PLAYER
+		&& ent.classname != "key_power_cube"
+#endif
+		)
 	{
 		ent.spawnflags = 0;
 		gi.dprintf("%s at %s has invalid spawnflags set\n", ent.classname, vtos(ent.s.origin));
 	}
 
+#ifdef SINGLE_PLAYER
 	// some items will be prevented in deathmatch
 	if (deathmatch.intVal)
 	{
+#endif
 		if ((dmflags.intVal & DF_NO_ARMOR) && (it->pickup == Pickup_Armor || it->pickup == Pickup_PowerArmor))
 			G_FreeEdict(ent);
 		else if ((dmflags.intVal & DF_NO_ITEMS) && it->pickup == Pickup_Powerup)
@@ -978,7 +1053,9 @@ void(entity ent, gitem_t *it) SpawnItem =
 		else if ((dmflags.intVal & DF_NO_NUKES) && ent.classname == "ammo_nuke")
 			G_FreeEdict (ent);
 #endif
+#ifdef SINGLE_PLAYER
 	}
+#endif
 #ifdef GROUND_ZERO
 	else if (ent.classname == "ammo_nuke")
 		G_FreeEdict(ent);
@@ -990,6 +1067,7 @@ void(entity ent, gitem_t *it) SpawnItem =
 
 	PrecacheItem(it);
 
+#ifdef SINGLE_PLAYER
 	if (coop.intVal && ent.classname == "key_power_cube")
 	{
 		ent.spawnflags |= (1 << (8 + level.power_cubes));
@@ -999,6 +1077,7 @@ void(entity ent, gitem_t *it) SpawnItem =
 	// don't let them drop items that stay in a coop game
 	if (coop.intVal && (it->flags & IT_STAY_COOP))
 		it->drop = 0;
+#endif
 
 	ent.item = it;
 	ent.nextthink = level.framenum + 2;    // items start after other solids
@@ -1020,7 +1099,11 @@ void(entity ent, gitem_t *it) SpawnItem =
 */
 API_FUNC static void(entity self) SP_item_health =
 {
+#ifdef SINGLE_PLAYER
 	if (deathmatch.intVal && (dmflags.intVal & DF_NO_HEALTH))
+#else
+	if (dmflags.intVal & DF_NO_HEALTH)
+#endif
 	{
 		G_FreeEdict(self);
 		return;
@@ -1036,7 +1119,11 @@ API_FUNC static void(entity self) SP_item_health =
 */
 API_FUNC static void(entity self) SP_item_health_small =
 {
+#ifdef SINGLE_PLAYER
 	if (deathmatch.intVal && (dmflags.intVal & DF_NO_HEALTH))
+#else
+	if (dmflags.intVal & DF_NO_HEALTH)
+#endif
 	{
 		G_FreeEdict(self);
 		return;
@@ -1053,7 +1140,11 @@ API_FUNC static void(entity self) SP_item_health_small =
 */
 API_FUNC static void(entity self) SP_item_health_large =
 {
+#ifdef SINGLE_PLAYER
 	if (deathmatch.intVal && (dmflags.intVal & DF_NO_HEALTH))
+#else
+	if (dmflags.intVal & DF_NO_HEALTH)
+#endif
 	{
 		G_FreeEdict(self);
 		return;
@@ -1069,7 +1160,11 @@ API_FUNC static void(entity self) SP_item_health_large =
 */
 API_FUNC static void(entity self) SP_item_health_mega =
 {
+#ifdef SINGLE_PLAYER
 	if (deathmatch.intVal && (dmflags.intVal & DF_NO_HEALTH))
+#else
+	if (dmflags.intVal & DF_NO_HEALTH)
+#endif
 	{
 		G_FreeEdict(self);
 		return;
@@ -1081,7 +1176,6 @@ API_FUNC static void(entity self) SP_item_health_mega =
 	gi.soundindex("items/m_health.wav");
 	self.style = HEALTH_IGNORE_MAX | HEALTH_TIMED;
 }
-
 
 /*
 ===============

@@ -1,5 +1,4 @@
-#ifdef GROUND_ZERO
-
+#if defined(GROUND_ZERO) && defined(SINGLE_PLAYER)
 #include "m_turret.h"
 
 const int SPAWN_BLASTER			= 0x0008;

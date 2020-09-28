@@ -1,3 +1,4 @@
+#ifdef SINGLE_PLAYER
 #include "m_infantry.h"
 
 static int	sound_pain1;
@@ -788,3 +789,4 @@ API_FUNC static void(entity self) SP_monster_infantry =
 
 	walkmonster_start(self);
 }
+#endif

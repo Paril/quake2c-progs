@@ -1,6 +1,5 @@
+#ifdef SINGLE_PLAYER
 #include "m_supertank.h"
-
-bool visible(entity self, entity other);
 
 static int  sound_pain1;
 static int  sound_pain2;
@@ -585,11 +584,11 @@ API_FUNC static void SP_monster_supertank(entity self)
 #endif
 }
 
-
 #ifdef THE_RECKONING
 API_FUNC static void(entity self) SP_monster_boss5 =
 {
 	self.spawnflags |= 8;
 	SP_monster_supertank(self);
 };
+#endif
 #endif

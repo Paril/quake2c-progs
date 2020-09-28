@@ -36,8 +36,12 @@ static void(void) P_WorldEffects =
 	//
 	// if just entered a water volume, play a sound
 	//
-	if (!old_waterlevel && current_waterlevel) {
+	if (!old_waterlevel && current_waterlevel)
+	{
+#ifdef SINGLE_PLAYER
 		PlayerNoise(current_player, current_player.s.origin, PNOISE_SELF);
+#endif
+
 		if (current_player.watertype & CONTENTS_LAVA)
 			gi.sound(current_player, CHAN_BODY, gi.soundindex("player/lava_in.wav"), 1, ATTN_NORM, 0);
 		else if (current_player.watertype & CONTENTS_SLIME)
@@ -53,8 +57,11 @@ static void(void) P_WorldEffects =
 	//
 	// if just completely exited a water volume, play a sound
 	//
-	if (old_waterlevel && !current_waterlevel) {
+	if (old_waterlevel && !current_waterlevel)
+	{
+#ifdef SINGLE_PLAYER
 		PlayerNoise(current_player, current_player.s.origin, PNOISE_SELF);
+#endif
 		gi.sound(current_player, CHAN_BODY, gi.soundindex("player/watr_out.wav"), 1, ATTN_NORM, 0);
 		current_player.flags &= ~FL_INWATER;
 	}
@@ -62,47 +69,59 @@ static void(void) P_WorldEffects =
 	//
 	// check for head just going under water
 	//
-	if (old_waterlevel != 3 && current_waterlevel == 3) {
+	if (old_waterlevel != 3 && current_waterlevel == 3)
 		gi.sound(current_player, CHAN_BODY, gi.soundindex("player/watr_un.wav"), 1, ATTN_NORM, 0);
-	}
 
 	//
 	// check for head just coming out of water
 	//
-	if (old_waterlevel == 3 && current_waterlevel != 3) {
-		if (current_player.air_finished_framenum < level.framenum) {
+	if (old_waterlevel == 3 && current_waterlevel != 3)
+	{
+		if (current_player.air_finished_framenum < level.framenum)
+#ifdef SINGLE_PLAYER
+		{
+#endif
 			// gasp for air
 			gi.sound(current_player, CHAN_VOICE, gi.soundindex("player/gasp1.wav"), 1, ATTN_NORM, 0);
+#ifdef SINGLE_PLAYER
 			PlayerNoise(current_player, current_player.s.origin, PNOISE_SELF);
-		} else  if (current_player.air_finished_framenum < level.framenum + 11 * BASE_FRAMERATE) {
+		}
+#endif
+		else if (current_player.air_finished_framenum < level.framenum + 11 * BASE_FRAMERATE)
 			// just break surface
 			gi.sound(current_player, CHAN_VOICE, gi.soundindex("player/gasp2.wav"), 1, ATTN_NORM, 0);
-		}
 	}
 
 	//
 	// check for drowning
 	//
-	if (current_waterlevel == 3) {
+	if (current_waterlevel == 3)
+	{
 		// breather or envirosuit give air
-		if (breather || envirosuit) {
+		if (breather || envirosuit)
+		{
 			current_player.air_finished_framenum = level.framenum + 10 * BASE_FRAMERATE;
 
-			if (((int)(current_player.client.breather_framenum - level.framenum) % 25) == 0) {
+			if (((int)(current_player.client.breather_framenum - level.framenum) % 25) == 0)
+			{
 				if (!current_player.client.breather_sound)
 					gi.sound(current_player, CHAN_AUTO, gi.soundindex("player/u_breath1.wav"), 1, ATTN_NORM, 0);
 				else
 					gi.sound(current_player, CHAN_AUTO, gi.soundindex("player/u_breath2.wav"), 1, ATTN_NORM, 0);
 				current_player.client.breather_sound ^= 1;
+#ifdef SINGLE_PLAYER
 				PlayerNoise(current_player, current_player.s.origin, PNOISE_SELF);
+#endif
 			}
 		}
 
 		// if out of air, start drowning
-		if (current_player.air_finished_framenum < level.framenum) {
+		if (current_player.air_finished_framenum < level.framenum)
+		{
 			// drown!
 			if (current_player.client.next_drown_framenum < level.framenum
-				&& current_player.health > 0) {
+				&& current_player.health > 0)
+			{
 				current_player.client.next_drown_framenum = level.framenum + 1 * BASE_FRAMERATE;
 
 				// take more damage the longer underwater
@@ -123,7 +142,9 @@ static void(void) P_WorldEffects =
 				T_Damage(current_player, world, world, vec3_origin, current_player.s.origin, vec3_origin, current_player.dmg, 0, DAMAGE_NO_ARMOR, MOD_WATER);
 			}
 		}
-	} else {
+	}
+	else
+	{
 		current_player.air_finished_framenum = level.framenum + 12 * BASE_FRAMERATE;
 		current_player.dmg = 2;
 	}
@@ -131,11 +152,14 @@ static void(void) P_WorldEffects =
 	//
 	// check for sizzle damage
 	//
-	if (current_waterlevel && (current_player.watertype & (CONTENTS_LAVA | CONTENTS_SLIME))) {
-		if (current_player.watertype & CONTENTS_LAVA) {
+	if (current_waterlevel && (current_player.watertype & (CONTENTS_LAVA | CONTENTS_SLIME)))
+	{
+		if (current_player.watertype & CONTENTS_LAVA)
+		{
 			if (current_player.health > 0
 				&& current_player.pain_debounce_framenum <= level.framenum
-				&& current_player.client.invincible_framenum < level.framenum) {
+				&& current_player.client.invincible_framenum < level.framenum)
+			{
 				if (Q_rand() & 1)
 					gi.sound(current_player, CHAN_VOICE, gi.soundindex("player/burn1.wav"), 1, ATTN_NORM, 0);
 				else
@@ -149,12 +173,10 @@ static void(void) P_WorldEffects =
 				T_Damage(current_player, world, world, vec3_origin, current_player.s.origin, vec3_origin, 3 * current_waterlevel, 0, 0, MOD_LAVA);
 		}
 
-		if (current_player.watertype & CONTENTS_SLIME) {
-			if (!envirosuit) {
+		if (current_player.watertype & CONTENTS_SLIME)
+			if (!envirosuit)
 				// no damage from slime with envirosuit
 				T_Damage(current_player, world, world, vec3_origin, current_player.s.origin, vec3_origin, 1 * current_waterlevel, 0, 0, MOD_SLIME);
-			}
-		}
 	}
 }
 /*
@@ -200,13 +222,13 @@ static void(entity ent) P_FallingDamage =
 	if (ent.movetype == MOVETYPE_NOCLIP)
 		return;
 
-	if ((ent.client.oldvelocity[2] < 0f) && (ent.velocity[2] > ent.client.oldvelocity[2]) && (ent.groundentity == null_entity)) {
+	if ((ent.client.oldvelocity[2] < 0f) && (ent.velocity[2] > ent.client.oldvelocity[2]) && (ent.groundentity == null_entity))
 		delta = ent.client.oldvelocity[2];
-	} else {
-		if (ent.groundentity == null_entity)
-			return;
+	else if (ent.groundentity == null_entity)
+		return;
+	else
 		delta = ent.velocity.z - ent.client.oldvelocity[2];
-	}
+
 	delta = delta * delta * 0.0001f;
 
 	// never take falling damage if completely underwater
@@ -220,7 +242,8 @@ static void(entity ent) P_FallingDamage =
 	if (delta < 1)
 		return;
 
-	if (delta < 15) {
+	if (delta < 15)
+	{
 		ent.s.event = EV_FOOTSTEP;
 		return;
 	}
@@ -230,8 +253,10 @@ static void(entity ent) P_FallingDamage =
 		ent.client.fall_value = 40f;
 	ent.client.fall_time = level.time + FALL_TIME;
 
-	if (delta > 30) {
-		if (ent.health > 0) {
+	if (delta > 30)
+	{
+		if (ent.health > 0)
+		{
 			if (delta >= 55)
 				ent.s.event = EV_FALLFAR;
 			else
@@ -243,9 +268,11 @@ static void(entity ent) P_FallingDamage =
 			damage = 1;
 		dir = '0 0 1';
 
-		if (!deathmatch.intVal || !(dmflags.intVal & DF_NO_FALLING))
+		if !(dmflags.intVal & DF_NO_FALLING)
 			T_Damage(ent, world, world, dir, ent.s.origin, vec3_origin, damage, 0, 0, MOD_FALLING);
-	} else {
+	}
+	else
+	{
 		ent.s.event = EV_FALLSHORT;
 		return;
 	}
@@ -799,6 +826,7 @@ static void(entity ent) G_SetClientSound =
 {
 	string	weap;
 
+#ifdef SINGLE_PLAYER
 	if (ent.client.pers.game_helpchanged != game.helpchanged)
 	{
 		ent.client.pers.game_helpchanged = game.helpchanged;
@@ -811,6 +839,7 @@ static void(entity ent) G_SetClientSound =
 		ent.client.pers.helpchanged++;
 		gi.sound(ent, CHAN_VOICE, gi.soundindex("misc/pc_up.wav"), 1, ATTN_STATIC, 0);
 	}
+#endif
 
 	if (ent.client.pers.weapon)
 		weap = ent.client.pers.weapon->classname;
@@ -824,7 +853,6 @@ static void(entity ent) G_SetClientSound =
 	else if (weap == "weapon_bfg")
 		ent.s.sound = gi.soundindex("weapons/bfg_hum.wav");
 #ifdef THE_RECKONING
-	// RAFAEL
 	else if (weap == "weapon_phalanx")
 		ent.s.sound = gi.soundindex("weapons/phaloop.wav");
 #endif

@@ -23,9 +23,11 @@ static void(entity self, entity other, vector normal, csurface_t surf) ionripper
 		G_FreeEdict (self);
 		return;
 	}
+#ifdef SINGLE_PLAYER
 
 	if (self.owner.is_client)
 		PlayerNoise (self.owner, self.s.origin, PNOISE_IMPACT);
+#endif
 
 	if (other.takedamage)
 	{
@@ -60,8 +62,10 @@ PROGS_LOCAL void(entity self, vector start, vector dir, int damage, int speed, e
 	ion.dmg_radius = 100f;
 	gi.linkentity (ion);
 
+#ifdef SINGLE_PLAYER
 	if (self.is_client)
 		check_dodge (self, ion.s.origin, dir, speed);
+#endif
 
 	trace_t tr;
 	gi.traceline(&tr, self.s.origin, ion.s.origin, ion, MASK_SHOT);
@@ -135,9 +139,11 @@ static void(entity ent, entity other, vector normal, csurface_t surf) plasma_tou
 		G_FreeEdict (ent);
 		return;
 	}
+#ifdef SINGLE_PLAYER
 
 	if (ent.owner.is_client)
 		PlayerNoise(ent.owner, ent.s.origin, PNOISE_IMPACT);
+#endif
 
 	// calculate position for the explosion entity
 	vector origin = ent.s.origin + (ent.velocity * -0.02);
@@ -178,8 +184,10 @@ void(entity self, vector start, vector dir, int damage, int speed, float damage_
 	plasma.s.modelindex = gi.modelindex ("sprites/s_photon.sp2");
 	plasma.s.effects |= EF_PLASMA | EF_ANIM_ALLFAST;
 	
+#ifdef SINGLE_PLAYER
 	if (self.is_client)
 		check_dodge (self, plasma.s.origin, dir, speed);
+#endif
 
 	gi.linkentity (plasma);
 }
@@ -343,10 +351,13 @@ static void(entity ent) Trap_Think =
 	vector vec = ent.s.origin - best.s.origin;
 	float len = VectorLength (vec);
 
+#ifdef SINGLE_PLAYER
 	if (best.is_client)
 	{
+#endif
 		VectorNormalize (vec);
 		best.velocity += vec * 250;
+#ifdef SINGLE_PLAYER
 	}
 	else
 	{
@@ -356,6 +367,7 @@ static void(entity ent) Trap_Think =
 		AngleVectors (best.s.angles, &forward, 0, 0);
 		best.velocity = forward * 256;
 	}
+#endif
 
 	gi.sound(ent, CHAN_VOICE, gi.soundindex ("weapons/trapsuck.wav"), 1, ATTN_IDLE, 0);
 	
@@ -369,11 +381,13 @@ static void(entity ent) Trap_Think =
 		ent.wait = 64f;
 		ent.s.old_origin = ent.s.origin;
 		ent.timestamp = level.framenum + 30 * BASE_FRAMERATE;
+#ifdef SINGLE_PLAYER
 
-		if (deathmatch.intVal)
-			ent.mass = (int)(best.mass * 0.25f);
-		else
+		if !(deathmatch.intVal)
 			ent.mass = (int)(best.mass * 0.1f);
+		else
+#endif
+			ent.mass = (int)(best.mass * 0.25f);
 
 		ent.s.frame = 5;
 		return;
