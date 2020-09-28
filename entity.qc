@@ -373,7 +373,7 @@ typedef enumflags : int
 	AI_GOOD_GUY_MASK = AI_GOOD_GUY | AI_DO_NOT_COUNT,
 	AI_SPAWNED_MASK = AI_SPAWNED_CARRIER | AI_SPAWNED_MEDIC_C | AI_SPAWNED_WIDOW	// mask to catch all three flavors of spawned
 #else
-	AI_GOOD_GUY_MASK = AI_GOOD_GUY
+	, AI_GOOD_GUY_MASK = AI_GOOD_GUY
 #endif
 } ai_flags_t;
 

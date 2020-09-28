@@ -262,7 +262,7 @@ static void PM_Friction (void)
 	drop = 0;
 
 // apply ground friction
-	if ((pm->groundentity != null_entity && pml.groundsurface != null_surface && !(pml.groundsurface.flags & SURF_SLICK)) || pml.ladder )
+	if ((pm->groundentity != null_entity && !(pml.groundsurface.flags & SURF_SLICK)) || pml.ladder)
 	{
 		friction = pm_friction;
 		control = speed < pm_stopspeed ? pm_stopspeed : speed;

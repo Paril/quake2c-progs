@@ -1405,7 +1405,7 @@ void(entity ent) ClientBegin =
 #ifdef SINGLE_PLAYER
 	// if there is already a body waiting for us (a loadgame), just
 	// take it, otherwise spawn one from scratch
-	if (!deathmatch.value && ent.inuse)
+	if (!deathmatch.intVal && ent.inuse)
 		// the client has cleared the client side viewangles upon
 		// connecting to the server, which is different than the
 		// state when the game is saved, so we need to compensate

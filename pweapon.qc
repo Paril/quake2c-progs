@@ -1077,6 +1077,8 @@ PROGS_LOCAL_STATIC void(entity ent) Weapon_HyperBlaster_Fire =
 				effect = 0;
 
 #ifdef SINGLE_PLAYER
+			int damage;
+
 			if !(deathmatch.intVal)
 				damage = 20;
 			else

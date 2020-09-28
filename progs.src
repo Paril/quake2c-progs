@@ -1,5 +1,6 @@
 ../progs.dat
 
+config.qc
 ext.qc
 math.qc
 random.qc

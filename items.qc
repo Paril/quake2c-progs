@@ -255,9 +255,13 @@ API_FUNC static bool(entity ent, entity other) Pickup_Bandolier =
 	AdjustAmmoMax(other, AMMO_SHELLS, 150);
 	AdjustAmmoMax(other, AMMO_CELLS, 250);
 	AdjustAmmoMax(other, AMMO_SLUGS, 75);
+#ifdef THE_RECKONING
 	AdjustAmmoMax(other, AMMO_MAGSLUG, 75);
+#endif
+#ifdef GROUND_ZERO
 	AdjustAmmoMax(other, AMMO_FLECHETTES, 250);
 	AdjustAmmoMax(other, AMMO_DISRUPTOR, 150);
+#endif
 
 	AddAndCapAmmo(other, FindItem("Bullets"));
 	AddAndCapAmmo(other, FindItem("Shells"));
@@ -280,9 +284,13 @@ API_FUNC static bool(entity ent, entity other) Pickup_Pack =
 	AdjustAmmoMax(other, AMMO_GRENADES, 100);
 	AdjustAmmoMax(other, AMMO_CELLS, 300);
 	AdjustAmmoMax(other, AMMO_SLUGS, 100);
+#ifdef THE_RECKONING
 	AdjustAmmoMax(other, AMMO_MAGSLUG, 100);
+#endif
+#ifdef GROUND_ZERO
 	AdjustAmmoMax(other, AMMO_FLECHETTES, 300);
 	AdjustAmmoMax(other, AMMO_DISRUPTOR, 200);
+#endif
 
 	AddAndCapAmmo(other, FindItem("Bullets"));
 	AddAndCapAmmo(other, FindItem("Shells"));
@@ -290,9 +298,13 @@ API_FUNC static bool(entity ent, entity other) Pickup_Pack =
 	AddAndCapAmmo(other, FindItem("Grenades"));
 	AddAndCapAmmo(other, FindItem("Rockets"));
 	AddAndCapAmmo(other, FindItem("Slugs"));
+#ifdef THE_RECKONING
 	AddAndCapAmmo(other, FindItem("Mag Slug"));
+#endif
+#ifdef GROUND_ZERO
 	AddAndCapAmmo(other, FindItem("Flechettes"));
 	AddAndCapAmmo(other, FindItem("Rounds"));
+#endif
 
 #ifdef SINGLE_PLAYER
 	if (!(ent.spawnflags & DROPPED_ITEM) && deathmatch.intVal)

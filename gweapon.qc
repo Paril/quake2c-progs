@@ -814,6 +814,7 @@ static void(entity self) bfg_think =
 	vector	end;
 	trace_t	tr = { 0 };
 #ifdef SINGLE_PLAYER
+	int	dmg;
 
 	if !(deathmatch.intVal)
 		dmg = 10;
