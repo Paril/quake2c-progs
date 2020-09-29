@@ -12,14 +12,18 @@
 #pragma warning enable F301 /*non-utf-8 strings. Think of the foreigners! Also think of text editors that insist on screwing up your char encodings.*/
 #pragma warning disable F312 /*numerical overflow - not applicable to Quake2C*/
 
-#pragma target fte_9999
+#pragma target quake2c
 
 #pragma optimise 3
 
 // this is just because kce is not allowed midcompile yet
+#pragma flag enable kce
 #define out __out
 #define used __used
 #define inout __inout
+#define int __int
+
+#pragma opcode disable STORE_I64
 
 #pragma flag enable lo
 #pragma flag enable nullemptystr
@@ -60,7 +64,7 @@ typedef enum : int
 
 accessor handle : int;
 
-const handle null_handle = 0;
+const handle null_handle = (handle)0;
 
 inline bool(variant p) handle_empty =
 {

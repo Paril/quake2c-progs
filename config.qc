@@ -22,5 +22,7 @@ a custom player movement system, you can use Y here and edit pmove.qc. Please no
 may cause significant performance degradation with lots of players. */
 //#define QUAKEC_PMOVE
 
+#ifndef DEBUG
 // Uncomment to do a debug build
 //#define DEBUG
+#endif

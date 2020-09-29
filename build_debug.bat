@@ -1,1 +1,1 @@
-win64-fteqcc.exe -DDEBUG
+win64-fteqcc.exe -DDEBUG -Fwasm
