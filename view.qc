@@ -231,6 +231,14 @@ static void(entity ent) P_FallingDamage =
 
 	delta = delta * delta * 0.0001f;
 
+#ifdef GRAPPLE
+	// never take damage if just release grapple or on grapple
+	if ((level.framenum - ent.client.grapplereleaseframenum) <= (2 * BASE_FRAMERATE) ||
+		(ent.client.grapple && 
+		ent.client.grapplestate > GRAPPLE_STATE_FLY))
+		return;
+#endif
+
 	// never take falling damage if completely underwater
 	if (ent.waterlevel == 3)
 		return;
@@ -541,7 +549,7 @@ static void(entity ent) SV_CalcGunOffset =
 	// gun angles from bobbing
 #ifdef GROUND_ZERO
 	//ROGUE - heatbeam shouldn't bob so the beam looks right
-	if (ent.client.pers.weapon && ent.client.pers.weapon->classname != "weapon_plasmabeam")
+	if (ent.client.pers.weapon && ent.client.pers.weapon->weapmodel != WEAP_PLASMA)
 	{
 #endif
 		ent.client.ps.gunangles[ROLL] = xyspeed * bobfracsin * 0.005f;
@@ -804,17 +812,23 @@ static void(entity ent) G_SetClientEffects =
 		ent.s.effects |= EF_TRACKERTRAIL;
 #endif
 
-	if (ent.client.invincible_framenum > level.framenum) {
+	if (ent.client.invincible_framenum > level.framenum)
+	{
 		remaining = ent.client.invincible_framenum - level.framenum;
 		if (remaining > 30 || (remaining & 4))
 			ent.s.effects |= EF_PENT;
 	}
 
 	// show cheaters!!!
-	if (ent.flags & FL_GODMODE) {
+	if (ent.flags & FL_GODMODE)
+	{
 		ent.s.effects |= EF_COLOR_SHELL;
 		ent.s.renderfx |= (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE);
 	}
+
+#ifdef CTF
+	CTFEffects(ent);
+#endif
 }
 
 /*
@@ -824,7 +838,7 @@ G_SetClientSound
 */
 static void(entity ent) G_SetClientSound =
 {
-	string	weap;
+	weap_model_t	weap;
 
 #ifdef SINGLE_PLAYER
 	if (ent.client.pers.game_helpchanged != game.helpchanged)
@@ -842,18 +856,18 @@ static void(entity ent) G_SetClientSound =
 #endif
 
 	if (ent.client.pers.weapon)
-		weap = ent.client.pers.weapon->classname;
+		weap = ent.client.pers.weapon->weapmodel;
 	else
 		weap = 0;
 
 	if (ent.waterlevel && (ent.watertype & (CONTENTS_LAVA | CONTENTS_SLIME)))
 		ent.s.sound = snd_fry;
-	else if (weap == "weapon_railgun")
+	else if (weap == WEAP_RAILGUN)
 		ent.s.sound = gi.soundindex("weapons/rg_hum.wav");
-	else if (weap == "weapon_bfg")
+	else if (weap == WEAP_BFG)
 		ent.s.sound = gi.soundindex("weapons/bfg_hum.wav");
 #ifdef THE_RECKONING
-	else if (weap == "weapon_phalanx")
+	else if (weap == WEAP_PHALANX)
 		ent.s.sound = gi.soundindex("weapons/phaloop.wav");
 #endif
 	else if (ent.client.weapon_sound)
@@ -891,12 +905,16 @@ void(entity ent) G_SetClientFrame =
 	if (ent.groundentity == null_entity && ent.client.anim_priority <= ANIM_WAVE)
 		goto newanim;
 
-	if (ent.client.anim_priority == ANIM_REVERSE) {
-		if (ent.s.frame > ent.client.anim_end) {
+	if (ent.client.anim_priority == ANIM_REVERSE)
+	{
+		if (ent.s.frame > ent.client.anim_end)
+		{
 			ent.s.frame--;
 			return;
 		}
-	} else if (ent.s.frame < ent.client.anim_end) {
+	}
+	else if (ent.s.frame < ent.client.anim_end)
+	{
 		// continue an animation
 		ent.s.frame++;
 		return;
@@ -904,7 +922,8 @@ void(entity ent) G_SetClientFrame =
 
 	if (ent.client.anim_priority == ANIM_DEATH)
 		return;     // stay there
-	if (ent.client.anim_priority == ANIM_JUMP) {
+	if (ent.client.anim_priority == ANIM_JUMP)
+	{
 		if (ent.groundentity == null_entity)
 			return;     // stay there
 		ent.client.anim_priority = ANIM_WAVE;
@@ -919,26 +938,50 @@ newanim:
 	ent.client.anim_duck = duck;
 	ent.client.anim_run = run;
 
-	if (ent.groundentity == null_entity) {
-		ent.client.anim_priority = ANIM_JUMP;
-		if (ent.s.frame != FRAME_jump2)
-			ent.s.frame = FRAME_jump1;
-		ent.client.anim_end = FRAME_jump2;
-	} else if (run) {
+	if (ent.groundentity == null_entity)
+	{
+#ifdef GRAPPLE
+		// if on grapple, don't go into jump frame, go into standing frame
+		if (ent.client.grapple)
+		{
+			ent->s.frame = FRAME_stand01;
+			ent.client.anim_end = FRAME_stand40;
+		}
+		else
+		{
+#endif
+			ent.client.anim_priority = ANIM_JUMP;
+			if (ent.s.frame != FRAME_jump2)
+				ent.s.frame = FRAME_jump1;
+			ent.client.anim_end = FRAME_jump2;
+#ifdef GRAPPLE
+		}
+#endif
+	}
+	else if (run)
+	{
 		// running
-		if (duck) {
+		if (duck)
+		{
 			ent.s.frame = FRAME_crwalk1;
 			ent.client.anim_end = FRAME_crwalk6;
-		} else {
+		}
+		else
+		{
 			ent.s.frame = FRAME_run1;
 			ent.client.anim_end = FRAME_run6;
 		}
-	} else {
+	}
+	else
+	{
 		// standing
-		if (duck) {
+		if (duck)
+		{
 			ent.s.frame = FRAME_crstnd01;
 			ent.client.anim_end = FRAME_crstnd19;
-		} else {
+		}
+		else
+		{
 			ent.s.frame = FRAME_stand01;
 			ent.client.anim_end = FRAME_stand40;
 		}
@@ -1051,6 +1094,7 @@ void(entity ent) ClientEndServerFrame =
 		G_SetSpectatorStats(ent);
 	else
 		G_SetStats(ent);
+
 	G_CheckChaseStats(ent);
 
 	G_SetClientEvent(ent);
@@ -1069,8 +1113,16 @@ void(entity ent) ClientEndServerFrame =
 	ent.client.kick_angles = vec3_origin;
 
 	// if the scoreboard is up, update it
-	if (ent.client.showscores && !(level.framenum & 31)) {
-		DeathmatchScoreboardMessage(ent, ent.enemy);
-		gi.unicast(ent, false);
+	if (ent.client.showscores && !(level.framenum & 31))
+	{
+#ifdef PMENU
+		if (!ent.client.menu.open)
+		{
+#endif
+			DeathmatchScoreboardMessage(ent, ent.enemy);
+			gi.unicast(ent, false);
+#ifdef PMENU
+		}
+#endif
 	}
 }

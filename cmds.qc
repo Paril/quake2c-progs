@@ -23,32 +23,42 @@ bool(entity ent1, entity ent2) OnSameTeam =
 		return false;
 	// player-only teams
 	else if (ent1.is_client && ent2.is_client)
-#ifdef SINGLE_PLAYER
 	{
+#ifdef SINGLE_PLAYER
 		// coop players always teamed
 		if (coop.intVal)
 			return true;
-		else if (deathmatch.intVal && (dmflags.intVal & (DF_MODELTEAMS | DF_SKINTEAMS)))
-#else
+		else
+#endif
+#ifdef CTF
+		if (ctf.intVal && ent1.client.resp.ctf_team == ent2.client.resp.ctf_team)
+			return true;
+		else
+#endif
 		if (dmflags.intVal & (DF_MODELTEAMS | DF_SKINTEAMS))
-#endif
 			return ClientTeam(ent1) == ClientTeam(ent2);
-#ifdef SINGLE_PLAYER
 	}
-#endif
 
 	return false;
 }
 
 static void(entity ent, int itflags) SelectNextItem =
 {
+#ifdef PMENU
+	if (ent.client.menu.open)
+	{
+		PMenu_Next(ent);
+		return;
+	}
+#endif
+
 	if (ent.client.chase_target)
 	{
 		ChaseNext(ent);
 		return;
 	}
 
-	// scan  for the next valid one
+	// scan for the next valid one
 	for (int i = 1; i <= itemlist.length; i++)
 	{
 		gitem_id_t index = (ent.client.pers.selected_item + i) % itemlist.length;
@@ -72,13 +82,21 @@ static void(entity ent, int itflags) SelectNextItem =
 
 static void(entity ent, int itflags) SelectPrevItem =
 {
+#ifdef PMENU
+	if (ent.client.menu.open)
+	{
+		PMenu_Prev(ent);
+		return;
+	}
+#endif
+
 	if (ent.client.chase_target)
 	{
 		ChasePrev(ent);
 		return;
 	}
 
-	// scan  for the next valid one
+	// scan for the next valid one
 	for (int i = 1; i <= itemlist.length; i++)
 	{
 		gitem_id_t index = (ent.client.pers.selected_item + itemlist.length - i) % itemlist.length;
@@ -386,8 +404,20 @@ Drop an inventory item
 */
 static void(entity ent) Cmd_Drop_f =
 {
-	string s = gi.args();
-	gitem_t *it = FindItem (s);
+	string s = strlwr(gi.args());
+	
+#ifdef CTF
+	gitem_t *it;
+
+	if (s == "tech" && (it = CTFWhat_Tech(ent)))
+	{
+		it->drop(ent, it);
+		return;
+	}
+#else
+	gitem_t *
+#endif
+	it = FindItem (s);
 
 	if (!it)
 	{
@@ -400,7 +430,7 @@ static void(entity ent) Cmd_Drop_f =
 	if (!ent.client.pers.inventory[index])
 		gi.cprintf (ent, PRINT_HIGH, "Out of item: %s\n", s);
 	else if (!it->drop)
-		gi.cprintf (ent, PRINT_HIGH, "Item is not dropable.\n");
+		gi.cprintf (ent, PRINT_HIGH, "Item is not droppable.\n");
 	else
 		it->drop(ent, it);
 }
@@ -416,12 +446,28 @@ static void(entity ent) Cmd_Inven_f =
 #ifdef SINGLE_PLAYER
 	ent.client.showhelp = false;
 #endif
+#ifdef PMENU
+	if (ent.client.menu.open)
+	{
+		PMenu_Close(ent);
+		ent.client.update_chase = true;
+		return;
+	}
+#endif
 
 	if (ent.client.showinventory)
 	{
 		ent.client.showinventory = false;
 		return;
 	}
+
+#ifdef CTF
+	if (ctf.intVal && ent.client.resp.ctf_team == CTF_NOTEAM)
+	{
+		CTFOpenJoinMenu(ent);
+		return;
+	}
+#endif
 
 	ent.client.showinventory = true;
 
@@ -443,6 +489,14 @@ Cmd_InvUse_f
 */
 static void(entity ent) Cmd_InvUse_f =
 {
+#ifdef PMENU
+	if (ent.client.menu.open)
+	{
+		PMenu_Select(ent);
+		return;
+	}
+#endif
+	
 	ValidateSelectedItem (ent);
 
 	if (ent.client.pers.selected_item == -1)
@@ -582,6 +636,8 @@ Cmd_Kill_f
 */
 static void(entity ent) Cmd_Kill_f =
 {
+	if (ent->solid == SOLID_NOT)
+		return;
 	if ((level.framenum - ent.client.respawn_framenum) < 5 * BASE_FRAMERATE)
 		return;
 
@@ -603,6 +659,13 @@ static void(entity ent) Cmd_PutAway_f =
 	ent.client.showhelp = false;
 #endif
 	ent.client.showinventory = false;
+
+#ifdef PMENU
+	if (ent.client.menu.open)
+		PMenu_Close(ent);
+#endif
+
+	ent.client.update_chase = true;
 }
 
 static int(int *a, int *b) PlayerSort =
@@ -802,7 +865,7 @@ static void(entity ent) Cmd_PlayerList_f =
 			e2.client.pers.netname,
 			e2.client.resp.spectator ? " (spectator)" : "");
 
-		if (strlen(text) + strlen(st) > 1400 - 50)
+		if (strlen(text) + strlen(st) > MESSAGE_LIMIT - 50)
 		{
 			text = strconcat(text, "And more...\n");
 			break;
@@ -845,6 +908,10 @@ static void(entity ent) Cmd_Spawn_f =
 	gi.linkentity(e);
 };
 
+#if defined(GRAPPLE) && defined(OFFHAND_HOOK)
+void(entity) GrappleCmd;
+#endif
+
 /*
 =================
 ClientCommand
@@ -857,70 +924,85 @@ void(entity ent) ClientCommand =
 	if (!ent.is_client)
 		return;		// not fully in game yet
 
-	cmd = gi.argv(0);
+	cmd = strlwr(gi.argv(0));
 
 	// allowed any time
-	if (striequals(cmd, "players"))
-		Cmd_Players_f (ent);
-	else if (striequals(cmd, "say"))
+	if (cmd == "players")
+		return Cmd_Players_f (ent);
+	else if (cmd == "say")
 		Cmd_Say_f (ent, false, false);
-	else if (striequals(cmd, "say_team"))
+	else if (cmd == "say_team")
 		Cmd_Say_f (ent, true, false);
-	else if (striequals(cmd, "score"))
+	else if (cmd == "score")
 		Cmd_Score_f (ent);
-	else if (striequals(cmd, "help"))
+	else if (cmd == "help")
 		Cmd_Help_f (ent);
 	else if (level.intermission_framenum)
 		return;
+
 	// in-game commands only
-	else if (striequals(cmd, "spawn"))
+	else if (cmd == "spawn")
 		Cmd_Spawn_f (ent);
-	else if (striequals(cmd, "use"))
+	else if (cmd == "use")
 		Cmd_Use_f (ent);
-	else if (striequals(cmd, "drop"))
+	else if (cmd == "drop")
 		Cmd_Drop_f (ent);
-	else if (striequals(cmd, "give"))
+	else if (cmd == "give")
 		Cmd_Give_f (ent);
-	else if (striequals(cmd, "god"))
+	else if (cmd == "god")
 		Cmd_God_f (ent);
 #ifdef SINGLE_PLAYER
-	else if (striequals(cmd, "notarget"))
+	else if (cmd == "notarget")
 		Cmd_Notarget_f (ent);
 #endif
-	else if (striequals(cmd, "noclip"))
+	else if (cmd == "noclip")
 		Cmd_Noclip_f (ent);
-	else if (striequals(cmd, "inven"))
+	else if (cmd == "inven")
 		Cmd_Inven_f (ent);
-	else if (striequals(cmd, "invnext"))
+	else if (cmd == "invnext")
 		SelectNextItem (ent, -1);
-	else if (striequals(cmd, "invprev"))
+	else if (cmd == "invprev")
 		SelectPrevItem (ent, -1);
-	else if (striequals(cmd, "invnextw"))
+	else if (cmd == "invnextw")
 		SelectNextItem (ent, IT_WEAPON);
-	else if (striequals(cmd, "invprevw"))
+	else if (cmd == "invprevw")
 		SelectPrevItem (ent, IT_WEAPON);
-	else if (striequals(cmd, "invnextp"))
+	else if (cmd == "invnextp")
 		SelectNextItem (ent, IT_POWERUP);
-	else if (striequals(cmd, "invprevp"))
+	else if (cmd == "invprevp")
 		SelectPrevItem (ent, IT_POWERUP);
-	else if (striequals(cmd, "invuse"))
+	else if (cmd == "invuse")
 		Cmd_InvUse_f (ent);
-	else if (striequals(cmd, "invdrop"))
+	else if (cmd == "invdrop")
 		Cmd_InvDrop_f (ent);
-	else if (striequals(cmd, "weapprev"))
+	else if (cmd == "weapprev")
 		Cmd_WeapPrev_f (ent);
-	else if (striequals(cmd, "weapnext"))
+	else if (cmd == "weapnext")
 		Cmd_WeapNext_f (ent);
-	else if (striequals(cmd, "weaplast"))
+	else if (cmd == "weaplast")
 		Cmd_WeapLast_f (ent);
-	else if (striequals(cmd, "kill"))
+	else if (cmd == "kill")
 		Cmd_Kill_f (ent);
-	else if (striequals(cmd, "putaway"))
+	else if (cmd == "putaway")
 		Cmd_PutAway_f (ent);
-	else if (striequals(cmd, "wave"))
+	else if (cmd == "wave")
 		Cmd_Wave_f (ent);
-	else if (striequals(cmd, "playerlist"))
+	else if (cmd == "playerlist")
 		Cmd_PlayerList_f(ent);
+#ifdef CTF
+	else if (cmd == "team")
+		CTFTeam_f (ent);
+	else if (cmd == "id")
+		CTFID_f (ent);
+	else if (cmd == "playerlist")
+		CTFPlayerList(ent);
+	else if (cmd == "observer")
+		CTFObserver(ent);
+#endif
+#if defined(GRAPPLE) && defined(OFFHAND_HOOK)
+	else if (cmd == "hook")
+		GrappleCmd(ent);
+#endif
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }

@@ -24,6 +24,10 @@ int(string, string) strstr = #0;
 int(string, int) strchr = #0;
 string(string, int start, optional int length) substr = #0;
 string(string...) strconcat = #0;
+int(int) chrlwr = #0;
+int(int) chrupr = #0;
+string(string) strlwr = #0;
+string(string) strupr = #0;
 
 INLINE bool(string a, string b) stricmp =
 {

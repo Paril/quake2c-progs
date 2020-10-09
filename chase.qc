@@ -84,6 +84,22 @@ void(entity ent) UpdateChaseCam =
 	ent.viewheight = 0;
 	ent.client.ps.pmove.pm_flags |= PMF_NO_PREDICTION;
 	gi.linkentity(ent);
+
+	if (ent.client.update_chase || (!ent.client.showscores &&
+#ifdef PMENU
+		!ent.client.menu.open &&
+#endif
+		!ent.client.showinventory &&
+#ifdef SINGLE_PLAYER
+		!ent.client.showhelp &&
+#endif
+		!(level.framenum & 31)))
+	{
+		ent.client.update_chase = false;
+		gi.WriteByte(svc_layout);
+		gi.WriteString(strconcat("xv 0 yb -68 string2 \"Chasing ", targ.client.pers.netname, "\""));
+		gi.unicast(ent, false);
+	}
 }
 
 void(entity ent) ChaseNext =

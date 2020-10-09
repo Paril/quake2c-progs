@@ -20,6 +20,7 @@ import.qc
 kmq2_import.qc
 itemlist.qc
 entity.qc
+pmenu.qc
 utils.qc
 rogue/utils.qc
 items.qc
@@ -28,6 +29,7 @@ rogue/items.qc
 chase.qc
 pmove.qc
 client.qc
+ctf.qc
 cmds.qc
 rogue/combat.qc
 combat.qc
@@ -77,6 +79,7 @@ rogue/widow2.qc
 pweapon.qc
 xatrix/pweapon.qc
 rogue/pweapon.qc
+grapple.qc
 misc.qc
 xatrix/misc.qc
 rogue/misc.qc

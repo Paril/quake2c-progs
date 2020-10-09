@@ -443,6 +443,10 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 		InitHintPaths();
 #endif
 #endif
+
+#ifdef CTF
+	CTFSpawn();
+#endif
 };
 
 void() PostSpawnEntities =
@@ -647,6 +651,14 @@ API_FUNC static void(entity ent) SP_worldspawn =
 		gi.configstring(CS_STATUSBAR, single_statusbar);
 	else
 #endif
+#ifdef CTF
+	if (ctf.intVal)
+	{
+		gi.configstring(CS_STATUSBAR, ctf_statusbar);
+		CTFPrecache();
+	}
+	else
+#endif
 		gi.configstring(CS_STATUSBAR, dm_statusbar);
 
 	// help icon for statusbar
@@ -720,6 +732,10 @@ API_FUNC static void(entity ent) SP_worldspawn =
 	gi.modelindex ("#w_plasma.md2");
 	gi.modelindex ("#w_plauncher.md2");
 	gi.modelindex ("#w_chainfist.md2");
+#endif
+
+#ifdef GRAPPLE
+	gi.modelindex ("#w_grapple.md2");
 #endif
 
 	//-------------------

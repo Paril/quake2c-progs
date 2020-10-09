@@ -843,6 +843,9 @@ static void(entity self) bfg_think =
 			)
 			continue;
 
+		if (OnSameTeam(self, ent))
+			continue;
+
 		point = ent.absmin + (0.5f * ent.size);
 
 		dir = point - self.s.origin;

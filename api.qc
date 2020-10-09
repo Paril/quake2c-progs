@@ -1,6 +1,9 @@
 // contains definitions that pertain to the game/server API
 const int GAMEC_API_VERSION	= 1;
 
+// max bytes in a single message packet
+const int MESSAGE_LIMIT = 1400;
+
 //
 // per-level limits
 //
@@ -444,6 +447,11 @@ typedef enum : int
 	CS_MAPCHECKSUM,			// for catching cheater maps
 	
 	CS_MODELS
+
+#ifdef CTF
+	, CONFIG_CTF_MATCH = CS_AIRACCEL - 1,
+	CONFIG_CTF_TEAMINFO	= CS_AIRACCEL - 2
+#endif
 } config_string_t;
 
 // These are non-constant because some engines (KMQ2)

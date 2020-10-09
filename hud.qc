@@ -74,6 +74,11 @@ void(entity targ) BeginIntermission =
 	if (level.intermission_framenum)
 		return;     // already activated
 
+#ifdef CTF
+	if (ctf.intVal)
+		CTFCalcScores();
+#endif
+
 #ifdef SINGLE_PLAYER
 	game.autosaved = false;
 #endif
@@ -165,6 +170,14 @@ DeathmatchScoreboardMessage
 */
 void(entity ent, entity killer) DeathmatchScoreboardMessage =
 {
+#ifdef CTF
+	if (ctf.intVal)
+	{
+		CTFScoreboardMessage(ent, killer);
+		return;
+	}
+#endif
+
 	string	entry;
 	string	str = "";
 	int	stringlength;
@@ -247,7 +260,7 @@ void(entity ent, entity killer) DeathmatchScoreboardMessage =
 DeathmatchScoreboard
 
 Draw instead of help message.
-Note that it isn't that hard to overflow the 1400 byte message limit!
+Note that it isn't that hard to overflow the MESSAGE_LIMIT!
 ==================
 */
 static void(entity ent) DeathmatchScoreboard =
@@ -267,6 +280,12 @@ Display the scoreboard
 void(entity ent) Cmd_Score_f =
 {
 	ent.client.showinventory = false;
+
+#ifdef PMENU
+	if (ent.client.menu.open)
+		PMenu_Close(ent);
+#endif
+
 #ifdef SINGLE_PLAYER
 	ent.client.showhelp = false;
 
@@ -402,9 +421,11 @@ void(entity ent) G_SetStats =
 	// armor
 	//
 	power_armor_type = PowerArmorType(ent);
-	if (power_armor_type) {
+	if (power_armor_type)
+	{
 		cells = ent.client.pers.inventory[FindItem("cells")->id];
-		if (cells == 0) {
+		if (cells == 0)
+		{
 			// ran out of cells for power armor
 			ent.flags &= ~FL_POWER_ARMOR;
 			gi.sound(ent, CHAN_ITEM, gi.soundindex("misc/power2.wav"), 1, ATTN_NORM, 0);
@@ -413,7 +434,8 @@ void(entity ent) G_SetStats =
 	}
 
 	index = ArmorIndex(ent);
-	if (power_armor_type && (!index || (level.framenum & 8))) {
+	if (power_armor_type && (!index || (level.framenum & 8)))
+	{
 		// flash between power armor and other armor icon
 		// Knightmare- use correct icon for power screen
 		if (power_armor_type == POWER_ARMOR_SHIELD)
@@ -421,11 +443,15 @@ void(entity ent) G_SetStats =
 		else	// POWER_ARMOR_SCREEN
 			ent.client.ps.stats[STAT_ARMOR_ICON] = gi.imageindex ("i_powerscreen");
 		ent.client.ps.stats[STAT_ARMOR] = cells;
-	} else if (index) {
+	}
+	else if (index)
+	{
 		it = GetItemByIndex(index);
 		ent.client.ps.stats[STAT_ARMOR_ICON] = gi.imageindex(it->icon);
 		ent.client.ps.stats[STAT_ARMOR] = ent.client.pers.inventory[index];
-	} else {
+	}
+	else
+	{
 		ent.client.ps.stats[STAT_ARMOR_ICON] = 0;
 		ent.client.ps.stats[STAT_ARMOR] = 0;
 	}
@@ -433,7 +459,8 @@ void(entity ent) G_SetStats =
 	//
 	// pickup message
 	//
-	if (level.framenum > ent.client.pickup_msg_framenum) {
+	if (level.framenum > ent.client.pickup_msg_framenum)
+	{
 		ent.client.ps.stats[STAT_PICKUP_ICON] = 0;
 		ent.client.ps.stats[STAT_PICKUP_STRING] = 0;
 	}
@@ -542,6 +569,10 @@ void(entity ent) G_SetStats =
 		ent.client.ps.stats[STAT_HELPICON] = 0;
 
 	ent.client.ps.stats[STAT_SPECTATOR] = 0;
+
+#ifdef CTF
+	SetCTFStats(ent);
+#endif
 }
 
 void(entity) G_SetSpectatorStats;
@@ -553,9 +584,8 @@ G_CheckChaseStats
 */
 void(entity ent) G_CheckChaseStats =
 {
-	int i;
-
-	for (i = 1; i <= game.maxclients; i++) {
+	for (int i = 1; i <= game.maxclients; i++)
+	{
 		entity cl = itoe(i);
 		if (!cl.inuse || cl.client.chase_target != ent)
 			continue;

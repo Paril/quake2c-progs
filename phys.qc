@@ -248,7 +248,7 @@ SV_AddGravity
 
 ============
 */
-static void(entity ent) SV_AddGravity =
+void(entity ent) SV_AddGravity =
 {
 #ifdef GROUND_ZERO
 	if (ent.gravityVector[2] > 0)

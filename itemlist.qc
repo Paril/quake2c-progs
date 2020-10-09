@@ -8,6 +8,9 @@ typedef enumflags : int
 	IT_STAY_COOP,
 	IT_KEY,
 #endif
+#ifdef CTF
+	IT_TECH,
+#endif
 	IT_POWERUP
 } gitem_flags_t;
 
@@ -38,6 +41,10 @@ typedef enum : int
 	WEAP_PLASMA,
 	WEAP_PROXLAUNCH,
 	WEAP_CHAINFIST
+#endif
+
+#ifdef GRAPPLE
+	, WEAP_GRAPPLE
 #endif
 } weap_model_t;
 
@@ -299,6 +306,31 @@ PROGS_LOCAL var gitem_t itemlist[] =
 	//
 	// WEAPONS
 	//
+#ifdef GRAPPLE
+/* weapon_grapple (.3 .3 1) (-16 -16 -16) (16 16 16)
+always owned, never in the world
+*/
+	{
+		"weapon_grapple", 
+		0,
+		"Use_Weapon",
+		0,
+		"CTFWeapon_Grapple",
+		"misc/w_pkup.wav",
+		0, 0,
+		"models/weapons/grapple/tris.md2",
+/* icon */	"w_grapple",
+/* pickup */	"Grapple",
+		0,
+		0,
+		0,
+		IT_WEAPON,
+		WEAP_GRAPPLE,
+		0,
+		0,
+/* precache */ "weapons/grapple/grfire.wav weapons/grapple/grpull.wav weapons/grapple/grhang.wav weapons/grapple/grreset.wav weapons/grapple/grhit.wav"
+	},
+#endif
 
 	/* weapon_blaster (.3 .3 1) (-16 -16 -16) (16 16 16)
 	always owned, never in the world
@@ -1608,6 +1640,142 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		0,												// precaches
 	},
 #endif
+#endif
+
+#ifdef CTF
+/*QUAKED item_flag_team1 (1 0.2 0) (-16 -16 -24) (16 16 32)
+*/
+	{
+		"item_flag_team1",
+		"CTFPickup_Flag",
+		0,
+		"CTFDrop_Flag", //Should this be null if we don't want players to drop it manually?
+		0,
+		"ctf/flagtk.wav",
+		"players/male/flag1.md2", EF_FLAG1,
+		0,
+/* icon */		"i_ctf1",
+/* pickup */	"Red Flag",
+/* width */		2,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+/* precache */ "ctf/flagcap.wav"
+	},
+
+/*QUAKED item_flag_team2 (1 0.2 0) (-16 -16 -24) (16 16 32)
+*/
+	{
+		"item_flag_team2",
+		"CTFPickup_Flag",
+		0,
+		"CTFDrop_Flag", //Should this be null if we don't want players to drop it manually?
+		0,
+		"ctf/flagtk.wav",
+		"players/male/flag2.md2", EF_FLAG2,
+		0,
+/* icon */		"i_ctf2",
+/* pickup */	"Blue Flag",
+/* width */		2,
+		0,
+		0,
+		0,
+		0,
+		0,
+		0,
+/* precache */ "ctf/flagcap.wav"
+	},
+
+/* Resistance Tech */
+	{
+		"item_tech1",
+		"CTFPickup_Tech",
+		0,
+		"CTFDrop_Tech", //Should this be null if we don't want players to drop it manually?
+		0,
+		"items/pkup.wav",
+		"models/ctf/resistance/tris.md2", EF_ROTATE,
+		0,
+/* icon */		"tech1",
+/* pickup */	"Disruptor Shield",
+/* width */		2,
+		0,
+		0,
+		IT_TECH,
+		0,
+		0,
+		0,
+/* precache */ "ctf/tech1.wav"
+	},
+
+/* Strength Tech */
+	{
+		"item_tech2",
+		"CTFPickup_Tech",
+		0,
+		"CTFDrop_Tech", //Should this be null if we don't want players to drop it manually?
+		0,
+		"items/pkup.wav",
+		"models/ctf/strength/tris.md2", EF_ROTATE,
+		0,
+/* icon */		"tech2",
+/* pickup */	"Power Amplifier",
+/* width */		2,
+		0,
+		0,
+		IT_TECH,
+		0,
+		0,
+		0,
+/* precache */ "ctf/tech2.wav ctf/tech2x.wav"
+	},
+
+/* Haste Tech */
+	{
+		"item_tech3",
+		"CTFPickup_Tech",
+		0,
+		"CTFDrop_Tech", //Should this be null if we don't want players to drop it manually?
+		0,
+		"items/pkup.wav",
+		"models/ctf/haste/tris.md2", EF_ROTATE,
+		0,
+/* icon */		"tech3",
+/* pickup */	"Time Accel",
+/* width */		2,
+		0,
+		0,
+		IT_TECH,
+		0,
+		0,
+		0,
+/* precache */ "ctf/tech3.wav"
+	},
+
+/* Regeneration Tech */
+	{
+		"item_tech4",
+		"CTFPickup_Tech",
+		0,
+		"CTFDrop_Tech", //Should this be null if we don't want players to drop it manually?
+		0,
+		"items/pkup.wav",
+		"models/ctf/regeneration/tris.md2", EF_ROTATE,
+		0,
+/* icon */		"tech4",
+/* pickup */	"AutoDoc",
+/* width */		2,
+		0,
+		0,
+		IT_TECH,
+		0,
+		0,
+		0,
+/* precache */ "ctf/tech4.wav"
+	},
 #endif
 
 	{

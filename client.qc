@@ -419,6 +419,12 @@ static void(entity self, entity inflictor, entity attacker) ClientObituary =
 			message2 = "'s disruptor";
 			break;
 #endif
+#ifdef GRAPPLE
+		case MOD_GRAPPLE:
+			message = "was caught by";
+			message2 = "'s grapple";
+			break;
+#endif
 		}
 
 		if (message)
@@ -527,6 +533,16 @@ void(entity) Cmd_Help_f;
 void(entity, string, int, int) ThrowGib;
 void(entity, int) ThrowClientHead;
 
+#ifdef GRAPPLE
+void(entity) GrapplePlayerReset;
+#endif
+
+#ifdef CTF
+void(entity, entity, entity) CTFFragBonuses;
+void(entity) CTFDeadDropFlag;
+void(entity) CTFDeadDropTech;
+#endif
+
 /*
 ==================
 player_die
@@ -539,7 +555,10 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 	self.takedamage = true;
 	self.movetype = MOVETYPE_TOSS;
 
-	self.s.modelindex2 = 0;    // remove linked weapon model
+	self.s.modelindex2 = 0; // remove linked weapon model
+#ifdef CTF
+	self.s.modelindex3 = 0; // remove linked flag
+#endif
 
 	self.s.angles[PITCH] = 0;
 	self.s.angles[ROLL] = 0;
@@ -557,7 +576,30 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 		LookAtKiller(self, inflictor, attacker);
 		self.client.ps.pmove.pm_type = PM_DEAD;
 		ClientObituary(self, inflictor, attacker);
+
+#ifdef CTF
+		// if at start and same team, clear
+		if (ctf.intVal && meansOfDeath == MOD_TELEFRAG &&
+			self.client.resp.ctf_state < 2 &&
+			self.client.resp.ctf_team == attacker.client.resp.ctf_team)
+		{
+			attacker.client.resp.score--;
+			self.client.resp.ctf_state = 0;
+		}
+
+		CTFFragBonuses(self, inflictor, attacker);
+#endif
+
 		TossClientWeapon(self);
+
+#ifdef GRAPPLE
+		GrapplePlayerReset(self);
+#endif
+
+#ifdef CTF
+		CTFDeadDropFlag(self);
+		CTFDeadDropTech(self);
+#endif
 
 #ifdef SINGLE_PLAYER
 		if (deathmatch.intVal)
@@ -619,7 +661,8 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 #endif
 
 		ThrowClientHead(self, damage);
-
+		self.client.anim_priority = ANIM_DEATH;
+		self.client.anim_end = 0;
 		self.takedamage = false;
 	}
 	else if (!self.deadflag) // normal death
@@ -666,6 +709,10 @@ static inline void(entity other, ammo_t ammo_id, int new_max) SetAmmoMax =
 	other.client.pers.max_ammo[ammo_id] = new_max;
 }
 
+#ifdef CTF
+void(entity) CTFAssignTeam;
+#endif
+
 /*
 ==============
 InitClientPersistant
@@ -674,7 +721,7 @@ This is only called when the game first initializes in single player,
 but is called after each death and level change in deathmatch
 ==============
 */
-static void(entity ent) InitClientPersistant =
+void(entity ent) InitClientPersistant =
 {
 	memclear(&ent.client.pers, sizeof(ent.client.pers));
 	
@@ -682,7 +729,11 @@ static void(entity ent) InitClientPersistant =
 	ent.client.pers.selected_item = it->id;
 	ent.client.pers.inventory[ent.client.pers.selected_item] = 1;
 	
-	ent.client.pers.weapon = it;
+	ent.client.pers.weapon = ent.client.pers.lastweapon = it;
+
+#ifdef GRAPPLE
+	ent.client.pers.inventory[FindItem("Grapple").id] = 1;
+#endif
 	
 	ent.client.pers.health         = 100;
 	ent.client.pers.max_health     = 100;
@@ -711,10 +762,26 @@ static void(entity ent) InitClientPersistant =
 
 static void(entity ent) InitClientResp =
 {
+#ifdef CTF
+	ctfteam_t ctf_team = ent.client.resp.ctf_team;
+	bool id_state = ent.client.resp.id_state;
+#endif
+
 	memclear(&ent.client.resp, sizeof(client_respawn_t));
+
+#ifdef CTF
+	ent.client.resp.ctf_team = ctf_team;
+	ent.client.resp.id_state = id_state;
+#endif
+
 	ent.client.resp.enterframe = level.framenum;
 #ifdef SINGLE_PLAYER
 	memcpy(&ent.client.resp.coop_respawn, &ent.client.pers, sizeof(client_persistant_t));
+#endif
+
+#ifdef CTF
+	if (ctf.intVal && ent.client.resp.ctf_team < CTF_TEAM1)
+		CTFAssignTeam(ent);
 #endif
 }
 
@@ -770,7 +837,7 @@ PlayersRangeFromSpot
 Returns the distance to the nearest player from the given spot
 ================
 */
-static float(entity spot) PlayersRangeFromSpot =
+float(entity spot) PlayersRangeFromSpot =
 {
 	float bestplayerdistance = 9999999f;
 
@@ -801,7 +868,7 @@ go to a random point, but NOT the two points closest
 to other players
 ================
 */
-static entity() SelectRandomDeathmatchSpawnPoint =
+entity() SelectRandomDeathmatchSpawnPoint =
 {
 	int	count = 0;
 	entity spot = world, spot1 = world, spot2 = world;
@@ -849,7 +916,7 @@ static entity() SelectRandomDeathmatchSpawnPoint =
 SelectFarthestDeathmatchSpawnPoint
 ================
 */
-static entity() SelectFarthestDeathmatchSpawnPoint =
+entity() SelectFarthestDeathmatchSpawnPoint =
 {
 	entity spot = world;
 	entity bestspot = world;
@@ -993,6 +1060,10 @@ static entity(entity ent) SelectCoopSpawnPoint =
 }
 #endif
 
+#ifdef CTF
+entity(entity) SelectCTFSpawnPoint;
+#endif
+
 /*
 ===========
 SelectSpawnPoint
@@ -1005,6 +1076,11 @@ static void(entity ent, out vector origin, out vector angles) SelectSpawnPoint =
 #ifdef SINGLE_PLAYER
 	entity spot = world;
 
+#ifdef CTF
+	if (ctf.intVal)
+		spot = SelectCTFSpawnPoint(ent);
+	else
+#endif
 	if (deathmatch.intVal)
 		spot = SelectDeathmatchSpawnPoint();
 	else if (coop.intVal)
@@ -1229,6 +1305,10 @@ void(entity ent, string userinfo) ClientUserinfoChanged;
 // from pweapon.qc
 void(entity) ChangeWeapon;
 
+#ifdef CTF
+bool(entity) CTFStartClient;
+#endif
+
 /*
 ===========
 PutClientInServer
@@ -1237,7 +1317,7 @@ Called when a player connects to a server or respawns in
 a deathmatch.
 ============
 */
-static void(entity ent) PutClientInServer =
+void(entity ent) PutClientInServer =
 {
 	static const vector player_mins = '-16 -16 -24';
 	static const vector player_maxs = ' 16  16  32';
@@ -1319,6 +1399,7 @@ static void(entity ent) PutClientInServer =
 	memclear(&ent.client.ps, sizeof(ent.client.ps));
 
 	ent.client.ps.pmove.origin = spawn_origin;
+	ent.client.ps.pmove.pm_flags &= ~PMF_NO_PREDICTION;
 
 	ent.client.ps.fov = stof(Info_ValueForKey(ent.client.pers.userinfo, "fov"));
 	if (ent.client.ps.fov < 1.f)
@@ -1369,6 +1450,11 @@ static void(entity ent) PutClientInServer =
 	}
 	else
 		ent.client.resp.spectator = false;
+
+#ifdef CTF
+	if (CTFStartClient(ent))
+		return;
+#endif
 
 	if (!KillBox(ent)) {
 		// could't spawn in?
@@ -1441,6 +1527,10 @@ void(entity ent) ClientBegin =
 	ClientEndServerFrame(ent);
 };
 
+#ifdef CTF
+void(entity, string) CTFAssignSkin;
+#endif
+
 /*
 ===========
 ClientUserInfoChanged
@@ -1478,7 +1568,15 @@ void(entity ent, string userinfo) ClientUserinfoChanged =
 	str = Info_ValueForKey(userinfo, "skin");
 
 	// combine name and skin into a configstring
-	gi.configstring(CS_PLAYERSKINS + ent.s.number - 1, va("%s\\%s", ent.client.pers.netname, str));
+#ifdef CTF
+	// set player name field (used in id_state view)
+	gi.configstring (CS_GENERAL + ent.s.number - 1, ent.client.pers.netname);
+
+	if (ctf.intVal)
+		CTFAssignSkin(ent, str);
+	else
+#endif
+		gi.configstring(CS_PLAYERSKINS + ent.s.number - 1, va("%s\\%s", ent.client.pers.netname, str));
 	
 	// fov
 	ent.client.ps.fov = stof(Info_ValueForKey(userinfo, "fov"));
@@ -1566,6 +1664,15 @@ bool(entity ent, inout string userinfo) ClientConnect =
 		}
 	}
 
+#ifdef CTF
+	if (ctf.intVal)
+	{
+		// force team join
+		ent.client.resp.ctf_team = -1;
+		ent.client.resp.id_state = true;
+	}
+#endif
+
 #ifdef SINGLE_PLAYER
 	// they can connect
 	// if there is already a body waiting for us (a loadgame), just
@@ -1608,6 +1715,11 @@ void(entity ent) ClientDisconnect =
 		return;
 	
 	gi.bprintf(PRINT_HIGH, "%s disconnected\n", ent.client.pers.netname);
+
+#ifdef CTF
+	CTFDeadDropFlag(ent);
+	CTFDeadDropTech(ent);
+#endif
 	
 	// send effect
 	if (ent.inuse)
@@ -1657,6 +1769,14 @@ void(entity, vector, player_noise_t) PlayerNoise;
 #endif
 
 void(entity) Think_Weapon;
+
+#ifdef CTF
+void(entity) CTFApplyRegeneration;
+#endif
+
+#ifdef GRAPPLE
+void(entity) GrapplePull;
+#endif
 
 void(entity ent, usercmd_t ucmd) ClientThink =
 {
@@ -1755,6 +1875,11 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 			ent.client.ps.viewangles = pm.viewangles;
 		}
 
+#ifdef GRAPPLE
+		if (ent.client.grapple)
+			GrapplePull(ent.client.grapple);
+#endif
+
 		gi.linkentity(ent);
 
 		if (ent.movetype != MOVETYPE_NOCLIP)
@@ -1783,7 +1908,11 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 	ent.light_level = ucmd.lightlevel;
 
 	// fire weapon from final position if needed
-	if (ent.client.latched_buttons & BUTTON_ATTACK)
+	if ((ent.client.latched_buttons & BUTTON_ATTACK)
+#ifdef CTF
+		&& ent.movetype != MOVETYPE_NOCLIP
+#endif
+		)
 	{
 		if (ent.client.resp.spectator)
 		{
@@ -1803,6 +1932,10 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 			Think_Weapon(ent);
 		}
 	}
+
+#ifdef CTF
+	CTFApplyRegeneration(ent);
+#endif
 
 	if (ent.client.resp.spectator)
 	{
@@ -1855,7 +1988,11 @@ void(entity ent) ClientBeginServerFrame =
 	}
 
 	// run weapon animations if it hasn't been done by a ucmd_t
-	if (!ent.client.weapon_thunk && !ent.client.resp.spectator)
+	if (!ent.client.weapon_thunk && !ent.client.resp.spectator
+#ifdef CTF
+		&& ent->movetype != MOVETYPE_NOCLIP
+#endif
+		)
 		Think_Weapon(ent);
 	else
 		ent.client.weapon_thunk = false;

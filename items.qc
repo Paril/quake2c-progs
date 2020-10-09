@@ -101,18 +101,32 @@ gitem_t *(string pickup_name) FindItem =
 
 //======================================================================
 
-static void(entity ent) DoRespawn =
+void(entity ent) DoRespawn =
 {
 	if (ent.team)
 	{
 		entity master = ent.teammaster;
-		int	count;
 
-		for (count = 0, ent = master; ent; ent = ent.chain, count++) ;
+#ifdef CTF
+//in ctf, when we are weapons stay, only the master of a team of weapons
+//is spawned
+		if (ctf.intVal &&
+			(dmflags.intVal & DF_WEAPONS_STAY) &&
+			master.item && (master.item->flags & IT_WEAPON))
+			ent = master;
+		else
+		{
+#endif	
+			int	count;
 
-		int choice = Q_rand_uniform(count);
+			for (count = 0, ent = master; ent; ent = ent.chain, count++) ;
 
-		for (count = 0, ent = master; count < choice; ent = ent.chain, count++) ;
+			int choice = Q_rand_uniform(count);
+
+			for (count = 0, ent = master; count < choice; ent = ent.chain, count++) ;
+#ifdef CTF
+		}
+#endif
 	}
 
 	ent.svflags &= ~SVF_NOCLIENT;
@@ -508,9 +522,17 @@ static void(entity ent, gitem_t *it) Drop_Ammo =
 
 //======================================================================
 
+#ifdef CTF
+bool(entity) CTFHasRegeneration;
+#endif
+
 static void(entity self) MegaHealth_think =
 {
-	if (self.owner.health > self.owner.max_health)
+	if (self.owner.health > self.owner.max_health
+#ifdef CTF
+		&& !CTFHasRegeneration(self.owner)
+#endif
+		)
 	{
 		self.nextthink = level.framenum + 1 * BASE_FRAMERATE;
 		self.owner.health -= 1;
@@ -533,13 +555,27 @@ API_FUNC static bool(entity ent, entity other) Pickup_Health =
 		if (other.health >= other.max_health)
 			return false;
 
+#ifdef CTF
+	if (other.health >= 250 && ent.count > 25)
+		return false;
+#endif
+
 	other.health += ent.count;
+
+#ifdef CTF
+	if (other.health > 250 && ent.count > 25)
+		other.health = 250;
+#endif
 
 	if (!(ent.style & HEALTH_IGNORE_MAX))
 		if (other.health > other.max_health)
 			other.health = other.max_health;
 
-	if (ent.style & HEALTH_TIMED)
+	if (ent.style & HEALTH_TIMED
+#ifdef CTF
+		&& !CTFHasRegeneration(other)
+#endif
+		)
 	{
 		ent.think = MegaHealth_think;
 		ent.nextthink = level.framenum + 5 * BASE_FRAMERATE;
@@ -1021,6 +1057,10 @@ void(gitem_t *it) PrecacheItem =
 void(entity ent) SetTriggeredSpawn;
 #endif
 
+#ifdef CTF
+void(entity) CTFFlagSetup;
+#endif
+
 /*
 ============
 SpawnItem
@@ -1091,6 +1131,17 @@ void(entity ent, gitem_t *it) SpawnItem =
 		it->drop = 0;
 #endif
 
+#ifdef CTF
+//Don't spawn the flags unless enabled
+	if (!ctf.intVal &&
+		(ent->classname == "item_flag_team1" ||
+		ent->classname == "item_flag_team2"))
+	{
+		G_FreeEdict(ent);
+		return;
+	}
+#endif
+
 	ent.item = it;
 	ent.nextthink = level.framenum + 2;    // items start after other solids
 	ent.think = droptofloor;
@@ -1103,6 +1154,13 @@ void(entity ent, gitem_t *it) SpawnItem =
 #ifdef GROUND_ZERO
 	if (ent.spawnflags & ITEM_TRIGGER_SPAWN)
 		SetTriggeredSpawn (ent);
+#endif
+
+#ifdef CTF
+	//flags are server animated and have special handling
+	if (ent.classname == "item_flag_team1" ||
+		ent.classname == "item_flag_team2")
+		ent.think = CTFFlagSetup;
 #endif
 }
 

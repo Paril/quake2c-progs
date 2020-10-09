@@ -16,19 +16,32 @@ PROGS_LOCAL void(entity ent) P_DamageModifier =
 	is_quad = false;
 	damage_multiplier = 1;
 
+#ifdef CTF
+	static gitem_t *tech_strength = 0;
+
+	if (!tech_strength)
+		tech_strength = FindItemByClassname("item_tech2");
+
+	if (ent.client.pers.inventory[tech_strength.id])
+	{
+		damage_multiplier *= 2;
+		is_quad = true;
+	}
+#endif
+
 	if (ent.client.quad_framenum > level.framenum)
 	{
 		damage_multiplier *= 4;
 		is_quad = true;
-#ifdef GROUND_ZERO
 
+#ifdef GROUND_ZERO
 		// if we're quad and DF_NO_STACK_DOUBLE is on, return now.
 		if (dmflags.intVal & DF_NO_STACK_DOUBLE)
 			return;
 #endif
 	}
-#ifdef GROUND_ZERO
 
+#ifdef GROUND_ZERO
 	if (ent.client.double_framenum > level.framenum)
 	{
 		damage_multiplier *= 2;
@@ -339,7 +352,8 @@ Called by ClientBeginServerFrame and ClientThink
 void(entity ent) Think_Weapon =
 {
 	// if just died, put the weapon away
-	if (ent.health < 1) {
+	if (ent.health < 1)
+	{
 		ent.client.newweapon = 0;
 		ChangeWeapon(ent);
 	}
@@ -351,10 +365,8 @@ void(entity ent) Think_Weapon =
 #ifdef THE_RECKONING
 		is_quadfire = (ent.client.quadfire_framenum > level.framenum);
 #endif
-		if (ent.client.silencer_shots)
-			is_silenced = MZ_SILENCED;
-		else
-			is_silenced = 0;
+		is_silenced = (ent.client.silencer_shots) ? MZ_SILENCED : 0;
+
 		ent.client.pers.weapon->weaponthink(ent);
 	}
 }
@@ -630,32 +642,44 @@ PROGS_LOCAL Weapon_Generic_Func Weapon_Generic =
 		return;
 	}
 
-	if (ent.client.weaponstate == WEAPON_READY) {
-		if (((ent.client.latched_buttons | ent.client.buttons) & BUTTON_ATTACK)) {
+	if (ent.client.weaponstate == WEAPON_READY)
+	{
+		if (((ent.client.latched_buttons | ent.client.buttons) & BUTTON_ATTACK))
+		{
 			ent.client.latched_buttons &= ~BUTTON_ATTACK;
 			if (!ent.client.ammo_index || 
-				(ent.client.pers.inventory[ent.client.ammo_index] >= ent.client.pers.weapon->quantity)) {
+				(ent.client.pers.inventory[ent.client.ammo_index] >= ent.client.pers.weapon->quantity))
+			{
 				ent.client.ps.gunframe = FRAME_FIRE_FIRST;
 				ent.client.weaponstate = WEAPON_FIRING;
 
 				// start the animation
 				ent.client.anim_priority = ANIM_ATTACK;
-				if (ent.client.ps.pmove.pm_flags & PMF_DUCKED) {
+				if (ent.client.ps.pmove.pm_flags & PMF_DUCKED)
+				{
 					ent.s.frame = FRAME_crattak1 - 1;
 					ent.client.anim_end = FRAME_crattak9;
-				} else {
+				}
+				else
+				{
 					ent.s.frame = FRAME_attack1 - 1;
 					ent.client.anim_end = FRAME_attack8;
 				}
-			} else {
-				if (level.framenum >= ent.pain_debounce_framenum) {
+			}
+			else
+			{
+				if (level.framenum >= ent.pain_debounce_framenum)
+				{
 					gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/noammo.wav"), 1, ATTN_NORM, 0);
 					ent.pain_debounce_framenum = level.framenum + 1 * BASE_FRAMERATE;
 				}
 				NoAmmoWeaponChange(ent);
 			}
-		} else {
-			if (ent.client.ps.gunframe == FRAME_IDLE_LAST) {
+		}
+		else
+		{
+			if (ent.client.ps.gunframe == FRAME_IDLE_LAST)
+			{
 				ent.client.ps.gunframe = FRAME_IDLE_FIRST;
 				return;
 			}
@@ -668,13 +692,23 @@ PROGS_LOCAL Weapon_Generic_Func Weapon_Generic =
 		}
 	}
 
-	if (ent.client.weaponstate == WEAPON_FIRING) {
-		if (is_fire_frame(ent.client.ps.gunframe)) {
+	if (ent.client.weaponstate == WEAPON_FIRING)
+	{
+		if (is_fire_frame(ent.client.ps.gunframe))
+		{
+#ifdef CTF
+			if (CTFApplyStrengthSound(ent)) { }
+			else
+#endif
 			if (ent.client.quad_framenum > level.framenum)
 				gi.sound(ent, CHAN_ITEM, gi.soundindex("items/damage3.wav"), 1, ATTN_NORM, 0);
 #ifdef GROUND_ZERO
 			else if (ent.client.double_framenum > level.framenum)
 				gi.sound(ent, CHAN_ITEM, gi.soundindex("misc/ddamage3.wav"), 1, ATTN_NORM, 0);
+#endif
+
+#ifdef CTF
+			CTFApplyHasteSound(ent);
 #endif
 
 			fire(ent);
@@ -692,7 +726,11 @@ PROGS_LOCAL Weapon_Generic_Func Weapon_Generic =
 {
 	Weapon_Generic_(ent, FRAME_ACTIVATE_LAST, FRAME_FIRE_LAST, FRAME_IDLE_LAST, FRAME_DEACTIVATE_LAST, is_pause_frame, is_fire_frame, fire);
 
-	if (is_quadfire)
+	if (is_quadfire
+#ifdef CTF
+		|| CTFApplyHaste(ent)
+#endif
+		)
 		Weapon_Generic_(ent, FRAME_ACTIVATE_LAST, FRAME_FIRE_LAST, FRAME_IDLE_LAST, FRAME_DEACTIVATE_LAST, is_pause_frame, is_fire_frame, fire);
 };
 #endif

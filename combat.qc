@@ -468,6 +468,15 @@ static void(entity targ, entity attacker) M_ReactToDamage =
 }
 #endif
 
+bool(entity targ, entity attacker, int mod = 0) CheckTeamDamage =
+{
+	return ((dmflags.intVal & DF_NO_FRIENDLY_FIRE)
+#ifdef GROUND_ZERO
+			&& (mod != MOD_NUKE)
+#endif
+			);
+};
+
 void(entity targ, entity inflictor, entity attacker, vector dir, vector point, vector normal, int damage, int knockback, damage_flags_t dflags, means_of_death_t mod) T_Damage =
 {
 	int         take;
@@ -494,11 +503,7 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 	// knockback still occurs
 	if (OnSameTeam(targ, attacker))
 	{
-		if ((dmflags.intVal & DF_NO_FRIENDLY_FIRE)
-#ifdef GROUND_ZERO
-			&& (mod != MOD_NUKE)
-#endif
-			)
+		if (CheckTeamDamage(targ, attacker, mod))
 			damage = 0;
 		else
 			mod |= MOD_FRIENDLY_FIRE;
@@ -567,11 +572,22 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 		save = damage;
 	}
 
-	psave = CheckPowerArmor(targ, point, normal, take, dflags);
-	take -= psave;
+#ifdef CTF
+	//team armor protect
+	if (ctf.intVal && targ.is_client && attacker.is_client &&
+		OnSameTeam(targ, attacker) && (dmflags.intVal & DF_ARMOR_PROTECT))
+		psave = asave = 0;
+	else
+	{
+#endif
+		psave = CheckPowerArmor(targ, point, normal, take, dflags);
+		take -= psave;
 
-	asave = CheckArmor(targ, point, normal, take, te_sparks, dflags);
-	take -= asave;
+		asave = CheckArmor(targ, point, normal, take, te_sparks, dflags);
+		take -= asave;
+#ifdef CTF
+	}
+#endif
 
 	//treat cheat/powerup savings the same as armor
 	asave += save;
@@ -580,10 +596,16 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 	// this option will do damage both to the armor and person. originally for DPU rounds
 	if (dflags & DAMAGE_DESTROY_ARMOR)
 	{
-		if(!(targ.flags & FL_GODMODE) && !(dflags & DAMAGE_NO_PROTECTION) &&
+		if (!(targ.flags & FL_GODMODE) && !(dflags & DAMAGE_NO_PROTECTION) &&
 		   !(is_client && targ.client.invincible_framenum > level.framenum))
 			take = damage;
 	}
+#endif
+
+#ifdef CTF
+	take = CTFApplyResistance(targ, take);
+
+	CTFCheckHurtCarrier(targ, attacker);
 #endif
 
 // do the damage
@@ -607,7 +629,6 @@ void(entity targ, entity inflictor, entity attacker, vector dir, vector point, v
 		}
 		else
 			SpawnDamage(te_sparks, point, normal);
-
 
 		targ.health = targ.health - take;
 

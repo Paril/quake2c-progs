@@ -73,6 +73,12 @@ enumflags : int
 	DF_NO_NUKES,
 	DF_NO_SPHERES
 //ROGUE
+
+#ifdef CTF
+	, DF_CTF_FORCEJOIN,
+	DF_ARMOR_PROTECT,
+	DF_CTF_NO_TECH
+#endif
 };
 
 // damage flags
@@ -149,6 +155,10 @@ typedef enum : int
 	MOD_PROX,
 	MOD_NUKE,
 	MOD_TRACKER,
+#endif
+
+#ifdef GRAPPLE
+	MOD_GRAPPLE,
 #endif
 
 	// bitflag

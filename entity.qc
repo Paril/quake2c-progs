@@ -490,37 +490,90 @@ typedef enumflags : int
 //ROGUE
 } refdef_flags_t;
 
-// player_state.stats[] indexes
-typedef enum : int
-{
-	// For engine compatibility, these 18 IDs should remain the same
-	// and keep their described usage
-	STAT_HEALTH_ICON,
-	STAT_HEALTH,
-	STAT_AMMO_ICON,
-	STAT_AMMO,
-	STAT_ARMOR_ICON,
-	STAT_ARMOR,
-	STAT_SELECTED_ICON,
-	STAT_PICKUP_ICON,
-	STAT_PICKUP_STRING,
-	STAT_TIMER_ICON,
-	STAT_TIMER,
-	STAT_HELPICON,
-	STAT_SELECTED_ITEM,
-	STAT_LAYOUTS,
-	STAT_FRAGS,
-	STAT_FLASHES,		// cleared each frame, 1 = health, 2 = armor
-	STAT_CHASE,
-	STAT_SPECTATOR,
-	// Bits from here to 31 are free for mods
-
-#ifdef KMQUAKE2_EXTENSIONS
-	MAX_STATS	= 256
-#else
-	MAX_STATS	= 32
+// For engine compatibility, these 18 IDs should remain the same
+// and keep their described usage.
+// These are macros so they can be embedded in the static statusbar strings.
+#define STAT_HEALTH_ICON	0
+#define STAT_HEALTH			1
+#define STAT_AMMO_ICON		2
+#define STAT_AMMO			3
+#define STAT_ARMOR_ICON		4
+#define STAT_ARMOR			5
+#define STAT_SELECTED_ICON	6
+#define STAT_PICKUP_ICON	7
+#define STAT_PICKUP_STRING	8
+#define STAT_TIMER_ICON		9
+#define STAT_TIMER			10
+#define STAT_HELPICON		11
+#define STAT_SELECTED_ITEM	12
+#define STAT_LAYOUTS		13
+#define STAT_FRAGS			14
+#define STAT_FLASHES		15 // cleared each frame, 1 = health, 2 = armor
+#define STAT_CHASE			16
+#define STAT_SPECTATOR		17
+// Bits from here to (MAX_STATS - 1) are free for mods
+#ifdef CTF
+#define STAT_CTF_TEAM1_PIC			18
+#define STAT_CTF_TEAM1_CAPS			19
+#define STAT_CTF_TEAM2_PIC			20
+#define STAT_CTF_TEAM2_CAPS			21
+#define STAT_CTF_FLAG_PIC			22
+#define STAT_CTF_JOINED_TEAM1_PIC	23
+#define STAT_CTF_JOINED_TEAM2_PIC	24
+#define STAT_CTF_TEAM1_HEADER		25
+#define STAT_CTF_TEAM2_HEADER		26
+#define STAT_CTF_TECH				27
+#define STAT_CTF_ID_VIEW			28
+#define STAT_CTF_ID_VIEW_COLOR		29
+#define STAT_CTF_TEAMINFO			30
 #endif
-} player_stat_t;
+
+// TODO: this is because of a bug in stringification in fteqcc.
+// eventually this will not need to be here.
+#define STAT_HEALTH_ICON_str	"0"
+#define STAT_HEALTH_str			"1"
+#define STAT_AMMO_ICON_str		"2"
+#define STAT_AMMO_str			"3"
+#define STAT_ARMOR_ICON_str		"4"
+#define STAT_ARMOR_str			"5"
+#define STAT_SELECTED_ICON_str	"6"
+#define STAT_PICKUP_ICON_str	"7"
+#define STAT_PICKUP_STRING_str	"8"
+#define STAT_TIMER_ICON_str		"9"
+#define STAT_TIMER_str			"10"
+#define STAT_HELPICON_str		"11"
+#define STAT_SELECTED_ITEM_str	"12"
+#define STAT_LAYOUTS_str		"13"
+#define STAT_FRAGS_str			"14"
+#define STAT_FLASHES_str		"15" // cleared each frame, 1 = health, 2 = armor
+#define STAT_CHASE_str			"16"
+#define STAT_SPECTATOR_str		"17"
+// Bits from here to (MAX_STATS - 1) are free for mods
+#ifdef CTF
+#define STAT_CTF_TEAM1_PIC_str			"18"
+#define STAT_CTF_TEAM1_CAPS_str			"19"
+#define STAT_CTF_TEAM2_PIC_str			"20"
+#define STAT_CTF_TEAM2_CAPS_str			"21"
+#define STAT_CTF_FLAG_PIC_str			"22"
+#define STAT_CTF_JOINED_TEAM1_PIC_str	"23"
+#define STAT_CTF_JOINED_TEAM2_PIC_str	"24"
+#define STAT_CTF_TEAM1_HEADER_str		"25"
+#define STAT_CTF_TEAM2_HEADER_str		"26"
+#define STAT_CTF_TECH_str				"27"
+#define STAT_CTF_ID_VIEW_str			"28"
+#define STAT_CTF_ID_VIEW_COLOR_str		"29"
+#define STAT_CTF_TEAMINFO_str			"30"
+#endif
+
+// kmquake2 has a higher stat limit
+#ifdef KMQUAKE2_EXTENSIONS
+const int MAX_STATS	= 256;
+#else
+const int MAX_STATS = 32;
+#endif
+
+// for stringifying stat in static strings
+#define STAT(s) s ## _str
 
 struct player_state_t
 {
@@ -601,6 +654,15 @@ struct client_persistant_t
 	bool	spectator;      // client is a spectator
 };
 
+#ifdef CTF
+typedef enum : int
+{
+	CTF_NOTEAM,
+	CTF_TEAM1,
+	CTF_TEAM2
+} ctfteam_t;
+#endif
+
 // client data that stays across deathmatch respawns
 struct client_respawn_t
 {
@@ -613,6 +675,17 @@ struct client_respawn_t
 	vector	cmd_angles;         // angles sent over in the last command
 
 	bool	spectator;          // client is a spectator
+
+#ifdef CTF
+	ctfteam_t	ctf_team;			// CTF team
+	int		ctf_state;
+	int		ctf_lasthurtcarrierframe;
+	int		ctf_lastreturnedflagframe;
+	int		ctf_flagsinceframe;
+	int		ctf_lastfraggedcarrierframe;
+	bool	id_state;
+	int		lastidframe;
+#endif
 };
 
 typedef enum : int
@@ -634,6 +707,42 @@ typedef enum : int
 	ANIM_DEATH,
 	ANIM_REVERSE
 } anim_priority_t;
+
+#ifdef PMENU
+typedef enum : int
+{
+	PMENU_ALIGN_LEFT,
+	PMENU_ALIGN_CENTER,
+	PMENU_ALIGN_RIGHT
+} pmenu_align_t;
+
+typedef void(entity) pmenu_select_func;
+
+struct pmenu_t
+{
+	string				text;
+	pmenu_align_t		align;
+	pmenu_select_func	func;
+};
+
+struct pmenuhnd_t
+{
+	bool		open;
+	pmenu_t		entries[18];
+	int			cur;
+	int			num;
+	void		*arg;
+};
+#endif
+
+#ifdef GRAPPLE
+typedef enum : int
+{
+	GRAPPLE_STATE_FLY,
+	GRAPPLE_STATE_PULL,
+	GRAPPLE_STATE_HANG
+} grapplestate_t;
+#endif
 
 struct gclient_t
 {
@@ -734,6 +843,22 @@ struct gclient_t
 	int		ir_framenum;
 	int		nuke_framenum;
 	int		tracker_pain_framenum;
+#endif
+
+#ifdef PMENU
+	pmenuhnd_t	menu;
+#endif
+
+#ifdef GRAPPLE
+	entity			grapple;	// entity of grapple
+	grapplestate_t	grapplestate;
+	int				grapplereleaseframenum;	// time of grapple release
+#endif
+
+#ifdef CTF
+	int	ctf_regenframenum;		// regen tech
+	int	ctf_techsndframenum;
+	int	ctf_lasttechframenum;
 #endif
 };
 

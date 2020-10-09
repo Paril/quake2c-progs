@@ -1688,6 +1688,10 @@ static void(entity self, entity other, vector plane, csurface_t surf) teleporter
 		return;
 	}
 
+#ifdef GRAPPLE
+	GrapplePlayerReset(other);
+#endif
+
 	// unlink to make sure it can't possibly interfere with KillBox
 	gi.unlinkentity(other);
 

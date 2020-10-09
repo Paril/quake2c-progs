@@ -331,8 +331,39 @@ void(inout vector angles, out vector movedir) G_SetMovedir =
 	angles = vec3_origin;
 }
 
-inline void(entity self) BecomeExplosion1 =
+#ifdef CTF
+// from ctf.qc
+void() CTFResetFlags;
+void(ctfteam_t) CTFResetFlag;
+void(entity) CTFRespawnTech;
+string(ctfteam_t) CTFTeamName;
+#endif
+
+INLINE void(entity self) BecomeExplosion1 =
 {
+#ifdef CTF
+	//flags are important
+	if (self.classname == "item_flag_team1")
+	{
+		CTFResetFlag(CTF_TEAM1); // this will free self!
+		gi.bprintf(PRINT_HIGH, "The %s flag has returned!\n", CTFTeamName(CTF_TEAM1));
+		return;
+	}
+	if (self->classname == "item_flag_team2")
+	{
+		CTFResetFlag(CTF_TEAM2); // this will free self!
+		gi.bprintf(PRINT_HIGH, "The %s flag has returned!\n", CTFTeamName(CTF_TEAM1));
+		return;
+	}
+
+	// techs are important too
+	if (self.item && (self.item->flags & IT_TECH))
+	{
+		CTFRespawnTech(self); // this frees self!
+		return;
+	}
+#endif
+	
 	gi.WriteByte(svc_temp_entity);
 	gi.WriteByte(TE_EXPLOSION1);
 	gi.WritePosition(self.s.origin);

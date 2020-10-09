@@ -45,7 +45,7 @@ static void() InitGame =
 	gi.cvar("gamename", GAMEVERSION, CVAR_SERVERINFO | CVAR_LATCH);
 	gi.cvar("gamedate", __DATE__ , CVAR_SERVERINFO | CVAR_LATCH);
 	
-	maxclients = gi.cvar("maxclients", "4", CVAR_SERVERINFO | CVAR_LATCH);
+	cvar_t maxclients = gi.cvar("maxclients", "4", CVAR_SERVERINFO | CVAR_LATCH);
 	maxspectators = gi.cvar("maxspectators", "4", CVAR_SERVERINFO);
 #ifdef SINGLE_PLAYER
 	deathmatch = gi.cvar("deathmatch", "0", CVAR_LATCH);
@@ -54,6 +54,7 @@ static void() InitGame =
 #else
 	gi.cvar("deathmatch", "1", CVAR_NOSET);
 	gi.cvar_forceset("deathmatch", "1");
+	gi.cvar_forceset("coop", "0");
 #endif
 	maxentities = gi.cvar("maxentities", "1024", CVAR_LATCH);
 	
@@ -61,6 +62,10 @@ static void() InitGame =
 	dmflags = gi.cvar("dmflags", "0", CVAR_SERVERINFO);
 	fraglimit = gi.cvar("fraglimit", "0", CVAR_SERVERINFO);
 	timelimit = gi.cvar("timelimit", "0", CVAR_SERVERINFO);
+#ifdef CTF
+	capturelimit = gi.cvar("capturelimit", "0", CVAR_SERVERINFO);
+	instantweap = gi.cvar("instantweap", "0", CVAR_SERVERINFO);
+#endif
 	password = gi.cvar("password", "", CVAR_USERINFO);
 	spectator_password = gi.cvar("spectator_password", "", CVAR_USERINFO);
 	needpass = gi.cvar("needpass", "0", CVAR_SERVERINFO);
@@ -95,6 +100,10 @@ static void() InitGame =
 	globals.num_edicts = game.maxclients + 1;
 	
 	InitItems();
+
+#ifdef CTF
+	CTFInit();
+#endif
 };
 
 static void() ShutdownGame =
@@ -149,7 +158,7 @@ EndDMLevel
 The timelimit or fraglimit has been exceeded
 =================
 */
-static void() EndDMLevel =
+void() EndDMLevel =
 {
 	entity	ent;
 
@@ -229,7 +238,6 @@ static void() CheckNeedPass =
 		gi.cvar_set("needpass", va("%d", need));
 	}
 }
-#ifdef SINGLE_PLAYER
 
 /*
 =================
@@ -241,8 +249,18 @@ static void() CheckDMRules =
 	if (level.intermission_framenum)
 		return;
 
+#ifdef SINGLE_PLAYER
 	if (!deathmatch.intVal)
 		return;
+#endif
+
+#ifdef CTF
+	if (ctf.intVal && CTFCheckRules())
+	{
+		EndDMLevel ();
+		return;
+	}
+#endif
 
 	if (timelimit.intVal)
 	{
@@ -256,9 +274,10 @@ static void() CheckDMRules =
 
 	if (fraglimit.intVal)
 	{
-		for (int i = 0 ; i < maxclients.intVal ; i++)
+		for (int i = 0; i < game.maxclients; i++)
 		{
 			entity cl = itoe(i + 1);
+
 			if (!cl.inuse)
 				continue;
 
@@ -271,7 +290,6 @@ static void() CheckDMRules =
 		}
 	}
 }
-#endif
 
 /*
 =============
@@ -280,11 +298,12 @@ ExitLevel
 */
 static void(void) ExitLevel =
 {
-	gi.AddCommandString(va("gamemap \"%s\"\n", level.changemap));
-	
-	level.changemap = 0;
 	level.exitintermission = 0;
 	level.intermission_framenum = 0;
+	
+	gi.AddCommandString(va("gamemap \"%s\"\n", level.changemap));
+	level.changemap = 0;
+	
 	ClientEndServerFrames();
 	
 	// clear some things before going to next level
@@ -365,11 +384,9 @@ static void() RunFrame =
 	
 		G_RunEntity(ent);
 	}
-#ifdef SINGLE_PLAYER
-
+	
 	// see if it is time to end a deathmatch
 	CheckDMRules();
-#endif
 	
 	// see if needpass needs updated
 	CheckNeedPass();
@@ -417,6 +434,7 @@ static void() PreReadLevel =
 
 static void(int num_edicts) PostReadLevel = 
 {
+#ifdef SINGLE_PLAYER
 	globals.num_edicts = num_edicts;
 	
 	// mark all clients as unconnected
@@ -438,6 +456,7 @@ static void(int num_edicts) PostReadLevel =
 		if (ent.classname == "target_crosslevel_target")
 			ent.nextthink = level.framenum + (int)(ent.delay * BASE_FRAMERATE);
 	}
+#endif
 };
 
 struct game_export_t {
