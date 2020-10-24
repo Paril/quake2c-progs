@@ -4,7 +4,6 @@ PROGS_LOCAL bool	is_quad;
 PROGS_LOCAL int	is_silenced;
 
 #ifdef THE_RECKONING
-PROGS_LOCAL_STATIC bool	is_quadfire;
 PROGS_LOCAL void(entity, bool) weapon_trap_fire;
 #endif
 
@@ -362,12 +361,17 @@ void(entity ent) Think_Weapon =
 	if (ent.client.pers.weapon && ent.client.pers.weapon->weaponthink)
 	{
 		P_DamageModifier(ent);
-#ifdef THE_RECKONING
-		is_quadfire = (ent.client.quadfire_framenum > level.framenum);
-#endif
 		is_silenced = (ent.client.silencer_shots) ? MZ_SILENCED : 0;
 
 		ent.client.pers.weapon->weaponthink(ent);
+#ifdef THE_RECKONING
+	if (ent.client.quadfire_framenum > level.framenum)
+		ent.client.pers.weapon->weaponthink(ent);
+#endif
+#ifdef CTF
+	if (CTFApplyHaste(ent))
+		ent.client.pers.weapon->weaponthink(ent);
+#endif
 	}
 }
 
@@ -418,8 +422,15 @@ static const string rail_chain[] = { "Railgun", "Phalanx" };
 #ifdef GROUND_ZERO
 static const string grenadelauncher_chain[] = { "Grenade Launcher", "Prox Launcher" };
 static const string machinegun_chain[] = { "Machinegun", "ETF Rifle" };
-static const string blaster_chain[] = { "Blaster", "Chainfist" };
 static const string bfg_chain[] = { "BFG10k", "Disruptor" };
+#endif
+
+#if defined(GROUND_ZERO) && defined(GRAPPLE)
+static const string blaster_chain[] = { "Blaster", "Chainfist", "Grapple" };
+#elif defined(GRAPPLE)
+static const string blaster_chain[] = { "Blaster", "Grapple" };
+#elif defined(GROUND_ZERO)
+static const string blaster_chain[] = { "Blaster", "Chainfist" };
 #endif
 
 #if defined(GROUND_ZERO) && defined(THE_RECKONING)
@@ -581,31 +592,31 @@ A generic function to handle the basics of weapon thinking
 #define FRAME_IDLE_FIRST        (FRAME_FIRE_LAST + 1)
 #define FRAME_DEACTIVATE_FIRST  (FRAME_IDLE_LAST + 1)
 
-typedef void(entity ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST, int FRAME_IDLE_LAST, int FRAME_DEACTIVATE_LAST, bool(int) is_pause_frame, bool(int) is_fire_frame, void(entity) fire) Weapon_Generic_Func;
-
-#ifdef THE_RECKONING
-PROGS_LOCAL_STATIC Weapon_Generic_Func Weapon_Generic_ =
-#else
-PROGS_LOCAL Weapon_Generic_Func Weapon_Generic =
-#endif
+PROGS_LOCAL void(entity ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST, int FRAME_IDLE_LAST, int FRAME_DEACTIVATE_LAST, bool(int) is_pause_frame, bool(int) is_fire_frame, void(entity) fire) Weapon_Generic =
 {
-	if (ent.deadflag || ent.s.modelindex != 255) { // VWep animations screw up corpses
+	if (ent.deadflag || ent.s.modelindex != 255) // VWep animations screw up corpses
 		return;
-	}
 
-	if (ent.client.weaponstate == WEAPON_DROPPING) {
-		if (ent.client.ps.gunframe == FRAME_DEACTIVATE_LAST) {
+	if (ent.client.weaponstate == WEAPON_DROPPING)
+	{
+		if (ent.client.ps.gunframe == FRAME_DEACTIVATE_LAST)
+		{
 			ChangeWeapon(ent);
 			return;
-		} else if ((FRAME_DEACTIVATE_LAST - ent.client.ps.gunframe) == 4) {
+		}
+		else
+		if ((FRAME_DEACTIVATE_LAST - ent.client.ps.gunframe) == 4)
+		{
 			ent.client.anim_priority = ANIM_REVERSE;
-			if (ent.client.ps.pmove.pm_flags & PMF_DUCKED) {
+			if (ent.client.ps.pmove.pm_flags & PMF_DUCKED)
+			{
 				ent.s.frame = FRAME_crpain4 + 1;
 				ent.client.anim_end = FRAME_crpain1;
-			} else {
+			}
+			else
+			{
 				ent.s.frame = FRAME_pain304 + 1;
 				ent.client.anim_end = FRAME_pain301;
-
 			}
 		}
 
@@ -613,8 +624,10 @@ PROGS_LOCAL Weapon_Generic_Func Weapon_Generic =
 		return;
 	}
 
-	if (ent.client.weaponstate == WEAPON_ACTIVATING) {
-		if (ent.client.ps.gunframe == FRAME_ACTIVATE_LAST) {
+	if (ent.client.weaponstate == WEAPON_ACTIVATING)
+	{
+		if (ent.client.ps.gunframe == FRAME_ACTIVATE_LAST)
+		{
 			ent.client.weaponstate = WEAPON_READY;
 			ent.client.ps.gunframe = FRAME_IDLE_FIRST;
 			return;
@@ -624,16 +637,21 @@ PROGS_LOCAL Weapon_Generic_Func Weapon_Generic =
 		return;
 	}
 
-	if ((ent.client.newweapon) && (ent.client.weaponstate != WEAPON_FIRING)) {
+	if (ent.client.newweapon && (ent.client.weaponstate != WEAPON_FIRING))
+	{
 		ent.client.weaponstate = WEAPON_DROPPING;
 		ent.client.ps.gunframe = FRAME_DEACTIVATE_FIRST;
 
-		if ((FRAME_DEACTIVATE_LAST - FRAME_DEACTIVATE_FIRST) < 4) {
+		if ((FRAME_DEACTIVATE_LAST - FRAME_DEACTIVATE_FIRST) < 4)
+		{
 			ent.client.anim_priority = ANIM_REVERSE;
-			if (ent.client.ps.pmove.pm_flags & PMF_DUCKED) {
+			if (ent.client.ps.pmove.pm_flags & PMF_DUCKED)
+			{
 				ent.s.frame = FRAME_crpain4 + 1;
 				ent.client.anim_end = FRAME_crpain1;
-			} else {
+			}
+			else
+			{
 				ent.s.frame = FRAME_pain304 + 1;
 				ent.client.anim_end = FRAME_pain301;
 
@@ -720,20 +738,6 @@ PROGS_LOCAL Weapon_Generic_Func Weapon_Generic =
 			ent.client.weaponstate = WEAPON_READY;
 	}
 }
-
-#ifdef THE_RECKONING
-PROGS_LOCAL Weapon_Generic_Func Weapon_Generic =
-{
-	Weapon_Generic_(ent, FRAME_ACTIVATE_LAST, FRAME_FIRE_LAST, FRAME_IDLE_LAST, FRAME_DEACTIVATE_LAST, is_pause_frame, is_fire_frame, fire);
-
-	if (is_quadfire
-#ifdef CTF
-		|| CTFApplyHaste(ent)
-#endif
-		)
-		Weapon_Generic_(ent, FRAME_ACTIVATE_LAST, FRAME_FIRE_LAST, FRAME_IDLE_LAST, FRAME_DEACTIVATE_LAST, is_pause_frame, is_fire_frame, fire);
-};
-#endif
 
 /*
 ======================================================================

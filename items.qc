@@ -613,7 +613,7 @@ gitem_id_t(entity ent) ArmorIndex =
 
 API_FUNC static bool(entity ent, entity other) Pickup_Armor =
 {
-	int	old_armor_index = ArmorIndex(other);
+	gitem_id_t	old_armor_index = ArmorIndex(other);
 
 	// handle armor shards specially
 	if (ent.item->tag == ARMOR_SHARD)

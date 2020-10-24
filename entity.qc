@@ -735,7 +735,7 @@ struct pmenuhnd_t
 };
 #endif
 
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 typedef enum : int
 {
 	GRAPPLE_STATE_FLY,
@@ -849,7 +849,7 @@ struct gclient_t
 	pmenuhnd_t	menu;
 #endif
 
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 	entity			grapple;	// entity of grapple
 	grapplestate_t	grapplestate;
 	int				grapplereleaseframenum;	// time of grapple release

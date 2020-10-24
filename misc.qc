@@ -1688,7 +1688,7 @@ static void(entity self, entity other, vector plane, csurface_t surf) teleporter
 		return;
 	}
 
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 	GrapplePlayerReset(other);
 #endif
 

@@ -4,11 +4,17 @@
 /*@@ { "macro": "CTF", "desc": "Enable CTF support. This includes the techs/flags, the \"ctf\" cvar, and other gamemode-specific changes to make CTF work.", "requires": [ "PMENU", "GRAPPLE" ] } @@*/
 #define CTF
 
-/*@@ { "macro": "GRAPPLE", "desc": "Enable grappling hook weapon." } @@*/
+/*@@ { "macro": "HOOK_CODE", "desc": "Enables the underlying code for a grappling hook." } @@*/
+#define HOOK_CODE
+
+/*@@ { "macro": "GRAPPLE", "desc": "Enables the CTF Grapple weapon.", "depends": [ "HOOK_CODE" ] } @@*/
 #define GRAPPLE
 
-/*@@ { "macro": "OFFHAND_HOOK", "desc": "Enable off-hand hook; doesn't remove the grapple weapon, but allows hook commands", "depends": [ "GRAPPLE" ] } @@*/
+/*@@ { "macro": "OFFHAND_HOOK", "desc": "Enables off-hand hook commands.", "depends": [ "HOOK_CODE" ] } @@*/
 #define OFFHAND_HOOK
+
+/*@@ { "macro": "HOOK_STANDARD_ASSETS", "desc": "The CTF assets for the hook are a bit buggy (especially the sounds); this will replace them with vanilla assets.", "depends": [ "HOOK_CODE" ] } @@*/
+#define HOOK_STANDARD_ASSETS
 
 /*@@ { "macro": "PMENU", "desc": "Enable PMenu support. This is solely a developer feature, allowing you to make simple interactive menus (like the ones used in CTF)." } @@*/
 #define PMENU
@@ -18,6 +24,9 @@
 
 /*@@ { "macro": "THE_RECKONING", "desc": "The Reckoning support. This includes all of The Reckoning entities/weapons." } @@*/
 #define THE_RECKONING
+
+/*@@ { "macro": "BOTS", "desc": "Provides the Havoc bot base.", "requires": [ "KMQUAKE2_SUPPORT" ] } @@*/
+#define BOTS
 
 /*@@ { "macro": "KMQUAKE2_SUPPORT", "desc": "Optional KMQuake2 features. This gives you access to file loading APIs, which are polyfilled for non-KMQuake2 engines." } @@*/
 #define KMQUAKE2_SUPPORT

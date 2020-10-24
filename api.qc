@@ -696,8 +696,10 @@ struct pmove_t
 	pmove_state_t	s;
 	
 	// in
-	usercmd_t	cmd;
-	bool		snapinitial;
+	usercmd_t		cmd;
+	bool			snapinitial;
+	entity			passent;
+	content_flags_t	mask;
 	
 	// out
 	hashset	touchents; // this hashset is owned by PMove; don't free

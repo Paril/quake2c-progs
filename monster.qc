@@ -153,21 +153,17 @@ void(entity ent) M_CheckGround =
 	}
 }
 
-
 void(entity ent) M_CatagorizePosition =
 {
-	vector	point;
-	int	cont;
-
 //
 // get waterlevel
 //
-	point.x = ent.s.origin[0];
-	point.y = ent.s.origin[1];
-	point.z = ent.s.origin[2] + ent.mins.z + 1;
-	cont = gi.pointcontents(point);
+	vector point = ent.s.origin;
+	point.z += ent.mins.z + 1;
+	content_flags_t cont = gi.pointcontents(point);
 
-	if (!(cont & MASK_WATER)) {
+	if !(cont & MASK_WATER)
+	{
 		ent.waterlevel = 0;
 		ent.watertype = 0;
 		return;
@@ -177,7 +173,7 @@ void(entity ent) M_CatagorizePosition =
 	ent.waterlevel = 1;
 	point.z += 26;
 	cont = gi.pointcontents(point);
-	if (!(cont & MASK_WATER))
+	if !(cont & MASK_WATER)
 		return;
 
 	ent.waterlevel = 2;

@@ -4,12 +4,14 @@ typedef enumflags : int
 	IT_WEAPON,       // use makes active weapon
 	IT_AMMO,
 	IT_ARMOR,
+	IT_HEALTH,
 #ifdef SINGLE_PLAYER
 	IT_STAY_COOP,
 	IT_KEY,
 #endif
 #ifdef CTF
 	IT_TECH,
+	IT_FLAG,
 #endif
 	IT_POWERUP
 } gitem_flags_t;
@@ -28,24 +30,26 @@ typedef enum : int
 	WEAP_ROCKETLAUNCHER,
 	WEAP_HYPERBLASTER,
 	WEAP_RAILGUN,
-	WEAP_BFG
+	WEAP_BFG,
 	
 #ifdef THE_RECKONING
-	, WEAP_PHALANX,
-	WEAP_BOOMER
+	WEAP_PHALANX,
+	WEAP_BOOMER,
 #endif
 
 #ifdef GROUND_ZERO
-	, WEAP_DISRUPTOR,
+	WEAP_DISRUPTOR,
 	WEAP_ETFRIFLE,
 	WEAP_PLASMA,
 	WEAP_PROXLAUNCH,
-	WEAP_CHAINFIST
+	WEAP_CHAINFIST,
 #endif
 
 #ifdef GRAPPLE
-	, WEAP_GRAPPLE
+	WEAP_GRAPPLE,
 #endif
+
+	WEAP_TOTAL
 } weap_model_t;
 
 typedef enum : int
@@ -302,7 +306,6 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		/* precache */ "misc/power2.wav misc/power1.wav"
 	},
 
-
 	//
 	// WEAPONS
 	//
@@ -324,11 +327,15 @@ always owned, never in the world
 		0,
 		0,
 		0,
-		IT_WEAPON,
+		IT_WEAPON_MASK,
 		WEAP_GRAPPLE,
 		0,
 		0,
-/* precache */ "weapons/grapple/grfire.wav weapons/grapple/grpull.wav weapons/grapple/grhang.wav weapons/grapple/grreset.wav weapons/grapple/grhit.wav"
+#ifdef HOOK_STANDARD_ASSETS
+/* precache */ "models/objects/debris2/tris.md2 medic/Medatck2.wav flyer/Flyatck1.wav world/turbine1.wav weapons/Sshotr1b.wav"
+#else
+/* precache */ "models/weapons/grapple/hook/tris.md2 weapons/grapple/grfire.wav weapons/grapple/grpull.wav weapons/grapple/grhang.wav weapons/grapple/grreset.wav weapons/grapple/grhit.wav"
+#endif
 	},
 #endif
 
@@ -1267,7 +1274,7 @@ always owned, never in the world
 		/* width */     2,
 		60,
 		0,
-		0,
+		IT_HEALTH,
 		0,
 		0,
 		0,
@@ -1291,7 +1298,7 @@ always owned, never in the world
 		/* width */     2,
 		60,
 		0,
-		0,
+		IT_HEALTH,
 		0,
 		0,
 		0,
@@ -1659,7 +1666,7 @@ always owned, never in the world
 /* width */		2,
 		0,
 		0,
-		0,
+		IT_FLAG,
 		0,
 		0,
 		0,
@@ -1682,7 +1689,7 @@ always owned, never in the world
 /* width */		2,
 		0,
 		0,
-		0,
+		IT_FLAG,
 		0,
 		0,
 		0,
@@ -1792,7 +1799,7 @@ always owned, never in the world
 		/* width */     3,
 		0,
 		0,
-		0,
+		IT_HEALTH,
 		0,
 		0,
 		0,

@@ -257,8 +257,8 @@ static bool(entity targ, entity inflictor) loc_CanSee =
 
 /*--------------------------------------------------------------------------*/
 
-static gitem_t *flag1_item;
-static gitem_t *flag2_item;
+gitem_t *flag1_item;
+gitem_t *flag2_item;
 
 // from ctf.qc
 void() CTFSetupTechSpawn;
@@ -703,7 +703,7 @@ bool(entity ent, entity other) CTFPickup_Flag =
 
 	if (ctf_team == other.client.resp.ctf_team)
 	{
-		if (!(ent.spawnflags & DROPPED_ITEM))
+		if !(ent.spawnflags & DROPPED_ITEM)
 		{
 			// the flag is at home base.  if the player has the enemy
 			// flag, he's just won!
@@ -795,8 +795,7 @@ bool(entity ent, entity other) CTFPickup_Flag =
 static void(entity ent, entity other, vector plane, csurface_t surf) CTFDropFlagTouch =
 {
 	//owner (who dropped us) can't touch for two secs
-	if (other == ent.owner && 
-		ent.nextthink - level.framenum > (CTF_AUTO_FLAG_RETURN_TIMEOUT - 2) * BASE_FRAMERATE)
+	if (other == ent.owner && ent.nextthink - level.framenum > (CTF_AUTO_FLAG_RETURN_TIMEOUT - 2) * BASE_FRAMERATE)
 		return;
 
 	Touch_Item (ent, other, plane, surf);
@@ -950,11 +949,6 @@ void(entity ent) CTFID_f =
 
 static void(entity ent) CTFSetIDView =
 {
-	vector forward, dir;
-	trace_t	tr;
-	entity who, best;
-	float bd = 0, d;
-
 	// only check every few frames
 	if (level.framenum - ent.client.resp.lastidframe < (0.25 * BASE_FRAMERATE))
 		return;
@@ -963,8 +957,10 @@ static void(entity ent) CTFSetIDView =
 	ent.client.ps.stats[STAT_CTF_ID_VIEW] = 0;
 	ent.client.ps.stats[STAT_CTF_ID_VIEW_COLOR] = 0;
 
+	vector forward;
 	AngleVectors(ent.client.v_angle, &forward, 0, 0);
 	vector end = ent.s.origin + (forward * 1024);
+	trace_t	tr;
 	gi.traceline(&tr, ent.s.origin, end, ent, MASK_SOLID);
 	if (tr.fraction < 1 && tr.ent && tr.ent.is_client)
 	{
@@ -976,21 +972,24 @@ static void(entity ent) CTFSetIDView =
 		return;
 	}
 
-	best = 0;
+	entity best = 0;
+	float bd = 0;
+
 	for (int i = 1; i <= game.maxclients; i++)
 	{
-		who = itoe(i);
+		entity who = itoe(i);
 		if (!who.inuse || who.solid == SOLID_NOT)
 			continue;
-		dir = who.s.origin - ent.s.origin;
+		vector dir = who.s.origin - ent.s.origin;
 		VectorNormalize(dir);
-		d = forward * dir;
+		float d = forward * dir;
 		if (d > bd && loc_CanSee(ent, who))
 		{
 			bd = d;
 			best = who;
 		}
 	}
+
 	if (bd > 0.90)
 	{
 		ent.client.ps.stats[STAT_CTF_ID_VIEW] = CS_GENERAL + (best.s.number - 1);
@@ -1003,11 +1002,6 @@ static void(entity ent) CTFSetIDView =
 
 void(entity ent) SetCTFStats =
 {
-	gitem_t *tech;
-	int i;
-	int p1, p2;
-	entity e;
-
 	if (ctfgame.warnactive)
 		ent.client.ps.stats[STAT_CTF_TEAMINFO] = CONFIG_CTF_TEAMINFO;
 	else
@@ -1037,12 +1031,13 @@ void(entity ent) SetCTFStats =
 	}
 
 	// tech icon
-	i = 0;
+	int i = 0;
 	ent.client.ps.stats[STAT_CTF_TECH] = 0;
+
 	while (i < tnames.length)
 	{
-		if ((tech = FindItemByClassname(tnames[i])) &&
-			ent.client.pers.inventory[tech.id])
+		gitem_t *tech = FindItemByClassname(tnames[i]);
+		if (tech && ent.client.pers.inventory[tech.id])
 		{
 			ent.client.ps.stats[STAT_CTF_TECH] = gi.imageindex(tech->icon);
 			break;
@@ -1055,8 +1050,8 @@ void(entity ent) SetCTFStats =
 	//   flag at base
 	//   flag taken
 	//   flag dropped
-	p1 = imageindex_i_ctf1;
-	e = G_Find(world, classname, "item_flag_team1");
+	int p1 = imageindex_i_ctf1;
+	entity e = G_Find(world, classname, "item_flag_team1");
 	if (e)
 	{
 		if (e.solid == SOLID_NOT)
@@ -1078,7 +1073,7 @@ void(entity ent) SetCTFStats =
 		else if (e.spawnflags & DROPPED_ITEM)
 			p1 = imageindex_i_ctf1d; // must be dropped
 	}
-	p2 = imageindex_i_ctf2;
+	int p2 = imageindex_i_ctf2;
 	e = G_Find(world, classname, "item_flag_team2");
 	if (e)
 	{
@@ -1427,16 +1422,12 @@ void(entity who) CTFHasTech =
 
 gitem_t *(entity ent) CTFWhat_Tech =
 {
-	gitem_t *tech;
-	int i;
-
-	i = 0;
+	int i = 0;
 	while (i < tnames.length)
 	{
-		if ((tech = FindItemByClassname(tnames[i])) &&
-			ent.client.pers.inventory[tech.id]) {
+		gitem_t *tech = FindItemByClassname(tnames[i]);
+		if (tech && ent.client.pers.inventory[tech.id])
 			return tech;
-		}
 		i++;
 	}
 	return 0;
@@ -1444,14 +1435,11 @@ gitem_t *(entity ent) CTFWhat_Tech =
 
 bool(entity ent, entity other) CTFPickup_Tech =
 {
-	gitem_t *tech;
-	int i;
-
-	i = 0;
+	int i = 0;
 	while (i < tnames.length)
 	{
-		if ((tech = FindItemByClassname(tnames[i])) &&
-			other.client.pers.inventory[tech.id])
+		gitem_t *tech = FindItemByClassname(tnames[i]);
+		if (tech && other.client.pers.inventory[tech.id])
 		{
 			CTFHasTech(other);
 			return false; // has this one
@@ -1481,9 +1469,9 @@ static void(gitem_t *, entity) SpawnTech;
 
 static void(entity tech) TechThink =
 {
-	entity spot;
+	entity spot = FindTechSpawn();
 
-	if ((spot = FindTechSpawn()))
+	if (spot)
 	{
 		SpawnTech(tech.item, spot);
 		G_FreeEdict(tech);
@@ -1505,17 +1493,13 @@ void(entity ent, gitem_t *item) CTFDrop_Tech =
 
 void(entity ent) CTFDeadDropTech =
 {
-	gitem_t *tech;
-	entity dropped;
-	int i;
-
-	i = 0;
+	int i = 0;
 	while (i < tnames.length)
 	{
-		if ((tech = FindItemByClassname(tnames[i])) &&
-			ent.client.pers.inventory[tech.id])
+		gitem_t *tech = FindItemByClassname(tnames[i]);
+		if (tech && ent.client.pers.inventory[tech.id])
 		{
-			dropped = Drop_Item(ent, tech);
+			entity dropped = Drop_Item(ent, tech);
 			// hack the velocity to make it bounce random
 			dropped.velocity[0] = random(-300.0, 300.0);
 			dropped.velocity[1] = random(-300.0, 300.0);
@@ -1530,10 +1514,7 @@ void(entity ent) CTFDeadDropTech =
 
 static void(gitem_t *it, entity spot) SpawnTech =
 {
-	entity ent;
-	vector forward, right, angles;
-
-	ent = G_Spawn();
+	entity ent = G_Spawn();
 
 	ent.classname = it->classname;
 	ent.item = it;
@@ -1548,10 +1529,8 @@ static void(gitem_t *it, entity spot) SpawnTech =
 	ent.touch = Touch_Item;
 	ent.owner = ent;
 
-	angles[0] = 0;
-	angles[1] = random(360.0);
-	angles[2] = 0;
-
+	vector angles = [ 0, random(360.0), 0 ];
+	vector forward, right;
 	AngleVectors (angles, &forward, &right, 0);
 	ent.s.origin = spot.s.origin;
 	ent.s.origin[2] += 16;
@@ -1566,15 +1545,12 @@ static void(gitem_t *it, entity spot) SpawnTech =
 
 static void(entity ent) SpawnTechs =
 {
-	gitem_t *tech;
-	entity spot;
-	int i;
-
-	i = 0;
+	int i = 0;
 	while (i < tnames.length)
 	{
-		if ((tech = FindItemByClassname(tnames[i])) &&
-			(spot = FindTechSpawn()))
+		gitem_t *tech = FindItemByClassname(tnames[i]);
+		entity spot = FindTechSpawn();
+		if (tech && spot)
 			SpawnTech(tech, spot);
 		i++;
 	}
@@ -1585,21 +1561,18 @@ static void(entity ent) SpawnTechs =
 // frees the passed edict!
 void(entity ent) CTFRespawnTech =
 {
-	entity spot;
-
-	if ((spot = FindTechSpawn()))
+	entity spot = FindTechSpawn();
+	if (spot)
 		SpawnTech(ent.item, spot);
 	G_FreeEdict(ent);
 }
 
 void() CTFSetupTechSpawn =
 {
-	entity ent;
-
 	if (dmflags->intVal & DF_CTF_NO_TECH)
 		return;
 
-	ent = G_Spawn();
+	entity ent = G_Spawn();
 	ent.nextthink = level.framenum + (2 * BASE_FRAMERATE);
 	ent.think = SpawnTechs;
 }
@@ -1657,8 +1630,7 @@ bool(entity ent) CTFApplyStrengthSound =
 
 	if (!tech)
 		tech = FindItemByClassname("item_tech2");
-	if (tech && ent.is_client &&
-		ent.client.pers.inventory[tech.id])
+	if (tech && ent.is_client && ent.client.pers.inventory[tech.id])
 	{
 		if (ent.client.ctf_techsndframenum < level.framenum)
 		{
@@ -1680,10 +1652,7 @@ bool(entity ent) CTFApplyHaste =
 
 	if (!tech)
 		tech = FindItemByClassname("item_tech3");
-	if (tech && ent.is_client &&
-		ent.client.pers.inventory[tech.id])
-		return true;
-	return false;
+	return tech && ent.is_client && ent.client.pers.inventory[tech.id];
 }
 
 void(entity ent) CTFApplyHasteSound =
@@ -1709,7 +1678,6 @@ void(entity ent) CTFApplyRegeneration =
 {
 	static gitem_t *tech = 0;
 	bool noise = false;
-	int index;
 	float volume = 1.0;
 
 	if (!ent.is_client)
@@ -1733,7 +1701,7 @@ void(entity ent) CTFApplyRegeneration =
 				ent.client.ctf_regenframenum += (0.5 * BASE_FRAMERATE);
 				noise = true;
 			}
-			index = ArmorIndex (ent);
+			gitem_id_t index = ArmorIndex (ent);
 			if (index && ent.client.pers.inventory[index] < 150)
 			{
 				ent.client.pers.inventory[index] += 5;
@@ -2041,7 +2009,7 @@ void(entity ent) CTFObserver =
 	string userinfo;
 
 	// start as 'observer'
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 	GrapplePlayerReset(ent);
 #endif
 	CTFDeadDropFlag(ent);
@@ -2072,7 +2040,7 @@ void() CTFResetAllPlayers =
 		if (ent.client.menu.open)
 			PMenu_Close(ent);
 
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 		GrapplePlayerReset(ent);
 #endif
 		CTFDeadDropFlag(ent);
@@ -2138,18 +2106,14 @@ void() CTFEndMatch =
 
 bool() CTFCheckRules =
 {
-	int t;
-	int i, j;
-	string text;
-	entity ent;
 	int team1 = 0, team2 = 0;
 
 	if (warn_unbalanced.intVal)
 	{
 		// count up the team totals
-		for (i = 1; i <= game.maxclients; i++)
+		for (int i = 1; i <= game.maxclients; i++)
 		{
-			ent = itoe(i);
+			entity ent = itoe(i);
 			if (!ent.inuse)
 				continue;
 			if (ent.client.resp.ctf_team == CTF_TEAM1)
@@ -2208,7 +2172,7 @@ static void(entity self, entity other, vector plane, csurface_t surf) old_telepo
 		return;
 	}
 
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 	GrapplePlayerReset(other);
 #endif
 

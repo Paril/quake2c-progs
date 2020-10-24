@@ -170,15 +170,15 @@ static void(entity ent) Cmd_Give_f =
 		{
 			if (!it->pickup)
 				continue;
-			if (it->flags & IT_WEAPON)
-			{
-				if (give_weapons)
-					ent.client.pers.inventory[i] += 1;
-			}
-			else if (it->flags & IT_AMMO)
+			if (it->flags & IT_AMMO)
 			{
 				if (give_ammo)
 					Add_Ammo (ent, it, 1000);
+			}
+			else if (it->flags & IT_WEAPON)
+			{
+				if (give_weapons)
+					ent.client.pers.inventory[i] += 1;
 			}
 			else if !(it->flags & IT_ARMOR)
 			{
@@ -223,6 +223,9 @@ static void(entity ent) Cmd_Give_f =
 		if (!give_all)
 			return;
 	}
+	
+	if (give_all)
+		return;
 
 	gitem_t *it = FindItem (name);
 
@@ -908,7 +911,7 @@ static void(entity ent) Cmd_Spawn_f =
 	gi.linkentity(e);
 };
 
-#if defined(GRAPPLE) && defined(OFFHAND_HOOK)
+#ifdef OFFHAND_HOOK
 void(entity) GrappleCmd;
 #endif
 
@@ -999,7 +1002,7 @@ void(entity ent) ClientCommand =
 	else if (cmd == "observer")
 		CTFObserver(ent);
 #endif
-#if defined(GRAPPLE) && defined(OFFHAND_HOOK)
+#ifdef OFFHAND_HOOK
 	else if (cmd == "hook")
 		GrappleCmd(ent);
 #endif

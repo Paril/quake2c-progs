@@ -231,7 +231,7 @@ static void(entity ent) P_FallingDamage =
 
 	delta = delta * delta * 0.0001f;
 
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 	// never take damage if just release grapple or on grapple
 	if ((level.framenum - ent.client.grapplereleaseframenum) <= (2 * BASE_FRAMERATE) ||
 		(ent.client.grapple && 
@@ -765,7 +765,6 @@ G_SetClientEffects
 */
 static void(entity ent) G_SetClientEffects =
 {
-	int     pa_type;
 	int     remaining;
 
 	ent.s.effects = 0;
@@ -775,10 +774,10 @@ static void(entity ent) G_SetClientEffects =
 		return;
 
 	if (ent.powerarmor_framenum > level.framenum) {
-		pa_type = PowerArmorType(ent);
-		if (pa_type == POWER_ARMOR_SCREEN) {
+		power_armor_type_t pa_type = PowerArmorType(ent);
+		if (pa_type == POWER_ARMOR_SCREEN)
 			ent.s.effects |= EF_POWERSCREEN;
-		} else if (pa_type == POWER_ARMOR_SHIELD) {
+		else if (pa_type == POWER_ARMOR_SHIELD) {
 			ent.s.effects |= EF_COLOR_SHELL;
 			ent.s.renderfx |= RF_SHELL_GREEN;
 		}
@@ -940,7 +939,7 @@ newanim:
 
 	if (ent.groundentity == null_entity)
 	{
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 		// if on grapple, don't go into jump frame, go into standing frame
 		if (ent.client.grapple)
 		{
@@ -954,7 +953,7 @@ newanim:
 			if (ent.s.frame != FRAME_jump2)
 				ent.s.frame = FRAME_jump1;
 			ent.client.anim_end = FRAME_jump2;
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 		}
 #endif
 	}

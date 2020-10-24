@@ -419,7 +419,7 @@ static void(entity self, entity inflictor, entity attacker) ClientObituary =
 			message2 = "'s disruptor";
 			break;
 #endif
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 		case MOD_GRAPPLE:
 			message = "was caught by";
 			message2 = "'s grapple";
@@ -533,7 +533,7 @@ void(entity) Cmd_Help_f;
 void(entity, string, int, int) ThrowGib;
 void(entity, int) ThrowClientHead;
 
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 void(entity) GrapplePlayerReset;
 #endif
 
@@ -592,7 +592,7 @@ void(entity self, entity inflictor, entity attacker, int damage, vector point) p
 
 		TossClientWeapon(self);
 
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 		GrapplePlayerReset(self);
 #endif
 
@@ -904,7 +904,7 @@ entity() SelectRandomDeathmatchSpawnPoint =
 	do
 	{
 		spot = G_Find(spot, classname, "info_player_deathmatch");
-		if (spot == spot1 || spot == spot2)
+		if ((spot1 && spot == spot1) || (spot2 && spot == spot2))
 			selection++;
 	} while (selection--);
 
@@ -1741,17 +1741,6 @@ void(entity ent) ClientDisconnect =
 	ent.client.pers.connected = false;
 }
 
-PROGS_LOCAL static entity pm_passent;
-
-// pmove doesn't need to know about passent and contentmask
-static void(trace_t *tr, vector start, vector mins, vector maxs, vector end) PM_trace =
-{
-	if (pm_passent.health > 0)
-		gi.trace(tr, start, mins, maxs, end, pm_passent, MASK_PLAYERSOLID);
-	else
-		gi.trace(tr, start, mins, maxs, end, pm_passent, MASK_DEADSOLID);
-}
-
 #ifdef SINGLE_PLAYER
 entity() PlayerTrail_LastSpot;
 void(vector pos) PlayerTrail_Add;
@@ -1774,7 +1763,7 @@ void(entity) Think_Weapon;
 void(entity) CTFApplyRegeneration;
 #endif
 
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 void(entity) GrapplePull;
 #endif
 
@@ -1792,13 +1781,14 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 		return;
 	}
 
-	pm_passent = ent;
-
 	if (ent.client.chase_target)
 		ent.client.resp.cmd_angles = ucmd.angles;
 	else
 	{
 		pmove_t	pm;
+		
+		pm.passent = ent;
+		pm.mask = (ent.health > 0) ? MASK_PLAYERSOLID : MASK_DEADSOLID;
 
 		// set up for pmove
 		if (ent.movetype == MOVETYPE_NOCLIP)
@@ -1824,8 +1814,7 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 
 		pm.cmd = ucmd;
 
-		pm.trace = PM_trace;    // adds default parms
-		pm.pointcontents = gi.pointcontents;
+		pm.pointcontents = 0;
 
 		// perform a pmove
 #ifdef QUAKEC_PMOVE
@@ -1875,7 +1864,7 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 			ent.client.ps.viewangles = pm.viewangles;
 		}
 
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 		if (ent.client.grapple)
 			GrapplePull(ent.client.grapple);
 #endif

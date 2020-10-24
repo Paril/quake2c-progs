@@ -559,7 +559,7 @@ SV_Physics_None
 Non moving objects can only think
 =============
 */
-static void(entity ent) SV_Physics_None =
+static inline void(entity ent) SV_Physics_None =
 {
 // regular thinking
 	SV_RunThink(ent);
@@ -897,6 +897,7 @@ void(entity ent) G_RunEntity =
 		SV_Physics_Pusher(ent);
 		break;
 	case MOVETYPE_NONE:
+	case MOVETYPE_WALK:
 		SV_Physics_None(ent);
 		break;
 	case MOVETYPE_NOCLIP:

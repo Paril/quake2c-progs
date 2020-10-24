@@ -323,8 +323,6 @@ static void(void) ExitLevel =
 void(entity) ClientBeginServerFrame;
 void(entity, usercmd_t) ClientThink;
 
-void() ServerCommand = { };
-
 /*
 ================
 RunFrame
@@ -377,10 +375,7 @@ static void() RunFrame =
 #endif
 	
 		if (i > 0 && i <= game.maxclients)
-		{
 			ClientBeginServerFrame(ent);
-			continue;
-		}
 	
 		G_RunEntity(ent);
 	}
@@ -492,11 +487,6 @@ struct game_export_t {
 	
 	void()			PreReadLevel;
 	void(int num_edicts)	PostReadLevel;
-};
-
-API_FUNC void() Test =
-{
-	world.s.solid = SOLID_BSP;
 };
 
 // Main entry point; if you need to do any global stuff, this is where

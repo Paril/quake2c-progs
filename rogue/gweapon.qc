@@ -108,7 +108,7 @@ static void(entity ent) Prox_Explode =
 
 	vector origin = ent.s.origin + (ent.velocity * -0.02);
 	gi.WriteByte (svc_temp_entity);
-	if (ent.groundentity)
+	if (ent.groundentity != null_entity)
 		gi.WriteByte (TE_GRENADE_EXPLOSION);
 	else
 		gi.WriteByte (TE_ROCKET_EXPLOSION);

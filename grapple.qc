@@ -1,4 +1,4 @@
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 
 static const int GRAPPLE_SPEED					= 650; // speed of grapple in flight
 static const int GRAPPLE_PULL_SPEED				= 650;	// speed player is pulled at
@@ -18,7 +18,11 @@ static void(entity self) GrappleReset =
 		if (cl.client.silencer_shots)
 			volume = 0.2;
 
+#ifdef HOOK_STANDARD_ASSETS
+		gi.sound (cl, CHAN_RELIABLE+CHAN_WEAPON, gi.soundindex("weapons/Sshotr1b.wav"), volume, ATTN_NORM, 0);
+#else
 		gi.sound (cl, CHAN_RELIABLE+CHAN_WEAPON, gi.soundindex("weapons/grapple/grreset.wav"), volume, ATTN_NORM, 0);
+#endif
 		cl.client.grapple = 0;
 		cl.client.grapplereleaseframenum = level.framenum;
 		cl.client.grapplestate = GRAPPLE_STATE_FLY; // we're firing, not on hook
@@ -69,8 +73,12 @@ static void(entity self, entity other, vector plane, csurface_t surf) GrappleTou
 	if (self.owner.client.silencer_shots)
 		volume = 0.2;
 
+#ifdef HOOK_STANDARD_ASSETS
+	gi.sound (self, CHAN_WEAPON, gi.soundindex("flyer/Flyatck1.wav"), volume, ATTN_NORM, 0);
+#else
 	gi.sound (self.owner, CHAN_RELIABLE+CHAN_WEAPON, gi.soundindex("weapons/grapple/grpull.wav"), volume, ATTN_NORM, 0);
 	gi.sound (self, CHAN_WEAPON, gi.soundindex("weapons/grapple/grhit.wav"), volume, ATTN_NORM, 0);
+#endif
 
 	gi.WriteByte (svc_temp_entity);
 	gi.WriteByte (TE_SPARKS);
@@ -101,11 +109,18 @@ static void(entity self) GrappleDrawCable =
 	end = self.s.origin;
 
 	gi.WriteByte (svc_temp_entity);
+#ifdef HOOK_STANDARD_ASSETS
+	gi.WriteByte (TE_PARASITE_ATTACK);
+	gi.WriteShort (self.s.number);
+	gi.WritePosition (start);
+	gi.WritePosition (end);
+#else
 	gi.WriteByte (TE_GRAPPLE_CABLE);
 	gi.WriteShort (self.owner.s.number);
 	gi.WritePosition (self.owner.s.origin);
 	gi.WritePosition (end);
 	gi.WritePosition (offset);
+#endif
 	gi.multicast (self.s.origin, MULTICAST_PVS);
 }
 
@@ -118,6 +133,7 @@ void(entity self) GrapplePull =
 	vector hookdir, v;
 	float vlen;
 
+#ifdef GRAPPLE
 	if (self.owner.client.pers.weapon.weapmodel == WEAP_GRAPPLE &&
 		!self.owner.client.newweapon &&
 		self.owner.client.weaponstate != WEAPON_FIRING &&
@@ -126,6 +142,7 @@ void(entity self) GrapplePull =
 		GrappleReset(self);
 		return;
 	}
+#endif
 
 	if (self.enemy)
 	{
@@ -152,7 +169,6 @@ void(entity self) GrapplePull =
 				volume = 0.2;
 
 			T_Damage (self.enemy, self, self.owner, self.velocity, self.s.origin, vec3_origin, 1, 1, 0, MOD_GRAPPLE);
-			gi.sound (self, CHAN_WEAPON, gi.soundindex("weapons/grapple/grhurt.wav"), volume, ATTN_NORM, 0);
 		}
 
 		if (self.enemy.deadflag)
@@ -180,16 +196,28 @@ void(entity self) GrapplePull =
 
 		vlen = VectorNormalize(hookdir);
 
-		if (self.owner.client.grapplestate == GRAPPLE_STATE_PULL && vlen < 64)
+		if (self.owner.client.grapplestate == GRAPPLE_STATE_PULL)
 		{
 			float volume = 1.0;
 
 			if (self.owner.client.silencer_shots)
 				volume = 0.2;
 
-			self.owner.client.ps.pmove.pm_flags |= PMF_NO_PREDICTION;
-			gi.sound (self.owner, CHAN_RELIABLE+CHAN_WEAPON, gi.soundindex("weapons/grapple/grhang.wav"), volume, ATTN_NORM, 0);
-			self.owner.client.grapplestate = GRAPPLE_STATE_HANG;
+			if (vlen < 64)
+			{
+				self.owner.client.ps.pmove.pm_flags |= PMF_NO_PREDICTION;
+#ifndef HOOK_STANDARD_ASSETS
+				gi.sound (self.owner, CHAN_RELIABLE+CHAN_WEAPON, gi.soundindex("weapons/grapple/grhang.wav"), volume, ATTN_NORM, 0);
+#endif
+				self.owner.client.grapplestate = GRAPPLE_STATE_HANG;
+			}
+#ifdef HOOK_STANDARD_ASSETS
+			else if (self.pain_debounce_framenum < level.framenum)
+			{
+				gi.sound (self.owner, CHAN_WEAPON, gi.soundindex("world/turbine1.wav"), volume, ATTN_NORM, 0);
+				self.pain_debounce_framenum = level.framenum + (0.5 * BASE_FRAMERATE);
+			}
+#endif
 		}
 
 		hookdir *= GRAPPLE_PULL_SPEED;
@@ -213,7 +241,11 @@ static void(entity self, vector start, vector dir, int damage, int speed, bool o
 	grapple.clipmask = MASK_SHOT;
 	grapple.solid = SOLID_BBOX;
 	grapple.count = offhand;
+#ifdef HOOK_STANDARD_ASSETS
+	grapple.s.modelindex = gi.modelindex ("models/objects/debris2/tris.md2");
+#else
 	grapple.s.modelindex = gi.modelindex ("models/weapons/grapple/hook/tris.md2");
+#endif
 	grapple.owner = self;
 	grapple.touch = GrappleTouch;
 	grapple.dmg = damage;
@@ -246,12 +278,17 @@ static void(entity ent, int damage, bool offhand) CTFGrappleFire =
 	if (ent.client.silencer_shots)
 		volume = 0.2;
 
+#ifdef HOOK_STANDARD_ASSETS
+	gi.sound (ent, CHAN_WEAPON, gi.soundindex("medic/Medatck2.wav"), volume, ATTN_NORM, 0);
+#else
 	gi.sound (ent, CHAN_RELIABLE+CHAN_WEAPON, gi.soundindex("weapons/grapple/grfire.wav"), volume, ATTN_NORM, 0);
+#endif
 	CTFFireGrapple (ent, start, forward, damage, GRAPPLE_SPEED, offhand);
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 }
 
+#ifdef GRAPPLE
 static void(entity ent) Weapon_Grapple_Fire =
 {
 	const int damage = 10;
@@ -306,6 +343,7 @@ void(entity ent) CTFWeapon_Grapple =
 		ent.client.weaponstate = WEAPON_FIRING;
 	}
 }
+#endif
 
 #ifdef OFFHAND_HOOK
 void(entity ent) GrappleCmd =

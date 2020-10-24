@@ -157,7 +157,7 @@ typedef enum : int
 	MOD_TRACKER,
 #endif
 
-#ifdef GRAPPLE
+#ifdef HOOK_CODE
 	MOD_GRAPPLE,
 #endif
 

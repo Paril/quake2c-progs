@@ -163,9 +163,6 @@ static inline void(int type, vector origin, vector normal) SpawnDamage =
 	gi.multicast(origin, MULTICAST_PVS);
 }
 
-// from items.qc
-int(entity ent) PowerArmorType;
-
 /*
 ============
 T_Damage
@@ -307,7 +304,7 @@ static int(entity ent, vector point, vector normal, int damage, int te_sparks, d
 		))
 		return 0;
 
-	int index = ArmorIndex(ent);
+	gitem_id_t index = ArmorIndex(ent);
 	if (!index)
 		return 0;
 

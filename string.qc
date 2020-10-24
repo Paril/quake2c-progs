@@ -1,4 +1,3 @@
-const int MAX_TOKEN_CHARS	= 1024;	// max length of an individual token
 const int MAX_QPATH		= 64;	// max length of a quake game pathname
 
 // this is a special boolean that an engine must support

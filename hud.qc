@@ -393,8 +393,6 @@ G_SetStats
 void(entity ent) G_SetStats =
 {
 	gitem_t	*it;
-	int	index, cells = 0;
-	int	power_armor_type;
 
 	//
 	// health
@@ -420,7 +418,8 @@ void(entity ent) G_SetStats =
 	//
 	// armor
 	//
-	power_armor_type = PowerArmorType(ent);
+	power_armor_type_t power_armor_type = PowerArmorType(ent);
+	int	cells = 0;
 	if (power_armor_type)
 	{
 		cells = ent.client.pers.inventory[FindItem("cells")->id];
@@ -433,7 +432,7 @@ void(entity ent) G_SetStats =
 		}
 	}
 
-	index = ArmorIndex(ent);
+	gitem_id_t index = ArmorIndex(ent);
 	if (power_armor_type && (!index || (level.framenum & 8)))
 	{
 		// flash between power armor and other armor icon

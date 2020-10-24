@@ -9,7 +9,9 @@ mem.qc
 vector.qc
 string.qc
 type.qc
-set.qc
+hashset.qc
+list.qc
+structlist.qc
 time.qc
 info.qc
 api.qc
@@ -92,6 +94,7 @@ func.qc
 xatrix/func.qc
 rogue/func.qc
 phys.qc
+svcmds.qc
 
 main.qc
 spawn.qc

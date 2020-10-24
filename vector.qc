@@ -93,7 +93,7 @@ void(vector angles, vector *forward, vector *right, vector *up) AngleVectors =
 	}
 }
 
-vector vectoangles(vector value1)
+vector(vector value1) vectoangles =
 {
 	if (value1[1] == 0 && value1[0] == 0)
 	{
