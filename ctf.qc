@@ -182,7 +182,7 @@ const string ctf_statusbar =
 "endif "
 ;
 
-static string tnames[] = { "item_tech1", "item_tech2", "item_tech3", "item_tech4" };
+static gitem_id_t techids[] = { ITEM_TECH1, ITEM_TECH2, ITEM_TECH3, ITEM_TECH4 };
 
 /*
 =================
@@ -257,18 +257,11 @@ static bool(entity targ, entity inflictor) loc_CanSee =
 
 /*--------------------------------------------------------------------------*/
 
-gitem_t *flag1_item;
-gitem_t *flag2_item;
-
 // from ctf.qc
 void() CTFSetupTechSpawn;
 
 void() CTFSpawn =
 {
-	if (!flag1_item)
-		flag1_item = FindItemByClassname("item_flag_team1");
-	if (!flag2_item)
-		flag2_item = FindItemByClassname("item_flag_team2");
 	memclear(&ctfgame, sizeof(ctfgame));
 	CTFSetupTechSpawn();
 }
@@ -495,20 +488,20 @@ void(entity targ, entity inflictor, entity attacker) CTFFragBonuses =
 		return; // whoever died isn't on a team
 
 	// same team, if the flag at base, check to he has the enemy flag
-	gitem_t* flag_item, enemy_flag_item;
+	gitem_id_t flag_item, enemy_flag_item;
 	if (targ.client.resp.ctf_team == CTF_TEAM1)
 	{
-		flag_item = flag1_item;
-		enemy_flag_item = flag2_item;
+		flag_item = ITEM_FLAG1;
+		enemy_flag_item = ITEM_FLAG2;
 	}
 	else
 	{
-		flag_item = flag2_item;
-		enemy_flag_item = flag1_item;
+		flag_item = ITEM_FLAG2;
+		enemy_flag_item = ITEM_FLAG1;
 	}
 
 	// did the attacker frag the flag carrier?
-	if (targ.client.pers.inventory[enemy_flag_item.id])
+	if (targ.client.pers.inventory[enemy_flag_item])
 	{
 		attacker.client.resp.ctf_lastfraggedcarrierframe = level.framenum;
 		attacker.client.resp.score += CTF_FRAG_CARRIER_BONUS;
@@ -528,7 +521,7 @@ void(entity targ, entity inflictor, entity attacker) CTFFragBonuses =
 
 	if (targ.client.resp.ctf_lasthurtcarrierframe &&
 		(level.framenum - targ.client.resp.ctf_lasthurtcarrierframe) < (CTF_CARRIER_DANGER_PROTECT_TIMEOUT * BASE_FRAMERATE) &&
-		!attacker.client.pers.inventory[flag_item.id])
+		!attacker.client.pers.inventory[flag_item])
 	{
 		// attacker is on the same team as the flag carrier and
 		// fragged a guy who hurt our flag carrier
@@ -569,7 +562,7 @@ void(entity targ, entity inflictor, entity attacker) CTFFragBonuses =
 	{
 		carrier = itoe(i);
 		if (carrier.inuse && 
-			carrier.client.pers.inventory[flag_item.id])
+			carrier.client.pers.inventory[flag_item])
 			break;
 		carrier = world;
 	}
@@ -621,14 +614,14 @@ void(entity targ, entity attacker) CTFCheckHurtCarrier =
 	if (!targ.is_client || !attacker.is_client)
 		return;
 
-	gitem_t *flag_item;
+	gitem_id_t flag_item;
 
 	if (targ.client.resp.ctf_team == CTF_TEAM1)
-		flag_item = flag2_item;
+		flag_item = ITEM_FLAG2;
 	else
-		flag_item = flag1_item;
+		flag_item = ITEM_FLAG1;
 
-	if (targ.client.pers.inventory[flag_item.id] &&
+	if (targ.client.pers.inventory[flag_item] &&
 		targ.client.resp.ctf_team != attacker.client.resp.ctf_team)
 		attacker.client.resp.ctf_lasthurtcarrierframe = level.framenum;
 }
@@ -687,18 +680,18 @@ bool(entity ent, entity other) CTFPickup_Flag =
 		return false;
 	}
 
-	gitem_t* flag_item, enemy_flag_item;
+	gitem_id_t flag_item, enemy_flag_item;
 
 	// same team, if the flag at base, check to he has the enemy flag
 	if (ctf_team == CTF_TEAM1)
 	{
-		flag_item = flag1_item;
-		enemy_flag_item = flag2_item;
+		flag_item = ITEM_FLAG1;
+		enemy_flag_item = ITEM_FLAG2;
 	}
 	else
 	{
-		flag_item = flag2_item;
-		enemy_flag_item = flag1_item;
+		flag_item = ITEM_FLAG2;
+		enemy_flag_item = ITEM_FLAG1;
 	}
 
 	if (ctf_team == other.client.resp.ctf_team)
@@ -707,11 +700,11 @@ bool(entity ent, entity other) CTFPickup_Flag =
 		{
 			// the flag is at home base.  if the player has the enemy
 			// flag, he's just won!
-			if (other.client.pers.inventory[enemy_flag_item.id])
+			if (other.client.pers.inventory[enemy_flag_item])
 			{
 				gi.bprintf(PRINT_HIGH, "%s captured the %s flag!\n",
 						other.client.pers.netname, CTFOtherTeamName(ctf_team));
-				other.client.pers.inventory[enemy_flag_item.id] = 0;
+				other.client.pers.inventory[enemy_flag_item] = 0;
 
 				ctfgame.last_flag_capture_framenum = level.framenum;
 				ctfgame.last_capture_team = ctf_team;
@@ -777,7 +770,7 @@ bool(entity ent, entity other) CTFPickup_Flag =
 		other.client.pers.netname, CTFTeamName(ctf_team));
 	other.client.resp.score += CTF_FLAG_BONUS;
 
-	other.client.pers.inventory[flag_item.id] = 1;
+	other.client.pers.inventory[flag_item] = 1;
 	other.client.resp.ctf_flagsinceframe = level.framenum;
 
 	// pick up the flag
@@ -824,17 +817,17 @@ void(entity self) CTFDeadDropFlag =
 {
 	entity dropped = world;
 
-	if (self.client.pers.inventory[flag1_item.id])
+	if (self.client.pers.inventory[ITEM_FLAG1])
 	{
-		dropped = Drop_Item(self, flag1_item);
-		self.client.pers.inventory[flag1_item.id] = 0;
+		dropped = Drop_Item(self, GetItemByIndex(ITEM_FLAG1));
+		self.client.pers.inventory[ITEM_FLAG1] = 0;
 		gi.bprintf(PRINT_HIGH, "%s lost the %s flag!\n",
 			self.client.pers.netname, CTFTeamName(CTF_TEAM1));
 	}
-	else if (self.client.pers.inventory[flag2_item.id])
+	else if (self.client.pers.inventory[ITEM_FLAG2])
 	{
-		dropped = Drop_Item(self, flag2_item);
-		self.client.pers.inventory[flag2_item.id] = 0;
+		dropped = Drop_Item(self, GetItemByIndex(ITEM_FLAG2));
+		self.client.pers.inventory[ITEM_FLAG2] = 0;
 		gi.bprintf(PRINT_HIGH, "%s lost the %s flag!\n",
 			self.client.pers.netname, CTFTeamName(CTF_TEAM2));
 	}
@@ -904,15 +897,15 @@ void(entity player) CTFEffects =
 	
 	if (player.health > 0)
 	{
-		if (player.client.pers.inventory[flag1_item.id])
+		if (player.client.pers.inventory[ITEM_FLAG1])
 			player.s.effects |= EF_FLAG1;
-		if (player.client.pers.inventory[flag2_item.id])
+		if (player.client.pers.inventory[ITEM_FLAG2])
 			player.s.effects |= EF_FLAG2;
 	}
 
-	if (player.client.pers.inventory[flag1_item.id])
+	if (player.client.pers.inventory[ITEM_FLAG1])
 		player.s.modelindex3 = gi.modelindex("players/male/flag1.md2");
-	else if (player.client.pers.inventory[flag2_item.id])
+	else if (player.client.pers.inventory[ITEM_FLAG2])
 		player.s.modelindex3 = gi.modelindex("players/male/flag2.md2");
 	else
 		player.s.modelindex3 = 0;
@@ -1034,9 +1027,9 @@ void(entity ent) SetCTFStats =
 	int i = 0;
 	ent.client.ps.stats[STAT_CTF_TECH] = 0;
 
-	while (i < tnames.length)
+	while (i < techids.length)
 	{
-		gitem_t *tech = FindItemByClassname(tnames[i]);
+		gitem_t *tech = GetItemByIndex(techids[i]);
 		if (tech && ent.client.pers.inventory[tech.id])
 		{
 			ent.client.ps.stats[STAT_CTF_TECH] = gi.imageindex(tech->icon);
@@ -1062,7 +1055,7 @@ void(entity ent) SetCTFStats =
 			for (int i = 1; i <= game.maxclients; i++)
 			{
 				entity e = itoe(i);
-				if (e.inuse && e.client.pers.inventory[flag1_item.id])
+				if (e.inuse && e.client.pers.inventory[ITEM_FLAG1])
 				{
 					// enemy has it
 					p1 = imageindex_i_ctf1t;
@@ -1085,7 +1078,7 @@ void(entity ent) SetCTFStats =
 			for (int i = 1; i <= game.maxclients; i++)
 			{
 				entity e = itoe(i);
-				if (e.inuse && e.client.pers.inventory[flag2_item.id])
+				if (e.inuse && e.client.pers.inventory[ITEM_FLAG2])
 				{
 					// enemy has it
 					p2 = imageindex_i_ctf2t;
@@ -1119,11 +1112,11 @@ void(entity ent) SetCTFStats =
 
 	ent.client.ps.stats[STAT_CTF_FLAG_PIC] = 0;
 	if (ent.client.resp.ctf_team == CTF_TEAM1 &&
-		ent.client.pers.inventory[flag2_item.id] &&
+		ent.client.pers.inventory[ITEM_FLAG2] &&
 		(level.framenum & 8))
 		ent.client.ps.stats[STAT_CTF_FLAG_PIC] = imageindex_i_ctf2;
 	else if (ent.client.resp.ctf_team == CTF_TEAM2 &&
-		ent.client.pers.inventory[flag1_item.id] &&
+		ent.client.pers.inventory[ITEM_FLAG1] &&
 		(level.framenum & 8))
 		ent.client.ps.stats[STAT_CTF_FLAG_PIC] = imageindex_i_ctf1;
 
@@ -1309,7 +1302,7 @@ void(entity ent, entity killer) CTFScoreboardMessage =
 				cl.client.resp.score,
 				cl.client.ping > 999 ? 999 : cl.client.ping));
 
-			if (cl.client.pers.inventory[flag2_item.id])
+			if (cl.client.pers.inventory[ITEM_FLAG2])
 				entry = strconcat(entry, va("xv 56 yv %d picn sbfctf2 ", 42 + i * 8));
 
 			if (MESSAGE_LIMIT - len > strlen(entry))
@@ -1332,7 +1325,7 @@ void(entity ent, entity killer) CTFScoreboardMessage =
 				cl.client.resp.score,
 				cl.client.ping > 999 ? 999 : cl.client.ping));
 
-			if (cl.client.pers.inventory[flag1_item.id])
+			if (cl.client.pers.inventory[ITEM_FLAG1])
 				entry = strconcat(entry, va("xv 216 yv %d picn sbfctf1 ",
 					42 + i * 8));
 
@@ -1423,9 +1416,9 @@ void(entity who) CTFHasTech =
 gitem_t *(entity ent) CTFWhat_Tech =
 {
 	int i = 0;
-	while (i < tnames.length)
+	while (i < techids.length)
 	{
-		gitem_t *tech = FindItemByClassname(tnames[i]);
+		gitem_t *tech = GetItemByIndex(techids[i]);
 		if (tech && ent.client.pers.inventory[tech.id])
 			return tech;
 		i++;
@@ -1436,9 +1429,9 @@ gitem_t *(entity ent) CTFWhat_Tech =
 bool(entity ent, entity other) CTFPickup_Tech =
 {
 	int i = 0;
-	while (i < tnames.length)
+	while (i < techids.length)
 	{
-		gitem_t *tech = FindItemByClassname(tnames[i]);
+		gitem_t *tech = GetItemByIndex(techids[i]);
 		if (tech && other.client.pers.inventory[tech.id])
 		{
 			CTFHasTech(other);
@@ -1450,6 +1443,7 @@ bool(entity ent, entity other) CTFPickup_Tech =
 	// client only gets one tech
 	other.client.pers.inventory[ent.item->id]++;
 	other.client.ctf_regenframenum = level.framenum;
+
 	return true;
 }
 
@@ -1494,9 +1488,9 @@ void(entity ent, gitem_t *item) CTFDrop_Tech =
 void(entity ent) CTFDeadDropTech =
 {
 	int i = 0;
-	while (i < tnames.length)
+	while (i < techids.length)
 	{
-		gitem_t *tech = FindItemByClassname(tnames[i]);
+		gitem_t *tech = GetItemByIndex(techids[i]);
 		if (tech && ent.client.pers.inventory[tech.id])
 		{
 			entity dropped = Drop_Item(ent, tech);
@@ -1546,9 +1540,9 @@ static void(gitem_t *it, entity spot) SpawnTech =
 static void(entity ent) SpawnTechs =
 {
 	int i = 0;
-	while (i < tnames.length)
+	while (i < techids.length)
 	{
-		gitem_t *tech = FindItemByClassname(tnames[i]);
+		gitem_t *tech = GetItemByIndex(techids[i]);
 		entity spot = FindTechSpawn();
 		if (tech && spot)
 			SpawnTech(tech, spot);
@@ -1592,15 +1586,12 @@ void() CTFResetTech =
 
 int(entity ent, int dmg) CTFApplyResistance =
 {
-	static gitem_t *tech = 0;
 	float volume = 1.0;
 
 	if (ent.is_client && ent.client.silencer_shots)
 		volume = 0.2;
 
-	if (!tech)
-		tech = FindItemByClassname("item_tech1");
-	if (dmg && tech && ent.is_client && ent.client.pers.inventory[tech.id])
+	if (dmg && ent.is_client && ent.client.pers.inventory[ITEM_TECH1])
 	{
 		// make noise
 	   	gi.sound(ent, CHAN_VOICE, gi.soundindex("ctf/tech1.wav"), volume, ATTN_NORM, 0);
@@ -1611,26 +1602,19 @@ int(entity ent, int dmg) CTFApplyResistance =
 
 int(entity ent, int dmg) CTFApplyStrength =
 {
-	static gitem_t *tech = 0;
-
-	if (!tech)
-		tech = FindItemByClassname("item_tech2");
-	if (dmg && tech && ent.is_client && ent.client.pers.inventory[tech.id])
+	if (dmg && ent.is_client && ent.client.pers.inventory[ITEM_TECH2])
 		return dmg * 2;
 	return dmg;
 }
 
 bool(entity ent) CTFApplyStrengthSound =
 {
-	static gitem_t *tech = 0;
 	float volume = 1.0;
 
 	if (ent->is_client && ent.client.silencer_shots)
 		volume = 0.2;
 
-	if (!tech)
-		tech = FindItemByClassname("item_tech2");
-	if (tech && ent.is_client && ent.client.pers.inventory[tech.id])
+	if (ent.is_client && ent.client.pers.inventory[ITEM_TECH2])
 	{
 		if (ent.client.ctf_techsndframenum < level.framenum)
 		{
@@ -1646,27 +1630,20 @@ bool(entity ent) CTFApplyStrengthSound =
 }
 
 
-bool(entity ent) CTFApplyHaste =
+inline bool(entity ent) CTFApplyHaste =
 {
-	static gitem_t *tech = 0;
-
-	if (!tech)
-		tech = FindItemByClassname("item_tech3");
-	return tech && ent.is_client && ent.client.pers.inventory[tech.id];
+	return ent.is_client && ent.client.pers.inventory[ITEM_TECH3];
 }
 
 void(entity ent) CTFApplyHasteSound =
 {
-	static gitem_t *tech = 0;
 	float volume = 1.0;
 
 	if (ent.is_client && ent.client.silencer_shots)
 		volume = 0.2;
 
-	if (!tech)
-		tech = FindItemByClassname("item_tech3");
-	if (tech && ent.is_client &&
-		ent.client.pers.inventory[tech.id] &&
+	if (ent.is_client &&
+		ent.client.pers.inventory[ITEM_TECH3] &&
 		ent.client.ctf_techsndframenum < level.framenum)
 	{
 		ent.client.ctf_techsndframenum = level.framenum + (1 * BASE_FRAMERATE);
@@ -1676,7 +1653,6 @@ void(entity ent) CTFApplyHasteSound =
 
 void(entity ent) CTFApplyRegeneration =
 {
-	static gitem_t *tech = 0;
 	bool noise = false;
 	float volume = 1.0;
 
@@ -1686,9 +1662,7 @@ void(entity ent) CTFApplyRegeneration =
 	if (ent.client.silencer_shots)
 		volume = 0.2;
 
-	if (!tech)
-		tech = FindItemByClassname("item_tech4");
-	if (tech && ent.client.pers.inventory[tech.id])
+	if (ent.client.pers.inventory[ITEM_TECH4])
 	{
 		if (ent.client.ctf_regenframenum < level.framenum)
 		{
@@ -1719,16 +1693,9 @@ void(entity ent) CTFApplyRegeneration =
 	}
 }
 
-bool(entity ent) CTFHasRegeneration =
+inline bool(entity ent) CTFHasRegeneration =
 {
-	static gitem_t *tech = 0;
-
-	if (!tech)
-		tech = FindItemByClassname("item_tech4");
-	if (tech && ent.is_client &&
-		ent.client.pers.inventory[tech.id])
-		return true;
-	return false;
+	return ent.is_client && ent.client.pers.inventory[ITEM_TECH4];
 }
 
 

@@ -33,12 +33,6 @@ const int DROPPED_ITEM			= 0x00010000;
 const int DROPPED_PLAYER_ITEM	= 0x00020000;
 const int ITEM_TARGETS_USED		= 0x00040000;
 
-PROGS_LOCAL static int jacket_armor_index;
-PROGS_LOCAL static int combat_armor_index;
-PROGS_LOCAL static int body_armor_index;
-PROGS_LOCAL static int power_screen_index;
-PROGS_LOCAL static int power_shield_index;
-
 // special values for health styles
 enum : int
 {
@@ -257,9 +251,9 @@ static inline void(entity other, ammo_t ammo_id, int new_max) AdjustAmmoMax =
 	other.client.pers.max_ammo[ammo_id] = maxi(other.client.pers.max_ammo[ammo_id], new_max);
 }
 
-static inline void(entity other, gitem_t *ammo) AddAndCapAmmo =
+static inline void(entity other, gitem_id_t index) AddAndCapAmmo =
 {
-	int index = ammo->id;
+	gitem_t *ammo = GetItemByIndex(index);
 	other.client.pers.inventory[index] = mini(other.client.pers.inventory[index] + ammo->quantity, other.client.pers.max_ammo[ammo->tag]);
 }
 
@@ -277,8 +271,8 @@ API_FUNC static bool(entity ent, entity other) Pickup_Bandolier =
 	AdjustAmmoMax(other, AMMO_DISRUPTOR, 150);
 #endif
 
-	AddAndCapAmmo(other, FindItem("Bullets"));
-	AddAndCapAmmo(other, FindItem("Shells"));
+	AddAndCapAmmo(other, ITEM_BULLETS);
+	AddAndCapAmmo(other, ITEM_SHELLS);
 
 #ifdef SINGLE_PLAYER
 	if (!(ent.spawnflags & DROPPED_ITEM) && deathmatch.intVal)
@@ -306,18 +300,18 @@ API_FUNC static bool(entity ent, entity other) Pickup_Pack =
 	AdjustAmmoMax(other, AMMO_DISRUPTOR, 200);
 #endif
 
-	AddAndCapAmmo(other, FindItem("Bullets"));
-	AddAndCapAmmo(other, FindItem("Shells"));
-	AddAndCapAmmo(other, FindItem("Cells"));
-	AddAndCapAmmo(other, FindItem("Grenades"));
-	AddAndCapAmmo(other, FindItem("Rockets"));
-	AddAndCapAmmo(other, FindItem("Slugs"));
+	AddAndCapAmmo(other, ITEM_BULLETS);
+	AddAndCapAmmo(other, ITEM_SHELLS);
+	AddAndCapAmmo(other, ITEM_CELLS);
+	AddAndCapAmmo(other, ITEM_GRENADES);
+	AddAndCapAmmo(other, ITEM_ROCKETS);
+	AddAndCapAmmo(other, ITEM_SLUGS);
 #ifdef THE_RECKONING
-	AddAndCapAmmo(other, FindItem("Mag Slug"));
+	AddAndCapAmmo(other, ITEM_MAG_SLUG);
 #endif
 #ifdef GROUND_ZERO
-	AddAndCapAmmo(other, FindItem("Flechettes"));
-	AddAndCapAmmo(other, FindItem("Rounds"));
+	AddAndCapAmmo(other, ITEM_FLECHETTES);
+	AddAndCapAmmo(other, ITEM_ROUNDS);
 #endif
 
 #ifdef SINGLE_PLAYER
@@ -458,7 +452,7 @@ bool(entity ent, gitem_t *it, int count) Add_Ammo =
 	return true;
 }
 
-API_FUNC static bool(entity ent, entity other) Pickup_Ammo =
+API_FUNC bool(entity ent, entity other) Pickup_Ammo =
 {
 	bool weapon = (ent.item->flags & IT_WEAPON);
 	int	ammocount;
@@ -479,7 +473,7 @@ API_FUNC static bool(entity ent, entity other) Pickup_Ammo =
 #ifdef SINGLE_PLAYER
 		(!deathmatch.intVal ||
 #endif
-		other.client.pers.weapon == FindItem("blaster"))
+		other.client.pers.weapon.id == ITEM_BLASTER)
 #ifdef SINGLE_PLAYER
 		)
 #endif
@@ -549,7 +543,7 @@ static void(entity self) MegaHealth_think =
 		G_FreeEdict(self);
 }
 
-API_FUNC static bool(entity ent, entity other) Pickup_Health =
+API_FUNC bool(entity ent, entity other) Pickup_Health =
 {
 	if (!(ent.style & HEALTH_IGNORE_MAX))
 		if (other.health >= other.max_health)
@@ -601,65 +595,91 @@ gitem_id_t(entity ent) ArmorIndex =
 	if (!ent.is_client)
 		return ITEM_NONE;
 
-	if (ent.client.pers.inventory[jacket_armor_index] > 0)
-		return jacket_armor_index;
-	else if (ent.client.pers.inventory[combat_armor_index] > 0)
-		return combat_armor_index;
-	else if (ent.client.pers.inventory[body_armor_index] > 0)
-		return body_armor_index;
+	if (ent.client.pers.inventory[ITEM_ARMOR_JACKET] > 0)
+		return ITEM_ARMOR_JACKET;
+	else if (ent.client.pers.inventory[ITEM_ARMOR_COMBAT] > 0)
+		return ITEM_ARMOR_COMBAT;
+	else if (ent.client.pers.inventory[ITEM_ARMOR_BODY] > 0)
+		return ITEM_ARMOR_BODY;
 
 	return ITEM_NONE;
 }
 
-API_FUNC static bool(entity ent, entity other) Pickup_Armor =
+bool Can_Pickup_Armor(entity ent, entity other, out gitem_id_t armor_index = 0, out int armor_count = 0, out gitem_id_t destroy_armor_index = 0)
 {
 	gitem_id_t	old_armor_index = ArmorIndex(other);
 
 	// handle armor shards specially
 	if (ent.item->tag == ARMOR_SHARD)
-		other.client.pers.inventory[old_armor_index ?: jacket_armor_index] += 2;
+	{
+		armor_index = old_armor_index ?: ITEM_ARMOR_JACKET;
+		armor_count = other.client.pers.inventory[armor_index] + 2;
+		destroy_armor_index = 0;
+		return true;
+	}
+
+	// get info on new armor
+	gitem_armor_t *newinfo = ent.item->info;
+
+	// if player has no armor, just use it
+	if (!old_armor_index)
+	{
+		armor_index = ent.item->id;
+		armor_count = newinfo->base_count;
+		destroy_armor_index = 0;
+		return true;
+	}
+
+	// use the better armor
+	// get info on old armor
+	gitem_armor_t *oldinfo = GetItemByIndex(old_armor_index)->info;
+
+	if (newinfo->normal_protection > oldinfo->normal_protection)
+	{
+		// calc new armor values
+		float salvage = oldinfo->normal_protection / newinfo->normal_protection;
+		int salvagecount = (int)(salvage * other.client.pers.inventory[old_armor_index]);
+		int newcount = mini(newinfo->base_count + salvagecount, newinfo->max_count);
+
+		// zero count of old armor so it goes away
+		destroy_armor_index = old_armor_index;
+
+		// change armor to new item with computed value
+		armor_index = ent.item->id;
+		armor_count = newcount;
+	}
 	else
 	{
-		// get info on new armor
-		gitem_armor_t *newinfo = ent.item->info;
+		// calc new armor values
+		float salvage = newinfo->normal_protection / oldinfo->normal_protection;
+		int salvagecount = (int)(salvage * newinfo->base_count);
+		int newcount = mini(other.client.pers.inventory[old_armor_index] + salvagecount, oldinfo->max_count);
 
-		// if player has no armor, just use it
-		if (!old_armor_index)
-			other.client.pers.inventory[ent.item->id] = newinfo->base_count;
-		// use the better armor
-		else
-		{
-			// get info on old armor
-			gitem_armor_t *oldinfo = GetItemByIndex(old_armor_index)->info;
+		destroy_armor_index = 0;
 
-			if (newinfo->normal_protection > oldinfo->normal_protection)
-			{
-				// calc new armor values
-				float salvage = oldinfo->normal_protection / newinfo->normal_protection;
-				int salvagecount = (int)(salvage * other.client.pers.inventory[old_armor_index]);
-				int newcount = mini(newinfo->base_count + salvagecount, newinfo->max_count);
+		// if we're already maxed out then we don't need the new armor
+		if (other.client.pers.inventory[old_armor_index] >= newcount)
+			return false;
 
-				// zero count of old armor so it goes away
-				other.client.pers.inventory[old_armor_index] = 0;
+		// update current armor value
+		armor_index = old_armor_index;
+		armor_count = newcount;
+	}
 
-				// change armor to new item with computed value
-				other.client.pers.inventory[ent.item->id] = newcount;
-			}
-			else
-			{
-				// calc new armor values
-				float salvage = newinfo->normal_protection / oldinfo->normal_protection;
-				int salvagecount = (int)(salvage * newinfo->base_count);
-				int newcount = mini(other.client.pers.inventory[old_armor_index] + salvagecount, oldinfo->max_count);
+	return true;
+}
 
-				// if we're already maxed out then we don't need the new armor
-				if (other.client.pers.inventory[old_armor_index] >= newcount)
-					return false;
-
-				// update current armor value
-				other.client.pers.inventory[old_armor_index] = newcount;
-			}
-		}
+API_FUNC static bool(entity ent, entity other) Pickup_Armor =
+{
+	gitem_id_t armor_index;
+	int armor_count;
+	gitem_id_t destroy_armor_index;
+	
+	if (Can_Pickup_Armor(ent, other, armor_index, armor_count, destroy_armor_index))
+	{
+		if (destroy_armor_index)
+			other.client.pers.inventory[destroy_armor_index] = 0;
+		other.client.pers.inventory[armor_index] = armor_count;
 	}
 
 #ifdef SINGLE_PLAYER
@@ -686,9 +706,9 @@ power_armor_type_t(entity ent) PowerArmorType =
 {
 	if (ent.is_client && (ent.flags & FL_POWER_ARMOR))
 	{
-		if (ent.client.pers.inventory[power_shield_index] > 0)
+		if (ent.client.pers.inventory[ITEM_POWER_SHIELD] > 0)
 			return POWER_ARMOR_SHIELD;
-		else if (ent.client.pers.inventory[power_screen_index] > 0)
+		else if (ent.client.pers.inventory[ITEM_POWER_SCREEN] > 0)
 			return POWER_ARMOR_SCREEN;
 	}
 
@@ -701,8 +721,7 @@ API_FUNC static void(entity ent, gitem_t *it) Use_PowerArmor =
 		gi.sound(ent, CHAN_AUTO, gi.soundindex("misc/power2.wav"), 1, ATTN_NORM, 0);
 	else
 	{
-		int index = FindItem("cells")->id;
-		if (!ent.client.pers.inventory[index])
+		if (!ent.client.pers.inventory[ITEM_CELLS])
 		{
 			gi.cprintf(ent, PRINT_HIGH, "No cells for power armor.\n");
 			return;
@@ -1008,12 +1027,8 @@ void(gitem_t *it) PrecacheItem =
 		gi.imageindex(it->icon);
 
 	// parse everything for its ammo
-	if (it->ammo)
-	{
-		gitem_t *ammo = FindItem(it->ammo);
-		if (ammo != it)
-			PrecacheItem(ammo);
-	}
+	if (it->ammo && it->ammo != it->id)
+		PrecacheItem(GetItemByIndex(it->ammo));
 
 	// parse the space seperated precache string for other items
 	string s = it->precaches;
@@ -1052,12 +1067,12 @@ void(gitem_t *it) PrecacheItem =
 			gi.dprintf("PrecacheItem: %s has bad precache entry \"%s\"", it->classname, v);
 	}
 }
-
 #ifdef GROUND_ZERO
+
 void(entity ent) SetTriggeredSpawn;
 #endif
-
 #ifdef CTF
+
 void(entity) CTFFlagSetup;
 #endif
 
@@ -1150,13 +1165,13 @@ void(entity ent, gitem_t *it) SpawnItem =
 
 	if (ent.model)
 		gi.modelindex(ent.model);
-
 #ifdef GROUND_ZERO
+
 	if (ent.spawnflags & ITEM_TRIGGER_SPAWN)
 		SetTriggeredSpawn (ent);
 #endif
-
 #ifdef CTF
+
 	//flags are server animated and have special handling
 	if (ent.classname == "item_flag_team1" ||
 		ent.classname == "item_flag_team2")
@@ -1181,7 +1196,7 @@ API_FUNC static void(entity self) SP_item_health =
 
 	self.model = "models/items/healing/medium/tris.md2";
 	self.count = 10;
-	SpawnItem(self, FindItem("Health"));
+	SpawnItem(self, GetItemByIndex(ITEM_HEALTH));
 	gi.soundindex("items/n_health.wav");
 }
 
@@ -1201,7 +1216,7 @@ API_FUNC static void(entity self) SP_item_health_small =
 
 	self.model = "models/items/healing/stimpack/tris.md2";
 	self.count = 2;
-	SpawnItem(self, FindItem("Health"));
+	SpawnItem(self, GetItemByIndex(ITEM_HEALTH));
 	self.style = HEALTH_IGNORE_MAX;
 	gi.soundindex("items/s_health.wav");
 }
@@ -1222,7 +1237,7 @@ API_FUNC static void(entity self) SP_item_health_large =
 
 	self.model = "models/items/healing/large/tris.md2";
 	self.count = 25;
-	SpawnItem(self, FindItem("Health"));
+	SpawnItem(self, GetItemByIndex(ITEM_HEALTH));
 	gi.soundindex("items/l_health.wav");
 }
 
@@ -1242,7 +1257,7 @@ API_FUNC static void(entity self) SP_item_health_mega =
 
 	self.model = "models/items/mega_h/tris.md2";
 	self.count = 100;
-	SpawnItem(self, FindItem("Health"));
+	SpawnItem(self, GetItemByIndex(ITEM_HEALTH));
 	gi.soundindex("items/m_health.wav");
 	self.style = HEALTH_IGNORE_MAX | HEALTH_TIMED;
 }
@@ -1260,10 +1275,4 @@ void() SetItemNames =
 
 	for (int i = 0; i < itemlist.length; i++, it++)
 		gi.configstring(CS_ITEMS + i, it->pickup_name);
-
-	jacket_armor_index = FindItem("Jacket Armor")->id;
-	combat_armor_index = FindItem("Combat Armor")->id;
-	body_armor_index   = FindItem("Body Armor")->id;
-	power_screen_index = FindItem("Power Screen")->id;
-	power_shield_index = FindItem("Power Shield")->id;
 }

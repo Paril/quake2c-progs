@@ -131,6 +131,8 @@ const int MAX_ENT_CLUSTERS = 16;
 #ifdef SINGLE_PLAYER
 	FL_FLY,
 	FL_SWIM,		// implied immunity to drowning
+#endif
+#if defined(SINGLE_PLAYER)
 	FL_NOTARGET,
 	FL_PARTIALGROUND,
 #endif
@@ -245,8 +247,10 @@ const int MAX_ENT_CLUSTERS = 16;
 .entity	teamchain;
 .entity	teammaster;
 
+#if defined(SINGLE_PLAYER)
 .entity	mynoise;
 .entity mynoise2;
+#endif
 
 .int	noise_index;
 .int	noise_index2;
@@ -864,6 +868,7 @@ struct gclient_t
 
 .gclient_t	client;
 .bool		is_client;	// read-only, set by the engine
+.bool		is_linked;	// read-only, set by the engine
 
 // used to store pre-push state
 .struct

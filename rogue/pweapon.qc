@@ -194,7 +194,7 @@ static void(entity ent) weapon_chainfist_fire =
 	vector start = P_ProjectSource (ent, ent.s.origin, offset, forward, right);
 
 	fire_player_melee (ent, start, forward, CHAINFIST_REACH, damage, 100, MOD_CHAINFIST);
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 #endif
@@ -332,7 +332,7 @@ static void(entity self) weapon_tracker_fire =
 	gi.WriteShort (self.s.number);
 	gi.WriteByte (MZ_TRACKER);
 	gi.multicast (self.s.origin, MULTICAST_PVS);
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	PlayerNoise(self, start, PNOISE_WEAPON);
 #endif
@@ -414,7 +414,7 @@ static void(entity ent) weapon_etf_rifle_fire =
 	gi.WriteShort (ent.s.number);
 	gi.WriteByte (MZ_ETF_RIFLE);
 	gi.multicast (ent.s.origin, MULTICAST_PVS);
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 #endif
@@ -507,7 +507,7 @@ static void(entity ent) Heatbeam_Fire =
 	gi.WriteShort (ent.s.number);
 	gi.WriteByte (MZ_HEATBEAM | is_silenced);
 	gi.multicast (ent.s.origin, MULTICAST_PVS);
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 #endif

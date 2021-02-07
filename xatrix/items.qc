@@ -39,7 +39,7 @@ API_FUNC void(entity self) SP_item_foodcube =
 	}
 
 	self.model = "models/objects/trapfx/tris.md2";
-	SpawnItem (self, FindItem ("Health"));
+	SpawnItem (self, GetItemByIndex(ITEM_HEALTH));
 	self.spawnflags |= DROPPED_ITEM;
 	self.style = HEALTH_IGNORE_MAX;
 	gi.soundindex ("items/s_health.wav");

@@ -15,7 +15,7 @@ static void(entity self, entity other, vector normal, csurface_t surf) flechette
 		G_FreeEdict (self);
 		return;
 	}
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	if (self.is_client)
 		PlayerNoise(self.owner, self.s.origin, PNOISE_IMPACT);
@@ -90,11 +90,11 @@ static void(entity ent) Prox_Explode =
 	entity cowner = ent;
 
 	if (ent.teammaster)
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 	{
 #endif
 		cowner = ent.teammaster;
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 		PlayerNoise(cowner, ent.s.origin, PNOISE_IMPACT);
 	}
 #endif
@@ -539,7 +539,7 @@ static void(entity inflictor, entity attacker, float damage, entity ignore, floa
 
 static void(entity ent) Nuke_Explode =
 {
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 	if (ent.teammaster.is_client)
 		PlayerNoise(ent.teammaster, ent.s.origin, PNOISE_IMPACT);
 
@@ -929,13 +929,13 @@ static void(entity ent) tesla_think =
 	if (ent.s.frame > 9)
 	{
 		if (ent.s.frame == 10)
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 		{
 			if (ent.owner && ent.owner.is_client)
 				PlayerNoise(ent.owner, ent.s.origin, PNOISE_WEAPON);		// PGM
 #endif
 			ent.s.skinnum = 1;
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 		}
 #endif
 		else if(ent.s.frame == 12)
@@ -1076,7 +1076,7 @@ static void(entity self, vector start, vector aimdir, vector offset, int damage,
 			gi.WritePosition (tr.endpos);
 			gi.WriteDir (tr.normal);
 			gi.multicast (tr.endpos, MULTICAST_PVS);
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 			if (self.is_client)
 				PlayerNoise(self, tr.endpos, PNOISE_IMPACT);
@@ -1161,7 +1161,7 @@ static void(entity self, entity other, vector normal, csurface_t surf) blaster2_
 		G_FreeEdict (self);
 		return;
 	}
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	if (self.owner && self.owner.is_client)
 		PlayerNoise(self.owner, self.s.origin, PNOISE_IMPACT);
@@ -1328,7 +1328,7 @@ static void(entity self, entity other, vector normal, csurface_t surf) tracker_t
 		G_FreeEdict (self);
 		return;
 	}
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	if (self.is_client)
 		PlayerNoise(self.owner, self.s.origin, PNOISE_IMPACT);

@@ -161,7 +161,7 @@ API_FUNC static void(entity self) SP_info_player_coop_lava =
 #endif
 //=======================================================================
 
-static void(entity self, entity other, float kick, int damage) player_pain =
+void(entity self, entity other, float kick, int damage) player_pain =
 {
 	// player pain is handled at the end of the frame in P_DamageFeedback
 }
@@ -487,7 +487,7 @@ static void(entity self) TossClientWeapon =
 	if (quad)
 	{
 		self.client.v_angle[YAW] += spread;
-		entity drop = Drop_Item(self, FindItemByClassname("item_quad"));
+		entity drop = Drop_Item(self, GetItemByIndex(ITEM_QUAD_DAMAGE));
 		self.client.v_angle[YAW] -= spread;
 		drop.spawnflags |= DROPPED_PLAYER_ITEM;
 
@@ -500,7 +500,7 @@ static void(entity self) TossClientWeapon =
 	if (quadfire)
 	{
 		self.client.v_angle[YAW] += spread;
-		entity drop = Drop_Item (self, FindItemByClassname ("item_quadfire"));
+		entity drop = Drop_Item (self, GetItemByIndex(ITEM_DUALFIRE_DAMAGE));
 		self.client.v_angle[YAW] -= spread;
 		drop.spawnflags |= DROPPED_PLAYER_ITEM;
 
@@ -724,15 +724,14 @@ but is called after each death and level change in deathmatch
 void(entity ent) InitClientPersistant =
 {
 	memclear(&ent.client.pers, sizeof(ent.client.pers));
-	
-	gitem_t *it = FindItem("Blaster");
-	ent.client.pers.selected_item = it->id;
+
+	ent.client.pers.selected_item = ITEM_BLASTER;
 	ent.client.pers.inventory[ent.client.pers.selected_item] = 1;
 	
-	ent.client.pers.weapon = ent.client.pers.lastweapon = it;
+	ent.client.pers.weapon = ent.client.pers.lastweapon = GetItemByIndex(ent.client.pers.selected_item);
 
 #ifdef GRAPPLE
-	ent.client.pers.inventory[FindItem("Grapple").id] = 1;
+	ent.client.pers.inventory[ITEM_GRAPPLE] = 1;
 #endif
 	
 	ent.client.pers.health         = 100;
@@ -811,16 +810,18 @@ void() SaveClientData =
 			ent.client.pers.score = ent.client.resp.score;
 	}
 }
+#endif
 
 static void(entity ent) FetchClientEntData =
 {
 	ent.health = ent.client.pers.health;
 	ent.max_health = ent.client.pers.max_health;
+#ifdef SINGLE_PLAYER
 	ent.flags |= ent.client.pers.savedFlags;
 	if (coop.intVal)
 		ent.client.resp.score = ent.client.pers.score;
-}
 #endif
+}
 
 /*
 =======================================================================
@@ -1366,10 +1367,8 @@ void(entity ent) PutClientInServer =
 		InitClientPersistant(ent);
 	memcpy(&ent.client.resp, &resp, sizeof(resp));
 
-#ifdef SINGLE_PLAYER
 	// copy some data from the client to the entity
 	FetchClientEntData(ent);
-#endif
 
 	// clear entity values
 	ent.groundentity = null_entity;
@@ -1418,7 +1417,7 @@ void(entity ent) PutClientInServer =
 	ent.s.modelindex2 = 255;       // custom gun model
 	// sknum is player num and weapon number
 	// weapon number will be added in changeweapon
-	ent.s.skinnum = ent.s.number;
+	ent.s.skinnum = ent.s.number - 1;
 
 	ent.s.frame = 0;
 	ent.s.origin = spawn_origin;
@@ -1466,13 +1465,9 @@ void(entity ent) PutClientInServer =
 	// my tribute to cash's level-specific hacks. I hope I live
 	// up to his trailblazing cheese.
 	if (!deathmatch.intVal && level.mapname == "rboss")
-	{
 		// if you get on to rboss in single player or coop, ensure
 		// the player has the nuke key. (not in DM)
-		gitem_t *it = FindItem("Antimatter Bomb");
-		ent.client.pers.selected_item = it->id;
-		ent.client.pers.inventory[ent.client.pers.selected_item] = 1;
-	}
+		ent.client.pers.inventory[ITEM_ANTIMATTER_BOMB] = 1;
 #endif
 
 	// force the current weapon up
@@ -1741,7 +1736,7 @@ void(entity ent) ClientDisconnect =
 	ent.client.pers.connected = false;
 }
 
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 entity() PlayerTrail_LastSpot;
 void(vector pos) PlayerTrail_Add;
 
@@ -1836,11 +1831,11 @@ void(entity ent, usercmd_t ucmd) ClientThink =
 		ent.client.resp.cmd_angles = ucmd.angles;
 
 		if (ent.groundentity != null_entity && pm.groundentity == null_entity && (pm.cmd.upmove >= 10) && (pm.waterlevel == 0))
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 		{
 #endif
 			gi.sound(ent, CHAN_VOICE, gi.soundindex("*jump1.wav"), 1, ATTN_NORM, 0);
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 			PlayerNoise(ent, ent.s.origin, PNOISE_SELF);
 		}
 #endif

@@ -531,7 +531,8 @@ void(entity self) monster_death_use =
 
 static bool(entity self) monster_start =
 {
-	if (deathmatch.intVal) {
+	if (deathmatch.intVal)
+	{
 		G_FreeEdict(self);
 		return false;
 	}
@@ -563,7 +564,8 @@ static bool(entity self) monster_start =
 		self.monsterinfo.checkattack = M_CheckAttack;
 	self.s.old_origin = self.s.origin;
 
-	if (st.item) {
+	if (st.item)
+	{
 		self.item = FindItemByClassname(st.item);
 		if (!self.item)
 			gi.dprintf("%s at %s has bad item: %s\n", self.classname, vtos(self.s.origin), st.item);

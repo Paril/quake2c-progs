@@ -389,7 +389,7 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 			|| check.movetype == MOVETYPE_NOCLIP)
 			continue;
 
-		if (!gi.entitylinked(check))
+		if (!check.is_linked)
 			continue;       // not linked in anywhere
 
 		// if the entity is standing on the pusher, it will definitely be moved
@@ -407,7 +407,6 @@ static bool(entity pusher, vector move, vector amove) SV_Push =
 			if (!SV_TestEntityPosition(check))
 				continue;
 		}
-
 
 		if ((pusher.movetype == MOVETYPE_PUSH) || (check.groundentity == pusher)) {
 			// move this entity

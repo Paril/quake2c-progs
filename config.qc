@@ -25,9 +25,6 @@
 /*@@ { "macro": "THE_RECKONING", "desc": "The Reckoning support. This includes all of The Reckoning entities/weapons." } @@*/
 #define THE_RECKONING
 
-/*@@ { "macro": "BOTS", "desc": "Provides the Havoc bot base.", "requires": [ "KMQUAKE2_SUPPORT" ] } @@*/
-#define BOTS
-
 /*@@ { "macro": "KMQUAKE2_SUPPORT", "desc": "Optional KMQuake2 features. This gives you access to file loading APIs, which are polyfilled for non-KMQuake2 engines." } @@*/
 #define KMQUAKE2_SUPPORT
 
@@ -39,5 +36,5 @@
 
 #ifndef DEBUG
 // Uncomment to do a debug build, if you're using the GUI
-//#define DEBUG
+#define DEBUG
 #endif

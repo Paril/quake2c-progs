@@ -193,15 +193,12 @@ static void(entity ent) Cmd_Give_f =
 
 	if (give_all || striequals(name, "armor"))
 	{
-		gitem_t *it = FindItem("Jacket Armor");
-		ent.client.pers.inventory[it->id] = 0;
+		ent.client.pers.inventory[ITEM_ARMOR_JACKET] = 0;
+		ent.client.pers.inventory[ITEM_ARMOR_COMBAT] = 0;
 
-		it = FindItem("Combat Armor");
-		ent.client.pers.inventory[it->id] = 0;
-
-		it = FindItem("Body Armor");
+		gitem_t *it = GetItemByIndex(ITEM_ARMOR_BODY);
 		gitem_armor_t *info = it->info;
-		ent.client.pers.inventory[it->id] = info->max_count;
+		ent.client.pers.inventory[ITEM_ARMOR_BODY] = info->max_count;
 
 		if (!give_all)
 			return;
@@ -209,7 +206,7 @@ static void(entity ent) Cmd_Give_f =
 
 	if (give_all || striequals(name, "Power Shield"))
 	{
-		gitem_t *it = FindItem("Power Shield");
+		gitem_t *it = GetItemByIndex(ITEM_POWER_SHIELD);
 
 		entity it_ent = G_Spawn();
 		it_ent.classname = it->classname;
@@ -776,12 +773,12 @@ static void(entity ent) Cmd_Wave_f =
 Cmd_Say_f
 ==================
 */
-static void(entity ent, bool team, bool arg0) Cmd_Say_f =
+static void(entity ent, bool is_team, bool arg0) Cmd_Say_f =
 {
 	if (gi.argc() < 2 && !arg0)
 		return;
 
-	bool team = (dmflags.intVal & (DF_MODELTEAMS | DF_SKINTEAMS));
+	bool team = is_team && (dmflags.intVal & (DF_MODELTEAMS | DF_SKINTEAMS));
 	string text;
 
 	if (team)

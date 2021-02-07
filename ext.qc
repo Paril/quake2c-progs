@@ -14,6 +14,8 @@
 
 #pragma target quake2c
 
+#pragma opcode disable BOUNDCHECK
+
 #pragma optimise 3
 
 // this is just because kce is not allowed midcompile yet
@@ -69,7 +71,7 @@ const handle null_handle = (handle)0;
 inline bool(variant p) handle_empty =
 {
 	return !(handle)p;
-}
+};
 
 void(handle) handle_free = #0;
 

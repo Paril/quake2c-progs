@@ -189,13 +189,13 @@ dflags      these flags are used to control how T_Damage works
 */
 static int(entity ent, vector point, vector normal, int damage, damage_flags_t dflags) CheckPowerArmor =
 {
-	int	save;
 	power_armor_type_t	power_armor_type;
 	int	index;
 	int	damagePerCell;
 	int	pa_te_type;
 	int	power = 0;
 	int	power_used;
+	int save;
 
 	if (!damage)
 		return 0;
@@ -213,10 +213,7 @@ static int(entity ent, vector point, vector normal, int damage, damage_flags_t d
 	{
 		power_armor_type = PowerArmorType(ent);
 		if (power_armor_type != POWER_ARMOR_NONE)
-		{
-			index = FindItem("Cells")->id;
-			power = ent.client.pers.inventory[index];
-		}
+			power = ent.client.pers.inventory[ITEM_CELLS];
 	}
 #ifdef SINGLE_PLAYER
 	else if (ent.svflags & SVF_MONSTER)
@@ -281,7 +278,7 @@ static int(entity ent, vector point, vector normal, int damage, damage_flags_t d
 #ifdef SINGLE_PLAYER
 	if (ent.is_client)
 #endif
-		ent.client.pers.inventory[index] -= power_used;
+		ent.client.pers.inventory[ITEM_CELLS] -= power_used;
 #ifdef SINGLE_PLAYER
 	else
 		ent.monsterinfo.power_armor_power -= power_used;

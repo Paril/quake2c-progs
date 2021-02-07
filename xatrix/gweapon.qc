@@ -23,7 +23,7 @@ static void(entity self, entity other, vector normal, csurface_t surf) ionripper
 		G_FreeEdict (self);
 		return;
 	}
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	if (self.owner.is_client)
 		PlayerNoise (self.owner, self.s.origin, PNOISE_IMPACT);
@@ -139,7 +139,7 @@ static void(entity ent, entity other, vector normal, csurface_t surf) plasma_tou
 		G_FreeEdict (ent);
 		return;
 	}
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	if (ent.owner.is_client)
 		PlayerNoise(ent.owner, ent.s.origin, PNOISE_IMPACT);

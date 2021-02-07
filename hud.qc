@@ -419,10 +419,10 @@ void(entity ent) G_SetStats =
 	// armor
 	//
 	power_armor_type_t power_armor_type = PowerArmorType(ent);
-	int	cells = 0;
+	int cells = 0;
 	if (power_armor_type)
 	{
-		cells = ent.client.pers.inventory[FindItem("cells")->id];
+		cells = ent.client.pers.inventory[ITEM_CELLS];
 		if (cells == 0)
 		{
 			// ran out of cells for power armor

@@ -16,12 +16,7 @@ PROGS_LOCAL void(entity ent) P_DamageModifier =
 	damage_multiplier = 1;
 
 #ifdef CTF
-	static gitem_t *tech_strength = 0;
-
-	if (!tech_strength)
-		tech_strength = FindItemByClassname("item_tech2");
-
-	if (ent.client.pers.inventory[tech_strength.id])
+	if (ent.client.pers.inventory[ITEM_TECH2])
 	{
 		damage_multiplier *= 2;
 		is_quad = true;
@@ -59,7 +54,7 @@ PROGS_LOCAL INLINE vector(entity ent, vector point, vector distance, vector forw
 	return G_ProjectSource(point, scaled_dist, forward, right);
 }
 
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 /*
 ===============
 PlayerNoise
@@ -84,14 +79,16 @@ void(entity who, vector where, player_noise_t type) PlayerNoise =
 			return;
 		}
 	}
+#if defined(SINGLE_PLAYER)
 
 	if (deathmatch.intVal)
 		return;
+#endif
 
 	if (who.flags & FL_NOTARGET)
 		return;
 
-#ifdef GROUND_ZERO
+#if defined(SINGLE_PLAYER) && defined(GROUND_ZERO)
 	if (who.flags & FL_DISGUISED)
 	{
 		if (type != PNOISE_WEAPON)
@@ -122,17 +119,25 @@ void(entity who, vector where, player_noise_t type) PlayerNoise =
 	}
 
 	if (type == PNOISE_SELF || type == PNOISE_WEAPON)
+#ifdef SINGLE_PLAYER
 	{
+#endif
 		noise = who.mynoise;
+#ifdef SINGLE_PLAYER
 		level.sound_entity = noise;
 		level.sound_entity_framenum = level.framenum;
 	}
+#endif
 	else
+#ifdef SINGLE_PLAYER
 	{ // type == PNOISE_IMPACT
+#endif
 		noise = who.mynoise2;
+#ifdef SINGLE_PLAYER
 		level.sound2_entity = noise;
 		level.sound2_entity_framenum = level.framenum;
 	}
+#endif
 
 	noise.s.origin = where;
 	noise.absmin = where + noise.maxs;
@@ -142,7 +147,7 @@ void(entity who, vector where, player_noise_t type) PlayerNoise =
 }
 #endif
 
-API_FUNC static bool(entity ent, entity other) Pickup_Weapon =
+API_FUNC bool(entity ent, entity other) Pickup_Weapon =
 {
 	int	index = ent.item->id;
 
@@ -164,7 +169,7 @@ API_FUNC static bool(entity ent, entity other) Pickup_Weapon =
 		// give them some ammo with it
 		if (ent.item->ammo)
 		{
-			gitem_t *ammo = FindItem(ent.item->ammo);
+			gitem_t *ammo = GetItemByIndex(ent.item->ammo);
 			Add_Ammo(other, ammo, ammo->quantity);
 		}
 
@@ -190,7 +195,7 @@ API_FUNC static bool(entity ent, entity other) Pickup_Weapon =
 #ifdef SINGLE_PLAYER
 		!deathmatch.intVal || 
 #endif
-		other.client.pers.weapon == FindItem("blaster")))
+		other.client.pers.weapon.id == ITEM_BLASTER))
 		other.client.newweapon = ent.item;
 
 	return true;
@@ -239,32 +244,32 @@ void(entity ent) ChangeWeapon =
 			i = (ent.client.pers.weapon->weapmodel & 0xff) << 8;
 		else
 			i = 0;
-		ent.s.skinnum = ent.s.number | i;
+		ent.s.skinnum = (ent.s.number - 1) | i;
 	}
 
-	if (ent.client.pers.weapon && ent.client.pers.weapon->ammo)
-			ent.client.ammo_index = FindItem(ent.client.pers.weapon->ammo)->id;
-	else
-		ent.client.ammo_index = 0;
-
-	if (!ent.client.pers.weapon) {
+	if (!ent.client.pers.weapon)
+	{
 		// dead
 		ent.client.ps.gunindex = 0;
+		ent.client.ammo_index = 0;
 		return;
 	}
 
+	ent.client.ammo_index = ent.client.pers.weapon->ammo;
 	ent.client.weaponstate = WEAPON_ACTIVATING;
 	ent.client.ps.gunframe = 0;
 	ent.client.ps.gunindex = gi.modelindex(ent.client.pers.weapon->view_model);
 
 	ent.client.anim_priority = ANIM_PAIN;
-	if (ent.client.ps.pmove.pm_flags & PMF_DUCKED) {
+	if (ent.client.ps.pmove.pm_flags & PMF_DUCKED)
+	{
 		ent.s.frame = FRAME_crpain1;
 		ent.client.anim_end = FRAME_crpain4;
-	} else {
+	}
+	else
+	{
 		ent.s.frame = FRAME_pain301;
 		ent.client.anim_end = FRAME_pain304;
-
 	}
 }
 
@@ -275,70 +280,42 @@ NoAmmoWeaponChange
 */
 PROGS_LOCAL void(entity ent) NoAmmoWeaponChange =
 {
-	if (ent.client.pers.inventory[FindItem("slugs")->id]
-		&& ent.client.pers.inventory[FindItem("railgun")->id]) {
-		ent.client.newweapon = FindItem("railgun");
-		return;
-	}
-	
+	if (ent.client.pers.inventory[ITEM_SLUGS]
+		&& ent.client.pers.inventory[ITEM_RAILGUN])
+		ent.client.newweapon = GetItemByIndex(ITEM_RAILGUN);
 #ifdef THE_RECKONING
-	if (ent.client.pers.inventory[FindItem("mag slug")->id]
-		&& ent.client.pers.inventory[FindItem("phalanx")->id])
-	{
-		ent.client.newweapon = FindItem("phalanx");
-		return;
-	}
-	if ( ent.client.pers.inventory[FindItem("cells")->id]
-		&& ent.client.pers.inventory[FindItem("ionripper")->id])
-	{
-		ent.client.newweapon = FindItem("ionripper");
-		return;
-	}
+	else if (ent.client.pers.inventory[ITEM_MAG_SLUG]
+		&& ent.client.pers.inventory[ITEM_PHALANX])
+		ent.client.newweapon = GetItemByIndex(ITEM_PHALANX);
+	else if ( ent.client.pers.inventory[ITEM_CELLS]
+		&& ent.client.pers.inventory[ITEM_RIPPER])
+		ent.client.newweapon = GetItemByIndex(ITEM_RIPPER);
 #endif
-
 #ifdef GROUND_ZERO
-	if ((ent.client.pers.inventory[FindItem("cells")->id] >= 2)
-		&& ent.client.pers.inventory[FindItem("Plasma Beam")->id])
-	{
-		ent.client.newweapon = FindItem ("Plasma Beam");
-		return;
-	}
-
-	if (ent.client.pers.inventory[FindItem("flechettes")->id]
-		&&  ent.client.pers.inventory[FindItem("etf rifle")->id])
-	{
-		ent.client.newweapon = FindItem ("etf rifle");
-		return;
-	}
+	else if ((ent.client.pers.inventory[ITEM_CELLS] >= 2)
+		&& ent.client.pers.inventory[ITEM_PLASMA_BEAM])
+		ent.client.newweapon = GetItemByIndex(ITEM_PLASMA_BEAM);
+	else if (ent.client.pers.inventory[ITEM_FLECHETTES]
+		&&  ent.client.pers.inventory[ITEM_ETF_RIFLE])
+		ent.client.newweapon = GetItemByIndex(ITEM_ETF_RIFLE);
 #endif
-	
-	if (ent.client.pers.inventory[FindItem("cells")->id]
-		&& ent.client.pers.inventory[FindItem("hyperblaster")->id]) {
-		ent.client.newweapon = FindItem("hyperblaster");
-		return;
-	}
-	
-	if (ent.client.pers.inventory[FindItem("bullets")->id]
-		&& ent.client.pers.inventory[FindItem("chaingun")->id]) {
-		ent.client.newweapon = FindItem("chaingun");
-		return;
-	}
-	if (ent.client.pers.inventory[FindItem("bullets")->id]
-		&& ent.client.pers.inventory[FindItem("machinegun")->id]) {
-		ent.client.newweapon = FindItem("machinegun");
-		return;
-	}
-	if (ent.client.pers.inventory[FindItem("shells")->id] > 1
-		&& ent.client.pers.inventory[FindItem("super shotgun")->id]) {
-		ent.client.newweapon = FindItem("super shotgun");
-		return;
-	}
-	if (ent.client.pers.inventory[FindItem("shells")->id]
-		&& ent.client.pers.inventory[FindItem("shotgun")->id]) {
-		ent.client.newweapon = FindItem("shotgun");
-		return;
-	}
-	ent.client.newweapon = FindItem("blaster");
+	else if (ent.client.pers.inventory[ITEM_CELLS]
+		&& ent.client.pers.inventory[ITEM_HYPERBLASTER])
+		ent.client.newweapon = GetItemByIndex(ITEM_HYPERBLASTER);
+	else if (ent.client.pers.inventory[ITEM_BULLETS]
+		&& ent.client.pers.inventory[ITEM_CHAINGUN])
+		ent.client.newweapon = GetItemByIndex(ITEM_CHAINGUN);
+	else if (ent.client.pers.inventory[ITEM_BULLETS]
+		&& ent.client.pers.inventory[ITEM_MACHINEGUN])
+		ent.client.newweapon = GetItemByIndex(ITEM_MACHINEGUN);
+	else if (ent.client.pers.inventory[ITEM_SHELLS] > 1
+		&& ent.client.pers.inventory[ITEM_SUPER_SHOTGUN])
+		ent.client.newweapon = GetItemByIndex(ITEM_SUPER_SHOTGUN);
+	else if (ent.client.pers.inventory[ITEM_SHELLS]
+		&& ent.client.pers.inventory[ITEM_SHOTGUN])
+		ent.client.newweapon = GetItemByIndex(ITEM_SHOTGUN);
+	else
+		ent.client.newweapon = GetItemByIndex(ITEM_BLASTER);
 }
 
 /*
@@ -402,8 +379,7 @@ static useweap_t(entity ent, gitem_t *it) CanUseWeapon =
 	
 	if (it->ammo && !g_select_empty.intVal && !(it->flags & IT_AMMO))
 	{
-		gitem_t *ammo_item = FindItem(it->ammo);
-		gitem_id_t ammo_index = ammo_item->id;
+		gitem_id_t ammo_index = it->ammo;
 
 		if (!ent.client.pers.inventory[ammo_index])
 			return USEWEAP_NO_AMMO;
@@ -416,74 +392,74 @@ static useweap_t(entity ent, gitem_t *it) CanUseWeapon =
 };
 
 #ifdef THE_RECKONING
-static const string rail_chain[] = { "Railgun", "Phalanx" };
+static const gitem_id_t rail_chain[] = { ITEM_RAILGUN, ITEM_PHALANX };
 #endif
 
 #ifdef GROUND_ZERO
-static const string grenadelauncher_chain[] = { "Grenade Launcher", "Prox Launcher" };
-static const string machinegun_chain[] = { "Machinegun", "ETF Rifle" };
-static const string bfg_chain[] = { "BFG10k", "Disruptor" };
+static const gitem_id_t grenadelauncher_chain[] = { ITEM_GRENADE_LAUNCHER, ITEM_PROX_LAUNCHER };
+static const gitem_id_t machinegun_chain[] = { ITEM_MACHINEGUN, ITEM_ETF_RIFLE };
+static const gitem_id_t bfg_chain[] = { ITEM_BFG, ITEM_DISRUPTOR };
 #endif
 
 #if defined(GROUND_ZERO) && defined(GRAPPLE)
-static const string blaster_chain[] = { "Blaster", "Chainfist", "Grapple" };
+static const gitem_id_t blaster_chain[] = { ITEM_BLASTER, ITEM_CHAINFIST, ITEM_GRAPPLE };
 #elif defined(GRAPPLE)
-static const string blaster_chain[] = { "Blaster", "Grapple" };
+static const gitem_id_t blaster_chain[] = { ITEM_BLASTER, ITEM_GRAPPLE };
 #elif defined(GROUND_ZERO)
-static const string blaster_chain[] = { "Blaster", "Chainfist" };
+static const gitem_id_t blaster_chain[] = { ITEM_BLASTER, ITEM_CHAINFIST };
 #endif
 
 #if defined(GROUND_ZERO) && defined(THE_RECKONING)
-static const string grenade_chain[] = { "Grenades", "Trap", "Tesla"};
-static const string hyperblaster_chain[] = { "HyperBlaster", "Ionripper", "Plasma Beam" };
+static const gitem_id_t grenade_chain[] = { ITEM_GRENADES, ITEM_TRAP, ITEM_TESLA };
+static const gitem_id_t hyperblaster_chain[] = { ITEM_HYPERBLASTER, ITEM_RIPPER, ITEM_PLASMA_BEAM };
 #elif defined(GROUND_ZERO)
-static const string grenade_chain[] = { "Grenades", "Tesla"};
-static const string hyperblaster_chain[] = { "HyperBlaster", "Plasma Beam" };
+static const gitem_id_t grenade_chain[] = { ITEM_GRENADES, ITEM_TESLA };
+static const gitem_id_t hyperblaster_chain[] = { ITEM_HYPERBLASTER, ITEM_PLASMA_BEAM };
 #elif defined(THE_RECKONING)
-static const string grenade_chain[] = { "Grenades", "Trap" };
-static const string hyperblaster_chain[] = { "HyperBlaster", "Ionripper" };
+static const gitem_id_t grenade_chain[] = { ITEM_GRENADES, ITEM_TRAP };
+static const gitem_id_t hyperblaster_chain[] = { ITEM_HYPERBLASTER, ITEM_RIPPER };
 #endif
 
-static bool(entity ent, gitem_t *it, out string *chain, out int chain_length) GetChain =
+static bool(entity ent, gitem_t *it, out gitem_id_t *chain, out int chain_length) GetChain =
 {
 	chain = 0;
 
 #if defined(GROUND_ZERO) || defined(THE_RECKONING)
-	if (it->pickup_name == "HyperBlaster")
+	if (it->id == ITEM_HYPERBLASTER)
 	{
 		chain = hyperblaster_chain;
 		chain_length = hyperblaster_chain.length;
 	}
-	else if (it->pickup_name == "Grenades")
+	else if (it->id == ITEM_GRENADES)
 	{
 		chain = grenade_chain;
 		chain_length = grenade_chain.length;
 	}
 #endif
 #if defined(GROUND_ZERO)
-	else if (it->pickup_name == "Grenade Launcher")
+	else if (it->id == ITEM_GRENADE_LAUNCHER)
 	{
 		chain = grenadelauncher_chain;
 		chain_length = grenadelauncher_chain.length;
 	}
-	else if (it->pickup_name == "Machinegun")
+	else if (it->id == ITEM_MACHINEGUN)
 	{
 		chain = machinegun_chain;
 		chain_length = machinegun_chain.length;
 	}
-	else if (it->pickup_name == "Blaster")
+	else if (it->id == ITEM_BLASTER)
 	{
 		chain = blaster_chain;
 		chain_length = blaster_chain.length;
 	}
-	else if (it->pickup_name == "BFG10k")
+	else if (it->id == ITEM_BFG)
 	{
 		chain = bfg_chain;
 		chain_length = bfg_chain.length;
 	}
 #endif
 #if defined(THE_RECKONING)
-	else if (it->pickup_name == "Railgun")
+	else if (it->id == ITEM_RAILGUN)
 	{
 		chain = rail_chain;
 		chain_length = rail_chain.length;
@@ -495,7 +471,7 @@ static bool(entity ent, gitem_t *it, out string *chain, out int chain_length) Ge
 
 API_FUNC static void(entity ent, gitem_t *it) Use_Weapon =
 {
-	string	*chain;
+	gitem_id_t	*chain;
 	int	chain_length;
 
 	// we have a weapon chain; find our current position in this chain
@@ -503,16 +479,10 @@ API_FUNC static void(entity ent, gitem_t *it) Use_Weapon =
 	{
 		int chain_start = 0;
 
-		for (string *c = chain; c < chain + chain_length; c++)
+		for (gitem_id_t *c = chain; c < chain + chain_length; c++)
 		{
-			gitem_t *cit = FindItem(*c);
+			gitem_t *cit = GetItemByIndex(*c);
 			
-			if (!cit)
-			{
-				gi.dprintf("Bad chain specified: %s", *c);
-				continue;
-			}
-
 			if (ent.client.pers.weapon == cit || ent.client.newweapon == cit)
 			{
 				chain_start = (c - chain) + 1;
@@ -523,7 +493,7 @@ API_FUNC static void(entity ent, gitem_t *it) Use_Weapon =
 		// find the next weapon we can equip that doesn't return false
 		for (int cid = 0; cid < chain_length; cid++)
 		{
-			gitem_t *cit = FindItem(chain[(chain_start + cid) % chain_length]);
+			gitem_t *cit = GetItemByIndex(chain[(chain_start + cid) % chain_length]);
 			
 			// got it!
 			if (CanUseWeapon(ent, cit) == USEWEAP_OK)
@@ -537,7 +507,7 @@ API_FUNC static void(entity ent, gitem_t *it) Use_Weapon =
 	}
 	
 	useweap_t result = CanUseWeapon(ent, it);
-	gitem_t *ammo_item = it->ammo ? FindItem(it->ammo) : 0;
+	gitem_t *ammo_item = it->ammo ? GetItemByIndex(it->ammo) : 0;
 
 	switch (result)
 	{
@@ -554,8 +524,6 @@ API_FUNC static void(entity ent, gitem_t *it) Use_Weapon =
 	// change to this weapon when down
 	ent.client.newweapon = it;
 }
-
-
 
 /*
 ================
@@ -928,7 +896,7 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_grenadelauncher_fire =
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
 
 	ent.client.ps.gunframe++;
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 #endif
@@ -992,7 +960,7 @@ PROGS_LOCAL_STATIC void(entity ent) Weapon_RocketLauncher_Fire =
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
 
 	ent.client.ps.gunframe++;
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 #endif
@@ -1051,7 +1019,7 @@ PROGS_LOCAL_STATIC void(entity ent, vector g_offset, int damage, bool hyper, int
 	else
 		gi.WriteByte(MZ_BLASTER | is_silenced);
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 #endif
@@ -1243,7 +1211,7 @@ PROGS_LOCAL_STATIC void(entity ent) Machinegun_Fire =
 	gi.WriteShort(ent.s.number);
 	gi.WriteByte(MZ_MACHINEGUN | is_silenced);
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 #endif
@@ -1383,7 +1351,7 @@ PROGS_LOCAL_STATIC void(entity ent) Chaingun_Fire =
 	gi.WriteShort(ent.s.number);
 	gi.WriteByte((MZ_CHAINGUN1 + shots - 1) | is_silenced);
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 #endif
@@ -1453,7 +1421,7 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_shotgun_fire =
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
 
 	ent.client.ps.gunframe++;
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 #endif
 
@@ -1514,7 +1482,7 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_supershotgun_fire =
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
 
 	ent.client.ps.gunframe++;
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 #endif
 
@@ -1565,8 +1533,8 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_railgun_fire =
 		kick = 250;
 	}
 #else
-	int damage = 150;
-	int kick = 250;
+	int damage = 100;
+	int kick = 200;
 #endif
 
 	if (is_quad)
@@ -1592,7 +1560,7 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_railgun_fire =
 	gi.multicast(ent.s.origin, MULTICAST_PVS);
 
 	ent.client.ps.gunframe++;
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 #endif
 
@@ -1655,7 +1623,7 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_bfg_fire =
 		gi.multicast(ent.s.origin, MULTICAST_PVS);
 
 		ent.client.ps.gunframe++;
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 		PlayerNoise(ent, start, PNOISE_WEAPON);
 #endif
@@ -1682,7 +1650,7 @@ PROGS_LOCAL_STATIC void(entity ent) weapon_bfg_fire =
 	fire_bfg(ent, start, forward, damage, 400, damage_radius);
 
 	ent.client.ps.gunframe++;
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 #endif

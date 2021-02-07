@@ -12,3 +12,9 @@ struct time_t
 };
 
 void(out time_t tm) localtime = #0;
+
+float() now = #0;
+
+#define TIMER_DEFINE_START float __timer = now()
+#define TIMER_FINISHED(name) gi.dprintf("%s: %fs\n", name, now() - __timer)
+#define TIMER_RESTART __timer = now()

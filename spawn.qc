@@ -132,7 +132,8 @@ Finds the spawn function for the entity and calls it
 */
 bool(entity ent) ED_CallSpawn =
 {
-	if (!ent.classname) {
+	if (!ent.classname)
+	{
 		gi.dprintf("ED_CallSpawn: NULL classname\n");
 		G_FreeEdict(ent);
 		return false;
@@ -142,11 +143,11 @@ bool(entity ent) ED_CallSpawn =
 	ent.gravityVector = MOVEDIR_DOWN;
 
 	if (ent.classname == "weapon_nailgun")
-		ent.classname = FindItem("ETF Rifle")->classname;
+		ent.classname = GetItemByIndex(ITEM_ETF_RIFLE)->classname;
 	if (ent.classname == "ammo_nails")
-		ent.classname = FindItem("Flechettes")->classname;
+		ent.classname = GetItemByIndex(ITEM_FLECHETTES)->classname;
 	if (ent.classname == "weapon_heatbeam")
-		ent.classname = FindItem("Plasma Beam")->classname;
+		ent.classname = GetItemByIndex(ITEM_PLASMA_BEAM)->classname;
 #endif
 	
 	// check item spawn functions
@@ -437,14 +438,14 @@ void(string mapname, string entities, string spawnpoint) SpawnEntities =
 #ifdef SINGLE_PLAYER
 
 	PlayerTrail_Init();
-
 #ifdef GROUND_ZERO
+
 	if (!deathmatch.intVal)
 		InitHintPaths();
 #endif
 #endif
-
 #ifdef CTF
+
 	CTFSpawn();
 #endif
 };
@@ -674,7 +675,7 @@ API_FUNC static void(entity ent) SP_worldspawn =
 
 	snd_fry = gi.soundindex("player/fry.wav");  // standing in lava / slime
 
-	PrecacheItem(FindItem("Blaster"));
+	PrecacheItem(GetItemByIndex(ITEM_BLASTER));
 
 	gi.soundindex("player/lava1.wav");
 	gi.soundindex("player/lava2.wav");

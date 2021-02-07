@@ -76,11 +76,6 @@ typedef enum : int
 	AMMO_TOTAL
 } ammo_t;
 
-typedef enum : int
-{
-	ITEM_NONE
-} gitem_id_t;
-
 // armor types
 typedef enum : int
 {
@@ -113,6 +108,126 @@ PROGS_LOCAL const struct gitem_armor_t
 	{ }
 };
 
+// this enum *must* match the itemlist below! be sure to edit them in tandem
+typedef enum : int
+{
+	ITEM_NONE,
+	
+	ITEM_ARMOR_BODY,
+	ITEM_ARMOR_COMBAT,
+	ITEM_ARMOR_JACKET,
+	ITEM_ARMOR_SHARD,
+	
+	ITEM_POWER_SCREEN,
+	ITEM_POWER_SHIELD,
+
+#ifdef GRAPPLE
+	ITEM_GRAPPLE,
+#endif
+	ITEM_BLASTER,
+#ifdef GROUND_ZERO
+	ITEM_CHAINFIST,
+#endif
+	ITEM_SHOTGUN,
+	ITEM_SUPER_SHOTGUN,
+	ITEM_MACHINEGUN,
+#ifdef GROUND_ZERO
+	ITEM_ETF_RIFLE,
+#endif
+	ITEM_CHAINGUN,
+	ITEM_GRENADES,
+#ifdef THE_RECKONING
+	ITEM_TRAP,
+#endif
+#ifdef GROUND_ZERO
+	ITEM_TESLA,
+#endif
+	ITEM_GRENADE_LAUNCHER,
+#ifdef GROUND_ZERO
+	ITEM_PROX_LAUNCHER,
+#endif
+	ITEM_ROCKET_LAUNCHER,
+	ITEM_HYPERBLASTER,
+#ifdef THE_RECKONING
+	ITEM_RIPPER,
+#endif
+#ifdef GROUND_ZERO
+	ITEM_PLASMA_BEAM,
+#endif
+	ITEM_RAILGUN,
+#ifdef THE_RECKONING
+	ITEM_PHALANX,
+#endif
+	ITEM_BFG,
+#ifdef GROUND_ZERO
+	ITEM_DISRUPTOR,
+#endif
+
+	ITEM_SHELLS,
+	ITEM_BULLETS,
+	ITEM_CELLS,
+	ITEM_ROCKETS,
+	ITEM_SLUGS,
+#ifdef THE_RECKONING
+	ITEM_MAG_SLUG,
+#endif
+#ifdef GROUND_ZERO
+	ITEM_FLECHETTES,
+	ITEM_PROX,
+	ITEM_AM_BOMB,
+	ITEM_ROUNDS,
+#endif
+
+	ITEM_QUAD_DAMAGE,
+	ITEM_INVULNERABILITY,
+	ITEM_SILENCER,
+	ITEM_REBREATHER,
+	ITEM_ENVIRONMENT_SUIT,
+#ifdef THE_RECKONING
+	ITEM_DUALFIRE_DAMAGE,
+#endif
+#ifdef GROUND_ZERO
+	ITEM_IR_GOGGLES,
+	ITEM_DOUBLE_DAMAGE,
+#endif
+	ITEM_ANCIENT_HEAD,
+	ITEM_ADRENALINE,
+	ITEM_BANDOLIER,
+	ITEM_AMMO_PACK,
+	
+#ifdef SINGLE_PLAYER
+	ITEM_DATA_CD,
+	ITEM_POWER_CUBE,
+	ITEM_PYRAMID_KEY,
+	ITEM_DATA_SPINNER,
+	ITEM_SECURITY_PASS,
+	ITEM_BLUE_KEY,
+	ITEM_RED_KEY,
+	ITEM_COMMANDERS_HEAD,
+	ITEM_AIRSTRIKE_MARKER,
+#ifdef THE_RECKONING
+	ITEM_GREEN_KEY,
+#endif
+#ifdef GROUND_ZERO
+	ITEM_ANTIMATTER_POD,
+	ITEM_ANTIMATTER_BOMB,
+#endif
+#endif
+
+#ifdef CTF
+	ITEM_FLAG1,
+	ITEM_FLAG2,
+	ITEM_TECH1,
+	ITEM_TECH2,
+	ITEM_TECH3,
+	ITEM_TECH4,
+#endif
+
+	ITEM_HEALTH,
+	
+	ITEM_TOTAL
+} gitem_id_t;
+
 struct gitem_t
 {
 	string				classname; // spawning name
@@ -131,7 +246,7 @@ struct gitem_t
 	int		count_width;	// number of digits to display by icon
 	
 	int				quantity;	// for ammo how much, for weapons how much is used per shot
-	string			ammo;		// for weapons
+	gitem_id_t		ammo;		// for weapons
 	gitem_flags_t	flags;		// IT_* flags
 	
 	weap_model_t	weapmodel;      // weapon model index (for weapons)
@@ -158,7 +273,8 @@ const gitem_flags_t IT_WEAPON_MASK = IT_WEAPON | IT_STAY_COOP;
 const gitem_flags_t IT_WEAPON_MASK = IT_WEAPON;
 #endif
 
-PROGS_LOCAL var gitem_t itemlist[] =
+// this list *must* match the gitem_id list above! be sure to edit them in tandem
+PROGS_LOCAL var gitem_t itemlist[ITEM_TOTAL] =
 {
 	// leave index 0 alone
 	{ },
@@ -276,7 +392,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		/* width */     0,
 		60,
 		0,
-		IT_ARMOR,
+		IT_POWERUP,
 		0,
 		0,
 		0,
@@ -299,7 +415,7 @@ PROGS_LOCAL var gitem_t itemlist[] =
 		/* width */     0,
 		60,
 		0,
-		IT_ARMOR,
+		IT_POWERUP,
 		0,
 		0,
 		0,
@@ -403,7 +519,7 @@ always owned, never in the world
 		/* pickup */    "Shotgun",
 		0,
 		1,
-		"Shells",
+		ITEM_SHELLS,
 		IT_WEAPON_MASK,
 		WEAP_SHOTGUN,
 		0,
@@ -426,7 +542,7 @@ always owned, never in the world
 		/* pickup */    "Super Shotgun",
 		0,
 		2,
-		"Shells",
+		ITEM_SHELLS,
 		IT_WEAPON_MASK,
 		WEAP_SUPERSHOTGUN,
 		0,
@@ -449,7 +565,7 @@ always owned, never in the world
 		/* pickup */    "Machinegun",
 		0,
 		1,
-		"Bullets",
+		ITEM_BULLETS,
 		IT_WEAPON_MASK,
 		WEAP_MACHINEGUN,
 		0,
@@ -473,7 +589,7 @@ always owned, never in the world
 		"ETF Rifle",						// name printed when picked up 
 		0,									// number of digits for statusbar
 		1,									// amount used / contained
-		"Flechettes",						// ammo type used 
+		ITEM_FLECHETTES,						// ammo type used 
 		IT_WEAPON_MASK,						// inventory flags
 		WEAP_ETFRIFLE,						// visible weapon
 		0,									// info (void *)
@@ -497,7 +613,7 @@ always owned, never in the world
 		/* pickup */    "Chaingun",
 		0,
 		1,
-		"Bullets",
+		ITEM_BULLETS,
 		IT_WEAPON_MASK,
 		WEAP_CHAINGUN,
 		0,
@@ -520,7 +636,7 @@ always owned, never in the world
 		/* pickup */    "Grenades",
 		/* width */     3,
 		5,
-		"grenades",
+		ITEM_GRENADES,
 		IT_AMMO | IT_WEAPON,
 		WEAP_GRENADES,
 		0,
@@ -544,7 +660,7 @@ always owned, never in the world
 /* pickup */	"Trap",
 /* width */		3,
 		1,
-		"trap",
+		ITEM_TRAP,
 		IT_AMMO | IT_WEAPON,
 		0,
 		0,
@@ -569,7 +685,7 @@ always owned, never in the world
 		"Tesla",
 		3,
 		5,
-		"Tesla",												// PGM
+		ITEM_TESLA,												// PGM
 		IT_AMMO | IT_WEAPON,						// inventory flags
 		0,
 		0,										// info (void *)
@@ -593,7 +709,7 @@ always owned, never in the world
 		/* pickup */    "Grenade Launcher",
 		0,
 		1,
-		"Grenades",
+		ITEM_GRENADES,
 		IT_WEAPON_MASK,
 		WEAP_GRENADELAUNCHER,
 		0,
@@ -617,7 +733,7 @@ always owned, never in the world
 		"Prox Launcher",									// name printed when picked up
 		0,													// number of digits for statusbar
 		1,													// amount used
-		"Prox",												// ammo type used
+		ITEM_PROX,												// ammo type used
 		IT_WEAPON_MASK,										// inventory flags
 		WEAP_PROXLAUNCH,									// visible weapon
 		0,												// info (void *)
@@ -641,7 +757,7 @@ always owned, never in the world
 		/* pickup */    "Rocket Launcher",
 		0,
 		1,
-		"Rockets",
+		ITEM_ROCKETS,
 		IT_WEAPON_MASK,
 		WEAP_ROCKETLAUNCHER,
 		0,
@@ -664,7 +780,7 @@ always owned, never in the world
 		/* pickup */    "HyperBlaster",
 		0,
 		1,
-		"Cells",
+		ITEM_CELLS,
 		IT_WEAPON_MASK,
 		WEAP_HYPERBLASTER,
 		0,
@@ -688,7 +804,7 @@ always owned, never in the world
 /* pickup */ "Ionripper",
 		0,
 		2,
-		"Cells",
+		ITEM_CELLS,
 		IT_WEAPON_MASK,
 		WEAP_BOOMER,
 		0,
@@ -714,7 +830,7 @@ always owned, never in the world
 		0,													// number of digits for statusbar
 		// FIXME - if this changes, change it in NoAmmoWeaponChange as well
 		2,													// amount used / contained
-		"Cells",											// ammo type used 
+		ITEM_CELLS,											// ammo type used 
 		IT_WEAPON_MASK,										// inventory flags
 		WEAP_PLASMA,										// visible weapon
 		0,												// info (void *)
@@ -738,7 +854,7 @@ always owned, never in the world
 		/* pickup */    "Railgun",
 		0,
 		1,
-		"Slugs",
+		ITEM_SLUGS,
 		IT_WEAPON_MASK,
 		WEAP_RAILGUN,
 		0,
@@ -762,7 +878,7 @@ always owned, never in the world
 /* pickup */ "Phalanx",
 		0,
 		1,
-		"Mag Slug",
+		ITEM_MAG_SLUG,
 		IT_WEAPON_MASK,
 		WEAP_PHALANX,
 		0,
@@ -786,7 +902,7 @@ always owned, never in the world
 		/* pickup */    "BFG10K",
 		0,
 		50,
-		"Cells",
+		ITEM_CELLS,
 		IT_WEAPON_MASK,
 		WEAP_BFG,
 		0,
@@ -810,7 +926,7 @@ always owned, never in the world
 		"Disruptor",										// name printed when picked up 
 		0,													// number of digits for statusbar
 		1,													// amount used / contained
-		"Rounds",
+		ITEM_ROUNDS,
 		IT_WEAPON_MASK,											// inventory flags
 		WEAP_DISRUPTOR,										// visible weapon
 		0,												// info (void *)
@@ -1024,7 +1140,7 @@ always owned, never in the world
 /* pickup */	"A-M Bomb",
 /* width */		3,
 		300, /* quantity (used for respawn time) */
-		"A-M Bomb",
+		ITEM_AM_BOMB,
 		IT_POWERUP,	
 		0,
 		0,

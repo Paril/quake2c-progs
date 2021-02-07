@@ -207,7 +207,7 @@ static void(entity self, vector start, vector aimdir, int damage, int kick, int 
 				gi.WriteDir(tr.normal);
 				gi.multicast(tr.endpos, MULTICAST_PVS);
 
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 				if (self.is_client)
 					PlayerNoise(self, tr.endpos, PNOISE_IMPACT);
 #endif
@@ -287,7 +287,7 @@ static void(entity self, entity other, vector normal, csurface_t surf) blaster_t
 		G_FreeEdict(self);
 		return;
 	}
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	if (self.owner.is_client)
 		PlayerNoise(self.owner, self.s.origin, PNOISE_IMPACT);
@@ -383,7 +383,7 @@ void(entity ent) Grenade_Explode =
 {
 	vector	origin;
 	int	mod;
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	if (ent.owner.is_client)
 		PlayerNoise(ent.owner, ent.s.origin, PNOISE_IMPACT);
@@ -562,7 +562,6 @@ fire_rocket
 static void(entity ent, entity other, vector normal, csurface_t surf) rocket_touch =
 {
 	vector	origin;
-	int	n;
 
 	if (other == ent.owner)
 		return;
@@ -572,7 +571,7 @@ static void(entity ent, entity other, vector normal, csurface_t surf) rocket_tou
 		G_FreeEdict(ent);
 		return;
 	}
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	if (ent.owner.is_client)
 		PlayerNoise(ent.owner, ent.s.origin, PNOISE_IMPACT);
@@ -589,7 +588,7 @@ static void(entity ent, entity other, vector normal, csurface_t surf) rocket_tou
 	{
 		if ((surf) && !(surf.flags & (SURF_WARP | SURF_TRANS33 | SURF_TRANS66 | SURF_FLOWING)))
 		{
-			n = Q_rand() % 5;
+			int n = Q_rand() % 5;
 			while (n--)
 				ThrowDebris(ent, "models/objects/debris2/tris.md2", 2, ent.s.origin);
 		}
@@ -706,7 +705,7 @@ void(entity self, vector start, vector aimdir, int damage, int kick) fire_rail =
 		gi.WritePosition(tr.endpos);
 		gi.multicast(tr.endpos, MULTICAST_PHS);
 	}
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	if (self.is_client)
 		PlayerNoise(self, tr.endpos, PNOISE_IMPACT);
@@ -773,7 +772,7 @@ static void(entity self, entity other, vector normal, csurface_t surf) bfg_touch
 		G_FreeEdict(self);
 		return;
 	}
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 
 	if (self.owner.is_client)
 		PlayerNoise(self.owner, self.s.origin, PNOISE_IMPACT);

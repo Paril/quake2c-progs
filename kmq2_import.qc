@@ -32,6 +32,9 @@ PROGS_LOCAL var struct {
 	int(variant *buffer, int size, file_handle_t f)	FRead;
 	int(variant *buffer, int size, file_handle_t f)	FWrite;
 	
+	int(out string buffer, int size, file_handle_t f)	FReadString;
+	int(string buffer, int size, file_handle_t f)		FWriteString;
+	
 	string()	GameDir;
 	string()	SaveGameDir;
 	
@@ -46,6 +49,9 @@ PROGS_LOCAL var struct {
 
 	#0:FRead,
 	#0:FWrite,
+	
+	#0:FReadString,
+	#0:FWriteString,
 
 	#0:GameDir,
 	#0:SaveGameDir,

@@ -55,8 +55,10 @@ static void(entity self, entity other, vector plane, csurface_t surf) GrappleTou
 	}
 
 	self->velocity = vec3_origin;
+#if defined(SINGLE_PLAYER)
 
 	PlayerNoise(self.owner, self.s.origin, PNOISE_IMPACT);
+#endif
 
 	if (other.takedamage)
 	{
@@ -284,8 +286,10 @@ static void(entity ent, int damage, bool offhand) CTFGrappleFire =
 	gi.sound (ent, CHAN_RELIABLE+CHAN_WEAPON, gi.soundindex("weapons/grapple/grfire.wav"), volume, ATTN_NORM, 0);
 #endif
 	CTFFireGrapple (ent, start, forward, damage, GRAPPLE_SPEED, offhand);
+#if defined(SINGLE_PLAYER)
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
+#endif
 }
 
 #ifdef GRAPPLE

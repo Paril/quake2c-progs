@@ -38,7 +38,7 @@ static void(void) P_WorldEffects =
 	//
 	if (!old_waterlevel && current_waterlevel)
 	{
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 		PlayerNoise(current_player, current_player.s.origin, PNOISE_SELF);
 #endif
 
@@ -59,7 +59,7 @@ static void(void) P_WorldEffects =
 	//
 	if (old_waterlevel && !current_waterlevel)
 	{
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 		PlayerNoise(current_player, current_player.s.origin, PNOISE_SELF);
 #endif
 		gi.sound(current_player, CHAN_BODY, gi.soundindex("player/watr_out.wav"), 1, ATTN_NORM, 0);
@@ -78,12 +78,12 @@ static void(void) P_WorldEffects =
 	if (old_waterlevel == 3 && current_waterlevel != 3)
 	{
 		if (current_player.air_finished_framenum < level.framenum)
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 		{
 #endif
 			// gasp for air
 			gi.sound(current_player, CHAN_VOICE, gi.soundindex("player/gasp1.wav"), 1, ATTN_NORM, 0);
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 			PlayerNoise(current_player, current_player.s.origin, PNOISE_SELF);
 		}
 #endif
@@ -109,7 +109,7 @@ static void(void) P_WorldEffects =
 				else
 					gi.sound(current_player, CHAN_AUTO, gi.soundindex("player/u_breath2.wav"), 1, ATTN_NORM, 0);
 				current_player.client.breather_sound ^= 1;
-#ifdef SINGLE_PLAYER
+#if defined(SINGLE_PLAYER)
 				PlayerNoise(current_player, current_player.s.origin, PNOISE_SELF);
 #endif
 			}
